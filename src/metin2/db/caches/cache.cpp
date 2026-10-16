@@ -14,15 +14,12 @@
 #include <algorithm>
 #include <chrono>
 #include <cstddef>
-#include <cstdint>
 #include <cstring>
-#include <string>
 #include <vector>
 
 #include <sys/types.h>
 
 namespace metin2::db::inline caches {
-
     item_cache::item_cache() {
         expire_time_ = std::chrono::seconds(std::min(1800, metin2::config::db().item_cache_flush_seconds));
     }
@@ -39,22 +36,25 @@ namespace metin2::db::inline caches {
         data_.vnum = 0;
         need_query_ = true;
         last_update_time_ = clock::now();
+
         on_flush();
     }
 
     void item_cache::on_flush() {
         if (data_.vnum == 0) {
-            const std::string query = sql::format("DELETE FROM item{} WHERE id={}", sql::raw(get_table_postfix()), data_.id);
+            const auto query = sql::format("DELETE FROM item{} WHERE id={}", sql::raw(get_table_postfix()), data_.id);
+
             db_manager::instance().return_query(query, [](sql_msg &) {});
 
             if (metin2::config::test_server()) {
                 metin2::log::debug("Item cache: deleting item {:d}: {}", data_.id, query);
             }
         } else {
-            const std::string query = create_item_save_query(data_);
+            const auto query = create_item_save_query(data_);
 
-            if (metin2::config::test_server())
+            if (metin2::config::test_server()) {
                 metin2::log::debug("Item cache: saving item: {}", query);
+            }
 
             db_manager::instance().return_query(query, [](sql_msg &) {});
 
@@ -69,11 +69,13 @@ namespace metin2::db::inline caches {
     }
 
     void player_table_cache::on_flush() {
-        if (metin2::config::test_server())
+        if (metin2::config::test_server()) {
             metin2::log::debug("Player cache: saving player {}", data_.name);
+        }
 
-        const std::string query = create_player_save_query(&data_);
-        db_manager::instance().return_query(query, [](sql_msg &) {});
+        const auto query = create_player_save_query(&data_);
+
+        db_manager::instance().return_query(query, [](sql_msg &) -> void {});
     }
 
     const int item_price_list_table_cache::min_flush_sec_ = 1800;
@@ -83,7 +85,6 @@ namespace metin2::db::inline caches {
     }
 
     void item_price_list_table_cache::update_list(const item_price_list_table *update_list) {
-
         std::vector<item_price_info> tmpvec;
 
         for (uint idx = 0; idx < data_.count; ++idx) {
@@ -91,8 +92,9 @@ namespace metin2::db::inline caches {
             for (; pos != update_list->price_info + update_list->count && data_.price_info[idx].vnum != pos->vnum; ++pos)
                 ;
 
-            if (pos == update_list->price_info + update_list->count)
+            if (pos == update_list->price_info + update_list->count) {
                 tmpvec.push_back(data_.price_info[idx]);
+            }
         }
 
         if (update_list->count > SHOP_PRICELIST_MAX_NUM) {
@@ -129,14 +131,15 @@ namespace metin2::db::inline caches {
     }
 
     void item_price_list_table_cache::on_flush() {
-        const std::string query = sql::format("DELETE FROM myshop_pricelist{} WHERE owner_id = {}", sql::raw(get_table_postfix()), data_.owner_id);
+        const auto query = sql::format("DELETE FROM myshop_pricelist{} WHERE owner_id = {}", sql::raw(get_table_postfix()), data_.owner_id);
         db_manager::instance().return_query(query, [](sql_msg &) {});
 
         for (int idx = 0; idx < data_.count; ++idx) {
-            const std::string replace_query = sql::format(
+            const auto replace_query = sql::format(
                 "REPLACE myshop_pricelist{} (owner_id, item_vnum, price) VALUES({}, {}, {})",
                 sql::raw(get_table_postfix()), data_.owner_id, data_.price_info[idx].vnum, data_.price_info[idx].price);
-            db_manager::instance().return_query(replace_query, [](sql_msg &) {});
+
+            db_manager::instance().return_query(replace_query, [](sql_msg &) -> void {});
         }
 
         metin2::log::debug("Price list: saving {1:d} items for owner pid {0:d}", data_.owner_id, data_.count);

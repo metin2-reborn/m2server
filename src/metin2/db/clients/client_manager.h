@@ -33,7 +33,6 @@ namespace metin2::db::inline caches {
 }
 
 namespace metin2::db::inline clients {
-
     auto create_player_save_query(const player_table *tab) -> std::string;
 
     inline constexpr std::string_view item_select_columns =
@@ -82,6 +81,7 @@ namespace metin2::db::inline clients {
 
       public:
         client_manager();
+
         ~client_manager() override;
 
         auto initialize() -> bool;
@@ -384,6 +384,7 @@ namespace metin2::db::inline clients {
         };
 
         using logout_player_map = std::unordered_map<uint32_t, std::unique_ptr<logout_player>>;
+
         logout_player_map map_logout_;
 
         void insert_logout_player(uint32_t pid);
@@ -419,9 +420,11 @@ namespace metin2::db::inline clients {
 
     template <class Func>
     void client_manager::for_each_peer(Func &&f) {
-        for (peer *p : peer_list_)
+        for (peer *p : peer_list_) {
             f(p);
+        }
     }
+
     extern int item_count;
     extern int query_count[2];
 

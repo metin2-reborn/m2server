@@ -33,18 +33,21 @@
 #include <vector>
 
 namespace metin2::db::inline clients {
-
     namespace {
         auto load_locale_names(const char *file_name) -> std::map<int, std::string> {
             std::map<int, std::string> names;
+
             c_csv_table table;
             if (!table.load(file_name, '\t')) {
                 metin2::log::warn("Cannot read {}", file_name);
                 return names;
             }
+
             table.next();
-            while (table.next())
+            while (table.next()) {
                 names[atoi(table.as_string_by_index(0))] = table.as_string_by_index(1);
+            }
+
             return names;
         }
 
@@ -69,14 +72,16 @@ namespace metin2::db::inline clients {
             } else {
                 test_data.next();
                 while (test_data.next()) {
-                    if (!parse(&test_tables.emplace_back(), test_data, names))
+                    if (!parse(&test_tables.emplace_back(), test_data, names)) {
                         metin2::log::error("{}", files.parse_error);
+                    }
                 }
             }
 
             std::map<uint32_t, const Table *> test_by_vnum;
-            for (const auto &table : test_tables)
+            for (const auto &table : test_tables) {
                 test_by_vnum.try_emplace(table.vnum, &table);
+            }
 
             c_csv_table data;
             if (!data.load(files.proto, '\t')) {
@@ -88,6 +93,7 @@ namespace metin2::db::inline clients {
                 metin2::log::info("{}", files.reloading);
                 tables.clear();
             }
+
             tables.reserve(data.row_count() + test_tables.size());
 
             std::set<uint32_t> proto_vnums;
@@ -105,14 +111,16 @@ namespace metin2::db::inline clients {
 
             const size_t proto_count = tables.size();
             for (const auto &table : test_tables) {
-                if (!proto_vnums.contains(table.vnum))
+                if (!proto_vnums.contains(table.vnum)) {
                     tables.push_back(table);
+                }
             }
+
             return proto_count;
         }
 
         auto load_item_attr_table(const char *table_name, std::vector<item_attr_table> &tables) -> bool {
-            const std::string query = sql::format(
+            const auto query = sql::format(
                 "SELECT apply, apply+0, prob, lv1, lv2, lv3, lv4, lv5, weapon, body, wrist, foots, neck, head, shield, ear FROM {}{} ORDER BY apply",
                 sql::raw(table_name), sql::raw(get_table_postfix()));
 
@@ -142,10 +150,14 @@ namespace metin2::db::inline clients {
                 strlcpy(t.apply, data[col++], sizeof(t.apply));
                 str_to_number(t.apply_index, data[col++]);
                 str_to_number(t.prob, data[col++]);
-                for (auto &value : t.values)
+
+                for (auto &value : t.values) {
                     str_to_number(value, data[col++]);
-                for (const int set : sets)
+                }
+
+                for (const int set : sets) {
                     str_to_number(t.max_level_by_set[set], data[col++]);
+                }
 
                 metin2::log::debug("{}: apply {} prob {:d}, values {:d} {:d} {:d} {:d} {:d}, max level weapon {:d} body {:d} wrist {:d} foots {:d} neck {:d} head {:d} shield {:d} ear {:d}",
                     table_name,
@@ -172,8 +184,10 @@ namespace metin2::db::inline clients {
         }
 
         auto locale_name_fragments(const char *locale_name) -> std::pair<std::string, std::string> {
-            if (locale_name_column == "name")
+            if (locale_name_column == "name") {
                 return {};
+            }
+
             return {", " + locale_name_column, sql::format(", {}", locale_name)};
         }
     }
@@ -183,6 +197,7 @@ namespace metin2::db::inline clients {
             metin2::log::error("Cannot load mob table");
             return false;
         }
+
         if (!mirror_mob_table_into_db()) {
             metin2::log::error("Cannot mirror mob table into the database");
             return false;
@@ -252,15 +267,16 @@ namespace metin2::db::inline clients {
     }
 
     auto client_manager::initialize_refine_table() -> bool {
-        const std::string query = sql::format(
+        const auto query = sql::format(
             "SELECT id, cost, prob, vnum0, count0, vnum1, count1, vnum2, count2,  vnum3, count3, vnum4, count4 FROM refine_proto{}",
             sql::raw(get_table_postfix()));
 
         auto msg = db_manager::instance().direct_query(query);
         sql_result *res = msg->get();
 
-        if (!res->num_rows)
+        if (!res->num_rows) {
             return true;
+        }
 
         if (refine_table_) {
             metin2::log::info("Reloading refine_proto");
@@ -276,8 +292,8 @@ namespace metin2::db::inline clients {
         MYSQL_ROW data;
 
         while ((data = mysql_fetch_row(res->res.get()))) {
-
             int col = 0;
+
             str_to_number(prt->id, data[col++]);
             str_to_number(prt->cost, data[col++]);
             str_to_number(prt->prob, data[col++]);
@@ -305,13 +321,16 @@ namespace metin2::db::inline clients {
 
         // The test override has never carried the mob colour.
         const auto proto_count = load_proto<mob_table>(files, set_proto_mob_table, [](mob_table &t) { t.mob_color = 0; }, vec_mob_table_);
-        if (!proto_count)
+        if (!proto_count) {
             return false;
+        }
 
-        for (const auto &t : std::span(vec_mob_table_).first(*proto_count))
+        for (const auto &t : std::span(vec_mob_table_).first(*proto_count)) {
             metin2::log::debug("Mob {1} / {2} (vnum {0:d}) level {3:d} rank {4:d} empire {5:d}", t.vnum, t.name, t.locale_name, t.level, t.rank, t.empire);
+        }
 
         std::ranges::sort(vec_mob_table_, {}, &mob_table::vnum);
+
         return true;
     }
 
@@ -358,13 +377,15 @@ namespace metin2::db::inline clients {
                 shop_table->vnum = shop_vnum;
 
                 map_shop[shop_vnum] = std::move(shop_table_value);
-            } else
+            } else {
                 shop_table = map_shop[shop_vnum].get();
+            }
 
             str_to_number(shop_table->npc_vnum, data[col++]);
 
-            if (!data[col])
+            if (!data[col]) {
                 continue;
+            }
 
             if (shop_table->item_count >= SHOP_HOST_ITEM_MAX_NUM) {
                 metin2::log::error("Shop {:d} has more than {:d} items; the rest are ignored", shop_vnum, SHOP_HOST_ITEM_MAX_NUM);
@@ -402,8 +423,10 @@ namespace metin2::db::inline clients {
             t.vnum_range = 0;
             t.specular = 0;
         };
-        if (!load_proto<item_table>(files, set_proto_item_table, reset_untaken, vec_item_table_))
+
+        if (!load_proto<item_table>(files, set_proto_item_table, reset_untaken, vec_item_table_)) {
             return false;
+        }
 
         std::ranges::sort(vec_item_table_, {}, &proto::item_table::vnum);
         map_item_table_by_vnum_.clear();
@@ -430,6 +453,7 @@ namespace metin2::db::inline clients {
 
             map_item_table_by_vnum_.emplace(t.vnum, &t);
         }
+
         return true;
     }
 
@@ -523,11 +547,11 @@ namespace metin2::db::inline clients {
 
         sql_result *res = msg->get();
 
-        if (res->num_rows == 0)
+        if (res->num_rows == 0) {
             return true;
+        }
 
         MYSQL_ROW data;
-
         while ((data = mysql_fetch_row(res->res.get()))) {
             banword_table t;
 
@@ -569,7 +593,7 @@ namespace metin2::db::inline clients {
 
         MYSQL_ROW data;
 
-        if (res->num_rows > 0)
+        if (res->num_rows > 0) {
             while ((data = mysql_fetch_row(res->res.get()))) {
                 land_table t;
 
@@ -591,6 +615,7 @@ namespace metin2::db::inline clients {
 
                 vec_land_table_.push_back(t);
             }
+        }
 
         return true;
     }
@@ -612,8 +637,9 @@ namespace metin2::db::inline clients {
                 if (comma) {
                     *comma = '\0';
                     str_to_number(k.second, comma + 1);
-                } else
+                } else {
                     k.second = 0;
+                }
 
                 str_to_number(k.first, num);
                 vec.push_back(k);
@@ -631,10 +657,12 @@ namespace metin2::db::inline clients {
             if (comma) {
                 *comma = '\0';
                 str_to_number(k.second, comma + 1);
-            } else
+            } else {
                 k.second = 0;
+            }
 
             str_to_number(k.first, num);
+
             vec.push_back(k);
         }
     }
@@ -832,7 +860,6 @@ namespace metin2::db::inline clients {
                 "{}, {}, {}, {}, {}, {} )",
                 sql::raw(get_table_postfix()), sql::raw(locale_column),
                 t.vnum, t.type, t.sub_type, t.name, sql::raw(locale_value), static_cast<int32_t>(t.gold), t.shop_buy_price, t.weight, t.size,
-                // Signed columns: keep the bit pattern the old printf %d wrote.
                 static_cast<int32_t>(t.flags), static_cast<int32_t>(t.wear_flags), static_cast<int32_t>(t.anti_flags), t.immune_flag,
                 t.refined_vnum, t.refine_set, t.alter_to_magic_item_pct, t.gain_socket_pct, t.s_addon_type, t.specular,
                 t.limits[0].type, t.limits[0].value, t.limits[1].type, t.limits[1].value,

@@ -11,7 +11,6 @@
 #include <system_error>
 
 namespace metin2::db::inline clients {
-
     class peer : public net::connection_handler {
       public:
 #pragma pack(1)
@@ -21,12 +20,14 @@ namespace metin2::db::inline clients {
             uint32_t size;
         };
 #pragma pack()
+
         enum state {
             STATE_CLOSE = 0,
             STATE_PLAYING = 1
         };
 
         explicit peer(std::shared_ptr<net::connection> connection);
+
         ~peer() override;
 
         auto on_receive(std::span<std::uint8_t> input, std::size_t received) -> std::size_t override;

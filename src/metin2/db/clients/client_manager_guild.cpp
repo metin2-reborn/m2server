@@ -18,7 +18,6 @@
 #include <string>
 
 namespace metin2::db::inline clients {
-
     void client_manager::guild_create(peer *peer, uint32_t guild_id) {
         metin2::log::info("Guild: created guild {:d}", guild_id);
         forward_packet(HEADER_DG_GUILD_LOAD, &guild_id, sizeof(uint32_t));
@@ -28,6 +27,7 @@ namespace metin2::db::inline clients {
 
     void client_manager::guild_change_grade(peer *peer, packet_guild *p) {
         metin2::log::info("Guild: guild {:d} changed grade {:d}", p->guild, p->info);
+
         forward_packet(HEADER_DG_GUILD_CHANGE_GRADE, p, sizeof(packet_guild));
     }
 
@@ -53,8 +53,9 @@ namespace metin2::db::inline clients {
 
         MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res.get());
 
-        if (!row[0] || !row[1])
+        if (!row[0] || !row[1]) {
             return;
+        }
 
         packet_dg_guild_member dg;
 
@@ -113,14 +114,10 @@ namespace metin2::db::inline clients {
 
     auto get_war_type(int n) -> const char * {
         switch (n) {
-        case 0:
-            return "패왕";
-        case 1:
-            return "맹장";
-        case 2:
-            return "수호";
-        default:
-            return "없는 번호";
+        case 0:  return "패왕";
+        case 1:  return "맹장";
+        case 2:  return "수호";
+        default: return "없는 번호";
         }
     }
 
@@ -144,10 +141,11 @@ namespace metin2::db::inline clients {
                 metin2::log::info("Guild war (type {}): between guild {:d} and guild {:d} reserved", get_war_type(p->type), p->guild_from, p->guild_to);
             guild_manager::instance().remove_declare(p->guild_from, p->guild_to);
 
-            if (!guild_manager::instance().reserve_war(p))
+            if (!guild_manager::instance().reserve_war(p)) {
                 p->war = GUILD_WAR_CANCEL;
-            else
+            } else {
                 p->war = GUILD_WAR_RESERVE;
+            }
 
             break;
 

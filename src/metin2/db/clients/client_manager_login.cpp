@@ -27,20 +27,19 @@
 #include <strings.h>
 
 namespace metin2::db::inline clients {
-
     auto client_manager::insert_logon_account(const char *login, uint32_t handle) -> bool {
         char login_value[LOGIN_MAX_LEN + 1];
         trim_and_lower(login, login_value);
 
         auto it = map_logon_account_.find(login_value);
-
-        if (map_logon_account_.end() != it)
+        if (map_logon_account_.end() != it) {
             return false;
+        }
 
         login_data *ld = get_login_data_by_login(login);
-
-        if (!ld)
+        if (!ld) {
             return false;
+        }
 
         ld->set_connected_peer_handle(handle);
 
@@ -53,9 +52,9 @@ namespace metin2::db::inline clients {
         trim_and_lower(login, login_value);
 
         auto it = map_logon_account_.find(login_value);
-
-        if (it == map_logon_account_.end())
+        if (it == map_logon_account_.end()) {
             return false;
+        }
 
         login_data *ld = it->second;
 
@@ -65,7 +64,6 @@ namespace metin2::db::inline clients {
         }
 
         ld->set_play(false);
-
         if (ld->is_deleted()) {
             delete ld;
         }
@@ -78,14 +76,14 @@ namespace metin2::db::inline clients {
         char login_value[LOGIN_MAX_LEN + 1];
         trim_and_lower(login, login_value);
 
-        if (map_logon_account_.end() == map_logon_account_.find(login_value))
+        if (map_logon_account_.end() == map_logon_account_.find(login_value)) {
             return false;
+        }
 
         return true;
     }
 
     void client_manager::query_login_by_key(peer *peer_value, uint32_t handle_value, packet_gd_login_by_key *p) {
-
         login_data *login_data = get_login_data(p->login_key);
         char login_value[LOGIN_MAX_LEN + 1];
         trim_and_lower(p->login, login_value);
@@ -174,9 +172,9 @@ namespace metin2::db::inline clients {
         MYSQL_ROW row = mysql_fetch_row(msg.get()->res.get());
 
         int col = 0;
-
-        for (; col < PLAYER_PER_ACCOUNT; ++col)
+        for (; col < PLAYER_PER_ACCOUNT; ++col) {
             str_to_number(info->account_table->players[col].id, row[col]);
+        }
 
         str_to_number(info->account_table->empire, row[col++]);
 
@@ -200,8 +198,9 @@ namespace metin2::db::inline clients {
     }
 
     void create_account_player_data_from_res(MYSQL_RES *res, account_table *tab) {
-        if (!res)
+        if (!res) {
             return;
+        }
 
         for (uint32_t i = 0; i < mysql_num_rows(res); ++i) {
             MYSQL_ROW row = mysql_fetch_row(res);
@@ -210,8 +209,9 @@ namespace metin2::db::inline clients {
             uint32_t player_id = 0;
             !row[col++] ? 0 : str_to_number(player_id, row[col - 1]);
 
-            if (!player_id)
+            if (!player_id) {
                 continue;
+            }
 
             int j;
 
@@ -237,10 +237,11 @@ namespace metin2::db::inline clients {
                         tab->players[j].skill_group = pt->skill_group;
                         tab->players[j].change_name = 0;
                     } else {
-                        if (!row[col++])
+                        if (!row[col++]) {
                             *tab->players[j].name = '\0';
-                        else
+                        } else {
                             strlcpy(tab->players[j].name, row[col - 1], sizeof(tab->players[j].name));
+                        }
 
                         tab->players[j].job = 0;
                         tab->players[j].level = 0;
@@ -291,8 +292,9 @@ namespace metin2::db::inline clients {
         } else {
             metin2::log::info("Login: account {} logged in ({:d} players)", info->account_table->login, msg.get()->num_rows);
 
-            if (msg.get()->num_rows > 0)
+            if (msg.get()->num_rows > 0) {
                 create_account_player_data_from_res(msg.get()->res.get(), info->account_table.get());
+            }
 
             login_data *p = get_login_data_by_login(info->account_table->login);
             memcpy(&p->account_ref(), info->account_table.get(), sizeof(account_table));
@@ -304,35 +306,39 @@ namespace metin2::db::inline clients {
 
     void client_manager::query_logout(peer *peer, uint32_t handle_value, const char *data) {
         auto *packet = (logout_packet *)data;
-
-        if (!*packet->login)
+        if (!*packet->login) {
             return;
+        }
 
         login_data *login_data = get_login_data_by_login(packet->login);
-
-        if (login_data == nullptr)
+        if (login_data == nullptr) {
             return;
+        }
 
         int pid[PLAYER_PER_ACCOUNT];
 
         for (int n = 0; n < PLAYER_PER_ACCOUNT; ++n) {
             if (login_data->account_ref().players[n].id == 0) {
-                if (metin2::config::test_server())
+                if (metin2::config::test_server()) {
                     metin2::log::debug("Logout: account {} has empty slot (pid {:d})", packet->login, login_data->account_ref().players[n].id);
+                }
+
                 continue;
             }
 
             pid[n] = login_data->account_ref().players[n].id;
 
-            if (metin2::config::db().login_log)
+            if (metin2::config::db().login_log) {
                 metin2::log::info("Logout: account {}, player pid {:d}", packet->login, pid[n]);
+            }
 
             insert_logout_player(pid[n]);
         }
 
         if (delete_logon_account(packet->login, peer->handle())) {
-            if (metin2::config::db().login_log)
+            if (metin2::config::db().login_log) {
                 metin2::log::info("Logout: account {}", packet->login);
+            }
         }
     }
 

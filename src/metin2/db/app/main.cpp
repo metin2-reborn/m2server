@@ -34,17 +34,18 @@ namespace metin2::db::inline app {
     int logout_seconds = 60 * 10;
 
     void emergency_sig(int sig) {
-        if (sig == SIGSEGV)
+        if (sig == SIGSEGV) {
             metin2::log::error("Received SIGSEGV");
-        else if (sig == SIGUSR1)
+        } else if (sig == SIGUSR1) {
             metin2::log::info("Received SIGUSR1");
+        }
 
-        if (sig == SIGSEGV)
+        if (sig == SIGSEGV) {
             abort();
+        }
     }
 
     auto run() -> int {
-
         struct core_cleanup {
             ~core_cleanup() { thecore_destroy(); }
         } core_cleanup;
@@ -58,8 +59,10 @@ namespace metin2::db::inline app {
         marriage::manager marriage_manager;
         monarch monarch;
         item_id_range_manager item_id_range_manager;
-        if (!start())
+
+        if (!start()) {
             return 1;
+        }
 
         guild_manager.initialize();
         marriage_manager.initialize();
@@ -80,8 +83,9 @@ namespace metin2::db::inline app {
             count += db_manager::instance().return_stats(SQL_PLAYER).queued;
             count += db_manager::instance().async_stats(SQL_PLAYER).queued;
 
-            if (count == 0)
+            if (count == 0) {
                 break;
+            }
 
             usleep(1000);
             metin2::log::info("Waiting for {:d} pending queries to finish", count);
@@ -108,10 +112,12 @@ namespace metin2::db::inline app {
     }
 
     auto start() -> int {
-        const metin2::config::db_settings &db = metin2::config::db();
+        const auto &db = metin2::config::db();
 
-        if (!thecore_init(db.heart_fps))
+        if (!thecore_init(db.heart_fps)) {
             return false;
+        }
+
         signal_timer_enable(60);
 
         set_table_postfix(metin2::config::database().table_postfix.c_str());
@@ -119,10 +125,13 @@ namespace metin2::db::inline app {
         client_manager::instance().set_player_id_start(db.player_id_start);
         locale_name_column = db.name_column;
 
-        const metin2::config::database_settings &database = metin2::config::database();
-        if (!connect_database(SQL_PLAYER, database.player) || !connect_database(SQL_ACCOUNT, database.account) ||
-            !connect_database(SQL_COMMON, database.common))
+        const auto &database = metin2::config::database();
+        if (!connect_database(SQL_PLAYER, database.player) ||
+            !connect_database(SQL_ACCOUNT, database.account) ||
+            !connect_database(SQL_COMMON, database.common)) {
             return false;
+        }
+
         set_player_db_name(database.player.c_str());
 
         metin2::log::info("Initialising client manager");
@@ -140,10 +149,11 @@ namespace metin2::db::inline app {
     }
 
     void set_table_postfix(const char *postfix) {
-        if (!postfix || !*postfix)
+        if (!postfix || !*postfix) {
             table_postfix = "";
-        else
+        } else {
             table_postfix = postfix;
+        }
     }
 
     auto get_table_postfix() -> const char * {
@@ -151,9 +161,9 @@ namespace metin2::db::inline app {
     }
 
     void set_player_db_name(const char *name) {
-        if (!name || !*name)
+        if (!name || !*name) {
             player_db_name = "";
-        else {
+        } else {
             player_db_name = name;
             player_db_name += ".";
         }

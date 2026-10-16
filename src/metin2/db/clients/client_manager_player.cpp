@@ -27,14 +27,12 @@
 #include <ctime>
 #include <map>
 #include <memory>
-#include <set>
 #include <string>
 #include <string_view>
 #include <utility>
 #include <vector>
 
 namespace metin2::db::inline clients {
-
     auto create_item_table_from_res(MYSQL_RES *res, std::vector<player_item> *vec, uint32_t pid) -> bool {
         if (!res) {
             vec->clear();
@@ -84,7 +82,6 @@ namespace metin2::db::inline clients {
             "VALUES({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
             sql::raw(get_table_postfix()),
             item.id, item.owner, item.window, item.pos, item.count, item.vnum,
-            // Unsigned columns: keep the bit pattern of negative sockets.
             static_cast<uint32_t>(item.sockets[0]), static_cast<uint32_t>(item.sockets[1]), static_cast<uint32_t>(item.sockets[2]),
             item.attr[0].type, item.attr[0].s_value,
             item.attr[1].type, item.attr[1].s_value,
@@ -188,9 +185,9 @@ namespace metin2::db::inline clients {
 
     auto client_manager::player_cache(uint32_t id) -> player_table_cache * {
         auto it = map_player_cache_.find(id);
-
-        if (it == map_player_cache_.end())
+        if (it == map_player_cache_.end()) {
             return nullptr;
+        }
 
         player_table *table = it->second->get(false);
         table->logoff_interval = it->second->seconds_since_update();
@@ -198,10 +195,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::put_player_cache(player_table *updated) {
-        player_table_cache *c;
-
-        c = player_cache(updated->id);
-
+        auto *c = player_cache(updated->id);
         if (!c) {
             c = map_player_cache_.emplace(updated->id, std::make_unique<player_table_cache>()).first->second.get();
         }
@@ -223,9 +217,11 @@ namespace metin2::db::inline clients {
         login_data *login_data_value = get_login_data_by_aid(packet->account_id);
 
         if (login_data_value) {
-            for (int n = 0; n < PLAYER_PER_ACCOUNT; ++n)
-                if (login_data_value->account_ref().players[n].id != 0)
+            for (int n = 0; n < PLAYER_PER_ACCOUNT; ++n) {
+                if (login_data_value->account_ref().players[n].id != 0) {
                     delete_logout_player(login_data_value->account_ref().players[n].id);
+                }
+            }
         }
 
         if ((c = player_cache(packet->player_id))) {
@@ -271,8 +267,9 @@ namespace metin2::db::inline clients {
                     item_cache *c = *it++;
                     player_item *p = c->get();
 
-                    if (p->vnum)
+                    if (p->vnum) {
                         std::memcpy(&s_items[count++], p, sizeof(player_item));
+                    }
                 }
 
                 if (metin2::config::test_server())
@@ -281,8 +278,9 @@ namespace metin2::db::inline clients {
                 peer->encode_header(HEADER_DG_ITEM_LOAD, handle_value, sizeof(uint32_t) + sizeof(player_item) * count);
                 peer->encode_dword(count);
 
-                if (count)
+                if (count) {
                     peer->encode(s_items.data(), sizeof(player_item) * count);
+                }
 
                 query = sql::format("SELECT dwPID,szName,szState,lValue FROM quest{} WHERE dwPID={} AND lValue<>0",
                     sql::raw(get_table_postfix()), tab->id);
@@ -335,28 +333,37 @@ namespace metin2::db::inline clients {
     }
     void client_manager::item_award(peer *peer, char *login) {
         std::string login_t = login;
-        std::set<db::items::item_award *> *set = item_award_manager::instance().by_login(login_t.c_str());
-        if (set == nullptr)
+
+        auto *set = item_award_manager::instance().by_login(login_t.c_str());
+        if (set == nullptr) {
             return;
-        for (const db::items::item_award *award : *set)
+        }
+
+        for (const db::items::item_award *award : *set) {
             inform_gift_award(award->login, award->why, award->vnum);
+        }
     }
 
     void client_manager::inform_gift_award(const char *login, const char *why, uint32_t vnum) {
         const std::string_view text(why);
-        if (!text.starts_with("[GIFT") || (text.size() > 5 && text[5] != ']'))
+        if (!text.starts_with("[GIFT") || (text.size() > 5 && text[5] != ']')) {
             return;
+        }
 
         packet_item_award_infromer gift_data{};
+
         strlcpy(gift_data.login, login, sizeof(gift_data.login));
         strlcpy(gift_data.command, "GIFT", sizeof(gift_data.command));
+
         gift_data.vnum = vnum;
+
         forward_packet(HEADER_DG_ITEMAWARD_INFORMER, &gift_data, sizeof(gift_data));
     }
 
     auto create_player_table_from_res(MYSQL_RES *res, player_table *tab) -> bool {
-        if (mysql_num_rows(res) == 0)
+        if (mysql_num_rows(res) == 0) {
             return false;
+        }
 
         memset(tab, 0, sizeof(player_table));
 
@@ -399,14 +406,16 @@ namespace metin2::db::inline clients {
         str_to_number(tab->parts[PART_HAIR], row[col++]);
 
         std::memset(&tab->skills, 0, sizeof(tab->skills));
-        if (row[col])
+        if (row[col]) {
             std::memcpy(tab->skills, row[col], std::min<size_t>(lengths[col], sizeof(tab->skills)));
+        }
 
         col++;
 
         std::memset(tab->quickslot, 0, sizeof(tab->quickslot));
-        if (row[col])
+        if (row[col]) {
             std::memcpy(tab->quickslot, row[col], std::min<size_t>(lengths[col], sizeof(tab->quickslot)));
+        }
 
         col++;
 
@@ -441,8 +450,9 @@ namespace metin2::db::inline clients {
                     std::min<int>(20, tab->skills[142].level);
 
                 tab->sub_skill_point = max_point - skill_point;
-            } else
+            } else {
                 tab->sub_skill_point = 0;
+            }
         }
 
         return true;
@@ -473,8 +483,10 @@ namespace metin2::db::inline clients {
                 result_quest_load(peer, sql_result, info.handle, info.player_id);
 
                 login_data *login_data1 = get_login_data_by_aid(info.account_id);
-                if (login_data1 == nullptr)
+                if (login_data1 == nullptr) {
                     break;
+                }
+
                 item_award(peer, login_data1->account_ref().login);
             }
             break;
@@ -534,16 +546,17 @@ namespace metin2::db::inline clients {
         if (count) {
             peer->encode(s_items.data(), sizeof(player_item) * count);
 
-            for (uint32_t i = 0; i < count; ++i)
+            for (uint32_t i = 0; i < count; ++i) {
                 put_item_cache(&s_items[i], true);
+            }
         }
     }
 
     void client_manager::result_affect_load(peer *peer, MYSQL_RES *res, uint32_t handle) {
         int num_rows;
-
-        if ((num_rows = mysql_num_rows(res)) == 0)
+        if ((num_rows = mysql_num_rows(res)) == 0) {
             return;
+        }
 
         std::vector<packet_affect_element> s_elements(num_rows);
 
@@ -555,8 +568,9 @@ namespace metin2::db::inline clients {
             packet_affect_element &r = s_elements[i];
             row = mysql_fetch_row(res);
 
-            if (pid_value == 0)
+            if (pid_value == 0) {
                 str_to_number(pid_value, row[0]);
+            }
 
             str_to_number(r.type, row[1]);
             str_to_number(r.apply_on, row[2]);
@@ -611,8 +625,9 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::query_player_save(peer *peer, uint32_t handle, player_table *tab) {
-        if (metin2::config::test_server())
+        if (metin2::config::test_server()) {
             metin2::log::debug("Saving player {}", tab->name);
+        }
 
         put_player_cache(tab);
     }
@@ -711,8 +726,9 @@ namespace metin2::db::inline clients {
             packet->player_table.job);
 
         auto msg2 = db_manager::instance().direct_query(query);
-        if (metin2::config::test_server())
+        if (metin2::config::test_server()) {
             metin2::log::debug("Player create: query length {:d}", query.size());
+        }
 
         if (msg2->get()->affected_rows <= 0) {
             peer->encode_header(HEADER_DG_PLAYER_CREATE_ALREADY, handle, 0);
@@ -763,8 +779,9 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::query_player_delete(peer *peer, uint32_t handle_value, player_delete_packet *packet) {
-        if (!packet->login[0] || !packet->player_id || packet->account_index >= PLAYER_PER_ACCOUNT)
+        if (!packet->login[0] || !packet->player_id || packet->account_index >= PLAYER_PER_ACCOUNT) {
             return;
+        }
 
         login_data *ld = get_login_data_by_login(packet->login);
 
@@ -977,8 +994,9 @@ namespace metin2::db::inline clients {
             const std::string query = sql::format("INSERT INTO highscore{} VALUES({}, {}, {})", sql::raw(get_table_postfix()), board, pi.player_id, value);
             db_manager::instance().async_query(query);
         } else {
-            if (!res->res.get())
+            if (!res->res.get()) {
                 return;
+            }
 
             MYSQL_ROW row = mysql_fetch_row(res->res.get());
             if (row && row[0]) {
@@ -1001,16 +1019,19 @@ namespace metin2::db::inline clients {
         auto it = map_logout_.find(pid);
 
         if (it != map_logout_.end()) {
-            if (metin2::config::db().login_log)
+            if (metin2::config::db().login_log) {
                 metin2::log::info("Logout: refreshed logout time of pid {:d}", pid);
+            }
 
             it->second->time = time(nullptr);
             return;
         }
 
         auto logout_value = std::make_unique<logout_player>();
+
         logout_value->pid = pid;
         logout_value->time = time(nullptr);
+
         map_logout_.insert(std::make_pair(pid, std::move(logout_value)));
 
         if (metin2::config::db().login_log)
@@ -1019,7 +1040,6 @@ namespace metin2::db::inline clients {
 
     void client_manager::delete_logout_player(uint32_t pid) {
         auto it = map_logout_.find(pid);
-
         if (it != map_logout_.end()) {
             map_logout_.erase(it);
         }
@@ -1029,7 +1049,6 @@ namespace metin2::db::inline clients {
         time_t now = time(nullptr);
 
         auto it = map_logout_.begin();
-
         while (it != map_logout_.end()) {
             logout_player *logout = it->second.get();
 
@@ -1038,8 +1057,9 @@ namespace metin2::db::inline clients {
                 flush_player_cache_set(logout->pid);
 
                 map_logout_.erase(it++);
-            } else
+            } else {
                 ++it;
+            }
         }
     }
 
@@ -1048,6 +1068,7 @@ namespace metin2::db::inline clients {
 
         if (it != map_player_cache_.end()) {
             it->second->flush();
+
             map_player_cache_.erase(it);
         }
     }

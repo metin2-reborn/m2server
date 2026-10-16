@@ -54,7 +54,6 @@
 #include <strings.h>
 
 namespace metin2::db::inline clients {
-
     namespace {
         struct payload_part {
             const void *data;
@@ -64,16 +63,19 @@ namespace metin2::db::inline clients {
         void broadcast_to_game_peers(const client_manager::peer_list &peers, uint8_t header, const peer *requester,
             uint32_t requester_handle, uint32_t others_handle, std::initializer_list<payload_part> payload) {
             uint32_t size = 0;
-            for (const auto &part : payload)
+            for (const auto &part : payload) {
                 size += part.size;
+            }
 
             for (peer *p : peers) {
-                if (!p->channel())
+                if (!p->channel()) {
                     continue;
+                }
 
                 p->encode_header(header, p == requester ? requester_handle : others_handle, size);
-                for (const auto &part : payload)
+                for (const auto &part : payload) {
                     p->encode(part.data, part.size);
+                }
             }
         }
     }
@@ -112,8 +114,9 @@ namespace metin2::db::inline clients {
 
     void client_manager::destroy() {
         m_channel_status_.clear();
-        for (peer *peer : peer_list_)
+        for (peer *peer : peer_list_) {
             delete peer;
+        }
 
         peer_list_.clear();
 
@@ -142,12 +145,12 @@ namespace metin2::db::inline clients {
 
         guild_manager::instance().boot_reserve_war();
 
-        const metin2::config::db_settings &db = metin2::config::db();
+        const auto &db = metin2::config::db();
 
         listener_ = net::listener::open(db.bind_ip, db.port, [this](net::tcp::socket socket) { add_peer(std::move(socket)); });
-
-        if (!listener_)
+        if (!listener_) {
             return false;
+        }
 
         metin2::log::info("Listening for game peers on {}:{:d}", db.bind_ip, db.port);
 

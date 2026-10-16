@@ -16,7 +16,6 @@
 #include <utility>
 
 namespace metin2::db::inline clients {
-
     peer::peer(std::shared_ptr<net::connection> connection) : connection_(std::move(connection)) {
         input_consumed_ = 0;
         state_ = STATE_PLAYING;

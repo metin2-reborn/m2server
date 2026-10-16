@@ -7,7 +7,6 @@
 #include <cstdint>
 
 namespace metin2::db::inline caches {
-
     class item_cache : public cache<player_item> {
       public:
         item_cache();

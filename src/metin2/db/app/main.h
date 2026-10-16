@@ -3,7 +3,6 @@
 #include <string>
 
 namespace metin2::db::inline app {
-
     auto start() -> int;
     auto get_table_postfix() -> const char *;
     auto get_player_db_name() -> const char *;

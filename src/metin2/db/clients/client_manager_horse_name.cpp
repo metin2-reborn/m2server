@@ -14,7 +14,6 @@
 #include <string>
 
 namespace metin2::db::inline clients {
-
     void client_manager::update_horse_name(packet_update_horse_name *data, peer *peer) {
         const std::string query = sql::format("REPLACE INTO horse_name VALUES({}, {})", data->player_id, data->horse_name);
 

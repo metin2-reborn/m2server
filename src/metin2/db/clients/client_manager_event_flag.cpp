@@ -16,7 +16,6 @@
 #include <utility>
 
 namespace metin2::db::inline clients {
-
     void client_manager::load_event_flag() {
         const std::string query = sql::format("SELECT szName, lValue FROM quest{} WHERE dwPID = 0", sql::raw(get_table_postfix()));
         auto pmsg = db_manager::instance().direct_query(query);
@@ -58,15 +57,17 @@ namespace metin2::db::inline clients {
             metin2::log::info("Event flag: set {} = {:d}", p->flag_name, p->value);
             return;
         }
+
         metin2::log::debug("Event flag: {} already {:d}, unchanged", p->flag_name, p->value);
     }
 
     void client_manager::send_event_flags_on_setup(peer *peer) {
-        __typeof(map_event_flag_.begin()) it;
-        for (it = map_event_flag_.begin(); it != map_event_flag_.end(); ++it) {
+        for (auto it = map_event_flag_.begin(); it != map_event_flag_.end(); ++it) {
             packet_set_event_flag p;
+
             strlcpy(p.flag_name, it->first.c_str(), sizeof(p.flag_name));
             p.value = it->second;
+
             peer->encode_header(HEADER_DG_SET_EVENT_FLAG, 0, sizeof(packet_set_event_flag));
             peer->encode(&p, sizeof(packet_set_event_flag));
         }
