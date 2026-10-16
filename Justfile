@@ -28,10 +28,13 @@ format:
 deploy:
     # The containers run as a subuid that only gets the "other" permission bits on the mounted data.
     chmod -R a+rX dist/share dist/config
+    # The db flushes its caches to MariaDB on shutdown, so the servers stop, in order, before anything is recreated.
     # Afterwards remove only what this build left behind: the replaced image and the build stage.
     start=$(date +%s); \
     old=$(podman image inspect -f '{{{{.Id}}' {{image}} 2>/dev/null || true); \
     podman build -t {{image}} .; \
+    podman compose stop channel1-first auth >/dev/null 2>&1 || true; \
+    podman compose stop db >/dev/null 2>&1 || true; \
     podman compose up -d --force-recreate; \
     for id in $(podman images -q --no-trunc --filter dangling=true); do \
         id=${id#sha256:}; \
