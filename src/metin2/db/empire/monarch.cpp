@@ -183,7 +183,7 @@ namespace metin2::db::inline empire {
         monarch_info *p = &monarch_info_;
         char szQuery[256];
         snprintf(szQuery, sizeof(szQuery), "SELECT empire, pid, name, money, windate FROM monarch a, player%s b where a.pid=b.id", get_table_postfix());
-        std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(szQuery, SQL_PLAYER));
+        auto pMsg = db_manager::instance().direct_query(szQuery, SQL_PLAYER);
 
         if (pMsg->get()->num_rows == 0) {
             return false;
@@ -213,7 +213,7 @@ namespace metin2::db::inline empire {
         std::string query = sql::format(
             "SELECT b.empire, a.id, a.name FROM player{} AS a, player_index{} AS b WHERE a.account_id=b.id AND a.name={}",
             sql::raw(get_table_postfix()), sql::raw(get_table_postfix()), std::string_view(name, strnlen(name, CHARACTER_NAME_MAX_LEN)));
-        std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(query.c_str(), SQL_PLAYER));
+        auto pMsg = db_manager::instance().direct_query(query.c_str(), SQL_PLAYER);
 
         if (pMsg->get()->num_rows == 0) {
             return false;
@@ -246,7 +246,7 @@ namespace metin2::db::inline empire {
 
                 int Empire = n;
                 snprintf(szQuery, sizeof(szQuery), "DELETE FROM monarch WHERE empire=%d", Empire);
-                std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(szQuery, SQL_PLAYER));
+                auto pMsg = db_manager::instance().direct_query(szQuery, SQL_PLAYER);
 
                 if (pMsg->get()->affected_rows == 0 || pMsg->get()->affected_rows == (uint32_t)-1) {
                     metin2::log::error("Cannot delete monarch, query affected no rows: {}", szQuery);

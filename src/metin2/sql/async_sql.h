@@ -62,8 +62,8 @@ namespace metin2::sql {
 
         void async_query(const char *query);
         void return_query(const char *query, void *user_data);
-        auto direct_query(const char *query_value) -> sql_msg *;
-        auto pop_result(sql_msg **pp) -> bool;
+        auto direct_query(const char *query_value) -> std::unique_ptr<sql_msg>;
+        auto pop_result() -> std::unique_ptr<sql_msg>;
 
         auto count_query() -> uint32_t;
         auto count_result() -> uint32_t;
@@ -72,8 +72,6 @@ namespace metin2::sql {
         auto copied_query_count() -> int;
         void reset_copied_query_count();
 
-        auto sql_handle() -> MYSQL *;
-        auto escape_string(char *dst, size_t dst_size, const char *src, size_t src_size) -> size_t;
 
       private:
         auto connect() -> bool;

@@ -79,11 +79,11 @@ namespace metin2::game::inline persistence {
         sql_.async_query(szQuery);
     }
 
-    auto db_manager::direct_query(const std::string &query) -> sql_msg * {
+    auto db_manager::direct_query(const std::string &query) -> std::unique_ptr<sql_msg> {
         return sql_direct_.direct_query(query.c_str());
     }
 
-    auto db_manager::direct_query(const char *format, ...) -> sql_msg * {
+    auto db_manager::direct_query(const char *format, ...) -> std::unique_ptr<sql_msg> {
         char szQuery[4096];
         va_list args;
 
@@ -120,17 +120,12 @@ namespace metin2::game::inline persistence {
         sql_.return_query(query.c_str(), p);
     }
 
-    auto db_manager::pop_result() -> sql_msg * {
-        sql_msg *p;
-
-        if (sql_.pop_result(&p))
-            return p;
-
-        return nullptr;
+    auto db_manager::pop_result() -> std::unique_ptr<sql_msg> {
+        return sql_.pop_result();
     }
 
     void db_manager::process() {
-        while (std::unique_ptr<sql_msg> pMsg{pop_result()}) {
+        while (auto pMsg = pop_result()) {
             if (nullptr != pMsg->user_data) {
                 switch (reinterpret_cast<query_info *>(pMsg->user_data)->query_type) {
                 case QUERY_TYPE_RETURN:
@@ -383,7 +378,7 @@ namespace metin2::game::inline persistence {
                             break;
                         }
 
-                        std::unique_ptr<sql_msg> msg(db_manager::instance().direct_query(sql::format("UPDATE account SET last_play=NOW() WHERE id={}", dwID)));
+                        auto msg = db_manager::instance().direct_query(sql::format("UPDATE account SET last_play=NOW() WHERE id={}", dwID));
 
                         account_table &r = d->get_account_table();
 
@@ -533,10 +528,6 @@ namespace metin2::game::inline persistence {
         db_clientdesc->db_packet(HEADER_GD_MONEY_LOG, 0, &p, sizeof(p));
     }
 
-    auto db_manager::escape_string(char *dst, size_t dst_size, const char *src, size_t src_size) -> size_t {
-        return sql_direct_.escape_string(dst, dst_size, src, src_size);
-    }
-
     account_db::account_db() : is_connect_(false) {
     }
 
@@ -565,7 +556,7 @@ namespace metin2::game::inline persistence {
         sql_direct_.query_locale_set();
     }
 
-    auto account_db::direct_query(const char *query) -> sql_msg * {
+    auto account_db::direct_query(const char *query) -> std::unique_ptr<sql_msg> {
         return sql_direct_.direct_query(query);
     }
 
@@ -591,17 +582,12 @@ namespace metin2::game::inline persistence {
         sql_.return_query(query.c_str(), p);
     }
 
-    auto account_db::pop_result() -> sql_msg * {
-        sql_msg *p;
-
-        if (sql_.pop_result(&p))
-            return p;
-
-        return nullptr;
+    auto account_db::pop_result() -> std::unique_ptr<sql_msg> {
+        return sql_.pop_result();
     }
 
     void account_db::process() {
-        while (std::unique_ptr<sql_msg> pMsg{pop_result()}) {
+        while (auto pMsg = pop_result()) {
             query_info *qi = (query_info *)pMsg->user_data;
 
             switch (qi->query_type) {

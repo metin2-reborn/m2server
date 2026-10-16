@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <iterator>
 #include <map>
+#include <memory>
 #include <string>
 #include <unordered_set>
 #include <vector>
@@ -334,13 +335,13 @@ namespace metin2::game::inline items {
         std::unordered_set<item *> set_item_for_delayed_save_;
         std::map<uint32_t, item *> map_item_by_id_;
         std::map<uint32_t, uint32_t> map_etc_item_drop_prob_;
-        std::map<uint32_t, drop_item_group *> map_drop_item_group_;
-        std::map<uint32_t, special_item_group *> map_special_item_group_;
-        std::map<uint32_t, special_item_group *> map_quest_item_group_;
-        std::map<uint32_t, special_attr_group *> map_special_attr_group_;
-        std::map<uint32_t, mob_item_group *> map_mob_item_group_;
-        std::map<uint32_t, level_item_group *> map_level_item_group_;
-        std::map<uint32_t, buyer_thief_gloves_item_group *> map_glove_item_group_;
+        std::map<uint32_t, std::unique_ptr<drop_item_group>> map_drop_item_group_;
+        std::map<uint32_t, std::unique_ptr<special_item_group>> map_special_item_group_;
+        std::map<uint32_t, std::unique_ptr<special_item_group>> map_quest_item_group_;
+        std::map<uint32_t, std::unique_ptr<special_attr_group>> map_special_attr_group_;
+        std::map<uint32_t, std::unique_ptr<mob_item_group>> map_mob_item_group_;
+        std::map<uint32_t, std::unique_ptr<level_item_group>> map_level_item_group_;
+        std::map<uint32_t, std::unique_ptr<buyer_thief_gloves_item_group>> map_glove_item_group_;
 
         std::map<uint32_t, int> item_to_special_group_;
 

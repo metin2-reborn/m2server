@@ -161,7 +161,7 @@ namespace metin2::db::inline clients {
             uint32_t account_id = info->account_table->id;
             char szQuery[QUERY_MAX_LEN];
             snprintf(szQuery, sizeof(szQuery), "SELECT pid1, pid2, pid3, pid4, empire FROM player_index%s WHERE id=%u", get_table_postfix(), account_id);
-            std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(szQuery, SQL_PLAYER));
+            auto pMsg = db_manager::instance().direct_query(szQuery, SQL_PLAYER);
 
             metin2::log::debug("Login: account {:d} has no players loaded, checking player_index", account_id);
 
@@ -410,7 +410,7 @@ namespace metin2::db::inline clients {
         std::string query = sql::format(
             "SELECT COUNT(*) as count FROM player{} WHERE name={} AND id <> {}", sql::raw(get_table_postfix()), p->name, p->pid);
 
-        std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(query.c_str(), SQL_PLAYER));
+        auto pMsg = db_manager::instance().direct_query(query.c_str(), SQL_PLAYER);
 
         if (pMsg->get()->num_rows) {
             if (!pMsg->get()->res) {
@@ -432,7 +432,7 @@ namespace metin2::db::inline clients {
         query = sql::format(
             "UPDATE player{} SET name={},change_name=0 WHERE id={}", sql::raw(get_table_postfix()), p->name, p->pid);
 
-        std::unique_ptr<sql_msg> pMsg0(db_manager::instance().direct_query(query.c_str(), SQL_PLAYER));
+        auto pMsg0 = db_manager::instance().direct_query(query.c_str(), SQL_PLAYER);
 
         packet_dg_change_name pdg;
         peer->encode_header(HEADER_DG_CHANGE_NAME, handle, sizeof(packet_dg_change_name));

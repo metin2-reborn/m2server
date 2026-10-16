@@ -51,16 +51,7 @@ namespace metin2::game::inline world {
         memset(&setting, 0, sizeof(setting));
     }
 
-    sectree_map::~sectree_map() {
-        map_type::iterator it = map_.begin();
-
-        while (it != map_.end()) {
-            sectree *sectree = (it++)->second;
-            delete sectree;
-        }
-
-        map_.clear();
-    }
+    sectree_map::~sectree_map() = default;
 
     sectree_map::sectree_map(sectree_map &r) {
         setting = r.setting;
@@ -68,12 +59,12 @@ namespace metin2::game::inline world {
         map_type::iterator it = r.map_.begin();
 
         while (it != r.map_.end()) {
-            sectree *tree = new sectree;
+            auto tree = std::make_unique<sectree>();
 
             tree->id_.coord = it->second->id_.coord;
-            tree->clone_attribute(it->second);
+            tree->clone_attribute(it->second.get());
 
-            map_.insert(map_type::value_type(it->first, tree));
+            map_.emplace(it->first, std::move(tree));
             ++it;
         }
 
@@ -86,7 +77,7 @@ namespace metin2::game::inline world {
         if (it == map_.end())
             return nullptr;
 
-        return it->second;
+        return it->second.get();
     }
 
     auto sectree_map::find(uint32_t x, uint32_t y) -> sectree * {
@@ -114,7 +105,7 @@ namespace metin2::game::inline world {
         map_type::iterator it = map_.begin();
 
         while (it != map_.end()) {
-            sectree *tree = it->second;
+            sectree *tree = it->second.get();
 
             tree->neighbor_list_.push_back(tree);
 
@@ -143,12 +134,12 @@ namespace metin2::game::inline world {
     }
 
     auto sectree_manager::map(int32_t map_index) -> sectree_map * {
-        std::map<uint32_t, sectree_map *>::iterator it = map_sectree_.find(map_index);
+        auto it = map_sectree_.find(map_index);
 
         if (it == map_sectree_.end())
             return nullptr;
 
-        return it->second;
+        return it->second.get();
     }
 
     auto sectree_manager::get(uint32_t index, uint32_t package) -> sectree * {
@@ -205,36 +196,35 @@ namespace metin2::game::inline world {
         return 1;
     }
 
-    auto sectree_manager::build_sectree_from_setting(map_setting &r_setting) -> sectree_map * {
-        sectree_map *pkMapSectree = new sectree_map;
+    auto sectree_manager::build_sectree_from_setting(map_setting &r_setting) -> std::unique_ptr<sectree_map> {
+        auto pkMapSectree = std::make_unique<sectree_map>();
 
         pkMapSectree->setting = r_setting;
 
         int x, y;
-        sectree *tree;
 
         for (x = r_setting.base_x; x < r_setting.base_x + r_setting.width; x += SECTREE_SIZE) {
             for (y = r_setting.base_y; y < r_setting.base_y + r_setting.height; y += SECTREE_SIZE) {
-                tree = new sectree;
+                auto tree = std::make_unique<sectree>();
                 tree->id_.coord.x = x / SECTREE_SIZE;
                 tree->id_.coord.y = y / SECTREE_SIZE;
-                pkMapSectree->add(tree->id_.package, tree);
                 metin2::log::debug("New sectree {:d}x{:d}", tree->id_.coord.x, tree->id_.coord.y);
+                pkMapSectree->add(tree->id_.package, std::move(tree));
             }
         }
 
         if ((r_setting.base_x + r_setting.width) % SECTREE_SIZE) {
-            tree = new sectree;
+            auto tree = std::make_unique<sectree>();
             tree->id_.coord.x = ((r_setting.base_x + r_setting.width) / SECTREE_SIZE) + 1;
             tree->id_.coord.y = ((r_setting.base_y + r_setting.height) / SECTREE_SIZE);
-            pkMapSectree->add(tree->id_.package, tree);
+            pkMapSectree->add(tree->id_.package, std::move(tree));
         }
 
         if ((r_setting.base_y + r_setting.height) % SECTREE_SIZE) {
-            tree = new sectree;
+            auto tree = std::make_unique<sectree>();
             tree->id_.coord.x = ((r_setting.base_x + r_setting.width) / SECTREE_SIZE);
             tree->id_.coord.y = ((r_setting.base_y + r_setting.height) / SECTREE_SIZE) + 1;
-            pkMapSectree->add(tree->id_.package, tree);
+            pkMapSectree->add(tree->id_.package, std::move(tree));
         }
 
         return pkMapSectree;
@@ -423,7 +413,7 @@ namespace metin2::game::inline world {
                     return false;
                 }
 
-                tree->bind_attribute(new attribute(attr.get(), SECTREE_SIZE / CELL_SIZE, SECTREE_SIZE / CELL_SIZE));
+                tree->bind_attribute(std::make_unique<attribute>(attr.get(), SECTREE_SIZE / CELL_SIZE, SECTREE_SIZE / CELL_SIZE));
             }
 
         fclose(fp);
@@ -599,8 +589,9 @@ namespace metin2::game::inline world {
                 metin2::log::debug("Building map {}{} (index {:d})", map_base_path, szMapName, iIndex);
 
             if (map_allow_find(iIndex)) {
-                sectree_map *pkMapSectree = build_sectree_from_setting(setting);
-                map_sectree_.insert(std::map<uint32_t, sectree_map *>::value_type(iIndex, pkMapSectree));
+                std::unique_ptr<sectree_map> pkNewMapSectree = build_sectree_from_setting(setting);
+                sectree_map *pkMapSectree = pkNewMapSectree.get();
+                map_sectree_.try_emplace(iIndex, std::move(pkNewMapSectree));
 
                 snprintf(szFilename, sizeof(szFilename), "%s/%s/server_attr", map_base_path, szMapName);
                 load_attribute(pkMapSectree, szFilename, setting);
@@ -802,8 +793,7 @@ namespace metin2::game::inline world {
         }
         it->second = next_index;
 
-        pkMapSectree = new sectree_map(*pkMapSectree);
-        map_sectree_.insert(std::map<uint32_t, sectree_map *>::value_type(lNewMapIndex, pkMapSectree));
+        map_sectree_.try_emplace(lNewMapIndex, std::make_unique<sectree_map>(*pkMapSectree));
 
         metin2::log::info("Private map {:d} created from map {:d}", lNewMapIndex, map_index);
         return lNewMapIndex;
@@ -843,7 +833,6 @@ namespace metin2::game::inline world {
         pkMapSectree->for_each(f);
 
         map_sectree_.erase(map_index);
-        delete pkMapSectree;
 
         metin2::log::info("Private map {:d} destroyed", map_index);
     }

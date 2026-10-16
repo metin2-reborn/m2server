@@ -22,6 +22,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <memory>
 
 namespace metin2::game::inline empire {
 
@@ -32,7 +33,7 @@ namespace metin2::game::inline empire {
 
 #define SIEGE_EVENT_PULSE passes_per_sec(60 * 5)
 
-#define GET_CASTLE(empire)                                 (castle + (empire))
+#define GET_CASTLE(empire)                                 (castle.get() + (empire))
 #define GET_GUARD(empire, region_index, guard_index)       (GET_CASTLE(empire)->guard[region_index][guard_index])
 #define GET_GUARD_REGION(empire, region_index)             (s_guard_region[empire][region_index])
 #define GET_GUARD_GROUP(empire, region_index, guard_index) (GET_CASTLE(empire)->guard_group[region_index][guard_index])
@@ -51,7 +52,7 @@ namespace metin2::game::inline empire {
 
 #define GET_TOWER_REGION(empire) tower_region[empire]
 
-    static castle_data *castle = nullptr;
+    static std::unique_ptr<castle_data[]> castle;
     static castle_state siege_state = CASTLE_SIEGE_NONE;
     static int sige_empire = EMPIRE_NONE;
 
@@ -368,7 +369,7 @@ namespace metin2::game::inline empire {
         int empire = 0;
         int guard_region = 0;
 
-        castle = new castle_data[4]();
+        castle = std::make_unique<castle_data[]>(4);
 
         const char *castle_file = "castle_data.txt";
 

@@ -140,7 +140,7 @@ namespace metin2::db::inline clients {
 
     void client_manager::main_loop() {
         while (!shutdowned_) {
-            while (std::unique_ptr<sql_msg> tmp{db_manager::instance().pop_result()}) {
+            while (auto tmp = db_manager::instance().pop_result()) {
                 analyze_query_result(tmp.get());
             }
 
@@ -154,31 +154,16 @@ namespace metin2::db::inline clients {
 
         signal_timer_disable();
 
-        auto it = map_player_cache_.begin();
-
-        while (it != map_player_cache_.end()) {
-            player_table_cache *c = (it++)->second;
-
-            c->flush();
-            delete c;
-        }
+        for (auto &[pid, cache] : map_player_cache_)
+            cache->flush();
         map_player_cache_.clear();
 
-        auto it2 = map_item_cache_.begin();
-        while (it2 != map_item_cache_.end()) {
-            item_cache *c = (it2++)->second;
-
-            c->flush();
-            delete c;
-        }
+        for (auto &[id, cache] : map_item_cache_)
+            cache->flush();
         map_item_cache_.clear();
 
-        for (auto itPriceList = item_price_list_cache_.begin(); itPriceList != item_price_list_cache_.end(); ++itPriceList) {
-            item_price_list_table_cache *pCache = itPriceList->second;
-            pCache->flush();
-            delete pCache;
-        }
-
+        for (auto &[owner, cache] : item_price_list_cache_)
+            cache->flush();
         item_price_list_cache_.clear();
     }
 
@@ -642,7 +627,7 @@ namespace metin2::db::inline clients {
                                 pItemAward->vnum, pItemAward->count, pItemAward->socket0, pItemAward->socket1, dwSocket2);
                         }
 
-                        std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(query.c_str()));
+                        auto pmsg = db_manager::instance().direct_query(query.c_str());
                         sql_result *pRes = pmsg->get();
                         metin2::log::debug("Item award: {}", query.c_str());
 
@@ -827,14 +812,14 @@ namespace metin2::db::inline clients {
         }
 
         snprintf(szQuery, sizeof(szQuery), "UPDATE player_index%s SET empire=%u WHERE id=%u", get_table_postfix(), p->empire, p->account_id);
-        std::unique_ptr<sql_msg>(db_manager::instance().direct_query(szQuery));
+        db_manager::instance().direct_query(szQuery);
 
         metin2::log::debug("Empire select: {}", szQuery);
         {
             snprintf(szQuery, sizeof(szQuery),
                 "SELECT pid1, pid2, pid3, pid4 FROM player_index%s WHERE id=%u", get_table_postfix(), p->account_id);
 
-            std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+            auto pmsg = db_manager::instance().direct_query(szQuery);
 
             sql_result *pRes = pmsg->get();
 
@@ -874,7 +859,7 @@ namespace metin2::db::inline clients {
                             g_start_position[p->empire][1],
                             pids[i]);
 
-                        std::unique_ptr<sql_msg> pmsg2(db_manager::instance().direct_query(szQuery));
+                        auto pmsg2 = db_manager::instance().direct_query(szQuery);
                     }
                 }
             }
@@ -1076,8 +1061,6 @@ namespace metin2::db::inline clients {
                 }
 
                 map_item_cache_.erase(p->id);
-
-                delete c;
             }
             char szQuery[512];
 
@@ -1153,7 +1136,6 @@ namespace metin2::db::inline clients {
             c->flush();
 
             map_item_cache_.erase(c->get()->id);
-            delete c;
         }
 
         pSet->clear();
@@ -1170,7 +1152,7 @@ namespace metin2::db::inline clients {
         if (it == map_item_cache_.end())
             return nullptr;
 
-        return it->second;
+        return it->second.get();
     }
 
     void client_manager::put_item_cache(player_item *updated, bool skip_query) {
@@ -1182,8 +1164,7 @@ namespace metin2::db::inline clients {
             if (metin2::config::db().login_log)
                 metin2::log::info("Item cache: new entry for item {:d} (vnum {:d}), owner {:d}", updated->id, updated->vnum, updated->owner);
 
-            c = new item_cache;
-            map_item_cache_.insert(item_cache_map::value_type(updated->id, c));
+            c = map_item_cache_.emplace(updated->id, std::make_unique<item_cache>()).first->second.get();
         } else {
             if (metin2::config::db().login_log)
                 metin2::log::info("Item cache: updating item {:d}", updated->id);
@@ -1234,15 +1215,14 @@ namespace metin2::db::inline clients {
         if (it == item_price_list_cache_.end())
             return nullptr;
 
-        return it->second;
+        return it->second.get();
     }
 
     void client_manager::put_item_price_list_cache(const item_price_list_table *item_price_list) {
         item_price_list_table_cache *pCache = item_price_list_cache(item_price_list->owner_id);
 
         if (!pCache) {
-            pCache = new item_price_list_table_cache;
-            item_price_list_cache_.insert(item_price_list_cache_map::value_type(item_price_list->owner_id, pCache));
+            pCache = item_price_list_cache_.emplace(item_price_list->owner_id, std::make_unique<item_price_list_table_cache>()).first->second.get();
         }
 
         pCache->put(const_cast<item_price_list_table *>(item_price_list), true);
@@ -1252,7 +1232,7 @@ namespace metin2::db::inline clients {
         player_table_cache_map::iterator it = map_player_cache_.begin();
 
         while (it != map_player_cache_.end()) {
-            player_table_cache *c = (it++)->second;
+            player_table_cache *c = (it++)->second.get();
 
             if (c->check_timeout()) {
                 if (metin2::config::db().login_log)
@@ -1278,7 +1258,7 @@ namespace metin2::db::inline clients {
         item_cache_map::iterator it = map_item_cache_.begin();
 
         while (it != map_item_cache_.end()) {
-            item_cache *c = (it++)->second;
+            item_cache *c = (it++)->second.get();
 
             if (c->check_flush_timeout()) {
                 if (metin2::config::test_server())
@@ -1296,7 +1276,7 @@ namespace metin2::db::inline clients {
         item_price_list_cache_map::iterator it = item_price_list_cache_.begin();
 
         while (it != item_price_list_cache_.end()) {
-            item_price_list_table_cache *pCache = it->second;
+            item_price_list_table_cache *pCache = it->second.get();
 
             if (pCache->check_flush_timeout()) {
                 pCache->flush();
@@ -1340,7 +1320,6 @@ namespace metin2::db::inline clients {
         flush_item_cache_set(dwPID);
 
         map_player_cache_.erase(dwPID);
-        delete pkCache;
     }
 
     void client_manager::query_sms(peer *peer_value, packet_gdsms *pack) {
@@ -1518,7 +1497,7 @@ namespace metin2::db::inline clients {
             "INSERT INTO object%s (land_id, vnum, map_index, x, y, x_rot, y_rot, z_rot) VALUES(%u, %u, %d, %d, %d, %f, %f, %f)",
             get_table_postfix(), p->land_id, p->vnum, p->map_index, p->x, p->y, p->x_rot, p->y_rot, p->z_rot);
 
-        std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+        auto pmsg = db_manager::instance().direct_query(szQuery);
 
         if (pmsg->get()->insert_id == 0) {
             metin2::log::error("Cannot insert building object (vnum {:d}, land {:d})", p->vnum, p->land_id);
@@ -1550,7 +1529,7 @@ namespace metin2::db::inline clients {
 
         snprintf(szQuery, sizeof(szQuery), "DELETE FROM object%s WHERE id=%u", get_table_postfix(), id);
 
-        std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+        auto pmsg = db_manager::instance().direct_query(szQuery);
 
         if (pmsg->get()->affected_rows == 0 || pmsg->get()->affected_rows == (uint32_t)-1) {
             metin2::log::warn("Cannot delete building object {:d}, not found", id);
@@ -1591,7 +1570,7 @@ namespace metin2::db::inline clients {
 
     void client_manager::block_chat(packet_block_chat *p) {
         const std::string query = sql::format("SELECT id FROM player{} WHERE name = {}", sql::raw(get_table_postfix()), p->name);
-        std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(query.c_str()));
+        auto pmsg = db_manager::instance().direct_query(query.c_str());
         sql_result *pRes = pmsg->get();
 
         if (pRes->num_rows) {
@@ -2447,7 +2426,7 @@ namespace metin2::db::inline clients {
     auto client_manager::initialize_localization() -> bool {
         char szQuery[512];
         snprintf(szQuery, sizeof(szQuery), "SELECT mValue, mKey FROM locale");
-        std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(szQuery, SQL_COMMON));
+        auto pMsg = db_manager::instance().direct_query(szQuery, SQL_COMMON);
 
         if (pMsg->get()->num_rows == 0) {
             metin2::log::error("Locale table is empty or cannot be read ({})", szQuery);
@@ -2492,7 +2471,7 @@ namespace metin2::db::inline clients {
             "SELECT mID,mAccount,mName,mContactIP,mServerIP,mAuthority FROM gmlist WHERE mServerIP='ALL' or mServerIP={}",
             ip ? ip : "ALL");
 
-        std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(query.c_str(), SQL_COMMON));
+        auto pMsg = db_manager::instance().direct_query(query.c_str(), SQL_COMMON);
 
         if (pMsg->get()->num_rows == 0) {
             metin2::log::info("No gm accounts found ({})", query.c_str());
@@ -2538,7 +2517,7 @@ namespace metin2::db::inline clients {
     auto client_manager::host_info(std::vector<std::string> &ip_vec) -> bool {
         char szQuery[512];
         snprintf(szQuery, sizeof(szQuery), "SELECT mIP FROM gmhost");
-        std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(szQuery, SQL_COMMON));
+        auto pMsg = db_manager::instance().direct_query(szQuery, SQL_COMMON);
 
         if (pMsg->get()->num_rows == 0) {
             metin2::log::info("No gm hosts configured ({})", szQuery);
@@ -2890,7 +2869,7 @@ namespace metin2::db::inline clients {
             get_table_postfix(), get_table_postfix(), info->pid, info->empire,
             info->pid, info->pid, info->pid, info->pid);
 
-        std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(szQuery, SQL_PLAYER));
+        auto pMsg = db_manager::instance().direct_query(szQuery, SQL_PLAYER);
 
         if (pMsg->get()->num_rows != 0) {
             packet_change_monarch_lord_ack ack;
@@ -2902,7 +2881,7 @@ namespace metin2::db::inline clients {
             strlcpy(ack.date, row[1], sizeof(ack.date));
 
             snprintf(szQuery, sizeof(szQuery), "UPDATE monarch SET pid=%u, windate=NOW() WHERE empire=%d", ack.pid, ack.empire);
-            std::unique_ptr<sql_msg> pMsg2(db_manager::instance().direct_query(szQuery, SQL_PLAYER));
+            auto pMsg2 = db_manager::instance().direct_query(szQuery, SQL_PLAYER);
 
             if (pMsg2->get()->affected_rows > 0) {
                 monarch::instance().load_monarch();
@@ -2941,16 +2920,10 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::delete_award_id(packet_delete_award_id *data) {
-        std::map<uint32_t, db::items::item_award *>::iterator it;
-        it = item_award_manager::instance().map_award().find(data->id);
-        if (it != item_award_manager::instance().map_award().end()) {
-            std::set<db::items::item_award *> &kSet = item_award_manager::instance().mapk_set_award_by_login()[it->second->login];
-            if (kSet.erase(it->second))
-                metin2::log::debug("Item award: removed award {:d} from cache", data->id);
-            item_award_manager::instance().map_award().erase(data->id);
-        } else {
+        if (item_award_manager::instance().remove(data->id))
+            metin2::log::debug("Item award: removed award {:d} from cache", data->id);
+        else
             metin2::log::warn("Item award: cannot delete award {:d}, not found", data->id);
-        }
     }
 
     void client_manager::update_channel_status(channel_status *data) {

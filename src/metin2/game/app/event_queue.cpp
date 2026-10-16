@@ -3,38 +3,21 @@
 #include <metin2/game/app/event.h>
 
 #include <climits>
+#include <utility>
 
 namespace metin2::game::inline app {
 
-    event_queue::~event_queue() {
-        for (auto &[key, pElem] : queue_)
-            remove(pElem);
-    }
-
     auto event_queue::enqueue(event_ptr data, int duration, int pulse) -> queue_element * {
-        queue_element *pElem = new queue_element;
-
-        pElem->pv_data = data;
-        pElem->start_time = pulse;
-        pElem->key = duration + pulse;
-        pElem->cancel = false;
-
-        queue_.emplace(pElem->key, pElem);
-        return pElem;
+        const int key = duration + pulse;
+        auto it = queue_.emplace(key, queue_element{std::move(data), pulse, key, false});
+        return &it->second;
     }
 
-    auto event_queue::dequeue() -> queue_element * {
+    auto event_queue::dequeue() -> element {
         if (queue_.empty())
-            return nullptr;
+            return {};
 
-        const auto first = queue_.begin();
-        queue_element *pElem = first->second;
-        queue_.erase(first);
-        return pElem;
-    }
-
-    void event_queue::remove(queue_element *elem) {
-        delete elem;
+        return queue_.extract(queue_.begin());
     }
 
     auto event_queue::top_key() -> int {

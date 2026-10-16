@@ -20,6 +20,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -290,15 +291,10 @@ namespace metin2::game::inline characters {
     }
 
     void pet_system::destroy() {
-        for (pet_actor_map::iterator iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter) {
-            pet_actor *petActor = iter->second;
-
-            if (nullptr != petActor) {
-                delete petActor;
-            }
-        }
+        pet_actor_map actors;
+        actors.swap(pet_actor_map_);
+        actors.clear();
         event_cancel(&pet_system_update_event_);
-        pet_actor_map_.clear();
     }
 
     auto pet_system::update(uint32_t delta_time) -> bool {
@@ -312,7 +308,7 @@ namespace metin2::game::inline characters {
         std::vector<pet_actor *> v_garbageActor;
 
         for (pet_actor_map::iterator iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter) {
-            pet_actor *petActor = iter->second;
+            pet_actor *petActor = iter->second.get();
 
             if (nullptr != petActor && petActor->is_summoned()) {
                 character *pPet = petActor->get_character();
@@ -333,14 +329,8 @@ namespace metin2::game::inline characters {
     }
 
     void pet_system::delete_pet(pet_actor *pet_actor_value) {
-        for (pet_actor_map::iterator iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter) {
-            if (iter->second == pet_actor_value) {
-                delete pet_actor_value;
-                pet_actor_map_.erase(iter);
-
-                return;
-            }
-        }
+        if (std::erase_if(pet_actor_map_, [pet_actor_value](const auto &entry) { return entry.second.get() == pet_actor_value; }))
+            return;
 
         metin2::log::error("Pet actor {} not found in pet list (size {:d})", static_cast<const void *>(static_cast<void *>(pet_actor_value)), pet_actor_map_.size());
     }
@@ -371,8 +361,9 @@ namespace metin2::game::inline characters {
         pet_actor *petActor = this->by_vnum(mob_vnum);
 
         if (nullptr == petActor) {
-            petActor = new pet_actor(owner_, mob_vnum, options);
-            pet_actor_map_.insert(std::make_pair(mob_vnum, petActor));
+            auto petActorOwner = std::unique_ptr<pet_actor>(new pet_actor(owner_, mob_vnum, options));
+            petActor = petActorOwner.get();
+            pet_actor_map_.try_emplace(mob_vnum, std::move(petActorOwner));
         }
 
         petActor->summon(pet_name, summon_item, spawn_far);
@@ -394,7 +385,7 @@ namespace metin2::game::inline characters {
         pet_actor_map::const_iterator iter = pet_actor_map_.find(vnum);
 
         if (pet_actor_map_.end() != iter)
-            petActor = iter->second;
+            petActor = iter->second.get();
 
         return petActor;
     }
@@ -403,7 +394,7 @@ namespace metin2::game::inline characters {
         size_t count = 0;
 
         for (pet_actor_map::const_iterator iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter) {
-            pet_actor *petActor = iter->second;
+            pet_actor *petActor = iter->second.get();
 
             if (nullptr != petActor) {
                 if (petActor->is_summoned())
@@ -416,7 +407,7 @@ namespace metin2::game::inline characters {
 
     void pet_system::refresh_buff() {
         for (pet_actor_map::const_iterator iter = pet_actor_map_.begin(); iter != pet_actor_map_.end(); ++iter) {
-            pet_actor *petActor = iter->second;
+            pet_actor *petActor = iter->second.get();
 
             if (nullptr != petActor) {
                 if (petActor->is_summoned()) {

@@ -11,7 +11,7 @@
 #include <memory>
 #include <set>
 #include <string>
-#include <unordered_set>
+#include <unordered_map>
 #include <utility>
 
 namespace metin2::game::inline social {
@@ -132,7 +132,7 @@ namespace metin2::game::inline social {
             auto for_each_wedding(Func f) -> Func;
 
           private:
-            std::unordered_set<marriage *> marriages_;
+            std::unordered_map<marriage *, std::unique_ptr<marriage>> marriages_;
             std::map<uint32_t, marriage *> marriage_by_pid_;
             std::set<std::pair<uint32_t, uint32_t>> wedding_;
         };

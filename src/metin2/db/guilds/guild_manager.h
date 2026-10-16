@@ -109,10 +109,10 @@ namespace metin2::db::inline guilds {
 
     struct guild_war_info {
         time_t t_end_time;
-        guild_war_pq_element *element;
+        std::shared_ptr<guild_war_pq_element> element;
         guild_war_reservation *reserve;
 
-        guild_war_info() : element(nullptr) {
+        guild_war_info() {
         }
     };
 
@@ -215,7 +215,7 @@ namespace metin2::db::inline guilds {
         std::set<guild_declare_info> declare_map_;
         std::map<uint32_t, std::map<uint32_t, guild_war_info>> war_map_;
 
-        typedef std::pair<time_t, guild_war_pq_element *> st_pair_guild_war;
+        typedef std::pair<time_t, std::shared_ptr<guild_war_pq_element>> st_pair_guild_war;
         typedef std::pair<time_t, guild_skill_used> st_pair_skill_used;
         typedef std::pair<time_t, guild_wait_start_info> st_pair_wait_start;
 

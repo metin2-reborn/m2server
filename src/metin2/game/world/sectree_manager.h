@@ -9,8 +9,10 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace metin2::game::inline world {
@@ -55,14 +57,14 @@ namespace metin2::game::inline world {
 
     class sectree_map {
       public:
-        typedef std::map<uint32_t, sectree *> map_type;
+        typedef std::map<uint32_t, std::unique_ptr<sectree>> map_type;
 
         sectree_map();
         sectree_map(sectree_map &r);
         virtual ~sectree_map();
 
-        auto add(uint32_t key, sectree *sectree) -> bool {
-            return map_.insert(map_type::value_type(key, sectree)).second;
+        auto add(uint32_t key, std::unique_ptr<sectree> sectree) -> bool {
+            return map_.emplace(key, std::move(sectree)).second;
         }
 
         auto find(uint32_t package) -> sectree *;
@@ -74,9 +76,9 @@ namespace metin2::game::inline world {
         template <typename Func>
         void for_each(Func &rfunc) {
             f_collect_entity collector;
-            std::map<uint32_t, sectree *>::iterator it = map_.begin();
+            map_type::iterator it = map_.begin();
             for (; it != map_.end(); ++it) {
-                sectree *sectree = it->second;
+                sectree *sectree = it->second.get();
                 sectree->for_each_entity(collector);
             }
             collector.for_each(rfunc);
@@ -119,7 +121,7 @@ namespace metin2::game::inline world {
         auto load_setting_file(int32_t map_index, const char *setting_file_name, map_setting &r_setting) -> int;
         auto load_map_region(const char *file_name, map_setting &r_setting, const char *map_name_value) -> bool;
         auto build(const char *list_file_name, const char *map_base_path) -> int;
-        auto build_sectree_from_setting(map_setting &r_setting) -> sectree_map *;
+        auto build_sectree_from_setting(map_setting &r_setting) -> std::unique_ptr<sectree_map>;
         auto load_attribute(sectree_map *map_sectree, const char *file_name, map_setting &r_setting) -> bool;
         void load_dungeon(int index, const char *file_name);
         auto valid_location(int32_t map_index, int32_t x, int32_t y, int32_t &valid_map_index, pixel_position &r_pos, uint8_t empire = 0) -> bool;
@@ -162,7 +164,7 @@ namespace metin2::game::inline world {
         auto for_attr_region_cell(int32_t map_index, int32_t cx, int32_t cy, uint32_t attr, attr_region_mode mode) -> bool;
 
         static uint16_t current_sectree_version_;
-        std::map<uint32_t, sectree_map *> map_sectree_;
+        std::map<uint32_t, std::unique_ptr<sectree_map>> map_sectree_;
         std::map<int, area_map> area_by_map_;
         std::vector<map_region> vec_map_region_;
         std::map<uint32_t, std::vector<npc_info>> npc_position_;

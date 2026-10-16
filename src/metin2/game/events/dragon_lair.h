@@ -5,6 +5,7 @@
 #include <metin2/common/singleton.h>
 
 #include <cstdint>
+#include <memory>
 #include <unordered_map>
 
 namespace metin2::game::inline events {
@@ -32,6 +33,6 @@ namespace metin2::game::inline events {
         void on_dragon_dead(character *dragon, uint32_t killer_guild_id);
 
       private:
-        std::unordered_map<uint32_t, dragon_lair *> lair_map_;
+        std::unordered_map<uint32_t, std::unique_ptr<dragon_lair>> lair_map_;
     };
 }

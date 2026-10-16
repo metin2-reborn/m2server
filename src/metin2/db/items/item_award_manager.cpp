@@ -50,8 +50,8 @@ namespace metin2::db::inline items {
             if (map_award_.find(dwID) != map_award_.end())
                 continue;
 
-            item_award *kData = new item_award;
-            memset(kData, 0, sizeof(item_award));
+            auto owned = std::make_unique<item_award>();
+            item_award *kData = owned.get();
 
             kData->id = dwID;
             trim_and_lower(row[col++], kData->login, sizeof(kData->login));
@@ -67,9 +67,8 @@ namespace metin2::db::inline items {
                 client_manager::instance().inform_gift_award(kData->login, kData->why, kData->vnum);
             }
 
-            map_award_.insert(std::make_pair(dwID, kData));
+            map_award_.emplace(dwID, std::move(owned));
 
-            printf("ITEM_AWARD load id %u bMall %d \n", kData->id, kData->mall);
             metin2::log::debug("Item award: loaded award {:d} for account {}, vnum {:d}, count {:d}, socket {:d}", kData->id, kData->login, kData->vnum, kData->count, kData->socket0);
             std::set<item_award *> &kSet = map_set_award_by_login_[kData->login];
             kSet.insert(kData);
@@ -96,7 +95,7 @@ namespace metin2::db::inline items {
             return;
         }
 
-        item_award *k = it->second;
+        item_award *k = it->second.get();
         k->taken = true;
 
         char szQuery[QUERY_MAX_LEN];
@@ -108,11 +107,14 @@ namespace metin2::db::inline items {
         db_manager::instance().return_query(szQuery, QID_ITEM_AWARD_TAKEN, 0, nullptr);
     }
 
-    auto item_award_manager::map_award() -> std::map<uint32_t, item_award *> & {
-        return map_award_;
-    }
+    auto item_award_manager::remove(uint32_t award_id) -> bool {
+        auto it = map_award_.find(award_id);
+        if (it == map_award_.end())
+            return false;
 
-    auto item_award_manager::mapk_set_award_by_login() -> std::map<std::string, std::set<item_award *>> & {
-        return map_set_award_by_login_;
+        if (auto set = map_set_award_by_login_.find(it->second->login); set != map_set_award_by_login_.end())
+            set->second.erase(it->second.get());
+        map_award_.erase(it);
+        return true;
     }
 }

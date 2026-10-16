@@ -110,7 +110,7 @@ namespace metin2::db::inline clients {
             "SELECT id, cost, prob, vnum0, count0, vnum1, count1, vnum2, count2,  vnum3, count3, vnum4, count4 FROM refine_proto%s",
             get_table_postfix());
 
-        std::unique_ptr<sql_msg> pkMsg(db_manager::instance().direct_query(query));
+        auto pkMsg = db_manager::instance().direct_query(query);
         sql_result *pRes = pkMsg->get();
 
         if (!pRes->num_rows)
@@ -356,7 +356,7 @@ namespace metin2::db::inline clients {
             "FROM shop LEFT JOIN shop_item "
             "ON shop.vnum = shop_item.shop_vnum ORDER BY shop.vnum, shop_item.item_vnum";
 
-        std::unique_ptr<sql_msg> pkMsg2(db_manager::instance().direct_query(s_szQuery));
+        auto pkMsg2 = db_manager::instance().direct_query(s_szQuery);
 
         sql_result *pRes2 = pkMsg2->get();
 
@@ -625,7 +625,7 @@ namespace metin2::db::inline clients {
             "FROM skill_proto%s ORDER BY dwVnum",
             get_table_postfix());
 
-        std::unique_ptr<sql_msg> pkMsg(db_manager::instance().direct_query(query));
+        auto pkMsg = db_manager::instance().direct_query(query);
         sql_result *pRes = pkMsg->get();
 
         if (!pRes->num_rows) {
@@ -700,7 +700,7 @@ namespace metin2::db::inline clients {
     auto client_manager::initialize_banword_table() -> bool {
         vec_banword_table_.clear();
 
-        std::unique_ptr<sql_msg> pkMsg(db_manager::instance().direct_query("SELECT word FROM banword"));
+        auto pkMsg = db_manager::instance().direct_query("SELECT word FROM banword");
 
         sql_result *pRes = pkMsg->get();
 
@@ -728,7 +728,7 @@ namespace metin2::db::inline clients {
             "SELECT apply, apply+0, prob, lv1, lv2, lv3, lv4, lv5, weapon, body, wrist, foots, neck, head, shield, ear FROM item_attr%s ORDER BY apply",
             get_table_postfix());
 
-        std::unique_ptr<sql_msg> pkMsg(db_manager::instance().direct_query(query));
+        auto pkMsg = db_manager::instance().direct_query(query);
         sql_result *pRes = pkMsg->get();
 
         if (!pRes->num_rows) {
@@ -798,7 +798,7 @@ namespace metin2::db::inline clients {
             "SELECT apply, apply+0, prob, lv1, lv2, lv3, lv4, lv5, weapon, body, wrist, foots, neck, head, shield, ear FROM item_attr_rare%s ORDER BY apply",
             get_table_postfix());
 
-        std::unique_ptr<sql_msg> pkMsg(db_manager::instance().direct_query(query));
+        auto pkMsg = db_manager::instance().direct_query(query);
         sql_result *pRes = pkMsg->get();
 
         if (!pRes->num_rows) {
@@ -872,7 +872,7 @@ namespace metin2::db::inline clients {
             "FROM land%s WHERE enable='YES' ORDER BY id",
             get_table_postfix());
 
-        std::unique_ptr<sql_msg> pkMsg(db_manager::instance().direct_query(query));
+        auto pkMsg = db_manager::instance().direct_query(query);
         sql_result *pRes = pkMsg->get();
 
         if (!vec_land_table_.empty()) {
@@ -963,7 +963,7 @@ namespace metin2::db::inline clients {
             "FROM object_proto%s ORDER BY vnum",
             get_table_postfix());
 
-        std::unique_ptr<sql_msg> pkMsg(db_manager::instance().direct_query(query));
+        auto pkMsg = db_manager::instance().direct_query(query);
         sql_result *pRes = pkMsg->get();
 
         if (!vec_object_proto_.empty()) {
@@ -1026,7 +1026,7 @@ namespace metin2::db::inline clients {
         char query[4096];
         snprintf(query, sizeof(query), "SELECT id, land_id, vnum, map_index, x, y, x_rot, y_rot, z_rot, life FROM object%s ORDER BY id", get_table_postfix());
 
-        std::unique_ptr<sql_msg> pkMsg(db_manager::instance().direct_query(query));
+        auto pkMsg = db_manager::instance().direct_query(query);
         sql_result *pRes = pkMsg->get();
 
         if (!map_object_table_.empty()) {

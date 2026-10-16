@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <iterator>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -33,7 +34,7 @@ namespace metin2::game::inline characters {
       public:
         mob();
 
-        ~mob();
+        ~mob() = default;
 
         mob_table table;
         game::characters::mob_skill_info mob_skill_info[MOB_SKILL_MAX_NUM];
@@ -110,7 +111,7 @@ namespace metin2::game::inline characters {
 
     class mob_manager : public singleton<mob_manager> {
       public:
-        typedef std::map<uint32_t, mob *>::iterator iterator;
+        typedef std::map<uint32_t, std::unique_ptr<mob>>::iterator iterator;
 
         mob_manager();
         ~mob_manager() override;
@@ -135,10 +136,11 @@ namespace metin2::game::inline characters {
         void dump_regen_count(const char *filename);
 
       private:
-        std::map<uint32_t, mob *> map_mob_by_vnum_;
+        std::map<uint32_t, std::unique_ptr<mob>> map_mob_by_vnum_;
         std::map<std::string, mob *> map_mob_by_name_;
-        std::map<uint32_t, mob_group *> map_mob_group_;
-        std::map<uint32_t, mob_group_group *> map_mob_group_group_;
+        std::map<uint32_t, std::unique_ptr<mob_group>> map_mob_group_;
+        std::map<uint32_t, std::unique_ptr<mob_group_group>> map_mob_group_group_;
+        std::vector<std::unique_ptr<mob>> retired_mobs_;
 
         std::map<uint32_t, double> regen_count_;
     };

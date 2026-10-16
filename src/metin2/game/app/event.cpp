@@ -82,18 +82,18 @@ namespace metin2::game::inline app {
         int num_events = 0;
 
         while (pulse >= cxx_q.top_key()) {
-            queue_element *pElem = cxx_q.dequeue();
+            event_queue::element elem = cxx_q.dequeue();
+            queue_element *pElem = &elem.mapped();
 
-            if (pElem->cancel) {
-                cxx_q.remove(pElem);
+            if (pElem->cancel)
                 continue;
-            }
 
             new_time = pElem->key;
 
             event_ptr the_event = pElem->pv_data;
             int32_t processing_time = event_processing_time(the_event);
-            cxx_q.remove(pElem);
+            elem = {};
+            the_event->q_el = nullptr;
 
             // A positive return value re-adds the event; its memory must not be freed then.
             the_event->is_processing = true;
@@ -139,15 +139,11 @@ namespace metin2::game::inline app {
     }
 
     void event_destroy(void) {
-        queue_element *pElem;
+        while (event_queue::element elem = cxx_q.dequeue()) {
+            queue_element &el = elem.mapped();
 
-        while ((pElem = cxx_q.dequeue())) {
-            event_ptr the_event = (event_ptr)pElem->pv_data;
-
-            if (!pElem->cancel) {
-            }
-
-            cxx_q.remove(pElem);
+            if (el.pv_data && el.pv_data->q_el == &el)
+                el.pv_data->q_el = nullptr;
         }
     }
 

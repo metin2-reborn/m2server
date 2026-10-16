@@ -72,8 +72,8 @@ namespace metin2::game::inline persistence {
         void query(const std::string &query);
         void query(const char *format, ...) __attribute__((format(printf, 2, 3)));
 
-        auto direct_query(const std::string &query) -> sql_msg *;
-        __attribute__((format(printf, 2, 3))) auto direct_query(const char *format, ...) -> sql_msg *;
+        auto direct_query(const std::string &query) -> std::unique_ptr<sql_msg>;
+        __attribute__((format(printf, 2, 3))) auto direct_query(const char *format, ...) -> std::unique_ptr<sql_msg>;
         void return_query(int type_value, uint32_t ident_value, void *data, const std::string &query);
         void return_query(int type, uint32_t ident, void *data, const char *format, ...) __attribute__((format(printf, 5, 6)));
 
@@ -99,10 +99,9 @@ namespace metin2::game::inline persistence {
         void func_after_query(std::function<void()> f, const std::string &query);
         void func_after_query(std::function<void()> f, const char *format, ...) __attribute__((format(printf, 3, 4)));
 
-        auto escape_string(char *dst, size_t dst_size, const char *src, size_t src_size) -> size_t;
 
       private:
-        auto pop_result() -> sql_msg *;
+        auto pop_result() -> std::unique_ptr<sql_msg>;
 
         async_sql sql_;
         async_sql sql_direct_;
@@ -128,8 +127,8 @@ namespace metin2::game::inline persistence {
         auto connect(const char *host, const int port, const char *user, const char *pwd, const char *db) -> bool;
         auto connect_async(const char *host, const int port, const char *user, const char *pwd, const char *db, const char *locale) -> bool;
 
-        auto direct_query(const char *query) -> sql_msg *;
-        auto direct_query(const std::string &query) -> sql_msg * { return direct_query(query.c_str()); }
+        auto direct_query(const char *query) -> std::unique_ptr<sql_msg>;
+        auto direct_query(const std::string &query) -> std::unique_ptr<sql_msg> { return direct_query(query.c_str()); }
         void return_query(int type_value, uint32_t ident_value, void *data, const std::string &query);
         void return_query(int type, uint32_t ident, void *data, const char *format, ...) __attribute__((format(printf, 5, 6)));
 
@@ -138,7 +137,7 @@ namespace metin2::game::inline persistence {
         void process();
 
       private:
-        auto pop_result() -> sql_msg *;
+        auto pop_result() -> std::unique_ptr<sql_msg>;
         void analyze_return_query(sql_msg *msg);
 
         async_sql sql_direct_;

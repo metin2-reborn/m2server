@@ -10,6 +10,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -178,7 +179,7 @@ namespace metin2::game::inline world {
     };
 
     class dungeon_manager : public singleton<dungeon_manager> {
-        typedef std::map<dungeon::id_type, dungeon *> dungeon_map;
+        typedef std::map<dungeon::id_type, std::unique_ptr<dungeon>> dungeon_map;
         typedef std::map<int32_t, dungeon *> map_dungeon;
 
       public:

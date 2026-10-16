@@ -6,7 +6,6 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
-#include <cstring>
 
 namespace metin2::game::inline protocol {
 
@@ -16,14 +15,10 @@ namespace metin2::game::inline protocol {
             abort();
         }
 
-        workmem_ = (uint8_t *)malloc(LZO1X_MEM_COMPRESS);
-        memset(workmem_, 0, LZO1X_MEM_COMPRESS);
+        workmem_.resize(LZO1X_MEM_COMPRESS);
     }
 
-    lzo_manager::~lzo_manager() {
-        free(workmem_);
-        workmem_ = nullptr;
-    }
+    lzo_manager::~lzo_manager() = default;
 
     auto lzo_manager::compress(const uint8_t *src, size_t srcsize, uint8_t *dest, lzo_uint *pui_dest_size) -> bool {
         int ret = lzo1x_1_compress(src, srcsize, dest, pui_dest_size, work_memory());

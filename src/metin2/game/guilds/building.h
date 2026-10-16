@@ -75,7 +75,7 @@ namespace metin2::game::inline guilds {
             void set_owner(uint32_t guild);
             auto owner() const -> uint32_t { return data_.guild_id; }
 
-            void insert_object(object *obj);
+            void insert_object(std::unique_ptr<object> obj);
             auto find_object(uint32_t id) -> object *;
             auto find_object_by_vid(uint32_t vid) -> object *;
             auto find_object_by_group(uint32_t group_vnum) -> object *;
@@ -100,7 +100,7 @@ namespace metin2::game::inline guilds {
 
           protected:
             land_table data_;
-            std::map<uint32_t, object *> map_object_;
+            std::map<uint32_t, std::unique_ptr<object>> map_object_;
             std::map<uint32_t, object *> map_object_by_vid_;
 
           private:

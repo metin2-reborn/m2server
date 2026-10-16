@@ -6,6 +6,8 @@
 
 #include <cstdint>
 #include <map>
+#include <memory>
+#include <vector>
 
 namespace metin2::game::inline trade {
 
@@ -14,6 +16,7 @@ namespace metin2::game::inline trade {
     class shop_manager : public singleton<shop_manager> {
       public:
         typedef std::map<uint32_t, shop *> shop_map;
+        typedef std::map<uint32_t, std::unique_ptr<shop>> owned_shop_map;
 
       public:
         shop_manager();
@@ -36,9 +39,10 @@ namespace metin2::game::inline trade {
         void destroy_pc_shop(character *ch);
 
       private:
+        std::vector<std::unique_ptr<shop>> shops_;
         shop_map map_shop_;
         shop_map map_shop_by_npc_vnum_;
-        shop_map map_shop_by_pc_;
+        owned_shop_map map_shop_by_pc_;
 
         auto read_shop_table_ex(const char *file_name) -> bool;
     };

@@ -21,7 +21,7 @@ namespace metin2::db::inline clients {
     void client_manager::load_event_flag() {
         char szQuery[1024];
         snprintf(szQuery, sizeof(szQuery), "SELECT szName, lValue FROM quest%s WHERE dwPID = 0", get_table_postfix());
-        std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+        auto pmsg = db_manager::instance().direct_query(szQuery);
 
         sql_result *pRes = pmsg->get();
         if (pRes->num_rows) {

@@ -26,7 +26,7 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <cstring>
+#include <vector>
 
 namespace metin2::game::inline characters {
 
@@ -313,10 +313,10 @@ namespace metin2::game::inline characters {
     EVENTINFO(load_affect_login_event_info) {
         uint32_t pid;
         uint32_t count;
-        char *data;
+        std::vector<packet_affect_element> data;
 
         load_affect_login_event_info()
-            : pid(0), count(0), data(nullptr) {
+            : pid(0), count(0) {
         }
     };
 
@@ -332,14 +332,12 @@ namespace metin2::game::inline characters {
         character *ch = character_manager::instance().find_by_pid(dwPID);
 
         if (!ch) {
-            delete[] info->data;
             return 0;
         }
 
         desc *d = ch->get_desc();
 
         if (!d) {
-            delete[] info->data;
             return 0;
         }
 
@@ -350,16 +348,13 @@ namespace metin2::game::inline characters {
             d->is_phase(PHASE_LOADING)) {
             return passes_per_sec(1);
         } else if (d->is_phase(PHASE_CLOSE)) {
-            delete[] info->data;
             return 0;
         } else if (d->is_phase(PHASE_GAME)) {
             metin2::log::debug("{}: loading affects from event", ch->name());
-            ch->load_affect(info->count, (packet_affect_element *)info->data);
-            delete[] info->data;
+            ch->load_affect(info->count, info->data.data());
             return 0;
         } else {
             metin2::log::error("Cannot load affects for pid {:d}: player is in an invalid phase", ch->player_id());
-            delete[] info->data;
             return 0;
         }
     }
@@ -374,8 +369,7 @@ namespace metin2::game::inline characters {
 
             info->pid = player_id();
             info->count = count_value;
-            info->data = new char[sizeof(packet_affect_element) * count_value];
-            std::memcpy(info->data, elements, sizeof(packet_affect_element) * count_value);
+            info->data.assign(elements, elements + count_value);
 
             event_create(load_affect_login_event, info, passes_per_sec(1));
 

@@ -89,14 +89,7 @@ namespace metin2::db::inline guilds {
     guild_manager::guild_manager() {
     }
 
-    guild_manager::~guild_manager() {
-        while (!pq_on_war_.empty()) {
-            if (!pq_on_war_.top().second->end)
-                delete pq_on_war_.top().second;
-
-            pq_on_war_.pop();
-        }
-    }
+    guild_manager::~guild_manager() = default;
 
     auto guild_manager::touch_guild(uint32_t gid) -> guild & {
         auto it = map_guild_.find(gid);
@@ -138,7 +131,7 @@ namespace metin2::db::inline guilds {
     void guild_manager::initialize() {
         char szQuery[1024];
         snprintf(szQuery, sizeof(szQuery), "SELECT id, name, ladder_point, win, draw, loss, gold, level FROM guild%s", get_table_postfix());
-        std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+        auto pmsg = db_manager::instance().direct_query(szQuery);
 
         if (pmsg->get()->num_rows)
             parse_result(pmsg->get());
@@ -161,7 +154,7 @@ namespace metin2::db::inline guilds {
         char szQuery[1024];
 
         snprintf(szQuery, sizeof(szQuery), "SELECT id, name, ladder_point, win, draw, loss, gold, level FROM guild%s WHERE id=%u", get_table_postfix(), guild_id);
-        std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+        auto pmsg = db_manager::instance().direct_query(szQuery);
 
         if (pmsg->get()->num_rows)
             parse_result(pmsg->get());
@@ -217,15 +210,13 @@ namespace metin2::db::inline guilds {
         if (!pq_on_war_.empty()) {
 
             while (!pq_on_war_.empty() && (pq_on_war_.top().first <= now || (pq_on_war_.top().second && pq_on_war_.top().second->end))) {
-                guild_war_pq_element *e = pq_on_war_.top().second;
+                auto e = pq_on_war_.top().second;
 
                 pq_on_war_.pop();
 
                 if (e) {
                     if (!e->end)
                         war_end(e->gid[0], e->gid[1], false);
-
-                    delete e;
                 }
             }
         }
@@ -262,7 +253,7 @@ namespace metin2::db::inline guilds {
     void guild_manager::on_setup(peer *peer) {
         for (const auto &[g1, wars] : war_map_)
             for (const auto &[g2, war] : wars) {
-                guild_war_pq_element *p = war.element;
+                guild_war_pq_element *p = war.element.get();
 
                 if (!p || p->end)
                     continue;
@@ -407,7 +398,7 @@ namespace metin2::db::inline guilds {
         }
 
         guild_war_info gwi = itWarMap->second;
-        guild_war_pq_element *pData = gwi.element;
+        guild_war_pq_element *pData = gwi.element.get();
 
         if (!pData || pData->end) {
             metin2::log::warn("Guild war: cannot end war between guild {:d} and guild {:d}, already ended", gid1, gid2);
@@ -495,7 +486,7 @@ namespace metin2::db::inline guilds {
         else
             gw.t_end_time = client_manager::instance().current_time() + 172800;
 
-        gw.element = new guild_war_pq_element(type, gid1, gid2);
+        gw.element = std::make_shared<guild_war_pq_element>(type, gid1, gid2);
         gw.reserve = reserve_value;
 
         pq_on_war_.push(std::make_pair(gw.t_end_time, gw.element));
@@ -511,7 +502,7 @@ namespace metin2::db::inline guilds {
         auto it = war_map_[GID1].find(GID2);
 
         if (it != war_map_[GID1].end()) {
-            guild_war_pq_element *p = it->second.element;
+            guild_war_pq_element *p = it->second.element.get();
 
             if (!p || p->end) {
                 metin2::log::warn("Guild war: score update for guild {:d}, but its war against guild {:d} has already ended", gain_gid, opp_gid);
@@ -753,7 +744,7 @@ namespace metin2::db::inline guilds {
                 "SELECT id, guild1, guild2, UNIX_TIMESTAMP(time), type, warprice, initscore, bet_from, bet_to, power1, power2, handicap FROM guild_war_reservation WHERE started=0"};
 
         for (int i = 0; i < 2; ++i) {
-            std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(c_apszQuery[i]));
+            auto pmsg = db_manager::instance().direct_query(c_apszQuery[i]);
 
             if (pmsg->get()->num_rows == 0)
                 continue;
@@ -805,7 +796,7 @@ namespace metin2::db::inline guilds {
             "SELECT AVG(level) FROM guild_member%s, player%s AS p WHERE guild_id=%u AND guild_member%s.pid=p.id",
             get_table_postfix(), get_table_postfix(), gid, get_table_postfix());
 
-        std::unique_ptr<sql_msg> msg(db_manager::instance().direct_query(szQuery));
+        auto msg = db_manager::instance().direct_query(szQuery);
 
         MYSQL_ROW row;
         row = mysql_fetch_row(msg->get()->res);
@@ -820,7 +811,7 @@ namespace metin2::db::inline guilds {
 
         snprintf(szQuery, sizeof(szQuery), "SELECT COUNT(*) FROM guild_member%s WHERE guild_id=%u", get_table_postfix(), gid);
 
-        std::unique_ptr<sql_msg> msg(db_manager::instance().direct_query(szQuery));
+        auto msg = db_manager::instance().direct_query(szQuery);
 
         MYSQL_ROW row;
         row = mysql_fetch_row(msg->get()->res);
@@ -901,7 +892,7 @@ namespace metin2::db::inline guilds {
             "VALUES(%u, %u, DATE_ADD(NOW(), INTERVAL 180 SECOND), %u, %d, %d, %d, %d, %d)",
             GID1, GID2, p->type, p->war_price, p->initial_score, t.power_from, t.power_to, t.handicap);
 
-        std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+        auto pmsg = db_manager::instance().direct_query(szQuery);
 
         if (pmsg->get()->affected_rows == 0 || pmsg->get()->insert_id == 0 || pmsg->get()->affected_rows == (uint32_t)-1) {
             metin2::log::error("Guild war: cannot reserve war between guild {:d} and guild {:d}", GID1, GID2);
@@ -999,13 +990,13 @@ namespace metin2::db::inline guilds {
         char szQuery[1024];
 
         snprintf(szQuery, sizeof(szQuery), "UPDATE guild%s SET master=%u WHERE id=%u", get_table_postfix(), to, gid);
-        std::unique_ptr<sql_msg>(db_manager::instance().direct_query(szQuery));
+        db_manager::instance().direct_query(szQuery);
 
         snprintf(szQuery, sizeof(szQuery), "UPDATE guild_member%s SET grade=1 WHERE pid=%u", get_table_postfix(), to);
-        std::unique_ptr<sql_msg>(db_manager::instance().direct_query(szQuery));
+        db_manager::instance().direct_query(szQuery);
 
         snprintf(szQuery, sizeof(szQuery), "UPDATE guild_member%s SET grade=15 WHERE pid=%u", get_table_postfix(), from);
-        std::unique_ptr<sql_msg>(db_manager::instance().direct_query(szQuery));
+        db_manager::instance().direct_query(szQuery);
 
         return true;
     }
@@ -1021,7 +1012,7 @@ namespace metin2::db::inline guilds {
         char szQuery[256];
         snprintf(szQuery, sizeof(szQuery), "SELECT login, guild, gold FROM guild_war_bet WHERE war_id=%u", data_.id);
 
-        std::unique_ptr<sql_msg> msgbet(db_manager::instance().direct_query(szQuery));
+        auto msgbet = db_manager::instance().direct_query(szQuery);
 
         if (msgbet->get()->num_rows) {
             MYSQL_RES *res = msgbet->get()->res;
@@ -1088,7 +1079,7 @@ namespace metin2::db::inline guilds {
             "INSERT INTO guild_war_bet (war_id, login, gold, guild) VALUES({}, {}, {}, {})",
             data_.id, login_value, gold_value, guild_value);
 
-        std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(query.c_str()));
+        auto pmsg = db_manager::instance().direct_query(query.c_str());
 
         if (pmsg->get()->affected_rows == 0 || pmsg->get()->affected_rows == (uint32_t)-1) {
             metin2::log::error("Guild war bet: cannot record bet of account {} on war {:d}", login_value, data_.id);

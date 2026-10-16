@@ -16,19 +16,20 @@ namespace metin2::game::inline app {
     // Pending events ordered by due pulse; events due on the same pulse run in the order queued.
     class event_queue {
       public:
+        using element = std::multimap<int, queue_element>::node_type;
+
         event_queue() = default;
-        ~event_queue();
+        ~event_queue() = default;
 
         event_queue(const event_queue &) = delete;
         auto operator=(const event_queue &) -> event_queue & = delete;
 
         auto enqueue(event_ptr data, int duration, int pulse) -> queue_element *;
-        auto dequeue() -> queue_element *;
-        void remove(queue_element *elem);
+        auto dequeue() -> element;
         auto top_key() -> int;
         auto size() -> int;
 
       private:
-        std::multimap<int, queue_element *> queue_;
+        std::multimap<int, queue_element> queue_;
     };
 }

@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <string>
 
 namespace metin2::game::inline social {
@@ -78,7 +79,7 @@ namespace metin2::game::inline social {
             auto create_wedding_map(uint32_t pid1, uint32_t pid2) -> uint32_t;
 
           private:
-            std::map<uint32_t, wedding_map *> wedding_;
+            std::map<uint32_t, std::unique_ptr<wedding_map>> wedding_;
         };
     }
 }

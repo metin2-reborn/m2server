@@ -40,7 +40,7 @@ namespace metin2::game::inline data {
 
         auto load(const char *file_name) -> bool;
 
-        auto set_child_node(const char *key, group_node *child_group) -> bool;
+        auto set_child_node(const char *key, std::unique_ptr<group_node> child_group) -> bool;
         auto child_node(const std::string &rstr_key) const -> group_node *;
         auto node_name() const -> std::string;
 
@@ -65,7 +65,7 @@ namespace metin2::game::inline data {
         auto column_index_from_name(const std::string &name) const -> int;
 
       private:
-        typedef std::map<std::string, group_node *> map_group;
+        typedef std::map<std::string, std::unique_ptr<group_node>> map_group;
         typedef std::map<std::string, group_node::group_node_row> map_row;
         map_group child_nodes_;
         std::string group_name_;

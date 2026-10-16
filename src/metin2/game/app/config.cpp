@@ -173,7 +173,7 @@ namespace metin2::game::inline app {
             char szQuery[512];
             snprintf(szQuery, sizeof(szQuery), "SELECT mKey, mValue FROM locale");
 
-            std::unique_ptr<sql_msg> pMsg(account_db::instance().direct_query(szQuery));
+            auto pMsg = account_db::instance().direct_query(szQuery);
 
             if (pMsg->get()->num_rows == 0) {
                 metin2::log::error("Common database locale table is empty or unreadable: {}", szQuery);
@@ -224,7 +224,7 @@ namespace metin2::game::inline app {
         {
             char szQuery[256];
             snprintf(szQuery, sizeof(szQuery), "SELECT mValue FROM locale WHERE mKey='SKILL_POWER_BY_LEVEL'");
-            std::unique_ptr<sql_msg> pMsg(account_db::instance().direct_query(szQuery));
+            auto pMsg = account_db::instance().direct_query(szQuery);
 
             if (pMsg->get()->num_rows == 0) {
                 metin2::log::error("Locale table has no SKILL_POWER_BY_LEVEL: {}", szQuery);
@@ -258,7 +258,7 @@ namespace metin2::game::inline app {
 
             for (int job = 0; job < JOB_MAX_NUM * 2; ++job) {
                 snprintf(szQuery, sizeof(szQuery), "SELECT mValue from locale where mKey='SKILL_POWER_BY_LEVEL_TYPE%d' ORDER BY CAST(mValue AS unsigned)", job);
-                std::unique_ptr<sql_msg> pMsg(account_db::instance().direct_query(szQuery));
+                auto pMsg = account_db::instance().direct_query(szQuery);
 
                 if (pMsg->get()->num_rows == 0) {
                     table_by_skill::instance().set_skill_power_by_level_from_type(job, aiBaseSkillPowerByLevelTable);

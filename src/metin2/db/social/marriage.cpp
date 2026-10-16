@@ -45,8 +45,8 @@ namespace metin2::db::inline social {
                 "SELECT pid1, pid2, love_point, time, is_married, p1.name, p2.name FROM marriage, player%s as p1, player%s as p2 WHERE p1.id = pid1 AND p2.id = pid2",
                 get_table_postfix(), get_table_postfix());
 
-            std::unique_ptr<sql_msg> pmsg_delete(db_manager::instance().direct_query("DELETE FROM marriage WHERE is_married = 0"));
-            std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+            auto pmsg_delete = db_manager::instance().direct_query("DELETE FROM marriage WHERE is_married = 0");
+            auto pmsg = db_manager::instance().direct_query(szQuery);
 
             sql_result *pRes = pmsg->get();
             metin2::log::info("Marriage: loading {:d} marriages", pRes->num_rows);
@@ -68,8 +68,7 @@ namespace metin2::db::inline social {
                     const char *name1 = row[5];
                     const char *name2 = row[6];
 
-                    marriage *pMarriage = new marriage(pid1, pid2, love_point, time, is_married, name1, name2);
-                    marriages_.insert(pMarriage);
+                    marriage *pMarriage = marriages_.emplace_back(std::make_unique<marriage>(pid1, pid2, love_point, time, is_married, name1, name2)).get();
                     marriage_by_pid_.insert(std::make_pair(pid1, pMarriage));
                     marriage_by_pid_.insert(std::make_pair(pid2, pMarriage));
 
@@ -105,7 +104,7 @@ namespace metin2::db::inline social {
             char szQuery[512];
             snprintf(szQuery, sizeof(szQuery), "INSERT INTO marriage(pid1, pid2, love_point, time) VALUES (%u, %u, 0, %u)", pid1, pid2, now);
 
-            std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+            auto pmsg = db_manager::instance().direct_query(szQuery);
 
             sql_result *res = pmsg->get();
             if (res->affected_rows == 0 || res->affected_rows == (uint32_t)-1) {
@@ -115,8 +114,7 @@ namespace metin2::db::inline social {
 
             metin2::log::info("Marriage: added marriage of pid {:d} and pid {:d}", pid1, pid2);
 
-            marriage *pMarriage = new marriage(pid1, pid2, 0, now, 0, name1_value, name2_value);
-            marriages_.insert(pMarriage);
+            marriage *pMarriage = marriages_.emplace_back(std::make_unique<marriage>(pid1, pid2, 0, now, 0, name1_value, name2_value)).get();
             marriage_by_pid_.insert(std::make_pair(pid1, pMarriage));
             marriage_by_pid_.insert(std::make_pair(pid2, pMarriage));
 
@@ -142,7 +140,7 @@ namespace metin2::db::inline social {
             snprintf(szQuery, sizeof(szQuery), "UPDATE marriage SET love_point = %d, is_married = %d WHERE pid1 = %u AND pid2 = %u",
                 love_point_value, married_value, pMarriage->pid1, pMarriage->pid2);
 
-            std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+            auto pmsg = db_manager::instance().direct_query(szQuery);
 
             sql_result *res = pmsg->get();
             if (res->affected_rows == 0 || res->affected_rows == (uint32_t)-1) {
@@ -183,7 +181,7 @@ namespace metin2::db::inline social {
             char szQuery[512];
             snprintf(szQuery, sizeof(szQuery), "DELETE FROM marriage WHERE pid1 = %u AND pid2 = %u", pid1_value, pid2_value);
 
-            std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+            auto pmsg = db_manager::instance().direct_query(szQuery);
 
             sql_result *res = pmsg->get();
             if (res->affected_rows == 0 || res->affected_rows == (uint32_t)-1) {
@@ -193,7 +191,6 @@ namespace metin2::db::inline social {
 
             metin2::log::info("Marriage: pid {:d} and pid {:d} divorced", pid1_value, pid2_value);
 
-            marriages_.erase(pMarriage);
             marriage_by_pid_.erase(pid1_value);
             marriage_by_pid_.erase(pid2_value);
 
@@ -202,12 +199,12 @@ namespace metin2::db::inline social {
             p.pid2 = pid2_value;
             client_manager::instance().forward_packet(HEADER_DG_MARRIAGE_REMOVE, &p, sizeof(p));
 
-            delete pMarriage;
+            std::erase_if(marriages_, [pMarriage](const auto &m) { return m.get() == pMarriage; });
         }
 
         void manager::on_setup(peer *peer) {
-            for (auto it = marriages_.begin(); it != marriages_.end(); ++it) {
-                marriage *pMarriage = *it;
+            for (const auto &owned : marriages_) {
+                marriage *pMarriage = owned.get();
 
                 {
                     packet_marriage_add p;

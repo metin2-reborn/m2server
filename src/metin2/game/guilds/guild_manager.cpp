@@ -193,7 +193,7 @@ namespace metin2::game::inline guilds {
             return;
         }
 
-        std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query("SELECT id FROM guild%s", get_table_postfix()));
+        auto pmsg = db_manager::instance().direct_query("SELECT id FROM guild%s", get_table_postfix());
 
         for (uint i = 0; i < pmsg->get()->num_rows; i++) {
             MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);

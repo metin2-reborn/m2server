@@ -174,7 +174,7 @@ namespace metin2::sql {
         return msg;
     }
 
-    auto async_sql::direct_query(const char *query_value) -> sql_msg * {
+    auto async_sql::direct_query(const char *query_value) -> std::unique_ptr<sql_msg> {
         check_reconnected();
 
         auto msg = new_message(query_value);
@@ -185,7 +185,7 @@ namespace metin2::sql {
         }
 
         msg->store(&db_);
-        return msg.release();
+        return msg;
     }
 
     void async_sql::async_query(const char *query) {
@@ -207,16 +207,16 @@ namespace metin2::sql {
         cv_query_.notify_one();
     }
 
-    auto async_sql::pop_result(sql_msg **pp) -> bool {
+    auto async_sql::pop_result() -> std::unique_ptr<sql_msg> {
         std::lock_guard lock(mtx_result_);
 
         if (queue_result_.empty()) {
-            return false;
+            return nullptr;
         }
 
-        *pp = queue_result_.front().release();
+        auto msg = std::move(queue_result_.front());
         queue_result_.pop_front();
-        return true;
+        return msg;
     }
 
     auto async_sql::execute(sql_msg &msg) -> bool {
@@ -313,32 +313,5 @@ namespace metin2::sql {
 
     void async_sql::reset_copied_query_count() {
         copied_query_ = 0;
-    }
-
-    auto async_sql::sql_handle() -> MYSQL * {
-        return &db_;
-    }
-
-    auto async_sql::escape_string(char *dst, size_t dst_size, const char *src, size_t src_size) -> size_t {
-        if (src_size == 0) {
-            std::ranges::fill_n(dst, static_cast<std::ptrdiff_t>(dst_size), '\0');
-            return 0;
-        }
-
-        if (dst_size == 0) {
-            return 0;
-        }
-
-        if (dst_size < src_size * 2 + 1) {
-            const std::string_view shown(src, std::min<size_t>(src_size, 255));
-
-            metin2::log::error("Escape buffer too small (dst size {:d}, src size {:d}), source{}: {}",
-                dst_size, src_size, shown.size() != src_size ? "(trimmed to 255 characters)" : "", std::string_view(shown.data(), static_cast<int>(shown.size())));
-
-            dst[0] = '\0';
-            return 0;
-        }
-
-        return mysql_real_escape_string(&db_, dst, src, src_size);
     }
 }

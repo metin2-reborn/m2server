@@ -175,7 +175,7 @@ namespace metin2::db::inline clients {
 
         player_table *pTable = it->second->get(false);
         pTable->logoff_interval = current_time() - it->second->last_update_time();
-        return it->second;
+        return it->second.get();
     }
 
     void client_manager::put_player_cache(player_table *updated) {
@@ -184,8 +184,7 @@ namespace metin2::db::inline clients {
         c = player_cache(updated->id);
 
         if (!c) {
-            c = new player_table_cache;
-            map_player_cache_.insert(player_table_cache_map::value_type(updated->id, c));
+            c = map_player_cache_.emplace(updated->id, std::make_unique<player_table_cache>()).first->second.get();
         }
 
         c->put(updated);
@@ -650,7 +649,7 @@ namespace metin2::db::inline clients {
         std::string query = sql::format(
             "SELECT pid{} FROM player_index{} WHERE id={}", packet->account_index + 1, postfix, packet->account_id);
 
-        std::unique_ptr<sql_msg> pMsg0(db_manager::instance().direct_query(query.c_str()));
+        auto pMsg0 = db_manager::instance().direct_query(query.c_str());
 
         if (pMsg0->get()->num_rows != 0) {
             if (!pMsg0->get()->res) {
@@ -675,7 +674,7 @@ namespace metin2::db::inline clients {
         query = sql::format(
             "SELECT COUNT(*) as count FROM player{} WHERE name={}", postfix, packet->player_table.name);
 
-        std::unique_ptr<sql_msg> pMsg1(db_manager::instance().direct_query(query.c_str()));
+        auto pMsg1 = db_manager::instance().direct_query(query.c_str());
 
         if (pMsg1->get()->num_rows) {
             if (!pMsg1->get()->res) {
@@ -721,7 +720,7 @@ namespace metin2::db::inline clients {
             packet->player_table.ht,
             packet->player_table.job);
 
-        std::unique_ptr<sql_msg> pMsg2(db_manager::instance().direct_query(query.c_str()));
+        auto pMsg2 = db_manager::instance().direct_query(query.c_str());
         if (metin2::config::test_server())
             metin2::log::debug("Player create: query length {:d}", query.size());
 
@@ -735,7 +734,7 @@ namespace metin2::db::inline clients {
 
         query = sql::format("UPDATE player_index{} SET pid{}={} WHERE id={}",
             postfix, packet->account_index + 1, player_id, packet->account_id);
-        std::unique_ptr<sql_msg> pMsg3(db_manager::instance().direct_query(query.c_str()));
+        auto pMsg3 = db_manager::instance().direct_query(query.c_str());
 
         if (pMsg3->get()->affected_rows <= 0) {
             metin2::log::error("Player create: cannot update player_index, rolling back: {}", query.c_str());
@@ -857,7 +856,7 @@ namespace metin2::db::inline clients {
 
             std::string query = sql::format("INSERT INTO player{}_deleted SELECT * FROM player{} WHERE id={}",
                 postfix, postfix, pi->player_id);
-            std::unique_ptr<sql_msg> pIns(db_manager::instance().direct_query(query.c_str()));
+            auto pIns = db_manager::instance().direct_query(query.c_str());
 
             if (pIns->get()->affected_rows == 0 || pIns->get()->affected_rows == (uint32_t)-1) {
                 metin2::log::error("Player delete: cannot copy pid {:d} into player{}_deleted", dwPID, get_table_postfix());
@@ -877,7 +876,6 @@ namespace metin2::db::inline clients {
 
             if (pkPlayerCache) {
                 map_player_cache_.erase(pi->player_id);
-                delete pkPlayerCache;
             }
 
             item_cache_set *pSet = get_item_cache_set(pi->player_id);
@@ -901,7 +899,7 @@ namespace metin2::db::inline clients {
                 pi->account_index + 1,
                 pi->player_id);
 
-            std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(query.c_str()));
+            auto pMsg = db_manager::instance().direct_query(query.c_str());
 
             if (pMsg->get()->affected_rows == 0 || pMsg->get()->affected_rows == (uint32_t)-1) {
                 metin2::log::error("Player delete: cannot clear pid {:d} from player_index", pi->player_id);
@@ -911,10 +909,10 @@ namespace metin2::db::inline clients {
             }
 
             query = sql::format("DELETE FROM player{} WHERE id={}", postfix, pi->player_id);
-            std::unique_ptr<sql_msg>(db_manager::instance().direct_query(query.c_str()));
+            db_manager::instance().direct_query(query.c_str());
 
             query = sql::format("DELETE FROM item{} WHERE owner_id={} AND (window < {} or window = {})", postfix, pi->player_id, SAFEBOX, DRAGON_SOUL_INVENTORY);
-            std::unique_ptr<sql_msg>(db_manager::instance().direct_query(query.c_str()));
+            db_manager::instance().direct_query(query.c_str());
 
             query = sql::format("DELETE FROM quest{} WHERE dwPID={}", postfix, pi->player_id);
             db_manager::instance().async_query(query.c_str());
@@ -1068,11 +1066,8 @@ namespace metin2::db::inline clients {
         player_table_cache_map::iterator it = map_player_cache_.find(pid);
 
         if (it != map_player_cache_.end()) {
-            player_table_cache *c = it->second;
+            it->second->flush();
             map_player_cache_.erase(it);
-
-            c->flush();
-            delete c;
         }
     }
 }

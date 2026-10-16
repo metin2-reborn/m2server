@@ -79,7 +79,7 @@ namespace metin2::db::inline items {
 
         snprintf(szQuery, sizeof(szQuery), "SELECT MAX(id) FROM item%s WHERE id >= %u and id <= %u", get_table_postfix(), min_value, max_value);
 
-        pMsg.reset(db_manager::instance().direct_query(szQuery));
+        pMsg = db_manager::instance().direct_query(szQuery);
 
         if (pMsg != nullptr) {
             if (pMsg->get()->num_rows > 0) {
@@ -104,7 +104,7 @@ namespace metin2::db::inline items {
             snprintf(szQuery, sizeof(szQuery), "SELECT COUNT(*) FROM item%s WHERE id >= %u AND id <= %u",
                 get_table_postfix(), range.usable_item_id_min, range.max);
 
-            pMsg.reset(db_manager::instance().direct_query(szQuery));
+            pMsg = db_manager::instance().direct_query(szQuery);
 
             if (pMsg != nullptr) {
                 if (pMsg->get()->num_rows > 0) {

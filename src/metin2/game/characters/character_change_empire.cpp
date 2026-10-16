@@ -32,7 +32,7 @@ namespace metin2::game::inline characters {
                 "SELECT id, pid1, pid2, pid3, pid4 FROM player_index{} WHERE (pid1={} OR pid2={} OR pid3={} OR pid4={}) AND empire={}",
                 sql::raw(get_table_postfix()), player_id(), player_id(), player_id(), player_id(), empire());
 
-            std::unique_ptr<sql_msg> msg(db_manager::instance().direct_query(query));
+            auto msg = db_manager::instance().direct_query(query);
 
             if (msg->get()->num_rows == 0) {
                 return 0;
@@ -55,7 +55,7 @@ namespace metin2::game::inline characters {
             for (int i = 0; i < loop; ++i) {
                 const std::string query = sql::format("SELECT guild_id FROM guild_member{} WHERE pid={}", sql::raw(get_table_postfix()), dwPID[i]);
 
-                std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(query));
+                auto pMsg = db_manager::instance().direct_query(query);
 
                 if (pMsg != nullptr) {
                     if (pMsg->get()->num_rows > 0) {
@@ -87,7 +87,7 @@ namespace metin2::game::inline characters {
             const std::string query = sql::format("UPDATE player_index{} SET empire={} WHERE (pid1={} OR pid2={} OR pid3={} OR pid4={}) AND empire={}",
                 sql::raw(get_table_postfix()), empire_value, player_id(), player_id(), player_id(), player_id(), empire());
 
-            std::unique_ptr<sql_msg> msg(db_manager::instance().direct_query(query));
+            auto msg = db_manager::instance().direct_query(query);
 
             if (msg->get()->affected_rows > 0) {
                 set_change_empire_count();
@@ -105,7 +105,7 @@ namespace metin2::game::inline characters {
         if (dwAID == 0)
             return 0;
 
-        std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(sql::format("SELECT change_count FROM change_empire WHERE account_id = {}", dwAID)));
+        auto pMsg = db_manager::instance().direct_query(sql::format("SELECT change_count FROM change_empire WHERE account_id = {}", dwAID));
 
         if (pMsg != nullptr) {
             if (pMsg->get()->num_rows == 0) {
@@ -140,7 +140,7 @@ namespace metin2::game::inline characters {
             query = sql::format("UPDATE change_empire SET change_count={} WHERE account_id={}", count, dwAID);
         }
 
-        std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(query));
+        auto pmsg = db_manager::instance().direct_query(query);
     }
 
     auto character::aid() const -> uint32_t {
@@ -149,7 +149,7 @@ namespace metin2::game::inline characters {
         const std::string query = sql::format("SELECT id FROM player_index{} WHERE (pid1={} OR pid2={} OR pid3={} OR pid4={}) AND empire={}",
             sql::raw(get_table_postfix()), player_id(), player_id(), player_id(), player_id(), empire());
 
-        std::unique_ptr<sql_msg> pMsg(db_manager::instance().direct_query(query));
+        auto pMsg = db_manager::instance().direct_query(query);
 
         if (pMsg != nullptr) {
             if (pMsg->get()->num_rows == 0) {

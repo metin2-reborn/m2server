@@ -176,7 +176,7 @@ namespace metin2::game::inline items {
                     pkGroup->effect_file_name = pTok->at(0);
                 }
                 loader.set_parent_node();
-                map_special_attr_group_.insert(std::make_pair(iVnum, pkGroup.release()));
+                map_special_attr_group_.emplace(iVnum, std::move(pkGroup));
             } else {
                 auto pkGroup = std::make_unique<special_item_group>(iVnum, type);
                 for (int k = 1; k < 256; ++k) {
@@ -233,9 +233,9 @@ namespace metin2::game::inline items {
                 }
                 loader.set_parent_node();
                 if (special_item_group::QUEST == type) {
-                    map_quest_item_group_.insert(std::make_pair(iVnum, pkGroup.release()));
+                    map_quest_item_group_.emplace(iVnum, std::move(pkGroup));
                 } else {
-                    map_special_item_group_.insert(std::make_pair(iVnum, pkGroup.release()));
+                    map_special_item_group_.emplace(iVnum, std::move(pkGroup));
                 }
             }
         }
@@ -507,17 +507,17 @@ namespace metin2::game::inline items {
 
                     break;
                 }
-                map_mob_item_group_.insert(std::map<uint32_t, mob_item_group *>::value_type(iMobVnum, pkGroup.release()));
+                map_mob_item_group_.emplace(iMobVnum, std::move(pkGroup));
 
             } else if (strType == "drop") {
+                std::unique_ptr<drop_item_group> pkNewGroup;
                 drop_item_group *pkGroup = nullptr;
-                bool bNew = true;
                 auto it = map_drop_item_group_.find(iMobVnum);
                 if (it == map_drop_item_group_.end()) {
-                    pkGroup = new drop_item_group;
+                    pkNewGroup = std::make_unique<drop_item_group>();
+                    pkGroup = pkNewGroup.get();
                 } else {
-                    pkGroup = it->second;
-                    bNew = false;
+                    pkGroup = it->second.get();
                 }
 
                 for (int k = 1; k < 256; ++k) {
@@ -532,9 +532,6 @@ namespace metin2::game::inline items {
                             str_to_number(dwVnum, name.c_str());
                             if (!item_manager::instance().table(dwVnum)) {
                                 metin2::log::error("Unknown item {} in drop group {}", name.c_str(), stName.c_str());
-                                if (bNew)
-                                    delete pkGroup;
-
                                 return false;
                             }
                         }
@@ -544,9 +541,6 @@ namespace metin2::game::inline items {
 
                         if (iCount < 1) {
                             metin2::log::error("Item {} in drop group {} has invalid count", name.c_str(), stName.c_str());
-                            if (bNew)
-                                delete pkGroup;
-
                             return false;
                         }
 
@@ -562,8 +556,8 @@ namespace metin2::game::inline items {
 
                     break;
                 }
-                if (bNew)
-                    map_drop_item_group_.insert(std::map<uint32_t, drop_item_group *>::value_type(iMobVnum, pkGroup));
+                if (pkNewGroup)
+                    map_drop_item_group_.emplace(iMobVnum, std::move(pkNewGroup));
 
             } else if (strType == "limit") {
                 auto pkLevelItemGroup = std::make_unique<level_item_group>(iLevelLimit);
@@ -601,7 +595,7 @@ namespace metin2::game::inline items {
                     break;
                 }
 
-                map_level_item_group_.insert(std::map<uint32_t, level_item_group *>::value_type(iMobVnum, pkLevelItemGroup.release()));
+                map_level_item_group_.emplace(iMobVnum, std::move(pkLevelItemGroup));
             } else if (strType == "thiefgloves") {
                 auto pkGroup = std::make_unique<buyer_thief_gloves_item_group>();
 
@@ -642,7 +636,7 @@ namespace metin2::game::inline items {
                     break;
                 }
 
-                map_glove_item_group_.insert(std::map<uint32_t, buyer_thief_gloves_item_group *>::value_type(iMobVnum, pkGroup.release()));
+                map_glove_item_group_.emplace(iMobVnum, std::move(pkGroup));
             } else {
                 metin2::log::error("{}: group {} has invalid type {} (expected kill or drop)", file_name, stName.c_str(), strType.c_str());
                 loader.set_parent_node();
@@ -696,7 +690,7 @@ namespace metin2::game::inline items {
                 pkNewGroup = std::make_unique<drop_item_group>();
                 pkGroup = pkNewGroup.get();
             } else
-                pkGroup = it->second;
+                pkGroup = it->second.get();
 
             for (int k = 1; k < 256; ++k) {
                 char buf[4];
@@ -736,7 +730,7 @@ namespace metin2::game::inline items {
             }
 
             if (pkNewGroup)
-                map_drop_item_group_.insert(std::map<uint32_t, drop_item_group *>::value_type(iMobVnum, pkNewGroup.release()));
+                map_drop_item_group_.emplace(iMobVnum, std::move(pkNewGroup));
 
             loader.set_parent_node();
         }

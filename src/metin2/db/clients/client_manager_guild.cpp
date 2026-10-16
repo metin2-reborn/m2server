@@ -40,12 +40,12 @@ namespace metin2::db::inline clients {
             "INSERT INTO guild_member%s VALUES(%u, %u, %d, 0, 0)",
             get_table_postfix(), p->pid, p->guild, p->grade);
 
-        std::unique_ptr<sql_msg> pmsg_insert(db_manager::instance().direct_query(szQuery));
+        auto pmsg_insert = db_manager::instance().direct_query(szQuery);
 
         snprintf(szQuery, sizeof(szQuery),
             "SELECT pid, grade, is_general, offer, level, job, name FROM guild_member%s, player%s WHERE guild_id = %u and pid = id and pid = %u", get_table_postfix(), get_table_postfix(), p->guild, p->pid);
 
-        std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+        auto pmsg = db_manager::instance().direct_query(szQuery);
 
         if (pmsg->get()->num_rows == 0) {
             metin2::log::error("Guild: cannot load guild member data: {}", pmsg->query.c_str());

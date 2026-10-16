@@ -23,6 +23,7 @@
 #include <cstdint>
 #include <cstring>
 #include <map>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -354,7 +355,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto desc_manager::find_by_login_key(uint32_t key) -> desc * {
-        std::map<uint32_t, login_key *>::iterator it = map_login_key_.find(key);
+        auto it = map_login_key_.find(key);
 
         if (it == map_login_key_.end())
             return nullptr;
@@ -371,9 +372,9 @@ namespace metin2::game::inline protocol {
             if (map_login_key_.find(dwKey) != map_login_key_.end())
                 continue;
 
-            login_key *pkKey = new login_key(dwKey, d);
-            d->set_login_key(pkKey);
-            map_login_key_.insert(std::make_pair(dwKey, pkKey));
+            auto pkKey = std::make_unique<login_key>(dwKey, d);
+            d->set_login_key(pkKey.get());
+            map_login_key_.emplace(dwKey, std::move(pkKey));
             break;
         } while (1);
 
@@ -383,18 +384,15 @@ namespace metin2::game::inline protocol {
     void desc_manager::process_expired_login_key() {
         uint32_t dwCurrentTime = get_dword_time();
 
-        std::map<uint32_t, login_key *>::iterator it, it2;
-
-        it = map_login_key_.begin();
+        auto it = map_login_key_.begin();
 
         while (it != map_login_key_.end()) {
-            it2 = it++;
+            auto it2 = it++;
 
             if (it2->second->expire_time == 0)
                 continue;
 
             if (dwCurrentTime - it2->second->expire_time > 60000) {
-                delete it2->second;
                 map_login_key_.erase(it2);
             }
         }

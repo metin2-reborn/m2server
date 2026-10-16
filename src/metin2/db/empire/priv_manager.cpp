@@ -30,45 +30,40 @@ namespace metin2::db::inline empire {
         time_t now = client_manager::instance().current_time();
 
         while (!pq_priv_guild_.empty() && pq_priv_guild_.top().first <= now) {
-            priv_guild_data *p = pq_priv_guild_.top().second;
+            auto p = pq_priv_guild_.top().second;
             pq_priv_guild_.pop();
 
             if (p->value != 0 && !p->removed) {
 
-                __typeof(priv_guild_[p->type].begin()) it = priv_guild_[p->type].find(p->guild_id);
+                auto it = priv_guild_[p->type].find(p->guild_id);
 
-                if (it != priv_guild_[p->type].end() && it->second == p) {
+                if (it != priv_guild_[p->type].end() && it->second == p.get()) {
                     priv_guild_[p->type].erase(it);
                     send_change_guild_priv(p->guild_id, p->type, 0, 0);
                 }
             }
-
-            delete p;
         }
 
         while (!pq_priv_empire_.empty() && pq_priv_empire_.top().first <= now) {
-            priv_empire_data *p = (pq_priv_empire_.top().second);
+            auto p = pq_priv_empire_.top().second;
             pq_priv_empire_.pop();
 
             if (p->value != 0 && !p->removed) {
                 send_change_empire_priv(p->empire, p->type, 0, 0);
                 aa_priv_empire_[p->type][p->empire] = nullptr;
             }
-
-            delete p;
         }
 
         while (!pq_priv_char_.empty() && pq_priv_char_.top().first <= now) {
-            priv_char_data *p = (pq_priv_char_.top().second);
+            auto p = pq_priv_char_.top().second;
             pq_priv_char_.pop();
 
             if (!p->removed) {
                 send_change_char_priv(p->pid, p->type, 0);
-                __typeof(priv_char_[p->type].begin()) it = priv_char_[p->type].find(p->pid);
+                auto it = priv_char_[p->type].find(p->pid);
                 if (it != priv_char_[p->type].end())
                     priv_char_[p->type].erase(it);
             }
-            delete p;
         }
     }
 
@@ -78,7 +73,7 @@ namespace metin2::db::inline empire {
             return;
         }
 
-        __typeof(priv_char_[type].begin()) it = priv_char_[type].find(pid);
+        auto it = priv_char_[type].find(pid);
 
         if (it != priv_char_[type].end())
             return;
@@ -87,7 +82,7 @@ namespace metin2::db::inline empire {
             return;
 
         time_t now = client_manager::instance().current_time();
-        priv_char_data *p = new priv_char_data(type, value, pid);
+        auto p = std::make_shared<priv_char_data>(type, value, pid);
 
         int iDuration = CHARACTER_BAD_PRIV_DURATION;
 
@@ -95,7 +90,7 @@ namespace metin2::db::inline empire {
             iDuration = CHARACTER_GOOD_PRIV_DURATION;
 
         pq_priv_char_.push(std::make_pair(now + iDuration, p));
-        priv_char_[type].insert(std::make_pair(pid, p));
+        priv_char_[type].insert(std::make_pair(pid, p.get()));
 
         metin2::log::info("Privilege: player pid {:d} type {:d} value {:d}", pid, type, value);
         send_change_char_priv(pid, type, value);
@@ -107,17 +102,17 @@ namespace metin2::db::inline empire {
             return;
         }
 
-        __typeof(priv_guild_[type].begin()) it = priv_guild_[type].find(guild_id);
+        auto it = priv_guild_[type].find(guild_id);
 
         time_t now = client_manager::instance().current_time();
         time_t end = now + duration_sec;
-        priv_guild_data *p = new priv_guild_data(type, value, guild_id, end);
+        auto p = std::make_shared<priv_guild_data>(type, value, guild_id, end);
         pq_priv_guild_.push(std::make_pair(end, p));
 
         if (it != priv_guild_[type].end())
-            it->second = p;
+            it->second = p.get();
         else
-            priv_guild_[type].insert(std::make_pair(guild_id, p));
+            priv_guild_[type].insert(std::make_pair(guild_id, p.get()));
 
         send_change_guild_priv(guild_id, type, value, end);
 
@@ -141,9 +136,9 @@ namespace metin2::db::inline empire {
                 aa_priv_empire_[type][empire]->removed = true;
         }
 
-        priv_empire_data *p = new priv_empire_data(type, value, empire, end);
+        auto p = std::make_shared<priv_empire_data>(type, value, empire, end);
         pq_priv_empire_.push(std::make_pair(end, p));
-        aa_priv_empire_[type][empire] = p;
+        aa_priv_empire_[type][empire] = p.get();
 
         send_change_empire_priv(empire, type, value, end);
 
@@ -222,10 +217,10 @@ namespace metin2::db::inline empire {
                 }
             }
 
-            for (__typeof(priv_guild_[i].begin()) it = priv_guild_[i].begin(); it != priv_guild_[i].end(); ++it) {
+            for (auto it = priv_guild_[i].begin(); it != priv_guild_[i].end(); ++it) {
                 f_send_change_guild_priv(it->first, i, it->second->value, it->second->end_time_sec)(peer);
             }
-            for (__typeof(priv_char_[i].begin()) it = priv_char_[i].begin(); it != priv_char_[i].end(); ++it) {
+            for (auto it = priv_char_[i].begin(); it != priv_char_[i].end(); ++it) {
                 f_send_change_char_priv(it->first, i, it->second->value)(peer);
             }
         }

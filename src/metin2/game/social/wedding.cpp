@@ -20,6 +20,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -258,7 +259,7 @@ namespace metin2::game::inline social {
             if (it == wedding_.end())
                 return nullptr;
 
-            return it->second;
+            return it->second.get();
         }
 
         auto wedding_manager::create_wedding_map(uint32_t pid1, uint32_t pid2) -> uint32_t {
@@ -271,7 +272,7 @@ namespace metin2::game::inline social {
                 return 0;
             }
 
-            wedding_.insert(std::make_pair(dwMapIndex, new wedding_map(dwMapIndex, pid1, pid2)));
+            wedding_.emplace(dwMapIndex, std::make_unique<wedding_map>(dwMapIndex, pid1, pid2));
 
             sectree_map *pkSectreeMap = rkSecTreeMgr.map(dwMapIndex);
             if (pkSectreeMap == nullptr) {
@@ -294,9 +295,12 @@ namespace metin2::game::inline social {
         void wedding_manager::destroy_wedding_map(wedding_map *map) {
             metin2::log::info("Wedding map {:d} destroyed", map->map_index());
             map->destroy_all();
-            wedding_.erase(map->map_index());
+            std::unique_ptr<wedding_map> owner;
+            if (auto it = wedding_.find(map->map_index()); it != wedding_.end()) {
+                owner = std::move(it->second);
+                wedding_.erase(it);
+            }
             sectree_manager::instance().destroy_private_map(map->map_index());
-            delete map;
         }
 
         auto wedding_manager::end(uint32_t map_index) -> bool {

@@ -19,6 +19,7 @@
 
 #include <cstdint>
 #include <cstdio>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -65,7 +66,7 @@ namespace metin2::game::inline events {
 
     EVENTINFO(tag_dragon_lair_collapse_event_info) {
         int step;
-        dragon_lair *lair;
+        std::unique_ptr<dragon_lair> lair;
         int32_t instance_map_index;
 
         tag_dragon_lair_collapse_event_info()
@@ -102,7 +103,7 @@ namespace metin2::game::inline events {
             return passes_per_sec(30);
         } else {
             sectree_manager::instance().destroy_private_map(pInfo->instance_map_index);
-            delete pInfo->lair;
+            pInfo->lair.reset();
         }
 
         return 0;
@@ -129,8 +130,7 @@ namespace metin2::game::inline events {
     dragon_lair_manager::dragon_lair_manager() {
     }
 
-    dragon_lair_manager::~dragon_lair_manager() {
-    }
+    dragon_lair_manager::~dragon_lair_manager() = default;
 
     auto dragon_lair_manager::start(int32_t map_index_from, int32_t base_map_index, uint32_t guild_id) -> bool {
         int32_t instanceMapIndex = sectree_manager::instance().create_private_map(base_map_index);
@@ -155,7 +155,7 @@ namespace metin2::game::inline events {
 
                 pMap->for_each(f);
 
-                lair_map_.insert(std::make_pair(guild_id, new dragon_lair(guild_id)));
+                lair_map_.try_emplace(guild_id, std::make_unique<dragon_lair>(guild_id));
 
                 std::string strMapBasePath(locale_service_get_map_path());
 
@@ -179,7 +179,7 @@ namespace metin2::game::inline events {
         if (false == dragon->is_monster())
             return;
 
-        std::unordered_map<uint32_t, dragon_lair *>::iterator iter = lair_map_.find(killer_guild_id);
+        auto iter = lair_map_.find(killer_guild_id);
 
         if (lair_map_.end() == iter) {
             return;
@@ -198,7 +198,7 @@ namespace metin2::game::inline events {
         info = alloc_event_info<tag_dragon_lair_collapse_event_info>();
 
         info->step = 0;
-        info->lair = iter->second;
+        info->lair = std::move(iter->second);
         info->instance_map_index = dragon->map_index();
 
         event_create(dragon_lair_collapse_event, info, passes_per_sec(10));

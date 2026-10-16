@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <set>
 #include <string>
 
@@ -33,11 +34,10 @@ namespace metin2::db::inline items {
         auto by_login(const char *login) -> std::set<item_award *> *;
 
         void taken(uint32_t award_id, uint32_t item_id);
-        auto map_award() -> std::map<uint32_t, item_award *> &;
-        auto mapk_set_award_by_login() -> std::map<std::string, std::set<item_award *>> &;
+        auto remove(uint32_t award_id) -> bool;
 
       private:
-        std::map<uint32_t, item_award *> map_award_;
+        std::map<uint32_t, std::unique_ptr<item_award>> map_award_;
         std::map<std::string, std::set<item_award *>> map_set_award_by_login_;
     };
 }

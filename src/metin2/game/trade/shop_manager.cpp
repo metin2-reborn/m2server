@@ -57,7 +57,7 @@ namespace metin2::game::inline trade {
             if (!pkNewShop->create(table->vnum, table->npc_vnum, table->items))
                 continue;
 
-            shop *shop = pkNewShop.release();
+            shop *shop = shops_.emplace_back(std::move(pkNewShop)).get();
             map_shop_.insert(shop_map::value_type(table->vnum, shop));
             map_shop_by_npc_vnum_.insert(shop_map::value_type(table->npc_vnum, shop));
         }
@@ -70,14 +70,9 @@ namespace metin2::game::inline trade {
     }
 
     void shop_manager::destroy() {
-        shop_map::iterator it = map_shop_.begin();
-
-        while (it != map_shop_.end()) {
-            delete it->second;
-            ++it;
-        }
-
         map_shop_.clear();
+        map_shop_by_npc_vnum_.clear();
+        shops_.clear();
     }
 
     auto shop_manager::get(uint32_t vnum) -> shop * {
@@ -140,23 +135,24 @@ namespace metin2::game::inline trade {
     }
 
     auto shop_manager::find_pc_shop(uint32_t vid) -> shop * {
-        shop_map::iterator it = map_shop_by_pc_.find(vid);
+        auto it = map_shop_by_pc_.find(vid);
 
         if (it == map_shop_by_pc_.end())
             return nullptr;
 
-        return it->second;
+        return it->second.get();
     }
 
     auto shop_manager::create_pc_shop(character *ch, shop_item_table *table, uint8_t item_count) -> shop * {
         if (find_pc_shop(ch->get_vid()))
             return nullptr;
 
-        shop *pkShop = new shop;
+        auto pkNewShop = std::make_unique<shop>();
+        shop *pkShop = pkNewShop.get();
         pkShop->set_pc_shop(ch);
         pkShop->set_shop_items(table, item_count);
 
-        map_shop_by_pc_.insert(shop_map::value_type(ch->get_vid(), pkShop));
+        map_shop_by_pc_.emplace(ch->get_vid(), std::move(pkNewShop));
         return pkShop;
     }
 
@@ -169,7 +165,6 @@ namespace metin2::game::inline trade {
         ch->set_my_shop_time();
 
         map_shop_by_pc_.erase(ch->get_vid());
-        delete pkShop;
     }
 
     void shop_manager::stop_shopping(character *ch) {
@@ -457,7 +452,9 @@ namespace metin2::game::inline trade {
 
             shop_ex *pkShopEx = nullptr;
             if (map_shop_by_npc_vnum_.end() == shop_it) {
-                pkShopEx = new shop_ex;
+                auto pkNewShopEx = std::make_unique<shop_ex>();
+                pkShopEx = pkNewShopEx.get();
+                shops_.push_back(std::move(pkNewShopEx));
                 pkShopEx->create(0, npcVnum);
                 map_shop_by_npc_vnum_.insert(shop_map::value_type(npcVnum, pkShopEx));
             } else {

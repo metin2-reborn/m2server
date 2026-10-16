@@ -85,7 +85,7 @@ namespace metin2::game {
                 return 1;
             }
 
-            std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query("SELECT COUNT(*) FROM land%s WHERE guild_id = %d", get_table_postfix(), (uint32_t)lua_tonumber(lua, 1)));
+            auto pmsg = db_manager::instance().direct_query("SELECT COUNT(*) FROM land%s WHERE guild_id = %d", get_table_postfix(), (uint32_t)lua_tonumber(lua, 1));
 
             if (pmsg->get()->num_rows > 0) {
                 MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);

@@ -8,6 +8,7 @@
 
 #include <cstdint>
 #include <map>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -74,7 +75,7 @@ namespace metin2::game::inline protocol {
         desc_handle_map map_handle_;
         desc_handshake_map map_handshake_;
         desc_loginname_map map_login_name_;
-        std::map<uint32_t, login_key *> map_login_key_;
+        std::map<uint32_t, std::unique_ptr<login_key>> map_login_key_;
 
         int sockets_connected_;
 

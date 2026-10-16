@@ -5,6 +5,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <unordered_map>
 
@@ -22,6 +23,7 @@ namespace metin2::game::inline characters {
 
       protected:
         friend class pet_system;
+        friend struct std::default_delete<pet_actor>;
 
         pet_actor(character *owner, uint32_t vnum, uint32_t options = EPetOption_Followable | EPetOption_Summonable);
 
@@ -72,7 +74,7 @@ namespace metin2::game::inline characters {
 
     class pet_system {
       public:
-        typedef std::unordered_map<uint32_t, pet_actor *> pet_actor_map;
+        typedef std::unordered_map<uint32_t, std::unique_ptr<pet_actor>> pet_actor_map;
 
       public:
         pet_system(character *owner);

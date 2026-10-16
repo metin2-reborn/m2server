@@ -299,7 +299,7 @@ namespace metin2::game::inline characters {
         mob_manager::iterator it = mob_manager::instance().begin();
 
         while (it != mob_manager::instance().end()) {
-            mob *pkMob = (it++)->second;
+            mob *pkMob = (it++)->second.get();
             mob_table *t = &pkMob->table;
 
             if ('\0' != t->folder[0]) {

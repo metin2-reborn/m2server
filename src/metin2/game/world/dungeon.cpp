@@ -25,6 +25,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdio>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -349,11 +350,12 @@ namespace metin2::game::inline world {
 
     void dungeon_manager::destroy(dungeon::id_type dungeon_id) {
         metin2::log::info("Destroying dungeon {:d}", dungeon_id);
-        dungeon *pDungeon = find(dungeon_id);
-        if (pDungeon == nullptr) {
+        auto owner_it = map_dungeon_.find(dungeon_id);
+        if (owner_it == map_dungeon_.end()) {
             return;
         }
-        map_dungeon_.erase(dungeon_id);
+        std::unique_ptr<dungeon> pDungeon = std::move(owner_it->second);
+        map_dungeon_.erase(owner_it);
 
         int32_t lMapIndex = pDungeon->map_index_;
         map_map_dungeon_.erase(lMapIndex);
@@ -362,13 +364,13 @@ namespace metin2::game::inline world {
         quest::quest_manager::instance().cancel_server_timers(server_timer_arg);
 
         sectree_manager::instance().destroy_private_map(lMapIndex);
-        delete pDungeon;
+        pDungeon.reset();
     }
 
     auto dungeon_manager::find(dungeon::id_type dungeon_id) -> dungeon * {
         auto it = map_dungeon_.find(dungeon_id);
         if (it != map_dungeon_.end())
-            return it->second;
+            return it->second.get();
         return nullptr;
     }
 
@@ -393,12 +395,9 @@ namespace metin2::game::inline world {
             id = next_id_++;
         }
 
-        dungeon *pDungeon = new dungeon(id, original_map_index, lMapIndex);
-        if (!pDungeon) {
-            metin2::log::error("Failed to allocate dungeon");
-            return nullptr;
-        }
-        map_dungeon_.insert(std::make_pair(id, pDungeon));
+        std::unique_ptr<dungeon> pkNewDungeon(new dungeon(id, original_map_index, lMapIndex));
+        dungeon *pDungeon = pkNewDungeon.get();
+        map_dungeon_.emplace(id, std::move(pkNewDungeon));
         map_map_dungeon_.insert(std::make_pair(lMapIndex, pDungeon));
 
         return pDungeon;

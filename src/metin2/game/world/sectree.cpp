@@ -13,6 +13,8 @@
 
 #include <cassert>
 #include <cstdint>
+#include <memory>
+#include <utility>
 
 namespace metin2::game::inline world {
 
@@ -28,7 +30,6 @@ namespace metin2::game::inline world {
         id_.package = 0;
         attribute_ = nullptr;
         pc_count_ = 0;
-        is_clone_ = false;
     }
 
     void sectree::destroy() {
@@ -61,10 +62,7 @@ namespace metin2::game::inline world {
         }
         set_entity_.clear();
 
-        if (!is_clone_ && attribute_) {
-            delete attribute_;
-            attribute_ = nullptr;
-        }
+        attribute_.reset();
     }
 
     auto sectree::id() -> sectreeid {
@@ -156,13 +154,12 @@ namespace metin2::game::inline world {
         }
     }
 
-    void sectree::bind_attribute(attribute *attribute_value) {
-        attribute_ = attribute_value;
+    void sectree::bind_attribute(std::unique_ptr<attribute> attribute_value) {
+        attribute_ = std::move(attribute_value);
     }
 
     void sectree::clone_attribute(sectree *tree) {
         attribute_ = tree->attribute_;
-        is_clone_ = true;
     }
 
     void sectree::set_attribute(uint32_t x, uint32_t y, uint32_t attr) {

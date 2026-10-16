@@ -893,9 +893,9 @@ namespace metin2::game::inline guilds {
         std::unique_ptr<sql_msg> pmsg;
 
         if (member(ch->player_id())->grade == GUILD_LEADER_GRADE)
-            pmsg.reset(db_manager::instance().direct_query(sql::format("DELETE FROM guild_comment{} WHERE id = {} AND guild_id = {}", sql::raw(get_table_postfix()), comment_id, data_.guild_id)));
+            pmsg = db_manager::instance().direct_query(sql::format("DELETE FROM guild_comment{} WHERE id = {} AND guild_id = {}", sql::raw(get_table_postfix()), comment_id, data_.guild_id));
         else
-            pmsg.reset(db_manager::instance().direct_query(sql::format("DELETE FROM guild_comment{} WHERE id = {} AND guild_id = {} AND name = {}", sql::raw(get_table_postfix()), comment_id, data_.guild_id, ch->name())));
+            pmsg = db_manager::instance().direct_query(sql::format("DELETE FROM guild_comment{} WHERE id = {} AND guild_id = {} AND name = {}", sql::raw(get_table_postfix()), comment_id, data_.guild_id, ch->name()));
 
         if (pmsg->get()->affected_rows == 0 || pmsg->get()->affected_rows == (uint32_t)-1)
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 삭제할 수 없는 글입니다."));
@@ -913,7 +913,7 @@ namespace metin2::game::inline guilds {
             return;
         }
 
-        std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query("SELECT id, name, content FROM guild_comment%s WHERE guild_id = %u ORDER BY notice DESC, id DESC LIMIT %d", get_table_postfix(), data_.guild_id, GUILD_COMMENT_MAX_COUNT));
+        auto pmsg = db_manager::instance().direct_query("SELECT id, name, content FROM guild_comment%s WHERE guild_id = %u ORDER BY notice DESC, id DESC LIMIT %d", get_table_postfix(), data_.guild_id, GUILD_COMMENT_MAX_COUNT);
 
         packet_gc_guild pack;
         pack.header = HEADER_GC_GUILD;

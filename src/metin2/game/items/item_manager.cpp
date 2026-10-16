@@ -681,7 +681,7 @@ namespace metin2::game::inline items {
             it = map_mob_item_group_.find(chr->race_num());
 
             if (it != map_mob_item_group_.end()) {
-                mob_item_group *pGroup = it->second;
+                mob_item_group *pGroup = it->second.get();
 
                 if (pGroup && !pGroup->is_empty()) {
                     int iPercent = 40000 * iDeltaPercent / pGroup->kill_per_drop();
@@ -1236,7 +1236,7 @@ namespace metin2::game::inline items {
     auto item_manager::get_special_item_group(uint32_t vnum) -> const special_item_group * {
         auto it = map_special_item_group_.find(vnum);
         if (it != map_special_item_group_.end()) {
-            return it->second;
+            return it->second.get();
         }
         return nullptr;
     }
@@ -1244,7 +1244,7 @@ namespace metin2::game::inline items {
     auto item_manager::get_special_attr_group(uint32_t vnum) -> const special_attr_group * {
         auto it = map_special_attr_group_.find(vnum);
         if (it != map_special_attr_group_.end()) {
-            return it->second;
+            return it->second.get();
         }
         return nullptr;
     }

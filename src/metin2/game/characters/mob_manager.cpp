@@ -20,6 +20,7 @@
 #include <cstring>
 #include <functional>
 #include <map>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -57,21 +58,26 @@ namespace metin2::game::inline characters {
     mob_manager::mob_manager() {
     }
 
-    mob_manager::~mob_manager() {
-    }
+    mob_manager::~mob_manager() = default;
 
     auto mob_manager::initialize(mob_table *table_value, int size) -> bool {
+        for (auto &[vnum, retired] : map_mob_by_vnum_)
+            retired_mobs_.push_back(std::move(retired));
+
         map_mob_by_vnum_.clear();
         map_mob_by_name_.clear();
 
         mob_table *t = table_value;
 
         for (int i = 0; i < size; ++i, ++t) {
-            mob *pkMob = new mob;
+            auto pkMobOwner = std::make_unique<mob>();
+            mob *pkMob = pkMobOwner.get();
 
             std::memcpy(&pkMob->table, t, sizeof(mob_table));
 
-            map_mob_by_vnum_.insert(std::map<uint32_t, mob *>::value_type(t->vnum, pkMob));
+            if (!map_mob_by_vnum_.try_emplace(t->vnum, std::move(pkMobOwner)).second)
+                retired_mobs_.push_back(std::move(pkMobOwner));
+
             map_mob_by_name_.insert(std::map<std::string, mob *>::value_type(t->locale_name, pkMob));
 
             int SkillCount = 0;
@@ -122,12 +128,12 @@ namespace metin2::game::inline characters {
     }
 
     auto mob_manager::get(uint32_t vnum) -> const mob * {
-        std::map<uint32_t, mob *>::iterator it = map_mob_by_vnum_.find(vnum);
+        auto it = map_mob_by_vnum_.find(vnum);
 
         if (it == map_mob_by_vnum_.end())
             return nullptr;
 
-        return it->second;
+        return it->second.get();
     }
 
     auto mob_manager::get(const char *name, bool is_abbrev) -> const mob * {
@@ -175,7 +181,7 @@ namespace metin2::game::inline characters {
 
         case REGEN_TYPE_GROUP_GROUP:
             {
-                std::map<uint32_t, mob_group_group *>::iterator it = map_mob_group_group_.find(vnum);
+                auto it = map_mob_group_group_.find(vnum);
 
                 if (it == map_mob_group_group_.end())
                     return;
@@ -212,7 +218,7 @@ namespace metin2::game::inline characters {
     }
 
     auto mob_manager::group_from_group_group(uint32_t vnum) -> uint32_t {
-        std::map<uint32_t, mob_group_group *>::iterator it = map_mob_group_group_.find(vnum);
+        auto it = map_mob_group_group_.find(vnum);
 
         if (it == map_mob_group_group_.end())
             return 0;
@@ -221,12 +227,12 @@ namespace metin2::game::inline characters {
     }
 
     auto mob_manager::group(uint32_t vnum) -> mob_group * {
-        std::map<uint32_t, mob_group *>::iterator it = map_mob_group_.find(vnum);
+        auto it = map_mob_group_.find(vnum);
 
         if (it == map_mob_group_.end())
             return nullptr;
 
-        return it->second;
+        return it->second.get();
     }
 
     auto mob_manager::load_group_group(const char *file_name) -> bool {
@@ -252,7 +258,7 @@ namespace metin2::game::inline characters {
 
             token_vector *pTok;
 
-            mob_group_group *pkGroup = new mob_group_group(iVnum);
+            auto pkGroup = std::make_unique<mob_group_group>(iVnum);
 
             for (int k = 1; k < 256; ++k) {
                 char buf[4];
@@ -277,7 +283,7 @@ namespace metin2::game::inline characters {
 
             loader.set_parent_node();
 
-            map_mob_group_group_.insert(std::make_pair((uint32_t)iVnum, pkGroup));
+            map_mob_group_group_.try_emplace((uint32_t)iVnum, std::move(pkGroup));
         }
 
         return true;
@@ -318,7 +324,7 @@ namespace metin2::game::inline characters {
                 continue;
             }
 
-            mob_group *pkGroup = new mob_group;
+            auto pkGroup = std::make_unique<mob_group>();
 
             pkGroup->create(iVnum, stName);
             uint32_t vnum = 0;
@@ -344,7 +350,7 @@ namespace metin2::game::inline characters {
             }
 
             loader.set_parent_node();
-            map_mob_group_.insert(std::map<uint32_t, mob_group *>::value_type(iVnum, pkGroup));
+            map_mob_group_.try_emplace(iVnum, std::move(pkGroup));
         }
 
         return true;

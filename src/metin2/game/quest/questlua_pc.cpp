@@ -1709,7 +1709,7 @@ namespace metin2::game {
                 return 1;
             }
 
-            std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(sql::format("SELECT COUNT(*) FROM player{} WHERE name={}", sql::raw(get_table_postfix()), szName)));
+            auto pmsg = db_manager::instance().direct_query(sql::format("SELECT COUNT(*) FROM player{} WHERE name={}", sql::raw(get_table_postfix()), szName));
 
             if (pmsg->get()->num_rows > 0) {
                 MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
@@ -1730,7 +1730,7 @@ namespace metin2::game {
 
             log_manager::instance().change_name_log(pid, ch->name(), szName, ch->get_desc()->host_name());
 
-            std::unique_ptr<sql_msg> msg(db_manager::instance().direct_query(sql::format("UPDATE player{} SET name={} WHERE id={}", sql::raw(get_table_postfix()), szName, pid)));
+            auto msg = db_manager::instance().direct_query(sql::format("UPDATE player{} SET name={} WHERE id={}", sql::raw(get_table_postfix()), szName, pid));
 
             ch->set_new_name(szName);
             lua_pushnumber(lua, 4);

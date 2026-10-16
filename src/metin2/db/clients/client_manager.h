@@ -38,11 +38,11 @@ namespace metin2::db::inline clients {
     class client_manager : public singleton<client_manager> {
       public:
         typedef std::list<peer *> peer_list;
-        typedef std::unordered_map<uint32_t, player_table_cache *> player_table_cache_map;
-        typedef std::unordered_map<uint32_t, item_cache *> item_cache_map;
+        typedef std::unordered_map<uint32_t, std::unique_ptr<player_table_cache>> player_table_cache_map;
+        typedef std::unordered_map<uint32_t, std::unique_ptr<item_cache>> item_cache_map;
         typedef std::unordered_set<item_cache *, std::hash<item_cache *>> item_cache_set;
         typedef std::unordered_map<uint32_t, std::unique_ptr<item_cache_set>> item_cache_set_ptr_map;
-        typedef std::unordered_map<uint32_t, item_price_list_table_cache *> item_price_list_cache_map;
+        typedef std::unordered_map<uint32_t, std::unique_ptr<item_price_list_table_cache>> item_price_list_cache_map;
         typedef std::unordered_map<short, uint8_t> channel_status_map;
 
         typedef std::pair<uint32_t, uint32_t> item_pricelist_req_info;

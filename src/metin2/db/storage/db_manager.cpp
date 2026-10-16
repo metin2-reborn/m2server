@@ -58,12 +58,11 @@ namespace metin2::db::inline storage {
         }
     }
 
-    auto db_manager::pop_result() -> sql_msg * {
-        sql_msg *p;
-
+    auto db_manager::pop_result() -> std::unique_ptr<sql_msg> {
         for (int i = 0; i < SQL_MAX_NUM; ++i)
-            if (main_sql_[i] && main_sql_[i]->pop_result(&p))
-                return p;
+            if (main_sql_[i])
+                if (auto msg = main_sql_[i]->pop_result())
+                    return msg;
 
         return nullptr;
     }
@@ -99,7 +98,7 @@ namespace metin2::db::inline storage {
         return true;
     }
 
-    auto db_manager::direct_query(const char *query, int slot) -> sql_msg * {
+    auto db_manager::direct_query(const char *query, int slot) -> std::unique_ptr<sql_msg> {
         return direct_sql_[slot]->direct_query(query);
     }
 
@@ -120,10 +119,5 @@ namespace metin2::db::inline storage {
         assert(slot < SQL_MAX_NUM);
         async_sql_[slot]->async_query(query);
         ++query_count[1];
-    }
-
-    auto db_manager::escape_string(void *to, const void *from, uint32_t length, int slot) -> uint32_t {
-        assert(slot < SQL_MAX_NUM);
-        return mysql_real_escape_string(direct_sql_[slot]->sql_handle(), (char *)to, (const char *)from, length);
     }
 }

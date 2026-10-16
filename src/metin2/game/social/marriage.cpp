@@ -500,8 +500,9 @@ namespace metin2::game::inline social {
                 std::swap(name1, name2);
             }
 
-            marriage *pMarriage = new marriage(pid1, pid2, 0, t_marry_time, name1, name2);
-            marriages_.insert(pMarriage);
+            auto pkNewMarriage = std::make_unique<marriage>(pid1, pid2, 0, t_marry_time, name1, name2);
+            marriage *pMarriage = pkNewMarriage.get();
+            marriages_.emplace(pMarriage, std::move(pkNewMarriage));
             marriage_by_pid_.insert(std::make_pair(pid1, pMarriage));
             marriage_by_pid_.insert(std::make_pair(pid2, pMarriage));
             {
@@ -556,11 +557,9 @@ namespace metin2::game::inline social {
                 return;
             }
 
-            marriages_.erase(pMarriage);
             marriage_by_pid_.erase(pid1);
             marriage_by_pid_.erase(pid2);
-
-            delete pMarriage;
+            marriages_.erase(pMarriage);
         }
 
         void manager::login(character *ch) {

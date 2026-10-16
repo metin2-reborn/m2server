@@ -7,6 +7,7 @@
 #include <metin2/log/log.h>
 
 #include <cstdint>
+#include <memory>
 #include <vector>
 
 namespace metin2::game::inline world {
@@ -120,7 +121,7 @@ namespace metin2::game::inline world {
         void increase_pc();
         void decrease_pc();
 
-        void bind_attribute(attribute *attribute_value);
+        void bind_attribute(std::unique_ptr<attribute> attribute_value);
 
         auto get_attribute(int32_t x, int32_t y) -> uint32_t;
         auto is_attr(int32_t x, int32_t y, uint32_t flag) -> bool;
@@ -150,8 +151,7 @@ namespace metin2::game::inline world {
         entity_set set_entity_;
         sectree_list neighbor_list_;
         int pc_count_;
-        bool is_clone_;
 
-        attribute *attribute_;
+        std::shared_ptr<attribute> attribute_;
     };
 }

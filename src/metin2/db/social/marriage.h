@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <functional>
 #include <map>
+#include <memory>
 #include <queue>
 #include <set>
 #include <string>
@@ -93,7 +94,7 @@ namespace metin2::db::inline social {
             void update();
 
           private:
-            std::set<marriage *> marriages_;
+            std::vector<std::unique_ptr<marriage>> marriages_;
             std::map<uint32_t, marriage *> marriage_by_pid_;
 
             std::priority_queue<wedding, std::vector<wedding>, std::greater<wedding>> pq_wedding_start_;

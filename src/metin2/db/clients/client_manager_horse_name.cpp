@@ -19,7 +19,7 @@ namespace metin2::db::inline clients {
     void client_manager::update_horse_name(packet_update_horse_name *data, peer *peer) {
         const std::string query = sql::format("REPLACE INTO horse_name VALUES({}, {})", data->player_id, data->horse_name);
 
-        std::unique_ptr<sql_msg> pmsg_insert(db_manager::instance().direct_query(query.c_str()));
+        auto pmsg_insert = db_manager::instance().direct_query(query.c_str());
 
         forward_packet(HEADER_DG_UPDATE_HORSE_NAME, data, sizeof(packet_update_horse_name), 0, peer);
     }
@@ -29,7 +29,7 @@ namespace metin2::db::inline clients {
 
         snprintf(szQuery, sizeof(szQuery), "SELECT name FROM horse_name WHERE id = %u", pid);
 
-        std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(szQuery));
+        auto pmsg = db_manager::instance().direct_query(szQuery);
 
         packet_update_horse_name packet;
         packet.player_id = pid;

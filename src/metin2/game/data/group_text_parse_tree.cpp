@@ -75,16 +75,17 @@ namespace metin2::game::inline data {
                     continue;
                 }
 
-                group_node *pNewNode = new group_node();
+                auto pNewNode = std::make_unique<group_node>();
+                group_node *pNode = pNewNode.get();
 
-                pNewNode->group_name_ = stTokenVector[1];
-                to_lower(pNewNode->group_name_);
-
-                group_node_value->set_child_node(pNewNode->group_name_.c_str(), pNewNode);
+                pNode->group_name_ = stTokenVector[1];
+                to_lower(pNode->group_name_);
 
                 ++dwcur_line_index_;
 
-                load_group(pNewNode);
+                load_group(pNode);
+
+                group_node_value->set_child_node(pNode->group_name_.c_str(), std::move(pNewNode));
             } else if (0 == stTokenVector[0].compare("#--#")) {
                 for (size_t i = 1; i < stTokenVector.size(); i++) {
                     to_lower(stTokenVector[i]);
@@ -118,13 +119,9 @@ namespace metin2::game::inline data {
     group_node::group_node() {
     }
 
-    group_node::~group_node() {
-        for (map_group::iterator it = child_nodes_.begin(); it != child_nodes_.end(); it++) {
-            delete it->second;
-        }
-    }
+    group_node::~group_node() = default;
 
-    auto group_node::set_child_node(const char *key, group_node *child_group) -> bool {
+    auto group_node::set_child_node(const char *key, std::unique_ptr<group_node> child_group) -> bool {
         if (nullptr == child_group) {
             child_nodes_.erase(key);
             return true;
@@ -133,7 +130,7 @@ namespace metin2::game::inline data {
         if (it != child_nodes_.end())
             return false;
 
-        child_nodes_.insert(map_group::value_type(key, child_group));
+        child_nodes_.emplace(key, std::move(child_group));
 
         return true;
     }
@@ -141,7 +138,7 @@ namespace metin2::game::inline data {
     auto group_node::child_node(const std::string &rstr_key) const -> group_node * {
         map_group::const_iterator it = child_nodes_.find(rstr_key);
         if (it != child_nodes_.end())
-            return it->second;
+            return it->second.get();
         else
             return nullptr;
     }
