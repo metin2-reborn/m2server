@@ -95,7 +95,7 @@ namespace metin2::game::inline items {
 
         auto one_index() const -> int {
             int n = number(1, probs.back());
-            auto it = lower_bound(probs.begin(), probs.end(), n);
+            auto it = std::ranges::lower_bound(probs, n);
             return std::distance(probs.begin(), it);
         }
 
@@ -170,7 +170,7 @@ namespace metin2::game::inline items {
 
         auto one_index() const -> int {
             int n = number(1, probs_.back());
-            auto it = lower_bound(probs_.begin(), probs_.end(), n);
+            auto it = std::ranges::lower_bound(probs_, n);
             return std::distance(probs_.begin(), it);
         }
 

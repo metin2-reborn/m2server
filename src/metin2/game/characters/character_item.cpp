@@ -2874,7 +2874,7 @@ namespace metin2::game::inline characters {
             });
 
             if (!stones.empty()) {
-                auto stone_key = [&](character *stone) {
+                auto stone_key = [&](character *stone) -> std::pair<unsigned int, unsigned int> {
                     auto dist = (uint32_t)distance_sqrt(x() - stone->x(), y() - stone->y());
                     return std::pair(dist != 0 ? dist : UINT_MAX, (uint32_t)stone->get_vid());
                 };

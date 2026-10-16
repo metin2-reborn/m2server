@@ -1098,7 +1098,7 @@ namespace metin2::game::inline characters {
                                 const int killer_x = killer->x();
                                 const int killer_y = killer->y();
                                 int count = 0;
-                                auto is_near = [&](character *chr) { return distance_approx(chr->x() - killer_x, chr->y() - killer_y) < PARTY_DEFAULT_RANGE; };
+                                auto is_near = [&](character *chr) -> bool { return distance_approx(chr->x() - killer_x, chr->y() - killer_y) < PARTY_DEFAULT_RANGE; };
 
                                 killer->get_party()->for_each_online_member([&](character *chr) {
                                     if (is_near(chr))

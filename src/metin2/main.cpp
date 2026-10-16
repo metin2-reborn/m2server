@@ -10,7 +10,7 @@ namespace metin2::db::inline app {
 }
 
 namespace metin2::game::inline app {
-    auto run(int argc, char **argv) -> int;
+    auto run() -> int;
 }
 
 namespace {
@@ -28,7 +28,7 @@ namespace {
     }
 }
 
-auto main(int argc, char **argv) -> int {
+auto main() -> int {
     std::filesystem::remove("ready");
 
     if (!load_settings()) {
@@ -37,11 +37,11 @@ auto main(int argc, char **argv) -> int {
 
     const auto role = metin2::config::current_role();
 
-    std::ofstream("version.txt") << "metin2 server " << M2_VERSION << " (" << metin2::config::role_name(role) << ")\n";
+    metin2::log::info("Metin2 server {} starting as {}", M2_VERSION, metin2::config::role_name(role));
 
     if (role == metin2::config::role::db) {
         return metin2::db::run();
     }
 
-    return metin2::game::run(argc, argv);
+    return metin2::game::run();
 }

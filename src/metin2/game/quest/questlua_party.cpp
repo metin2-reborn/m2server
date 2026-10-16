@@ -193,7 +193,7 @@ namespace metin2::game {
                 std::string flagname = pc_value->current_quest_name() + "." + sz;
                 int value = (int)rint(lua_tonumber(lua, 2));
 
-                bool return_bool = party->for_each_on_map_member_bool([&](character *member) {
+                bool return_bool = party->for_each_on_map_member_bool([&](character *member) -> bool {
                     if (!member->is_pc())
                         return false;
 

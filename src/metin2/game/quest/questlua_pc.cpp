@@ -1,5 +1,6 @@
 
 
+#include <algorithm>
 #include <metin2/config/config.h>
 #include <metin2/game/app/constants.h>
 #include <metin2/game/app/typedef.h>
@@ -2175,7 +2176,7 @@ namespace metin2::game {
             packet.charge_type = ERequestCharge_Cash;
 
             if (0 < charge_type.length())
-                std::transform(charge_type.begin(), charge_type.end(), charge_type.begin(), (int (*)(int))std::tolower);
+                std::ranges::transform(charge_type, charge_type.begin(), (int (*)(int))std::tolower);
 
             if ("mileage" == charge_type)
                 packet.charge_type = ERequestCharge_Mileage;

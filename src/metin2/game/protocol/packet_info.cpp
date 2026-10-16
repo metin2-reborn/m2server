@@ -161,7 +161,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto handshake_packet_table() -> const packet_table & {
-        static const packet_table table = [] {
+        static const packet_table table = [] -> packet_table {
             packet_table t = client_packet_table();
             t.set_sequence(HEADER_CG_PONG, false);
             return t;

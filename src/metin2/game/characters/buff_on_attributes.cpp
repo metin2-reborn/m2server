@@ -15,7 +15,7 @@
 namespace metin2::game::inline characters {
 
     buff_on_attributes::buff_on_attributes(character *owner, uint8_t point_type, std::vector<uint8_t> *p_vec_buff_wear_targets)
-        : buff_owner_(owner), point_type_(point_type), p_vec_buff_wear_targets_(p_vec_buff_wear_targets) {
+        : buff_owner_(owner), point_type_(point_type), wear_targets_(p_vec_buff_wear_targets) {
         initialize();
     }
 
@@ -34,8 +34,8 @@ namespace metin2::game::inline characters {
         if (nullptr != item_value) {
             if (item_value->cell() < INVENTORY_MAX_NUM)
                 return;
-            auto it = find(p_vec_buff_wear_targets_->begin(), p_vec_buff_wear_targets_->end(), item_value->cell() - INVENTORY_MAX_NUM);
-            if (p_vec_buff_wear_targets_->end() == it)
+            auto it = std::ranges::find(*wear_targets_, item_value->cell() - INVENTORY_MAX_NUM);
+            if (wear_targets_->end() == it)
                 return;
 
             int m = item_value->attribute_count();
@@ -62,8 +62,8 @@ namespace metin2::game::inline characters {
         if (nullptr != item_value) {
             if (item_value->cell() < INVENTORY_MAX_NUM)
                 return;
-            auto it = find(p_vec_buff_wear_targets_->begin(), p_vec_buff_wear_targets_->end(), item_value->cell() - INVENTORY_MAX_NUM);
-            if (p_vec_buff_wear_targets_->end() == it)
+            auto it = std::ranges::find(*wear_targets_, item_value->cell() - INVENTORY_MAX_NUM);
+            if (wear_targets_->end() == it)
                 return;
 
             int m = item_value->attribute_count();
@@ -115,10 +115,10 @@ namespace metin2::game::inline characters {
         if (0 != buff_value_ || 0 == value)
             return false;
 
-        int n = p_vec_buff_wear_targets_->size();
+        int n = wear_targets_->size();
         map_additional_attrs_.clear();
         for (int i = 0; i < n; i++) {
-            item *item = buff_owner_->wear(p_vec_buff_wear_targets_->at(i));
+            item *item = buff_owner_->wear(wear_targets_->at(i));
             if (nullptr != item) {
                 int m = item->attribute_count();
                 for (int j = 0; j < m; j++) {

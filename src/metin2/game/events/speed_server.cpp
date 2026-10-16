@@ -28,7 +28,7 @@ namespace metin2::game::inline events {
         constexpr std::array<std::string_view, 7> wday_names = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
 
         auto iequals(std::string_view a, std::string_view b) -> bool {
-            return std::ranges::equal(a, b, [](unsigned char x, unsigned char y) { return std::tolower(x) == std::tolower(y); });
+            return std::ranges::equal(a, b, [](unsigned char x, unsigned char y) -> bool { return std::tolower(x) == std::tolower(y); });
         }
 
         auto next_word(std::string_view &text) -> std::string_view {
@@ -192,7 +192,7 @@ namespace metin2::game::inline events {
                 metin2::log::debug("Speed server: holiday date {:d}-{:d}-{:d}", holiday->year, holiday->mon, holiday->day);
 
                 holiday_map_.emplace(date(holiday->year - 1900, holiday->mon - 1, holiday->day), std::move(lst));
-            } else if (const auto it = std::ranges::find_if(wday_names, [&](std::string_view name) { return iequals(keyword, name); });
+            } else if (const auto it = std::ranges::find_if(wday_names, [&](std::string_view name) -> bool { return iequals(keyword, name); });
                 it != wday_names.end()) {
                 auto &lst = wday_exp_table_[it - wday_names.begin()];
                 lst.clear();

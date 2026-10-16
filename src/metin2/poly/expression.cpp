@@ -310,7 +310,7 @@ namespace metin2::poly {
             }
 
             if (std::isalpha(c)) {
-                const auto is_alpha = [](char ch) { return std::isalpha(static_cast<unsigned char>(ch)) != 0; };
+                const auto is_alpha = [](char ch) -> bool { return std::isalpha(static_cast<unsigned char>(ch)) != 0; };
                 const auto name_end = std::find_if_not(data_.begin() + ui_look_pos_, data_.end(), is_alpha);
                 const std::string name = data_.substr(ui_look_pos_, name_end - data_.begin() - ui_look_pos_);
                 ui_look_pos_ += name.size();

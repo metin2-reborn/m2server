@@ -38,7 +38,7 @@ namespace metin2::game::inline items {
 
     using token_vector = std::vector<std::string>;
     auto gamble(std::vector<float> &vec_probs) -> int {
-        if (std::ranges::none_of(vec_probs, [](float p) { return p > 0.f; }))
+        if (std::ranges::none_of(vec_probs, [](float p) -> bool { return p > 0.f; }))
             return -1;
         return std::discrete_distribution<int>(vec_probs.begin(), vec_probs.end())(random_engine());
     }

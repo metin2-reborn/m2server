@@ -69,7 +69,7 @@ namespace metin2::game::inline protocol {
 
       public:
         desc();
-        virtual ~desc();
+        ~desc() override;
 
         virtual auto type() -> uint8_t { return DESC_TYPE_ACCEPTOR; }
         virtual void destroy();

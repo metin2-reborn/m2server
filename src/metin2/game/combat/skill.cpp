@@ -44,7 +44,7 @@ namespace metin2::game::inline combat {
 
     namespace {
         auto iequals(std::string_view a, std::string_view b) -> bool {
-            return std::ranges::equal(a, b, [](unsigned char x, unsigned char y) { return std::tolower(x) == std::tolower(y); });
+            return std::ranges::equal(a, b, [](unsigned char x, unsigned char y) -> bool { return std::tolower(x) == std::tolower(y); });
         }
 
         struct point_on_type {

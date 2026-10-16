@@ -198,7 +198,7 @@ namespace metin2::game::inline data {
     group_node::group_node_row::group_node_row(group_node *group_node_value, token_vector &vec_values) {
         owner_group_node_ = group_node_value;
         vec_values_.clear();
-        std::copy(vec_values.begin(), vec_values.end(), std::back_inserter(vec_values_));
+        std::ranges::copy(vec_values, std::back_inserter(vec_values_));
     }
 
     group_node::group_node_row::~group_node_row() = default;

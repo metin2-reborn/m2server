@@ -468,7 +468,7 @@ namespace metin2::game::inline world {
     }
 
     auto sectree_manager::map_base_position(int32_t x, int32_t y, pixel_position &r_pos) -> bool {
-        auto it = std::ranges::find_if(vec_map_region_, [&](const map_region &region) { return region_contains(region, x, y); });
+        auto it = std::ranges::find_if(vec_map_region_, [&](const map_region &region) -> bool { return region_contains(region, x, y); });
         if (it == vec_map_region_.end())
             return false;
 
@@ -479,7 +479,7 @@ namespace metin2::game::inline world {
     }
 
     auto sectree_manager::find_region_by_partial_name(const char *map_name_value) -> const map_region * {
-        auto it = std::ranges::find_if(vec_map_region_, [&](const map_region &region) { return region.map_name.contains(map_name_value); });
+        auto it = std::ranges::find_if(vec_map_region_, [&](const map_region &region) -> bool { return region.map_name.contains(map_name_value); });
         return it != vec_map_region_.end() ? &*it : nullptr;
     }
 
@@ -489,7 +489,7 @@ namespace metin2::game::inline world {
     }
 
     auto sectree_manager::map_index(int32_t x, int32_t y) -> int {
-        auto it = std::ranges::find_if(vec_map_region_, [&](const map_region &region) { return region_contains(region, x, y); });
+        auto it = std::ranges::find_if(vec_map_region_, [&](const map_region &region) -> bool { return region_contains(region, x, y); });
         if (it != vec_map_region_.end())
             return it->index;
 

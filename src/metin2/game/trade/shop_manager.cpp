@@ -1,6 +1,7 @@
 #include <metin2/config/config.h>
 #include <metin2/game/trade/shop_manager.h>
 
+#include <algorithm>
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/app/utils.h>
 #include <metin2/game/characters/character.h>
@@ -36,6 +37,7 @@
 #include <iterator>
 #include <map>
 #include <memory>
+#include <ranges>
 #include <string>
 #include <vector>
 
@@ -369,15 +371,15 @@ namespace metin2::game::inline trade {
         }
 
         if (strcasecmp(sort_value.c_str(), "Asc") == 0) {
-            std::sort(shop_items.begin(), shop_items.end(), compare_shop_item_name);
+            std::ranges::sort(shop_items, compare_shop_item_name);
         } else if (strcasecmp(sort_value.c_str(), "Desc") == 0) {
-            std::sort(shop_items.rbegin(), shop_items.rend(), compare_shop_item_name);
+            std::ranges::sort(std::views::reverse(shop_items), compare_shop_item_name);
         }
 
         grid grid = common::grid(5, 9);
         int pos;
 
-        std::fill(std::begin(shop_table.items), std::end(shop_table.items), shop_item_table());
+        std::ranges::fill(shop_table.items, shop_item_table());
 
         for (size_t i = 0; i < shop_items.size(); i++) {
             item_table *item_table = get_item_manager().table(shop_items[i].vnum);
@@ -423,7 +425,7 @@ namespace metin2::game::inline trade {
                 metin2::log::error("ShopNPC row {:d} needs 'npc' and 'group' columns", i);
                 return false;
             }
-            std::transform(shop_name.begin(), shop_name.end(), shop_name.begin(), (int (*)(int))std::tolower);
+            std::ranges::transform(shop_name, shop_name.begin(), (int (*)(int))std::tolower);
             group_node *shop_group = loader.group(shop_name.c_str());
             if (!shop_group) {
                 metin2::log::error("Shop group {} does not exist", shop_name);

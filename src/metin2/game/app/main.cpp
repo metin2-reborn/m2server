@@ -89,7 +89,7 @@ namespace metin2::game::inline app {
 
     auto io_loop() -> int;
 
-    auto start(int argc, char **argv) -> int;
+    auto start() -> bool;
     auto idle() -> int;
     void destroy();
 
@@ -173,11 +173,11 @@ namespace metin2::game::inline app {
         if (shutting_down) {
             if (thecore_pulse() > shutdown_disconnect_pulse) {
                 const desc_manager::desc_set &c_set_desc = get_desc_manager().client_set();
-                std::for_each(c_set_desc.begin(), c_set_desc.end(), metin2::game::send_disconnect_func());
+                std::ranges::for_each(c_set_desc, metin2::game::send_disconnect_func());
                 shutdown_disconnect_pulse = INT_MAX;
             } else if (thecore_pulse() > shutdown_disconnect_force_pulse) {
                 const desc_manager::desc_set &c_set_desc = get_desc_manager().client_set();
-                std::for_each(c_set_desc.begin(), c_set_desc.end(), metin2::game::disconnect_func());
+                std::ranges::for_each(c_set_desc, metin2::game::disconnect_func());
             } else if (thecore_pulse() > shutdown_disconnect_force_pulse + passes_per_sec(5)) {
                 thecore_shutdown();
             }
@@ -188,7 +188,7 @@ namespace metin2::game::inline app {
         cancel_reload_spam_event();
     }
 
-    auto run(int argc, char **argv) -> int {
+    auto run() -> int {
 
         get_sectree_manager();
         get_character_manager();
@@ -236,7 +236,7 @@ namespace metin2::game::inline app {
         get_speed_server_manager();
         get_ds_manager();
 
-        if (!start(argc, argv)) {
+        if (!start()) {
             clean_up_for_early_exit();
             return 1;
         }
@@ -322,52 +322,16 @@ namespace metin2::game::inline app {
         return 0;
     }
 
-    void usage() {
-        printf("Option list\n"
-               "-l <level>   : sets log level (above 0: debug messages)\n"
-               "-v           : log to stdout\n");
-    }
-
-    auto start(int argc, char **argv) -> int {
-        bool verbose = false;
-        int ch;
-
-        while ((ch = getopt(argc, argv, "vl:")) != -1) {
-            char *ep = nullptr;
-
-            switch (ch) {
-            case 'l':
-                if (strtol(optarg, &ep, 10) > 0)
-                    metin2::log::set_level(metin2::log::level::debug);
-                break;
-
-            case 'v':
-                verbose = true;
-                break;
-
-            default:
-                usage();
-                return 0;
-            }
-        }
-
+    auto start() -> bool {
         config_init();
 
-        if (!verbose)
-            freopen("stdout", "a", stdout);
-
-        bool is_thecore_initialized = thecore_init(metin2::config::server().passes_per_sec);
-
-        if (!is_thecore_initialized) {
-            fprintf(stderr, "Could not initialize thecore, check owner of pid, syslog\n");
-            exit(0);
+        if (!thecore_init(metin2::config::server().passes_per_sec)) {
+            return false;
         }
 
-        if (false == get_three_way_war().load_setting("forkedmapindex.txt")) {
-            if (false == metin2::config::is_auth()) {
-                fprintf(stderr, "Could not Load ThreeWayWar Setting file");
-                exit(0);
-            }
+        if (!get_three_way_war().load_setting("forkedmapindex.txt") && !metin2::config::is_auth()) {
+            metin2::log::error("Cannot load the three-way war settings (forkedmapindex.txt)");
+            return false;
         }
 
         signal_timer_disable();
@@ -375,12 +339,12 @@ namespace metin2::game::inline app {
         client_listener = net::listener::open(public_ip, metin2::config::server().port, [](net::tcp::socket socket) { get_desc_manager().accept_desc(std::move(socket)); });
 
         if (!client_listener)
-            return 0;
+            return false;
 
         p2p_listener = net::listener::open(public_ip, metin2::config::server().p2p_port, [](net::tcp::socket socket) { get_desc_manager().accept_p2p_desc(std::move(socket)); });
 
         if (!p2p_listener)
-            return 0;
+            return false;
 
         db_clientdesc = get_desc_manager().create_connection_desc(metin2::config::server().db_host.c_str(), metin2::config::server().db_port, PHASE_DBCLIENT, true);
         if (!metin2::config::is_auth()) {
@@ -389,13 +353,12 @@ namespace metin2::game::inline app {
 
         if (metin2::config::is_auth()) {
             if (metin2::config::auth().master_host.length() != 0) {
-                fprintf(stderr, "SlaveAuth");
+                metin2::log::info("Auth: slave of {}:{:d}", metin2::config::auth().master_host, metin2::config::auth().master_port);
                 auth_master_desc = get_desc_manager().create_connection_desc(metin2::config::auth().master_host.c_str(), metin2::config::auth().master_port, PHASE_P2P, true);
                 get_p2p_manager().register_connector(auth_master_desc);
                 auth_master_desc->set_p2p(metin2::config::auth().master_host.c_str(), metin2::config::auth().master_port);
-
             } else {
-                fprintf(stderr, "MasterAuth");
+                metin2::log::info("Auth: master");
             }
         } else {
 
@@ -406,7 +369,7 @@ namespace metin2::game::inline app {
         }
 
         signal_timer_enable(30);
-        return 1;
+        return true;
     }
 
     void destroy() {

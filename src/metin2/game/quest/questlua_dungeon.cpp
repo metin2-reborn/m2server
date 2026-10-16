@@ -47,7 +47,7 @@ namespace metin2::game {
                 return dungeon_value;
             }
 
-            auto set_members_quest_flag(const std::string &flagname, int value) -> void {
+            auto set_members_quest_flag(const std::string &flagname, int value) {
                 if (dungeon *dungeon = current_dungeon())
                     dungeon->for_each_member([&](character *ch) { set_pc_quest_flag(ch, flagname, value); });
             }

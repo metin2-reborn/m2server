@@ -875,7 +875,7 @@ namespace metin2::db::inline clients {
         peer->set_p2p_port(p->p2p_port);
         peer->set_maps(p->maps);
 
-        const auto location_of = [](db::clients::peer *p) {
+        const auto location_of = [](db::clients::peer *p) -> map_location {
             map_location location{};
             strlcpy(location.host, p->public_ip(), sizeof(location.host));
             location.port = p->listen_port();
@@ -886,10 +886,10 @@ namespace metin2::db::inline clients {
         const map_location map_locations = location_of(peer);
         const uint8_t channel = peer->channel();
 
-        const auto is_visible_to_new_peer = [channel](uint8_t other) {
+        const auto is_visible_to_new_peer = [channel](uint8_t other) -> bool {
             return other == channel || other == GUILD_WARP_WAR_CHANNEL || (channel == GUILD_WARP_WAR_CHANNEL && other == 1);
         };
-        const auto learns_new_maps = [channel](uint8_t other) {
+        const auto learns_new_maps = [channel](uint8_t other) -> bool {
             return other == channel || channel == GUILD_WARP_WAR_CHANNEL || (channel == 1 && other == GUILD_WARP_WAR_CHANNEL);
         };
 

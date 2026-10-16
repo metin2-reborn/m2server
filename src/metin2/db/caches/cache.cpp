@@ -74,7 +74,7 @@ namespace metin2::db::inline caches {
 
         const auto query = create_player_save_query(&data_);
 
-        get_db_manager().return_query(query, [](sql_msg &) -> void {});
+        get_db_manager().return_query(query, [](sql_msg &) {});
     }
 
     const int item_price_list_table_cache::min_flush_sec_ = 1800;
@@ -137,7 +137,7 @@ namespace metin2::db::inline caches {
             const auto replace_query = sql::format(
                 "REPLACE myshop_pricelist (owner_id, item_vnum, price) VALUES({}, {}, {})", data_.owner_id, data_.price_info[idx].vnum, data_.price_info[idx].price);
 
-            get_db_manager().return_query(replace_query, [](sql_msg &) -> void {});
+            get_db_manager().return_query(replace_query, [](sql_msg &) {});
         }
 
         metin2::log::debug("Price list: saving {1:d} items for owner pid {0:d}", data_.owner_id, data_.count);

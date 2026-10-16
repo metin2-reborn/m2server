@@ -31,7 +31,7 @@ namespace metin2::inline core {
             return;
         }
 
-        const auto blank = [](char ch) { return is_space(ch); };
+        const auto blank = [](char ch) -> bool { return is_space(ch); };
         src.remove_prefix(std::ranges::find_if_not(src, blank) - src.begin());
         src = src.substr(0, dest.size() - 1);
 

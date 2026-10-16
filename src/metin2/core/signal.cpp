@@ -38,7 +38,7 @@ namespace metin2::inline core {
             while (!stop.stop_requested()) {
                 {
                     std::unique_lock lock(mutex);
-                    wake.wait_for(lock, stop, 1s, [] { return false; });
+                    wake.wait_for(lock, stop, 1s, [] -> bool { return false; });
                 }
 
                 if (dump_requested) {

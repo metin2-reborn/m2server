@@ -1,6 +1,7 @@
 #include <metin2/config/config.h>
 #include <metin2/game/guilds/guild_manager.h>
 
+#include <algorithm>
 #include <metin2/game/admin/cmd.h>
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/app/utils.h>
@@ -272,7 +273,7 @@ namespace metin2::game::inline guilds {
                 v.push_back(it->second.get());
         }
 
-        std::sort(v.begin(), v.end(), guild_rank_less);
+        std::ranges::sort(v, guild_rank_less);
         return v;
     }
 

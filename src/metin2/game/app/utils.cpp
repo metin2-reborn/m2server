@@ -177,7 +177,7 @@ namespace metin2::game::inline app {
     }
 
     auto wild_case_cmp(const char *w, const char *s) -> bool {
-        auto same = [](char a, char b) {
+        auto same = [](char a, char b) -> bool {
             return std::tolower(static_cast<unsigned char>(a)) == std::tolower(static_cast<unsigned char>(b));
         };
 

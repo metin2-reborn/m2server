@@ -517,7 +517,7 @@ namespace metin2::game::inline admin {
     };
 
     void interpreter_set_privilege(const char *cmd, int lvl) {
-        auto it = std::ranges::find_if(cmd_info, [cmd](const command_info &info) { return !strcasecmp(cmd, info.command); });
+        auto it = std::ranges::find_if(cmd_info, [cmd](const command_info &info) -> bool { return !strcasecmp(cmd, info.command); });
 
         if (it != std::ranges::end(cmd_info)) {
             it->gm_level = lvl;
@@ -574,7 +574,7 @@ namespace metin2::game::inline admin {
 
         // Index 0 is reserved: handlers receive the index into cmd_info.
         const auto commands = std::span(cmd_info).subspan(1);
-        const auto found = std::ranges::find_if(commands, [&](const command_info &info) {
+        const auto found = std::ranges::find_if(commands, [&](const command_info &info) -> bool {
             if (info.command_pointer == do_cmd)
                 return !strcmp(info.command, cmd);
             return !strncmp(info.command, cmd, cmdlen);

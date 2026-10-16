@@ -696,7 +696,7 @@ namespace metin2::game::inline world {
     }
 
     auto dungeon::is_valid_regen(regen *regen, size_t regen_id) -> bool {
-        auto it = std::find(regen_.begin(), regen_.end(), regen);
+        auto it = std::ranges::find(regen_, regen);
         if (it == regen_.end()) {
             return false;
         }

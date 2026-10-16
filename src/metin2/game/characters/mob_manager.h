@@ -76,7 +76,7 @@ namespace metin2::game::inline characters {
                 return 0;
 
             int n = number(1, probs.back());
-            auto it = lower_bound(probs.begin(), probs.end(), n);
+            auto it = std::ranges::lower_bound(probs, n);
 
             return vec_member_vnum[std::distance(probs.begin(), it)];
         }

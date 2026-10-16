@@ -3,6 +3,7 @@
 #include <metin2/config/config.h>
 #include <metin2/game/items/cube.h>
 
+#include <algorithm>
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/app/utils.h>
 #include <metin2/game/characters/character.h>
@@ -575,8 +576,8 @@ namespace metin2::game::inline items {
                 std::string &info_text = material_info.info_text;
 
                 if (0 < material_info.complicate_material.size()) {
-                    std::sort(material_info.complicate_material.begin(), material_info.complicate_material.end(), f_is_less_cube_value);
-                    std::sort(material_info.material.begin(), material_info.material.end(), f_is_less_cube_value);
+                    std::ranges::sort(material_info.complicate_material, f_is_less_cube_value);
+                    std::ranges::sort(material_info.material, f_is_less_cube_value);
 
                     for (auto iter = material_info.complicate_material.begin(); material_info.complicate_material.end() != iter; ++iter) {
                         for (auto target_iter = material_info.material.begin(); material_info.material.end() != target_iter; ++target_iter) {
@@ -653,7 +654,7 @@ namespace metin2::game::inline items {
                                     complicate = true;
                                     exist_info.complicate_material.push_back(*current_material_iter);
 
-                                    if (std::find(exist_info.complicate_material.begin(), exist_info.complicate_material.end(), *exist_material_iter) == exist_info.complicate_material.end())
+                                    if (std::ranges::find(exist_info.complicate_material, *exist_material_iter) == exist_info.complicate_material.end())
                                         exist_info.complicate_material.push_back(*exist_material_iter);
 
                                     break;

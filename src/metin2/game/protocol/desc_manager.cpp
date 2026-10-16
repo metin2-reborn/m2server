@@ -243,7 +243,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto desc_manager::find_by_character_name(const char *name) -> desc * {
-        auto it = std::find_if(set_desc_.begin(), set_desc_.end(), [name](desc *d) {
+        auto it = std::ranges::find_if(set_desc_, [name](desc *d) -> bool {
             return d->get_character() && !strcmp(d->get_character()->name(), name);
         });
         return (it == set_desc_.end()) ? nullptr : (*it);

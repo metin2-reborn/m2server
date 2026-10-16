@@ -1,5 +1,6 @@
 #include <metin2/game/trade/shop.h>
 
+#include <algorithm>
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/app/utils.h>
 #include <metin2/game/characters/character.h>
@@ -85,7 +86,7 @@ namespace metin2::game::inline trade {
         grid_->clear();
 
         item_vector_.resize(SHOP_HOST_ITEM_MAX_NUM);
-        std::fill(item_vector_.begin(), item_vector_.end(), shop_item());
+        std::ranges::fill(item_vector_, shop_item());
 
         for (int i = 0; i < item_count; ++i) {
             item *item_value = nullptr;
