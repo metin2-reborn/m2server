@@ -422,124 +422,83 @@ namespace metin2::game::inline world {
         return true;
     }
 
+    namespace {
+        auto base_map_index(int32_t map_index) -> int32_t {
+            return map_index >= 10000 ? map_index / 10000 : map_index;
+        }
+
+        auto region_contains(const map_region &region, int32_t x, int32_t y) -> bool {
+            return x >= region.sx && y >= region.sy && x < region.ex && y < region.ey;
+        }
+    }
+
     auto sectree_manager::recall_position_by_empire(int map_index, uint8_t empire, pixel_position &r_pos) -> bool {
-        std::vector<map_region>::iterator it = vec_map_region_.begin();
+        const map_region *region = get_map_region(base_map_index(map_index));
+        if (!region)
+            return false;
 
-        if (map_index >= 10000) {
-            map_index /= 10000;
-        }
+        if (region->empire_spawn_different && empire >= 1 && empire <= 3)
+            r_pos = region->pos_empire[empire - 1];
+        else
+            r_pos = region->pos_spawn;
 
-        while (it != vec_map_region_.end()) {
-            map_region &rRegion = *(it++);
-
-            if (rRegion.index == map_index) {
-                if (rRegion.empire_spawn_different && empire >= 1 && empire <= 3)
-                    r_pos = rRegion.pos_empire[empire - 1];
-                else
-                    r_pos = rRegion.pos_spawn;
-
-                return true;
-            }
-        }
-
-        return false;
+        return true;
     }
 
     auto sectree_manager::center_position_of_map(int32_t map_index, pixel_position &r_pos) -> bool {
-        std::vector<map_region>::iterator it = vec_map_region_.begin();
+        const map_region *region = get_map_region(map_index);
+        if (!region)
+            return false;
 
-        while (it != vec_map_region_.end()) {
-            map_region &rRegion = *(it++);
-
-            if (rRegion.index == map_index) {
-                r_pos.x = rRegion.sx + (rRegion.ex - rRegion.sx) / 2;
-                r_pos.y = rRegion.sy + (rRegion.ey - rRegion.sy) / 2;
-                r_pos.z = 0;
-                return true;
-            }
-        }
-
-        return false;
+        r_pos.x = region->sx + (region->ex - region->sx) / 2;
+        r_pos.y = region->sy + (region->ey - region->sy) / 2;
+        r_pos.z = 0;
+        return true;
     }
 
     auto sectree_manager::map_base_position_by_map_index(int32_t map_index, pixel_position &r_pos) -> bool {
         if (map_index > 10000) map_index /= 10000;
-        std::vector<map_region>::iterator it = vec_map_region_.begin();
 
-        while (it != vec_map_region_.end()) {
-            map_region &rRegion = *(it++);
+        const map_region *region = get_map_region(map_index);
+        if (!region)
+            return false;
 
-            if (map_index == rRegion.index) {
-                r_pos.x = rRegion.sx;
-                r_pos.y = rRegion.sy;
-                r_pos.z = 0;
-                return true;
-            }
-        }
-
-        return false;
+        r_pos.x = region->sx;
+        r_pos.y = region->sy;
+        r_pos.z = 0;
+        return true;
     }
 
     auto sectree_manager::map_base_position(int32_t x, int32_t y, pixel_position &r_pos) -> bool {
-        std::vector<map_region>::iterator it = vec_map_region_.begin();
+        auto it = std::ranges::find_if(vec_map_region_, [&](const map_region &region) { return region_contains(region, x, y); });
+        if (it == vec_map_region_.end())
+            return false;
 
-        while (it != vec_map_region_.end()) {
-            map_region &rRegion = *(it++);
-
-            if (x >= rRegion.sx && y >= rRegion.sy && x < rRegion.ex && y < rRegion.ey) {
-                r_pos.x = rRegion.sx;
-                r_pos.y = rRegion.sy;
-                r_pos.z = 0;
-                return true;
-            }
-        }
-
-        return false;
+        r_pos.x = it->sx;
+        r_pos.y = it->sy;
+        r_pos.z = 0;
+        return true;
     }
 
     auto sectree_manager::find_region_by_partial_name(const char *map_name_value) -> const map_region * {
-        std::vector<map_region>::iterator it = vec_map_region_.begin();
-
-        while (it != vec_map_region_.end()) {
-            map_region &rRegion = *(it++);
-
-            if (rRegion.map_name.contains(map_name_value))
-                return &rRegion;
-        }
-
-        return nullptr;
+        auto it = std::ranges::find_if(vec_map_region_, [&](const map_region &region) { return region.map_name.contains(map_name_value); });
+        return it != vec_map_region_.end() ? &*it : nullptr;
     }
 
     auto sectree_manager::get_map_region(int32_t map_index) -> const map_region * {
-        std::vector<map_region>::iterator it = vec_map_region_.begin();
-
-        while (it != vec_map_region_.end()) {
-            map_region &rRegion = *(it++);
-
-            if (rRegion.index == map_index)
-                return &rRegion;
-        }
-
-        return nullptr;
+        auto it = std::ranges::find(vec_map_region_, map_index, &map_region::index);
+        return it != vec_map_region_.end() ? &*it : nullptr;
     }
 
     auto sectree_manager::map_index(int32_t x, int32_t y) -> int {
-        std::vector<map_region>::iterator it = vec_map_region_.begin();
-
-        while (it != vec_map_region_.end()) {
-            map_region &rRegion = *(it++);
-
-            if (x >= rRegion.sx && y >= rRegion.sy && x < rRegion.ex && y < rRegion.ey)
-                return rRegion.index;
-        }
+        auto it = std::ranges::find_if(vec_map_region_, [&](const map_region &region) { return region_contains(region, x, y); });
+        if (it != vec_map_region_.end())
+            return it->index;
 
         metin2::log::warn("No map region contains position ({:d}, {:d})", x, y);
 
-        std::vector<map_region>::iterator i;
-        for (i = vec_map_region_.begin(); i != vec_map_region_.end(); ++i) {
-            map_region &rRegion = *i;
-            metin2::log::debug("Map region {:d}: ({:d}, {:d}) - ({:d}, {:d})", rRegion.index, rRegion.sx, rRegion.sy, rRegion.ex, rRegion.ey);
-        }
+        for (const map_region &region : vec_map_region_)
+            metin2::log::debug("Map region {:d}: ({:d}, {:d}) - ({:d}, {:d})", region.index, region.sx, region.sy, region.ex, region.ey);
 
         return 0;
     }
@@ -666,29 +625,18 @@ namespace metin2::game::inline world {
             }
         }
 
-        int32_t lRealMapIndex = map_index;
+        const int32_t lRealMapIndex = base_map_index(map_index);
 
-        if (lRealMapIndex >= 10000)
-            lRealMapIndex = lRealMapIndex / 10000;
-
-        std::vector<map_region>::iterator it = vec_map_region_.begin();
-
-        while (it != vec_map_region_.end()) {
-            map_region &rRegion = *(it++);
-
-            if (rRegion.index == lRealMapIndex) {
-                sectree *tree = pkSectreeMap->find(x, y);
-
-                if (!tree) {
-                    metin2::log::error("No sectree at {:d} {:d} on map {:d}", x, y, map_index);
-                    return false;
-                }
-
-                valid_map_index = map_index;
-                r_pos.x = x;
-                r_pos.y = y;
-                return true;
+        if (get_map_region(lRealMapIndex)) {
+            if (!pkSectreeMap->find(x, y)) {
+                metin2::log::error("No sectree at {:d} {:d} on map {:d}", x, y, map_index);
+                return false;
             }
+
+            valid_map_index = map_index;
+            r_pos.x = x;
+            r_pos.y = y;
+            return true;
         }
 
         metin2::log::error("Invalid location {1:d}x{2:d} on map {0:d}", lRealMapIndex, x, y);
@@ -703,11 +651,7 @@ namespace metin2::game::inline world {
 
         uint32_t x, y;
 
-        std::vector<map_region>::iterator it = vec_map_region_.begin();
-
-        while (it != vec_map_region_.end()) {
-            map_region &rRegion = *(it++);
-
+        for (const map_region &rRegion : vec_map_region_) {
             if (rRegion.index != map_index)
                 continue;
 

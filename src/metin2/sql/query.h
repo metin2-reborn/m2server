@@ -35,13 +35,11 @@ namespace metin2::sql {
                 return quoted{"'" + escape(std::string_view(value)) + "'"};
             } else if constexpr (std::same_as<T, bool> || std::same_as<T, char>) {
                 return static_cast<int>(value);
+            } else if constexpr (std::is_enum_v<T>) {
+                return std::to_underlying(value);
             } else {
-                static_assert(std::is_arithmetic_v<T> || std::is_enum_v<T>, "sql::format takes strings, numbers and sql::raw");
-                if constexpr (std::is_enum_v<T>) {
-                    return static_cast<std::underlying_type_t<T>>(value);
-                } else {
-                    return value;
-                }
+                static_assert(std::is_arithmetic_v<T>, "sql::format takes strings, numbers and sql::raw");
+                return value;
             }
         }
 

@@ -58,8 +58,6 @@
 
 #include <metin2/common/startup.h>
 #include <metin2/config/config.h>
-#include <metin2/core/core_signal.h>
-#include <metin2/core/heart.h>
 #include <metin2/core/utils.h>
 #include <metin2/log/log.h>
 #include <metin2/net/io.h>
@@ -137,7 +135,7 @@ namespace metin2::game::inline app {
         };
     }
 
-    void heartbeat(heart *ht, int pulse) {
+    void heartbeat(int pulse) {
         uint32_t t;
 
         t = get_dword_time();
@@ -146,7 +144,7 @@ namespace metin2::game::inline app {
 
         t = get_dword_time();
 
-        if (!(pulse % ht->passes_per_sec)) {
+        if (!(pulse % thecore_passes_per_sec())) {
 
             if (!metin2::config::is_auth()) {
                 player_count_packet pack;
@@ -449,13 +447,13 @@ namespace metin2::game::inline app {
         uint32_t t;
 
         while (passed_pulses--) {
-            heartbeat(thecore_heart, ++thecore_heart->pulse);
+            heartbeat(thecore_next_pulse());
 
             thecore_tick();
         }
 
         t = get_dword_time();
-        character_manager::instance().update(thecore_heart->pulse);
+        character_manager::instance().update(thecore_pulse());
         db_clientdesc->update(t);
         profiler[PROF_CHR_UPDATE] += (get_dword_time() - t);
 

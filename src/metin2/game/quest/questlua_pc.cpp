@@ -22,6 +22,7 @@
 #include <metin2/game/protocol/desc_client.h>
 #include <metin2/game/protocol/p2p.h>
 #include <metin2/game/quest/lua_incl.h>
+#include <metin2/game/quest/questlua.h>
 #include <metin2/game/quest/questmanager.h>
 #include <metin2/game/quest/questpc.h>
 #include <metin2/game/social/marriage.h>
@@ -84,10 +85,8 @@ namespace metin2::game {
         auto pc_learn_grand_master_skill(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
 
-            if (!lua_isnumber(lua, 1)) {
-                quest::error("Invalid skill index argument");
+            if (!require_number(lua, 1, "Invalid skill index argument"))
                 return 0;
-            }
 
             lua_pushboolean(lua, ch->learn_grand_master_skill((int32_t)lua_tonumber(lua, 1)));
             return 1;
@@ -96,10 +95,8 @@ namespace metin2::game {
         auto pc_set_warp_location(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
 
-            if (!lua_isnumber(lua, 1)) {
-                quest::error("Invalid map index argument");
+            if (!require_number(lua, 1, "Invalid map index argument"))
                 return 0;
-            }
 
             if (!lua_isnumber(lua, 2) || !lua_isnumber(lua, 3)) {
                 quest::error("Invalid coordinate arguments");
@@ -113,10 +110,8 @@ namespace metin2::game {
         auto pc_set_warp_location_local(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
 
-            if (!lua_isnumber(lua, 1)) {
-                quest::error("Invalid map index argument");
+            if (!require_number(lua, 1, "Invalid map index argument"))
                 return 0;
-            }
 
             if (!lua_isnumber(lua, 2) || !lua_isnumber(lua, 3)) {
                 quest::error("Invalid coordinate arguments");
@@ -186,10 +181,8 @@ namespace metin2::game {
         }
 
         auto pc_warp_local(lua_State *lua) -> int {
-            if (!lua_isnumber(lua, 1)) {
-                quest::error("Missing map index argument");
+            if (!require_number(lua, 1, "Missing map index argument"))
                 return 0;
-            }
 
             if (!lua_isnumber(lua, 2) || !lua_isnumber(lua, 3)) {
                 quest::error("Missing coordinate arguments");
@@ -279,10 +272,8 @@ namespace metin2::game {
         auto pc_give_gold(lua_State *lua) -> int {
             character *ch = quest_manager::instance().current_character_ptr();
 
-            if (!lua_isnumber(lua, 1)) {
-                quest::error("Invalid arguments");
+            if (!require_number(lua, 1))
                 return 0;
-            }
 
             int iAmount = (int)lua_tonumber(lua, 1);
 
@@ -668,8 +659,7 @@ namespace metin2::game {
         }
 
         auto pc_change_sp(lua_State *lua) -> int {
-            if (!lua_isnumber(lua, 1)) {
-                quest::error("Invalid arguments");
+            if (!require_number(lua, 1)) {
                 lua_pushboolean(lua, 0);
                 return 1;
             }
@@ -767,10 +757,8 @@ namespace metin2::game {
         }
 
         auto pc_get_wear(lua_State *lua) -> int {
-            if (!lua_isnumber(lua, 1)) {
-                quest::error("Invalid wear position argument");
+            if (!require_number(lua, 1, "Invalid wear position argument"))
                 return 0;
-            }
 
             uint8_t bCell = (uint8_t)lua_tonumber(lua, 1);
 
@@ -881,10 +869,8 @@ namespace metin2::game {
         }
 
         auto pc_del_quest_flag(lua_State *lua) -> int {
-            if (!lua_isstring(lua, 1)) {
-                quest::error("Invalid flag argument");
+            if (!require_string(lua, 1, "Invalid flag argument"))
                 return 0;
-            }
 
             const char *sz = lua_tostring(lua, 1);
             pc *pPC = quest_manager::instance().current_pc();
@@ -1174,8 +1160,7 @@ namespace metin2::game {
                 return 1;
             }
 
-            if (!lua_isnumber(lua, 2)) {
-                quest::error("Invalid radius argument");
+            if (!require_number(lua, 2, "Invalid radius argument")) {
                 lua_pushboolean(lua, 0);
                 return 1;
             }
@@ -1291,8 +1276,7 @@ namespace metin2::game {
         }
 
         auto pc_get_skill_level(lua_State *lua) -> int {
-            if (!lua_isnumber(lua, 1)) {
-                quest::error("Invalid arguments");
+            if (!require_number(lua, 1)) {
                 lua_pushnumber(lua, 0);
                 return 1;
             }
@@ -1625,10 +1609,8 @@ namespace metin2::game {
             int premium_type = 0;
             character *ch = quest_manager::instance().current_character_ptr();
 
-            if (!lua_isnumber(lua, 1)) {
-                quest::error("Premium index is not a number");
+            if (!require_number(lua, 1, "Premium index is not a number"))
                 return 0;
-            }
 
             premium_type = (int)lua_tonumber(lua, 1);
             switch (premium_type) {
@@ -1708,7 +1690,7 @@ namespace metin2::game {
             auto pmsg = db_manager::instance().direct_query(sql::format("SELECT COUNT(*) FROM player{} WHERE name={}", sql::raw(get_table_postfix()), szName));
 
             if (pmsg->get()->num_rows > 0) {
-                MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
+                MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res.get());
 
                 int count = 0;
                 str_to_number(count, row[0]);

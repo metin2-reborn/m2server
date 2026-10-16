@@ -53,7 +53,7 @@ namespace metin2::game::inline text {
             return 0;
 
         for (tmp = str; *tmp; ++tmp) {
-            if (isdigit(*tmp) || isalpha(*tmp))
+            if (std::isalnum(static_cast<unsigned char>(*tmp)))
                 continue;
             else
                 return 0;

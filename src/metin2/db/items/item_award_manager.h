@@ -27,7 +27,6 @@ namespace metin2::db::inline items {
     class item_award_manager : public singleton<item_award_manager> {
       public:
         item_award_manager();
-        ~item_award_manager() override;
 
         void request_load();
         void load(sql_msg &msg);

@@ -29,7 +29,6 @@ namespace metin2::game::inline world {
     class sectree;
     class sectree_map;
     struct regen;
-    struct regen_exception;
 }
 
 namespace metin2::game::inline app {

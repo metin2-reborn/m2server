@@ -36,9 +36,6 @@ namespace metin2::db::inline social {
         manager::manager() {
         }
 
-        manager::~manager() {
-        }
-
         auto manager::initialize() -> bool {
             const std::string query = sql::format(
                 "SELECT pid1, pid2, love_point, time, is_married, p1.name, p2.name FROM marriage, player{0} as p1, player{0} as p2 WHERE p1.id = pid1 AND p2.id = pid2",
@@ -52,7 +49,7 @@ namespace metin2::db::inline social {
 
             if (pRes->num_rows > 0) {
                 for (uint uiRow = 0; uiRow != pRes->num_rows; ++uiRow) {
-                    MYSQL_ROW row = mysql_fetch_row(pRes->res);
+                    MYSQL_ROW row = mysql_fetch_row(pRes->res.get());
 
                     uint32_t pid1 = 0;
                     str_to_number(pid1, row[0]);

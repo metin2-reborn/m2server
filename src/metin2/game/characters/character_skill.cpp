@@ -1220,6 +1220,105 @@ namespace metin2::game::inline characters {
         uint8_t bsklv;
     };
 
+    namespace {
+        struct skill_vars {
+            float k;
+            item *weapon;
+        };
+
+        auto set_skill_vars(character *ch, character *victim, skill_proto *sk, uint8_t skill_level, bool horse_damage) -> skill_vars {
+            const float k = 1.0 * ch->skill_power(sk->vnum, skill_level) * sk->max_level / 100;
+
+            sk->set_point_var("k", k);
+            sk->splash_around_damage_adjust_poly.set_var("k", k);
+
+            if (horse_damage) {
+                item *bow;
+                item *arrow;
+                if (1 == ch->arrow_and_bow(&bow, &arrow, 1)) {
+                    sk->set_point_var("atk", calc_arrow_damage(ch, victim, bow, arrow, true));
+                } else {
+                    sk->set_point_var("atk", calc_melee_damage(ch, victim, true, false));
+                }
+            } else if (is_set(sk->flag, SKILL_FLAG_USE_MELEE_DAMAGE)) {
+                sk->set_point_var("atk", calc_melee_damage(ch, victim, true, false));
+            } else if (is_set(sk->flag, SKILL_FLAG_USE_MAGIC_DAMAGE)) {
+                sk->set_point_var("atk", calc_magic_damage(ch, victim));
+            } else if (is_set(sk->flag, SKILL_FLAG_USE_ARROW_DAMAGE)) {
+                item *bow;
+                item *arrow;
+                if (1 == ch->arrow_and_bow(&bow, &arrow, 1)) {
+                    sk->set_point_var("atk", calc_arrow_damage(ch, victim, bow, arrow, true));
+                } else {
+                    sk->set_point_var("atk", 0);
+                }
+            }
+
+            if (sk->point_on == POINT_MOV_SPEED) {
+                sk->set_point_var("maxv", victim->limit_point(POINT_MOV_SPEED));
+            }
+
+            sk->set_point_var("lv", ch->level());
+            sk->set_point_var("iq", ch->point(POINT_IQ));
+            sk->set_point_var("str", ch->point(POINT_ST));
+            sk->set_point_var("dex", ch->point(POINT_DX));
+            sk->set_point_var("con", ch->point(POINT_HT));
+            sk->set_point_var("maxhp", victim->max_hp());
+            sk->set_point_var("maxsp", victim->max_sp());
+            sk->set_point_var("chain", 0);
+            sk->set_point_var("ar", calc_attack_rating(ch, victim));
+            sk->set_point_var("def", ch->point(POINT_DEF_GRADE));
+            sk->set_point_var("odef", ch->point(POINT_DEF_GRADE) - ch->point(POINT_DEF_GRADE_BONUS));
+            sk->set_point_var("horse_level", ch->horse_level());
+
+            if (sk->skill_attr_type != SKILL_ATTR_TYPE_NORMAL)
+                ch->on_move(true);
+
+            item *weapon = ch->wear(WEAR_WEAPON);
+
+            set_poly_var_for_attack(ch, sk, weapon);
+
+            return {k, weapon};
+        }
+
+        struct skill_amounts {
+            int first;
+            int second;
+            int third;
+        };
+
+        auto eval_skill_amounts(character *ch, skill_proto *sk, float k, uint8_t skill_level, bool log_amounts) -> skill_amounts {
+            skill_amounts amounts{(int)sk->point_poly.eval(), (int)sk->point_poly2.eval(), (int)sk->point_poly3.eval()};
+
+            if (log_amounts)
+                metin2::log::debug("Skill amounts {:d} {:d} {:d}: atk {:f}, skill level {:f}, k {:f}, power {:d}, max level {:d}, per {:d}",
+                    amounts.first, amounts.second, amounts.third,
+                    sk->point_poly.var("atk"),
+                    sk->point_poly.var("k"),
+                    k,
+                    ch->skill_power(sk->vnum, skill_level),
+                    sk->max_level,
+                    sk->max_level / 100);
+
+            if (ch->used_skill_master_type(sk->vnum) >= SKILL_GRAND_MASTER) {
+                amounts.first = (int)sk->master_bonus_poly.eval();
+            }
+
+            if (metin2::config::test_server() && amounts.first == 0 && sk->point_on != POINT_NONE) {
+                ch->chat_packet(CHAT_TYPE_INFO, "효과가 없습니다. 스킬 공식을 확인하세요");
+            }
+
+            return amounts;
+        }
+
+        void add_affect_or_splash(character *ch, character *target, int x, int y, skill_proto *sk, uint8_t point_on, int amount, uint32_t affect_flag, int duration, bool override) {
+            if (!is_set(sk->flag, SKILL_FLAG_SPLASH))
+                target->add_affect(sk->vnum, point_on, amount, affect_flag, duration, 0, override);
+            else if (target->get_sectree())
+                splash_affect(target->get_sectree(), ch, x, y, sk->splash_range, sk->vnum, point_on, amount, affect_flag, duration, 0, override, sk->max_hit);
+        }
+    }
+
     auto character::compute_skill_at_position(uint32_t vnum_value, const pixel_position &pos_target, uint8_t skill_level_value) -> int {
         if (get_mount_vnum())
             return BATTLE_NONE;
@@ -1249,63 +1348,11 @@ namespace metin2::game::inline characters {
             }
         }
 
-        const float k = 1.0 * skill_power(pkSk->vnum, skill_level_value) * pkSk->max_level / 100;
-
-        pkSk->set_point_var("k", k);
-        pkSk->splash_around_damage_adjust_poly.set_var("k", k);
-
-        if (is_set(pkSk->flag, SKILL_FLAG_USE_MELEE_DAMAGE)) {
-            pkSk->set_point_var("atk", calc_melee_damage(this, this, true, false));
-        } else if (is_set(pkSk->flag, SKILL_FLAG_USE_MAGIC_DAMAGE)) {
-            pkSk->set_point_var("atk", calc_magic_damage(this, this));
-        } else if (is_set(pkSk->flag, SKILL_FLAG_USE_ARROW_DAMAGE)) {
-            item *pkBow;
-            item *pkArrow;
-            if (1 == arrow_and_bow(&pkBow, &pkArrow, 1)) {
-                pkSk->set_point_var("atk", calc_arrow_damage(this, this, pkBow, pkArrow, true));
-            } else {
-                pkSk->set_point_var("atk", 0);
-            }
-        }
-
-        if (pkSk->point_on == POINT_MOV_SPEED) {
-            pkSk->set_point_var("maxv", this->limit_point(POINT_MOV_SPEED));
-        }
-
-        pkSk->set_point_var("lv", level());
-        pkSk->set_point_var("iq", point(POINT_IQ));
-        pkSk->set_point_var("str", point(POINT_ST));
-        pkSk->set_point_var("dex", point(POINT_DX));
-        pkSk->set_point_var("con", point(POINT_HT));
-        pkSk->set_point_var("maxhp", this->max_hp());
-        pkSk->set_point_var("maxsp", this->max_sp());
-        pkSk->set_point_var("chain", 0);
-        pkSk->set_point_var("ar", calc_attack_rating(this, this));
-        pkSk->set_point_var("def", point(POINT_DEF_GRADE));
-        pkSk->set_point_var("odef", point(POINT_DEF_GRADE) - point(POINT_DEF_GRADE_BONUS));
-        pkSk->set_point_var("horse_level", horse_level());
-
-        if (pkSk->skill_attr_type != SKILL_ATTR_TYPE_NORMAL)
-            on_move(true);
-
-        item *pkWeapon = wear(WEAR_WEAPON);
-
-        set_poly_var_for_attack(this, pkSk, pkWeapon);
+        const auto [k, pkWeapon] = set_skill_vars(this, this, pkSk, skill_level_value, false);
 
         pkSk->set_duration_var("k", k);
 
-        int iAmount = (int)pkSk->point_poly.eval();
-        int iAmount2 = (int)pkSk->point_poly2.eval();
-
-        int iAmount3 = (int)pkSk->point_poly3.eval();
-
-        if (used_skill_master_type(pkSk->vnum) >= SKILL_GRAND_MASTER) {
-            iAmount = (int)pkSk->master_bonus_poly.eval();
-        }
-
-        if (metin2::config::test_server() && iAmount == 0 && pkSk->point_on != POINT_NONE) {
-            chat_packet(CHAT_TYPE_INFO, "효과가 없습니다. 스킬 공식을 확인하세요");
-        }
+        const auto [iAmount, iAmount2, iAmount3] = eval_skill_amounts(this, pkSk, k, skill_level_value, false);
 
         if (is_set(pkSk->flag, SKILL_FLAG_REMOVE_BAD_AFFECT)) {
             if (prob(iAmount2)) {
@@ -1339,13 +1386,7 @@ namespace metin2::game::inline characters {
                 if (iDur > 0) {
                     iDur += point(POINT_PARTY_BUFFER_BONUS);
 
-                    if (!is_set(pkSk->flag, SKILL_FLAG_SPLASH))
-                        add_affect(pkSk->vnum, pkSk->point_on, iAmount, pkSk->affect_flag, iDur, 0, true);
-                    else {
-                        if (get_sectree()) {
-                            splash_affect(get_sectree(), this, pos_target.x, pos_target.y, pkSk->splash_range, pkSk->vnum, pkSk->point_on, iAmount, pkSk->affect_flag, iDur, 0, true, pkSk->max_hit);
-                        }
-                    }
+                    add_affect_or_splash(this, this, pos_target.x, pos_target.y, pkSk, pkSk->point_on, iAmount, pkSk->affect_flag, iDur, true);
                     bAdded = true;
                 }
             }
@@ -1358,13 +1399,7 @@ namespace metin2::game::inline characters {
                 if (iDur > 0) {
                     iDur += point(POINT_PARTY_BUFFER_BONUS);
 
-                    if (!is_set(pkSk->flag, SKILL_FLAG_SPLASH))
-                        add_affect(pkSk->vnum, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur, 0, !bAdded);
-                    else {
-                        if (get_sectree()) {
-                            splash_affect(get_sectree(), this, pos_target.x, pos_target.y, pkSk->splash_range, pkSk->vnum, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur, 0, !bAdded, pkSk->max_hit);
-                        }
-                    }
+                    add_affect_or_splash(this, this, pos_target.x, pos_target.y, pkSk, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur, !bAdded);
                     bAdded = true;
                 } else {
                     point_change(pkSk->point_on2, iAmount2);
@@ -1377,13 +1412,7 @@ namespace metin2::game::inline characters {
                 if (iDur > 0) {
                     iDur += point(POINT_PARTY_BUFFER_BONUS);
 
-                    if (!is_set(pkSk->flag, SKILL_FLAG_SPLASH))
-                        add_affect(pkSk->vnum, pkSk->point_on3, iAmount3, 0, iDur, 0, !bAdded);
-                    else {
-                        if (get_sectree()) {
-                            splash_affect(get_sectree(), this, pos_target.x, pos_target.y, pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3, 0, iDur, 0, !bAdded, pkSk->max_hit);
-                        }
-                    }
+                    add_affect_or_splash(this, this, pos_target.x, pos_target.y, pkSk, pkSk->point_on3, iAmount3, 0, iDur, !bAdded);
                 } else {
                     point_change(pkSk->point_on3, iAmount3);
                 }
@@ -1495,81 +1524,12 @@ namespace metin2::game::inline characters {
             return BATTLE_NONE;
         }
 
-        const float k = 1.0 * skill_power(pkSk->vnum, skill_level_value) * pkSk->max_level / 100;
-
-        pkSk->set_point_var("k", k);
-        pkSk->splash_around_damage_adjust_poly.set_var("k", k);
-
-        if (pkSk->type == SKILL_TYPE_HORSE) {
-            item *pkBow;
-            item *pkArrow;
-            if (1 == arrow_and_bow(&pkBow, &pkArrow, 1)) {
-                pkSk->set_point_var("atk", calc_arrow_damage(this, victim, pkBow, pkArrow, true));
-            } else {
-                pkSk->set_point_var("atk", calc_melee_damage(this, victim, true, false));
-            }
-        } else if (is_set(pkSk->flag, SKILL_FLAG_USE_MELEE_DAMAGE)) {
-            pkSk->set_point_var("atk", calc_melee_damage(this, victim, true, false));
-        } else if (is_set(pkSk->flag, SKILL_FLAG_USE_MAGIC_DAMAGE)) {
-            pkSk->set_point_var("atk", calc_magic_damage(this, victim));
-        } else if (is_set(pkSk->flag, SKILL_FLAG_USE_ARROW_DAMAGE)) {
-            item *pkBow;
-            item *pkArrow;
-            if (1 == arrow_and_bow(&pkBow, &pkArrow, 1)) {
-                pkSk->set_point_var("atk", calc_arrow_damage(this, victim, pkBow, pkArrow, true));
-            } else {
-                pkSk->set_point_var("atk", 0);
-            }
-        }
-
-        if (pkSk->point_on == POINT_MOV_SPEED) {
-            pkSk->set_point_var("maxv", victim->limit_point(POINT_MOV_SPEED));
-        }
-
-        pkSk->set_point_var("lv", level());
-        pkSk->set_point_var("iq", point(POINT_IQ));
-        pkSk->set_point_var("str", point(POINT_ST));
-        pkSk->set_point_var("dex", point(POINT_DX));
-        pkSk->set_point_var("con", point(POINT_HT));
-        pkSk->set_point_var("maxhp", victim->max_hp());
-        pkSk->set_point_var("maxsp", victim->max_sp());
-        pkSk->set_point_var("chain", 0);
-        pkSk->set_point_var("ar", calc_attack_rating(this, victim));
-        pkSk->set_point_var("def", point(POINT_DEF_GRADE));
-        pkSk->set_point_var("odef", point(POINT_DEF_GRADE) - point(POINT_DEF_GRADE_BONUS));
-        pkSk->set_point_var("horse_level", horse_level());
-
-        if (pkSk->skill_attr_type != SKILL_ATTR_TYPE_NORMAL)
-            on_move(true);
-
-        item *pkWeapon = wear(WEAR_WEAPON);
-
-        set_poly_var_for_attack(this, pkSk, pkWeapon);
+        const auto [k, pkWeapon] = set_skill_vars(this, victim, pkSk, skill_level_value, pkSk->type == SKILL_TYPE_HORSE);
 
         pkSk->duration_poly.set_var("k", k);
         pkSk->duration_poly2.set_var("k", k);
 
-        int iAmount = (int)pkSk->point_poly.eval();
-        int iAmount2 = (int)pkSk->point_poly2.eval();
-        int iAmount3 = (int)pkSk->point_poly3.eval();
-
-        if (metin2::config::test_server() && is_pc())
-            metin2::log::debug("Skill amounts {:d} {:d} {:d}: atk {:f}, skill level {:f}, k {:f}, power {:d}, max level {:d}, per {:d}",
-                iAmount, iAmount2, iAmount3,
-                pkSk->point_poly.var("atk"),
-                pkSk->point_poly.var("k"),
-                k,
-                skill_power(pkSk->vnum, skill_level_value),
-                pkSk->max_level,
-                pkSk->max_level / 100);
-
-        if (used_skill_master_type(pkSk->vnum) >= SKILL_GRAND_MASTER) {
-            iAmount = (int)pkSk->master_bonus_poly.eval();
-        }
-
-        if (metin2::config::test_server() && iAmount == 0 && pkSk->point_on != POINT_NONE) {
-            chat_packet(CHAT_TYPE_INFO, "효과가 없습니다. 스킬 공식을 확인하세요");
-        }
+        const auto [iAmount, iAmount2, iAmount3] = eval_skill_amounts(this, pkSk, k, skill_level_value, metin2::config::test_server() && is_pc());
 
         if (is_set(pkSk->flag, SKILL_FLAG_REMOVE_BAD_AFFECT)) {
             if (prob(iAmount2)) {
@@ -1604,13 +1564,7 @@ namespace metin2::game::inline characters {
                 if (iDur > 0) {
                     iDur += point(POINT_PARTY_BUFFER_BONUS);
 
-                    if (!is_set(pkSk->flag, SKILL_FLAG_SPLASH))
-                        victim->add_affect(pkSk->vnum, pkSk->point_on, iAmount, pkSk->affect_flag, iDur, 0, true);
-                    else {
-                        if (victim->get_sectree()) {
-                            splash_affect(victim->get_sectree(), this, victim->x(), victim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on, iAmount, pkSk->affect_flag, iDur, 0, true, pkSk->max_hit);
-                        }
-                    }
+                    add_affect_or_splash(this, victim, victim->x(), victim->y(), pkSk, pkSk->point_on, iAmount, pkSk->affect_flag, iDur, true);
                     bAdded = true;
                 }
             }
@@ -1622,13 +1576,7 @@ namespace metin2::game::inline characters {
                 if (iDur > 0) {
                     iDur += point(POINT_PARTY_BUFFER_BONUS);
 
-                    if (!is_set(pkSk->flag, SKILL_FLAG_SPLASH))
-                        victim->add_affect(pkSk->vnum, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur, 0, !bAdded);
-                    else {
-                        if (victim->get_sectree()) {
-                            splash_affect(victim->get_sectree(), this, victim->x(), victim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur, 0, !bAdded, pkSk->max_hit);
-                        }
-                    }
+                    add_affect_or_splash(this, victim, victim->x(), victim->y(), pkSk, pkSk->point_on2, iAmount2, pkSk->affect_flag2, iDur, !bAdded);
 
                     bAdded = true;
                 } else {
@@ -1643,13 +1591,7 @@ namespace metin2::game::inline characters {
                 if (iDur > 0) {
                     iDur += point(POINT_PARTY_BUFFER_BONUS);
 
-                    if (!is_set(pkSk->flag, SKILL_FLAG_SPLASH))
-                        victim->add_affect(pkSk->vnum, pkSk->point_on3, iAmount3, 0, iDur, 0, !bAdded);
-                    else {
-                        if (victim->get_sectree()) {
-                            splash_affect(victim->get_sectree(), this, victim->x(), victim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3, 0, iDur, 0, !bAdded, pkSk->max_hit);
-                        }
-                    }
+                    add_affect_or_splash(this, victim, victim->x(), victim->y(), pkSk, pkSk->point_on3, iAmount3, 0, iDur, !bAdded);
 
                     bAdded = true;
                 } else {
@@ -1768,13 +1710,7 @@ namespace metin2::game::inline characters {
                 if (iDur > 0) {
                     iDur += point(POINT_PARTY_BUFFER_BONUS);
 
-                    if (!is_set(pkSk->flag, SKILL_FLAG_SPLASH))
-                        victim->add_affect(pkSk->vnum, pkSk->point_on3, iAmount3, 0, iDur, 0, !bAdded);
-                    else {
-                        if (victim->get_sectree()) {
-                            splash_affect(victim->get_sectree(), this, victim->x(), victim->y(), pkSk->splash_range, pkSk->vnum, pkSk->point_on3, iAmount3, 0, iDur, 0, !bAdded, pkSk->max_hit);
-                        }
-                    }
+                    add_affect_or_splash(this, victim, victim->x(), victim->y(), pkSk, pkSk->point_on3, iAmount3, 0, iDur, !bAdded);
 
                     bAdded = true;
                 } else {

@@ -1,53 +1,35 @@
 #include <metin2/common/peer_security.h>
 
-#include <cstring>
+#include <asio/io_context.hpp>
+#include <asio/ip/address_v4.hpp>
+#include <asio/ip/tcp.hpp>
+
+#include <algorithm>
 #include <span>
 #include <string>
-
-#include <arpa/inet.h>
-#include <netdb.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
+#include <string_view>
+#include <system_error>
 
 namespace metin2::inline common {
 
-    auto is_allowed_peer(const char *address, std::span<const std::string> hosts, const char *local) -> bool {
-        in_addr remote{};
+    auto is_allowed_peer(std::string_view address, std::span<const std::string> hosts, std::string_view local) -> bool {
+        std::error_code error;
+        const asio::ip::address remote = asio::ip::make_address_v4(address, error);
 
-        if (!address || inet_pton(AF_INET, address, &remote) != 1) {
+        if (error) {
             return false;
         }
 
         if (hosts.empty()) {
-            return local && std::strcmp(address, local) == 0;
+            return address == local;
         }
 
-        for (const std::string &host : hosts) {
-            addrinfo hints{};
-            hints.ai_family = AF_INET;
-            hints.ai_socktype = SOCK_STREAM;
+        static asio::io_context io;
+        asio::ip::tcp::resolver resolver(io);
 
-            addrinfo *result = nullptr;
-            if (getaddrinfo(host.c_str(), nullptr, &hints, &result) != 0) {
-                continue;
-            }
-
-            bool allowed = false;
-            for (auto *p = result; p; p = p->ai_next) {
-                const auto *ip = reinterpret_cast<const sockaddr_in *>(p->ai_addr);
-                if (ip->sin_addr.s_addr == remote.s_addr) {
-                    allowed = true;
-                    break;
-                }
-            }
-
-            freeaddrinfo(result);
-
-            if (allowed) {
-                return true;
-            }
-        }
-
-        return false;
+        return std::ranges::any_of(hosts, [&](const std::string &host) -> bool {
+            const auto endpoints = resolver.resolve(asio::ip::tcp::v4(), host, "", error);
+            return !error && std::ranges::any_of(endpoints, [&](const auto &entry) -> bool { return entry.endpoint().address() == remote; });
+        });
     }
 }

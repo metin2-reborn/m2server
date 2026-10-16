@@ -1,22 +1,93 @@
 #include <metin2/game/events/speed_server.h>
 
-#include <metin2/game/app/utils.h>
 #include <metin2/game/text/locale_service.h>
 
 #include <metin2/common/utils.h>
 #include <metin2/log/log.h>
 #include <metin2/proto/length.h>
 
+#include <algorithm>
+#include <array>
+#include <cctype>
 #include <cstdint>
 #include <cstdio>
-#include <cstring>
 #include <ctime>
+#include <fstream>
 #include <list>
 #include <map>
+#include <optional>
+#include <ranges>
 #include <string>
+#include <string_view>
 #include <utility>
 
 namespace metin2::game::inline events {
+
+    namespace {
+
+        constexpr std::array<std::string_view, 7> wday_names = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
+
+        auto iequals(std::string_view a, std::string_view b) -> bool {
+            return std::ranges::equal(a, b, [](unsigned char x, unsigned char y) { return std::tolower(x) == std::tolower(y); });
+        }
+
+        auto next_word(std::string_view &text) -> std::string_view {
+            constexpr std::string_view whitespace = " \t\r\n";
+            const auto begin = text.find_first_not_of(whitespace);
+            if (begin == std::string_view::npos) {
+                text = {};
+                return {};
+            }
+            text.remove_prefix(begin);
+            const auto word = text.substr(0, text.find_first_of(whitespace));
+            text.remove_prefix(word.size());
+            return word;
+        }
+
+        auto parse_hme_list(std::string_view text, std::list<hme> &lst) -> bool {
+            for (const auto part : text | std::views::split(';')) {
+                std::string_view entry(part.begin(), part.end());
+                const auto time = next_word(entry);
+                if (time.empty())
+                    continue;
+
+                const auto exp_text = next_word(entry);
+                const auto colon = time.find(':');
+                const auto hour_text = time.substr(0, colon);
+                const auto min_text = colon == std::string_view::npos ? std::string_view{} : time.substr(colon + 1);
+
+                const auto hour = parse<int>(hour_text);
+                const auto min = parse<int>(min_text);
+                const auto exp = parse<int>(exp_text);
+                if (!hour || !min || !exp) {
+                    metin2::log::error("Invalid exp bonus entry '{}:{} {}', expected hh:mm exp", hour_text, min_text, exp_text);
+                    return false;
+                }
+                metin2::log::debug("Speed server: exp bonus {} at {}:{}", exp_text, hour_text, min_text);
+
+                lst.emplace_back(*hour, *min, *exp);
+            }
+            return true;
+        }
+
+        auto parse_date(std::string_view text) -> std::optional<date> {
+            std::array<int, 3> fields{};
+            std::size_t count = 0;
+            for (const auto part : text | std::views::split('.')) {
+                if (part.empty())
+                    continue;
+                if (count == fields.size())
+                    break;
+                const auto value = parse<int>(std::string_view(part.begin(), part.end()));
+                if (!value)
+                    return std::nullopt;
+                fields[count++] = *value;
+            }
+            if (count != fields.size())
+                return std::nullopt;
+            return date(fields[0], fields[1], fields[2]);
+        }
+    }
 
     speed_server_manager::speed_server_manager() {
     }
@@ -59,36 +130,6 @@ namespace metin2::game::inline events {
         return true;
     }
 
-    auto speed_server_empire_exp::load_wday_exp_table(int wday, char *str) -> bool {
-        std::list<hme> &lst = wday_exp_table_[wday];
-        lst.clear();
-        char *p, *n;
-        const char *delim = " \t\r\n";
-        char *t;
-        char *h, *m, *e;
-        int hour, min, exp;
-        metin2::log::debug("Speed server: parsing exp bonus entry {}", str);
-        strtok(str, delim);
-        p = strtok(nullptr, ";");
-        n = strtok(nullptr, ";");
-        while (p != nullptr) {
-            t = strtok(p, delim);
-            e = strtok(nullptr, delim);
-            h = strtok(t, ":");
-            m = strtok(nullptr, delim);
-            if (!str_to_number(hour, h) || !str_to_number(min, m) || !str_to_number(exp, e)) {
-                metin2::log::error("Invalid exp bonus entry '{}:{} {}', expected hh:mm exp", h, m, e);
-                return false;
-            }
-            metin2::log::debug("Speed server: exp bonus {} at {}:{}", e, h, m);
-
-            lst.push_back(hme(hour, min, exp));
-            p = strtok(n, ";");
-            n = strtok(nullptr, ";");
-        }
-        return true;
-    }
-
     auto speed_server_empire_exp::write_exp_table() -> bool {
         FILE *fp;
 
@@ -100,9 +141,8 @@ namespace metin2::game::inline events {
             return false;
         }
 
-        char wday_name[7][4] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
         for (int i = 0; i < 7; i++) {
-            fprintf(fp, "%s", wday_name[i]);
+            fprintf(fp, "%s", wday_names[i].data());
             for (std::list<hme>::iterator it = wday_exp_table_[i].begin(); it != wday_exp_table_[i].end(); it++) {
                 fprintf(fp, " %d:%d %d;", it->hour, it->min, it->exp);
             }
@@ -121,92 +161,48 @@ namespace metin2::game::inline events {
     }
 
     auto speed_server_empire_exp::load_exp_table() -> bool {
-        FILE *fp;
-        char one_line[256];
-        char temp[256];
-        const char *delim = " \t\r\n";
-
         metin2::log::debug("Speed server: loading exp bonus table");
         if (file_name_.empty())
             return false;
 
-        if ((fp = fopen(file_name_.c_str(), "r")) == nullptr)
+        std::ifstream file(file_name_);
+        if (!file)
             return false;
 
-        while (fgets(one_line, 256, fp)) {
-            if (one_line[0] == '#')
+        std::string line;
+        while (std::getline(file, line)) {
+            if (line.starts_with('#'))
                 continue;
 
-            strlcpy(temp, one_line, sizeof(temp));
-
-            const char *token_string = strtok(one_line, delim);
-
-            if (nullptr == token_string)
+            std::string_view rest = line;
+            const auto keyword = next_word(rest);
+            if (keyword.empty())
                 continue;
 
-            TOKEN("SUN") {
-                load_wday_exp_table(0, temp);
-            }
-            else TOKEN("MON") {
-                load_wday_exp_table(1, temp);
-            }
-            else TOKEN("TUE") {
-                load_wday_exp_table(2, temp);
-            }
-            else TOKEN("WED") {
-                load_wday_exp_table(3, temp);
-            }
-            else TOKEN("THU") {
-                load_wday_exp_table(4, temp);
-            }
-            else TOKEN("FRI") {
-                load_wday_exp_table(5, temp);
-            }
-            else TOKEN("SAT") {
-                load_wday_exp_table(6, temp);
-            }
-            else TOKEN("HOLIDAY") {
+            if (iequals(keyword, "HOLIDAY")) {
+                const auto date_text = next_word(rest);
+                metin2::log::debug("Speed server: holiday {}", date_text);
+
                 std::list<hme> lst;
-                lst.clear();
-                char *p, *n;
-                char *t, *v;
-                char *h, *m, *e;
-                int hour, min, exp;
+                if (!parse_hme_list(rest, lst))
+                    return false;
 
-                v = strtok(temp, delim);
-                v = strtok(nullptr, delim);
-                metin2::log::debug("Speed server: holiday {}", v);
-
-                p = strtok(nullptr, ";");
-                n = strtok(nullptr, ";");
-                while (p != nullptr) {
-                    t = strtok(p, delim);
-                    e = strtok(nullptr, delim);
-                    h = strtok(t, ":");
-                    m = strtok(nullptr, delim);
-                    if (!str_to_number(hour, h) || !str_to_number(min, m) || !str_to_number(exp, e)) {
-                        metin2::log::error("Invalid exp bonus entry '{}:{} {}', expected hh:mm exp", h, m, e);
-                        return false;
-                    }
-                    metin2::log::debug("Speed server: exp bonus {} at {}:{}", e, h, m);
-
-                    lst.push_back(hme(hour, min, exp));
-                    p = strtok(n, ";");
-                    n = strtok(nullptr, ";");
-                }
-                int year, mon, day;
-                if (!str_to_number(year, strtok(v, ".")) || !str_to_number(mon, strtok(nullptr, ".")) || !str_to_number(day, strtok(nullptr, "."))) {
+                const auto holiday = parse_date(date_text);
+                if (!holiday) {
                     metin2::log::error("Invalid holiday date in exp bonus table");
                     return false;
                 }
 
-                metin2::log::debug("Speed server: holiday date {:d}-{:d}-{:d}", year, mon, day);
+                metin2::log::debug("Speed server: holiday date {:d}-{:d}-{:d}", holiday->year, holiday->mon, holiday->day);
 
-                holiday_map_.insert(std::pair<date, std::list<hme>>(date(year - 1900, mon - 1, day), lst));
+                holiday_map_.emplace(date(holiday->year - 1900, holiday->mon - 1, holiday->day), std::move(lst));
+            } else if (const auto it = std::ranges::find_if(wday_names, [&](std::string_view name) { return iequals(keyword, name); });
+                it != wday_names.end()) {
+                auto &lst = wday_exp_table_[it - wday_names.begin()];
+                lst.clear();
+                parse_hme_list(rest, lst);
             }
         }
-
-        fclose(fp);
 
         return true;
     }

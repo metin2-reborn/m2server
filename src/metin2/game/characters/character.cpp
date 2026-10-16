@@ -142,236 +142,38 @@ namespace metin2::game::inline characters {
         state_move_.set(this, &character::begin_state_empty, &character::state_move, &character::end_state_empty);
         state_battle_.set(this, &character::begin_state_empty, &character::state_battle, &character::end_state_empty);
 
-        initialize();
-    }
-
-    character::~character() {
-        destroy();
-    }
-
-    void character::initialize() {
         entity::initialize(ENTITY_CHARACTER);
 
-        guild_creation_key_ = 0;
-        no_opened_shop_ = true;
-
-        opening_safebox_ = false;
-
         sync_time_ = get_float_time() - 3;
-        player_id_ = 0;
-        killer_pid_ = 0;
-
-        analyze_protect = 0;
-        analyze_protect_count = 0;
-
-        count_drops = 0;
-        last_drop_time = 0;
-
-        last_pm_pulse_ = 0;
-        pm_counter_ = 0;
-
-        regen_ = nullptr;
-        regen_id_ = 0;
-        pos_regen_.x = pos_regen_.y = pos_regen_.z = 0;
-        pos_start_.x = pos_start_.y = 0;
-        pos_dest_.x = pos_dest_.y = 0;
-
-        mob_data = nullptr;
-        mob_inst = nullptr;
-
-        shop_ = nullptr;
-        chr_shop_owner_ = nullptr;
-        my_shop_ = nullptr;
-        exchange_ = nullptr;
-        party_ = nullptr;
-        party_request_event_ = nullptr;
-
-        guild_ = nullptr;
-
-        chr_target_ = nullptr;
-
-        muyeong_event_ = nullptr;
-
-        warp_npc_event = nullptr;
-        dead_event = nullptr;
-        stun_event = nullptr;
-        save_event = nullptr;
-        recovery_event = nullptr;
-        timed_event = nullptr;
-        fishing_event = nullptr;
-        warp_event = nullptr;
-
-        mining_event = nullptr;
-
-        poison_event = nullptr;
-        fire_event = nullptr;
-        check_speed_hack_event = nullptr;
-        speed_hack_count = 0;
-
-        affect_event = nullptr;
-        af_affect_flag_ = affect_flag(0, 0);
-
-        destroy_when_idle_event = nullptr;
-
-        chr_sync_owner_ = nullptr;
-
-        memset(&points_, 0, sizeof(points_));
-        memset(&points_instant_, 0, sizeof(points_instant_));
-        memset(&quickslot_, 0, sizeof(quickslot_));
-
-        char_type_ = CHAR_TYPE_MONSTER;
 
         set_position(POS_STANDING);
 
         play_start_time_ = last_move_time_ = get_dword_time();
 
         goto_state(state_idle_);
-        state_duration_ = 1;
 
         last_attack_time_ = get_dword_time() - 20000;
-
-        add_chr_state_ = 0;
-
-        chr_stone_ = nullptr;
-
-        safebox_ = nullptr;
-        safebox_size_ = -1;
-        safebox_load_time_ = 0;
-
-        mall_ = nullptr;
-        mall_load_time_ = 0;
-
-        pos_warp_.x = pos_warp_.y = pos_warp_.z = 0;
-        warp_map_index_ = 0;
-
-        pos_exit_.x = pos_exit_.y = pos_exit_.z = 0;
-        exit_map_index_ = 0;
-
-        skill_levels_ = nullptr;
-
-        move_start_time_ = 0;
-        move_duration_ = 0;
-
-        fly_target_id_ = 0;
-
-        next_state_pulse_ = 0;
-
         last_dead_time_ = get_dword_time() - 180000;
 
-        skip_save_ = false;
-
-        item_loaded_ = false;
-
-        has_poisoned = false;
-
-        dungeon_ = nullptr;
-        event_attr_ = 0;
-
-        attack_log.vid = 0;
-        attack_log.time = 0;
-
-        now_walking_ = walking_ = false;
         reset_change_attack_position_time();
-
-        detail_log_ = false;
-        monster_log_ = false;
-
-        disable_cooltime_ = false;
-
-        alignment_ = 0;
-        real_alignment_ = 0;
-
-        killer_mode_pulse_ = 0;
-        pk_mode_ = PK_MODE_PEACE;
-
-        quest_npcvid_ = 0;
-        quest_by_vnum_ = 0;
-        quest_item_ = nullptr;
-
-        mobile_auth_.clear();
 
         under_guild_war_info_message_time_ = get_dword_time() - 60000;
 
-        under_refine_ = false;
-
-        refine_npcvid_ = 0;
-
-        polymorph_race_ = 0;
-
-        stamina_consume_ = false;
-
         reset_chain_lightning_index();
-
-        mount_vnum_ = 0;
-        ch_horse_ = nullptr;
-        ch_rider_ = nullptr;
-
-        war_map_ = nullptr;
-        wedding_map_ = nullptr;
-        chat_counter_ = 0;
-
         reset_stop_time();
 
         last_victim_set_time_ = get_dword_time() - 3000;
-        max_aggro_ = -100;
-
-        send_horse_level_ = 0;
-        send_horse_health_grade_ = 0;
-        send_horse_stamina_grade_ = 0;
-
-        chr_married_ = nullptr;
-
-        pos_safebox_open_.x = -1000;
-        pos_safebox_open_.y = -1000;
-
         last_skill_time_ = get_dword_time();
 
-        memset(mob_skill_cooltime_, 0, sizeof(mob_skill_cooltime_));
-
-        arena_ = nullptr;
         potion_limit_ = quest::quest_manager::instance().event_flag("arena_potion_limit_count");
-
-        is_open_safebox_ = 0;
-
-        refine_time = 0;
-
-        exchange_time = 0;
-        safebox_load_time_ = 0;
-
-        my_shop_time = 0;
 
         init_mc();
 
-        deposit_pulse_ = 0;
-
-        new_name_ = "";
-
-        known_guild_.clear();
-
-        log_off_interval_ = 0;
-
-        combo_sequence_ = 0;
-        last_combo_time_ = 0;
-        combo_index_ = 0;
-        combo_hack_count_ = 0;
-        skip_combo_attack_by_time_ = 0;
-
-        mount_time_ = 0;
-
-        last_gold_drop_time_ = 0;
-
-        cannot_dead_ = false;
-
-        pet_system_ = nullptr;
-        is_pet_ = false;
-
-        att_mul_ = 1.0f;
-        dam_mul_ = 1.0f;
-
         points_instant_.dragon_soul_active_deck = -1;
+    }
 
-        memset(&tv_last_sync_time_, 0, sizeof(tv_last_sync_time_));
-        sync_hack_count_ = 0;
+    character::~character() {
+        destroy();
     }
 
     void character::create(const char *name, uint32_t vid, bool is_pc) {
@@ -535,7 +337,7 @@ namespace metin2::game::inline characters {
         }
 
         char szSign[SHOP_SIGN_MAX_LEN + 1];
-        utf8_strlcpy(szSign, sign_value, sizeof(szSign));
+        utf8_strlcpy(szSign, sign_value);
 
         shop_sign_ = szSign;
 
@@ -2444,6 +2246,21 @@ namespace metin2::game::inline characters {
             point_change(POINT_SP, max_sp() - sp());
     }
 
+    namespace {
+        auto grade_point_of_bonus(uint8_t bonus_type) -> uint8_t {
+            switch (bonus_type) {
+            case POINT_ATT_GRADE_BONUS:
+                return POINT_ATT_GRADE;
+            case POINT_DEF_GRADE_BONUS:
+                return POINT_DEF_GRADE;
+            case POINT_MAGIC_ATT_GRADE_BONUS:
+                return POINT_MAGIC_ATT_GRADE;
+            default:
+                return POINT_MAGIC_DEF_GRADE;
+            }
+        }
+    }
+
     void character::point_change(uint8_t type, int amount, bool amount_value, bool broadcast) {
         int val = 0;
 
@@ -2732,10 +2549,6 @@ namespace metin2::game::inline characters {
             break;
 
         case POINT_CLIENT_DEF_GRADE:
-            set_point(type, point(type) + amount);
-            val = point(type);
-            break;
-
         case POINT_ST:
         case POINT_HT:
         case POINT_DX:
@@ -2812,9 +2625,6 @@ namespace metin2::game::inline characters {
 
         case POINT_SKILL_DEFEND_BONUS:
         case POINT_NORMAL_HIT_DEFEND_BONUS:
-            set_point(type, point(type) + amount);
-            val = point(type);
-            break;
 
         case POINT_PARTY_ATTACKER_BONUS:
         case POINT_PARTY_TANKER_BONUS:
@@ -2827,7 +2637,6 @@ namespace metin2::game::inline characters {
         case POINT_RESIST_ASSASSIN:
         case POINT_RESIST_SURA:
         case POINT_RESIST_SHAMAN:
-
             set_point(type, point(type) + amount);
             val = point(type);
             break;
@@ -2838,8 +2647,13 @@ namespace metin2::game::inline characters {
         case POINT_MALL_ITEMBONUS:
         case POINT_MALL_GOLDBONUS:
         case POINT_MELEE_MAGIC_ATT_BONUS_PER:
+        case POINT_EXP_DOUBLE_BONUS:
+        case POINT_GOLD_DOUBLE_BONUS:
+        case POINT_ITEM_DROP_BONUS:
+        case POINT_POTION_BONUS:
             if (point(type) + amount > 100) {
-                metin2::log::error("Mall bonus point {:d} of {} would exceed 100 (adding {:d})", type, name(), amount);
+                const bool mall = type != POINT_EXP_DOUBLE_BONUS && type != POINT_GOLD_DOUBLE_BONUS && type != POINT_ITEM_DROP_BONUS && type != POINT_POTION_BONUS;
+                metin2::log::error("{} point {:d} of {} would exceed 100 (adding {:d})", mall ? "Mall bonus" : "Bonus", type, name(), amount);
                 amount = 100 - point(type);
             }
 
@@ -2854,70 +2668,28 @@ namespace metin2::game::inline characters {
             val = point(type);
             break;
 
-        case POINT_EXP_DOUBLE_BONUS:
-        case POINT_GOLD_DOUBLE_BONUS:
-        case POINT_ITEM_DROP_BONUS:
-        case POINT_POTION_BONUS:
-            if (point(type) + amount > 100) {
-                metin2::log::error("Bonus point {:d} of {} would exceed 100 (adding {:d})", type, name(), amount);
-                amount = 100 - point(type);
-            }
-
-            set_point(type, point(type) + amount);
-            val = point(type);
-            break;
-
         case POINT_IMMUNE_STUN:
-            set_point(type, point(type) + amount);
-            val = point(type);
-            if (val) {
-                set_bit(points_instant_.immune_flag, IMMUNE_STUN);
-            } else {
-                remove_bit(points_instant_.immune_flag, IMMUNE_STUN);
-            }
-            break;
-
         case POINT_IMMUNE_SLOW:
-            set_point(type, point(type) + amount);
-            val = point(type);
-            if (val) {
-                set_bit(points_instant_.immune_flag, IMMUNE_SLOW);
-            } else {
-                remove_bit(points_instant_.immune_flag, IMMUNE_SLOW);
-            }
-            break;
-
         case POINT_IMMUNE_FALL:
-            set_point(type, point(type) + amount);
-            val = point(type);
-            if (val) {
-                set_bit(points_instant_.immune_flag, IMMUNE_FALL);
-            } else {
-                remove_bit(points_instant_.immune_flag, IMMUNE_FALL);
+            {
+                const auto bit = type == POINT_IMMUNE_STUN ? IMMUNE_STUN : type == POINT_IMMUNE_SLOW ? IMMUNE_SLOW
+                                                                                                     : IMMUNE_FALL;
+                set_point(type, point(type) + amount);
+                val = point(type);
+                if (val) {
+                    set_bit(points_instant_.immune_flag, bit);
+                } else {
+                    remove_bit(points_instant_.immune_flag, bit);
+                }
             }
             break;
 
         case POINT_ATT_GRADE_BONUS:
-            set_point(type, point(type) + amount);
-            point_change(POINT_ATT_GRADE, amount);
-            val = point(type);
-            break;
-
         case POINT_DEF_GRADE_BONUS:
-            set_point(type, point(type) + amount);
-            point_change(POINT_DEF_GRADE, amount);
-            val = point(type);
-            break;
-
         case POINT_MAGIC_ATT_GRADE_BONUS:
-            set_point(type, point(type) + amount);
-            point_change(POINT_MAGIC_ATT_GRADE, amount);
-            val = point(type);
-            break;
-
         case POINT_MAGIC_DEF_GRADE_BONUS:
             set_point(type, point(type) + amount);
-            point_change(POINT_MAGIC_DEF_GRADE, amount);
+            point_change(grade_point_of_bonus(type), amount);
             val = point(type);
             break;
 
@@ -2994,7 +2766,6 @@ namespace metin2::game::inline characters {
         switch (apply_type) {
         case APPLY_NONE:
             break;
-            ;
 
         case APPLY_CON:
             point_change(POINT_HT, val);
@@ -3027,101 +2798,12 @@ namespace metin2::game::inline characters {
             }
             break;
 
-        case APPLY_STR:
-        case APPLY_DEX:
-        case APPLY_MAX_HP:
-        case APPLY_MAX_SP:
-        case APPLY_MAX_HP_PCT:
-        case APPLY_MAX_SP_PCT:
-        case APPLY_ATT_SPEED:
-        case APPLY_MOV_SPEED:
-        case APPLY_CAST_SPEED:
-        case APPLY_HP_REGEN:
-        case APPLY_SP_REGEN:
-        case APPLY_POISON_PCT:
-        case APPLY_STUN_PCT:
-        case APPLY_SLOW_PCT:
-        case APPLY_CRITICAL_PCT:
-        case APPLY_PENETRATE_PCT:
-        case APPLY_ATTBONUS_HUMAN:
-        case APPLY_ATTBONUS_ANIMAL:
-        case APPLY_ATTBONUS_ORC:
-        case APPLY_ATTBONUS_MILGYO:
-        case APPLY_ATTBONUS_UNDEAD:
-        case APPLY_ATTBONUS_DEVIL:
-        case APPLY_ATTBONUS_WARRIOR:
-        case APPLY_ATTBONUS_ASSASSIN:
-        case APPLY_ATTBONUS_SURA:
-        case APPLY_ATTBONUS_SHAMAN:
-        case APPLY_ATTBONUS_MONSTER:
-        case APPLY_STEAL_HP:
-        case APPLY_STEAL_SP:
-        case APPLY_MANA_BURN_PCT:
-        case APPLY_DAMAGE_SP_RECOVER:
-        case APPLY_BLOCK:
-        case APPLY_DODGE:
-        case APPLY_RESIST_SWORD:
-        case APPLY_RESIST_TWOHAND:
-        case APPLY_RESIST_DAGGER:
-        case APPLY_RESIST_BELL:
-        case APPLY_RESIST_FAN:
-        case APPLY_RESIST_BOW:
-        case APPLY_RESIST_FIRE:
-        case APPLY_RESIST_ELEC:
-        case APPLY_RESIST_MAGIC:
-        case APPLY_RESIST_WIND:
-        case APPLY_RESIST_ICE:
-        case APPLY_RESIST_EARTH:
-        case APPLY_RESIST_DARK:
-        case APPLY_REFLECT_MELEE:
-        case APPLY_REFLECT_CURSE:
-        case APPLY_ANTI_CRITICAL_PCT:
-        case APPLY_ANTI_PENETRATE_PCT:
-        case APPLY_POISON_REDUCE:
-        case APPLY_KILL_SP_RECOVER:
-        case APPLY_EXP_DOUBLE_BONUS:
-        case APPLY_GOLD_DOUBLE_BONUS:
-        case APPLY_ITEM_DROP_BONUS:
-        case APPLY_POTION_BONUS:
-        case APPLY_KILL_HP_RECOVER:
-        case APPLY_IMMUNE_STUN:
-        case APPLY_IMMUNE_SLOW:
-        case APPLY_IMMUNE_FALL:
-        case APPLY_BOW_DISTANCE:
-        case APPLY_ATT_GRADE_BONUS:
-        case APPLY_DEF_GRADE_BONUS:
-        case APPLY_MAGIC_ATT_GRADE:
-        case APPLY_MAGIC_DEF_GRADE:
-        case APPLY_CURSE_PCT:
-        case APPLY_MAX_STAMINA:
-        case APPLY_MALL_ATTBONUS:
-        case APPLY_MALL_DEFBONUS:
-        case APPLY_MALL_EXPBONUS:
-        case APPLY_MALL_ITEMBONUS:
-        case APPLY_MALL_GOLDBONUS:
-        case APPLY_SKILL_DAMAGE_BONUS:
-        case APPLY_NORMAL_HIT_DAMAGE_BONUS:
-
-        case APPLY_SKILL_DEFEND_BONUS:
-        case APPLY_NORMAL_HIT_DEFEND_BONUS:
-
-        case APPLY_PC_BANG_EXP_BONUS:
-        case APPLY_PC_BANG_DROP_BONUS:
-
-        case APPLY_RESIST_WARRIOR:
-        case APPLY_RESIST_ASSASSIN:
-        case APPLY_RESIST_SURA:
-        case APPLY_RESIST_SHAMAN:
-        case APPLY_ENERGY:
-        case APPLY_DEF_GRADE:          // DEF_GRADE_BONUS: the client shows this doubled; intentional.
-        case APPLY_COSTUME_ATTR_BONUS:
-        case APPLY_MAGIC_ATTBONUS_PER:
-        case APPLY_MELEE_MAGIC_ATTBONUS_PER:
-            point_change(a_apply_info[apply_type].point_type, val);
-            break;
-
         default:
-            metin2::log::error("Unknown apply type {:d} for {}", apply_type, name());
+            if (apply_type >= MAX_APPLY_NUM || apply_type == APPLY_EXTRACT_HP_PCT) {
+                metin2::log::error("Unknown apply type {:d} for {}", apply_type, name());
+                break;
+            }
+            point_change(a_apply_info[apply_type].point_type, val);
             break;
         }
     }
@@ -3214,7 +2896,7 @@ namespace metin2::game::inline characters {
             return;
 
         if (len >= (int)sizeof(chatbuf)) {
-            len = (int)utf8_truncated_size(chatbuf, sizeof(chatbuf) - 1, sizeof(chatbuf) - 1);
+            len = (int)utf8_truncated_size({chatbuf, sizeof(chatbuf) - 1}, sizeof(chatbuf) - 1);
             chatbuf[len] = '\0';
         }
 
@@ -3338,7 +3020,7 @@ namespace metin2::game::inline characters {
 
     auto character::start_state_machine(int next_pulse) -> bool {
         if (character_manager::instance().add_to_state_list(this)) {
-            next_state_pulse_ = thecore_heart->pulse + next_pulse;
+            next_state_pulse_ = thecore_pulse() + next_pulse;
             return true;
         }
 
@@ -4083,7 +3765,7 @@ namespace metin2::game::inline characters {
 
     void character::set_gm_level() {
         if (get_desc()) {
-            points_instant_.gm_level = gm_get_level(name(), get_desc()->host_name(), get_desc()->get_account_table().login);
+            points_instant_.gm_level = gm_get_level(name(), get_desc()->get_account_table().login);
         } else {
             points_instant_.gm_level = GM_PLAYER;
         }
@@ -4728,7 +4410,7 @@ namespace metin2::game::inline characters {
 
                 if (ch) {
                     if (msg.get()->num_rows > 0) {
-                        MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
+                        MYSQL_ROW row = mysql_fetch_row(msg.get()->res.get());
                         int size = 0;
                         str_to_number(size, row[0]);
                         ch->set_safebox_size(SAFEBOX_PAGE_SIZE * size);

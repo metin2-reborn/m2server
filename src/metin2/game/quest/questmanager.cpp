@@ -36,6 +36,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
+#include <filesystem>
 #include <format>
 #include <fstream>
 #include <iterator>
@@ -43,8 +44,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-
-#include <dirent.h>
 
 namespace metin2::game {
 
@@ -1252,21 +1251,32 @@ namespace metin2::game {
 
             registered_npc_vnum_.insert(vnum);
 
-            DIR *dir;
-
-            for (auto it = quest_object_dir.begin(); it != quest_object_dir.end(); ++it) {
-                const std::string &stQuestObjectDir = *it;
-                const std::string npc_dir = std::format("{}/{}", stQuestObjectDir, vnum);
+            // npc::set loads the scripts from every object directory, so it must run only once.
+            for (const std::string &object_dir : quest_object_dir) {
+                const std::string npc_dir = std::format("{}/{}", object_dir, vnum);
                 metin2::log::debug("Quest: looking for npc scripts in {}", npc_dir);
 
-                if ((dir = opendir(npc_dir.c_str()))) {
-                    closedir(dir);
+                std::error_code ec;
+                if (std::filesystem::is_directory(npc_dir, ec)) {
                     const std::string script_name = std::format("{}", vnum);
                     metin2::log::debug("Quest: found scripts for npc {}", script_name);
 
                     npc_[vnum].set(vnum, script_name);
+                    break;
                 }
             }
+        }
+
+        auto list_directory(const std::string &dir) -> std::vector<std::string> {
+            std::vector<std::string> names;
+            std::error_code ec;
+            for (std::filesystem::directory_iterator it(dir, ec), end; !ec && it != end; it.increment(ec)) {
+                std::string name = it->path().filename().string();
+                if (!name.starts_with('.'))
+                    names.push_back(std::move(name));
+            }
+            std::ranges::sort(names);
+            return names;
         }
 
         void quest_manager::write_running_state_to_syserr() {

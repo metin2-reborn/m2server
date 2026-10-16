@@ -89,7 +89,7 @@ namespace metin2::game {
             auto pmsg = db_manager::instance().direct_query(sql::format("SELECT COUNT(*) FROM land{} WHERE guild_id = {}", sql::raw(get_table_postfix()), (uint32_t)lua_tonumber(lua, 1)));
 
             if (pmsg->get()->num_rows > 0) {
-                MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
+                MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res.get());
 
                 int count = 0;
                 str_to_number(count, row[0]);

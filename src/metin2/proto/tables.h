@@ -253,7 +253,7 @@ namespace metin2::inline proto {
     };
 
 #pragma pack(1)
-    enum request_charge_type {
+    enum request_charge_type : uint32_t {
         ERequestCharge_Cash = 0,
         ERequestCharge_Mileage,
     };

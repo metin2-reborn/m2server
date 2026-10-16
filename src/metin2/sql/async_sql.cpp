@@ -6,14 +6,13 @@
 
 #include <mysql.h>
 
-#include <algorithm>
 #include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <deque>
-#include <iterator>
 #include <memory>
 #include <mutex>
+#include <stop_token>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -54,10 +53,10 @@ namespace metin2::sql {
         do {
             auto result = std::make_unique<sql_result>();
 
-            result->res = mysql_store_result(sql);
+            result->res.reset(mysql_store_result(sql));
             result->insert_id = mysql_insert_id(sql);
             result->affected_rows = mysql_affected_rows(sql);
-            result->num_rows = result->res ? mysql_num_rows(result->res) : 0;
+            result->num_rows = result->res ? mysql_num_rows(result->res.get()) : 0;
 
             results.push_back(std::move(result));
         } while (!mysql_next_result(sql));
@@ -72,36 +71,29 @@ namespace metin2::sql {
         }
     }
 
-    auto async_sql::setup(const char *host, const char *user, const char *password, const char *db, const char *locale, bool no_thread, int port) -> bool {
+    auto async_sql::setup(std::string_view host, std::string_view user, std::string_view password, std::string_view db, std::string_view locale, bool no_thread, int port) -> bool {
         host_ = host;
         user_ = user;
         password_ = password;
         m_st_db_ = db;
         port_ = port;
-
-        if (locale) {
-            locale_ = locale;
-            metin2::log::info("Sql: connection character set {}", locale_);
-        }
+        locale_ = locale;
+        metin2::log::info("Sql: connection character set {}", locale_);
 
         if (no_thread) {
             return connect();
         }
 
-        thread_ = std::thread([this]() -> void {
+        thread_ = std::jthread([this](std::stop_token stop) -> void {
             if (connect()) {
-                child_loop();
+                child_loop(std::move(stop));
             }
         });
         return true;
     }
 
     void async_sql::quit() {
-        {
-            std::lock_guard lock(mtx_query_);
-            end_ = true;
-        }
-        cv_query_.notify_all();
+        thread_.request_stop();
 
         if (thread_.joinable()) {
             thread_.join();
@@ -250,26 +242,25 @@ namespace metin2::sql {
         ++query_finished_;
     }
 
-    void async_sql::child_loop() {
+    void async_sql::child_loop(std::stop_token stop) {
         std::deque<std::unique_ptr<sql_msg>> batch;
 
         while (true) {
             {
                 std::unique_lock lock(mtx_query_);
-                cv_query_.wait(lock, [this]() -> bool { return end_ || !queue_query_.empty(); });
+                cv_query_.wait(lock, stop, [this]() -> bool { return !queue_query_.empty(); });
 
                 if (queue_query_.empty()) {
                     break;
                 }
 
                 copied_query_ += static_cast<int>(queue_query_.size());
-                std::ranges::move(queue_query_, std::back_inserter(batch));
-                queue_query_.clear();
+                batch.swap(queue_query_);
             }
 
             while (!batch.empty()) {
                 if (!execute(*batch.front())) {
-                    if (end_) {
+                    if (stop.stop_requested()) {
                         metin2::log::error("Dropping failed query at shutdown: {}", batch.front()->query);
                     } else {
                         metin2::log::warn("Query failed, retrying");
@@ -278,7 +269,7 @@ namespace metin2::sql {
                     }
                 }
 
-                if (end_) {
+                if (stop.stop_requested()) {
                     metin2::log::debug("Sql: flushed query at shutdown: {}", batch.front()->query);
                 }
 
@@ -288,29 +279,21 @@ namespace metin2::sql {
         }
     }
 
-    auto async_sql::count_query() -> uint32_t {
-        std::lock_guard lock(mtx_query_);
-        return queue_query_.size();
+    auto async_sql::stats() -> sql_stats {
+        sql_stats result{.finished = query_finished_, .copied = copied_query_};
+        {
+            std::lock_guard lock(mtx_query_);
+            result.queued = queue_query_.size();
+        }
+        {
+            std::lock_guard lock(mtx_result_);
+            result.results = queue_result_.size();
+        }
+        return result;
     }
 
-    auto async_sql::count_result() -> uint32_t {
-        std::lock_guard lock(mtx_result_);
-        return queue_result_.size();
-    }
-
-    auto async_sql::count_query_finished() -> int {
-        return query_finished_;
-    }
-
-    void async_sql::reset_query_finished() {
+    void async_sql::reset_stats() {
         query_finished_ = 0;
-    }
-
-    auto async_sql::copied_query_count() -> int {
-        return copied_query_;
-    }
-
-    void async_sql::reset_copied_query_count() {
         copied_query_ = 0;
     }
 }

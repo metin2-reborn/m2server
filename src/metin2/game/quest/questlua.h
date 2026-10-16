@@ -6,8 +6,10 @@
 #include <metin2/game/quest/lua_incl.h>
 
 #include <cstdint>
+#include <source_location>
 #include <sstream>
 #include <string>
+#include <string_view>
 
 namespace metin2::game {
 
@@ -40,6 +42,24 @@ namespace metin2::game {
         extern void register_dragon_soul_function_table();
 
         extern void combine_lua_string(lua_State *lua, std::ostringstream &s);
+
+        void report_error(const std::source_location &where, std::string_view message);
+
+        inline auto require_number(lua_State *lua, int index, std::string_view message = "Invalid arguments",
+            const std::source_location &where = std::source_location::current()) -> bool {
+            if (lua_isnumber(lua, index))
+                return true;
+            report_error(where, message);
+            return false;
+        }
+
+        inline auto require_string(lua_State *lua, int index, std::string_view message = "Invalid arguments",
+            const std::source_location &where = std::source_location::current()) -> bool {
+            if (lua_isstring(lua, index))
+                return true;
+            report_error(where, message);
+            return false;
+        }
 
         void set_pc_quest_flag(character *ch, const std::string &flagname, int value);
         void purge_monsters_in_area(sectree_map *map, int x1, int y1, int x2, int y2, character *except_char);

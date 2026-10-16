@@ -17,23 +17,7 @@ namespace metin2::db::inline storage {
 
     static constexpr const char CONNECTION_CHARSET[] = "latin1";
 
-    db_manager::db_manager() {
-        initialize();
-    }
-
     db_manager::~db_manager() {
-        destroy();
-    }
-
-    void db_manager::initialize() {
-        for (int i = 0; i < SQL_MAX_NUM; ++i) {
-            main_sql_[i] = nullptr;
-            direct_sql_[i] = nullptr;
-            async_sql_[i] = nullptr;
-        }
-    }
-
-    void db_manager::destroy() {
         clear();
     }
 
@@ -43,8 +27,6 @@ namespace metin2::db::inline storage {
             direct_sql_[i].reset();
             async_sql_[i].reset();
         }
-
-        initialize();
     }
 
     void db_manager::quit() {

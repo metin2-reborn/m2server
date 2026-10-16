@@ -199,7 +199,8 @@ namespace metin2::game {
 
                     pc *member_pc = quest_manager::instance().pc_force(member->player_id());
                     return member_pc && value > member_pc->flag(flagname);
-                }, ch->map_index());
+                },
+                    ch->map_index());
                 lua_pushboolean(lua, returnBool);
             }
 
@@ -295,7 +296,8 @@ namespace metin2::game {
             std::vector<uint32_t> pids;
             pParty->for_each_on_map_member([&](character *member) {
                 pids.push_back(member->player_id());
-            }, ch->map_index());
+            },
+                ch->map_index());
 
             for (uint32_t pid : pids) {
                 lua_pushnumber(lua, pid);

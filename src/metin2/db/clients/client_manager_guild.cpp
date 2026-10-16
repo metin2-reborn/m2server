@@ -51,7 +51,7 @@ namespace metin2::db::inline clients {
             return;
         }
 
-        MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
+        MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res.get());
 
         if (!row[0] || !row[1])
             return;

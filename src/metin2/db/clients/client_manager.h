@@ -20,6 +20,7 @@
 #include <map>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -34,6 +35,14 @@ namespace metin2::db::inline caches {
 namespace metin2::db::inline clients {
 
     auto create_player_save_query(const player_table *tab) -> std::string;
+
+    inline constexpr std::string_view item_select_columns =
+        "id, window+0, pos, count, vnum, socket0, socket1, socket2, "
+        "attrtype0, attrvalue0, attrtype1, attrvalue1, attrtype2, attrvalue2, attrtype3, attrvalue3, "
+        "attrtype4, attrvalue4, attrtype5, attrvalue5, attrtype6, attrvalue6";
+
+    auto create_item_table_from_res(MYSQL_RES *res, std::vector<player_item> *vec, uint32_t pid) -> bool;
+    auto create_item_save_query(const player_item &item) -> std::string;
 
     class client_manager : public singleton<client_manager> {
       public:
@@ -81,9 +90,7 @@ namespace metin2::db::inline clients {
         void process_packets(peer *peer);
 
         void main_loop();
-        void quit();
 
-        void set_table_postfix(const char *table_postfix);
         void set_player_id_start(int id_start);
 
         auto user_count() -> uint32_t;
@@ -120,8 +127,6 @@ namespace metin2::db::inline clients {
         auto any_peer() -> peer *;
 
         void forward_packet(uint8_t header, const void *data, int size, uint8_t channel_value = 0, peer *except = nullptr);
-
-        void send_notice(const char *format, ...);
 
         void inform_gift_award(const char *login, const char *why, uint32_t vnum);
         void item_award(peer *peer, char *login);
@@ -206,8 +211,6 @@ namespace metin2::db::inline clients {
         void query_player_create(peer *peer, uint32_t handle, player_create_packet *);
         void query_player_delete(peer *peer, uint32_t handle_value, player_delete_packet *);
         void result_player_delete(peer *peer, sql_msg &msg, client_handle_info &pi);
-
-        void query_player_count(peer *peer_value, player_count_packet *);
 
         void query_item_save(peer *peer_value, const char *data);
         void query_item_destroy(peer *peer_value, const char *data);
@@ -369,8 +372,6 @@ namespace metin2::db::inline clients {
         auto initialize_localization() -> bool;
 
       private:
-        std::vector<t_locale> vec_locale_;
-
         auto admin_info(const char *ip, std::vector<t_admin_info> &admin_vec) -> bool;
         auto host_info(std::vector<std::string> &ip_vec) -> bool;
 

@@ -17,14 +17,13 @@
 #include <metin2/proto/length.h>
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
 
 namespace metin2::game::inline events {
 
     namespace mining {
         enum {
-            MAX_ORE = 18,
-            MAX_FRACTION_COUNT = 9,
             ORE_COUNT_FOR_REFINE = 100,
         };
 
@@ -34,114 +33,112 @@ namespace metin2::game::inline events {
             uint32_t refine_vnum;
         };
 
-        mining_info info[MAX_ORE] =
+        constexpr std::array<mining_info, 18> info = {
             {
-                {20047, 50601, 50621},
-                {20048, 50602, 50622},
-                {20049, 50603, 50623},
-                {20050, 50604, 50624},
-                {20051, 50605, 50625},
-                {20052, 50606, 50626},
-                {20053, 50607, 50627},
-                {20054, 50608, 50628},
-                {20055, 50609, 50629},
-                {20056, 50610, 50630},
-                {20057, 50611, 50631},
-                {20058, 50612, 50632},
-                {20059, 50613, 50633},
-                {30301, 50614, 50634},
-                {30302, 50615, 50635},
-                {30303, 50616, 50636},
-                {30304, 50617, 50637},
-                {30305, 50618, 50638},
+             {20047, 50601, 50621},
+             {20048, 50602, 50622},
+             {20049, 50603, 50623},
+             {20050, 50604, 50624},
+             {20051, 50605, 50625},
+             {20052, 50606, 50626},
+             {20053, 50607, 50627},
+             {20054, 50608, 50628},
+             {20055, 50609, 50629},
+             {20056, 50610, 50630},
+             {20057, 50611, 50631},
+             {20058, 50612, 50632},
+             {20059, 50613, 50633},
+             {30301, 50614, 50634},
+             {30302, 50615, 50635},
+             {30303, 50616, 50636},
+             {30304, 50617, 50637},
+             {30305, 50618, 50638},
+             }
         };
 
-        int fraction_info[MAX_FRACTION_COUNT][3] =
-            {
-                {20, 1,  10},
-                {30, 11, 20},
-                {20, 21, 30},
-                {15, 31, 40},
-                {5,  41, 50},
-                {4,  51, 60},
-                {3,  61, 70},
-                {2,  71, 80},
-                {1,  81, 90},
+        struct fraction {
+            int pct;
+            int min_count;
+            int max_count;
         };
 
-        int pick_grade_add_pct[10] =
+        constexpr std::array<fraction, 9> fraction_info = {
             {
-                3, 5, 8, 11, 15, 20, 26, 32, 40, 50};
+             {20, 1, 10},
+             {30, 11, 20},
+             {20, 21, 30},
+             {15, 31, 40},
+             {5, 41, 50},
+             {4, 51, 60},
+             {3, 61, 70},
+             {2, 71, 80},
+             {1, 81, 90},
+             }
+        };
 
-        int skill_level_add_pct[SKILL_MAX_LEVEL + 1] =
-            {
-                0,
-                1,
-                1,
-                1,
-                1,
-                2,
-                2,
-                2,
-                2,
-                3,
-                3,
-                3,
-                3,
-                4,
-                4,
-                4,
-                4,
-                5,
-                5,
-                5,
-                5,
-                6,
-                6,
-                6,
-                6,
-                7,
-                7,
-                7,
-                7,
-                8,
-                8,
-                8,
-                8,
-                9,
-                9,
-                9,
-                9,
-                10,
-                10,
-                10,
-                11,
+        constexpr std::array<int, 10> pick_grade_add_pct = {3, 5, 8, 11, 15, 20, 26, 32, 40, 50};
+
+        constexpr std::array<int, SKILL_MAX_LEVEL + 1> skill_level_add_pct = {
+            0,
+            1,
+            1,
+            1,
+            1,
+            2,
+            2,
+            2,
+            2,
+            3,
+            3,
+            3,
+            3,
+            4,
+            4,
+            4,
+            4,
+            5,
+            5,
+            5,
+            5,
+            6,
+            6,
+            6,
+            6,
+            7,
+            7,
+            7,
+            7,
+            8,
+            8,
+            8,
+            8,
+            9,
+            9,
+            9,
+            9,
+            10,
+            10,
+            10,
+            11,
         };
 
         auto get_raw_ore_from_load(uint32_t load_vnum_value) -> uint32_t {
-            for (int i = 0; i < MAX_ORE; ++i) {
-                if (info[i].load_vnum == load_vnum_value)
-                    return info[i].raw_ore_vnum;
-            }
-            return 0;
+            const auto it = std::ranges::find(info, load_vnum_value, &mining_info::load_vnum);
+            return it != info.end() ? it->raw_ore_vnum : 0;
         }
 
         auto get_refine_from_raw_ore(uint32_t raw_ore_vnum_value) -> uint32_t {
-            for (int i = 0; i < MAX_ORE; ++i) {
-                if (info[i].raw_ore_vnum == raw_ore_vnum_value)
-                    return info[i].refine_vnum;
-            }
-            return 0;
+            const auto it = std::ranges::find(info, raw_ore_vnum_value, &mining_info::raw_ore_vnum);
+            return it != info.end() ? it->refine_vnum : 0;
         }
 
         auto get_fraction_count() -> int {
             int r = number(1, 100);
 
-            for (int i = 0; i < MAX_FRACTION_COUNT; ++i) {
-                if (r <= fraction_info[i][0])
-                    return number(fraction_info[i][1], fraction_info[i][2]);
-                else
-                    r -= fraction_info[i][0];
+            for (const auto &f : fraction_info) {
+                if (r <= f.pct)
+                    return number(f.min_count, f.max_count);
+                r -= f.pct;
             }
 
             return 0;
@@ -422,11 +419,7 @@ namespace metin2::game::inline events {
         }
 
         auto is_vein_of_ore(uint32_t vnum) -> bool {
-            for (int i = 0; i < MAX_ORE; i++) {
-                if (info[i].load_vnum == vnum)
-                    return true;
-            }
-            return false;
+            return std::ranges::contains(info, vnum, &mining_info::load_vnum);
         }
     }
 }

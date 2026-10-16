@@ -71,7 +71,7 @@ namespace metin2::game::inline social {
         std::string account;
 
         for (uint i = 0; i < msg.get()->num_rows; ++i) {
-            MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
+            MYSQL_ROW row = mysql_fetch_row(msg.get()->res.get());
 
             if (row[0] && row[1]) {
                 if (account.length() == 0)
@@ -249,18 +249,8 @@ namespace metin2::game::inline social {
         db_manager::instance().query(sql::format("DELETE FROM messenger_list{} WHERE account={} OR companion={}",
             sql::raw(get_table_postfix()), account, account));
 
-        for (std::set<key_t>::iterator iter = company.begin();
-            iter != company.end();
-            iter++) {
-            this->remove_from_list(account, *iter);
-        }
-
-        for (std::set<key_t>::iterator iter = company.begin();
-            iter != company.end();) {
-            company.erase(iter++);
-        }
-
-        company.clear();
+        for (const key_t &companion : company)
+            remove_from_list(account, companion);
     }
 
     void messenger_manager::send_list(messenger_manager::key_a account) {

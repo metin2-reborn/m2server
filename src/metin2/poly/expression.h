@@ -4,6 +4,7 @@
 #include <functional>
 #include <map>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace metin2::poly {
@@ -12,7 +13,7 @@ namespace metin2::poly {
       public:
         expression();
 
-        auto analyze(const char *str = nullptr) -> bool;
+        auto analyze(std::string_view str) -> bool;
         auto eval() const -> double;
         auto set_var(const std::string &name, double value) -> bool;
         auto var(const std::string &name) const -> double;

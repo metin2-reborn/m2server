@@ -1,5 +1,7 @@
 #pragma once
 
+#include <metin2/log/log.h>
+
 #include <cerrno>
 #include <cstdio>
 #include <cstring>
@@ -10,7 +12,7 @@ namespace metin2::inline common {
     inline auto mark_server_ready() -> bool {
         std::ofstream file("ready");
         if (!file) {
-            std::fprintf(stderr, "cannot create readiness marker: %s\n", std::strerror(errno));
+            metin2::log::error("Cannot create readiness marker: {}", std::strerror(errno));
             return false;
         }
 

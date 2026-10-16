@@ -129,7 +129,7 @@ namespace metin2::game::inline persistence {
         packet_gd_auth_login ptod;
         ptod.id = r.id;
 
-        trim_and_lower(r.login, ptod.login, sizeof(ptod.login));
+        trim_and_lower(r.login, ptod.login);
         strlcpy(ptod.social_id, r.social_id, sizeof(ptod.social_id));
         ptod.login_key = d->get_login_key();
 
@@ -187,7 +187,7 @@ namespace metin2::game::inline persistence {
             vec_greet_message_.clear();
 
             for (uint i = 0; i < msg.get()->num_rows; ++i) {
-                MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
+                MYSQL_ROW row = mysql_fetch_row(msg.get()->res.get());
                 if (row[0] && row[1]) {
                     map_dbstring_.insert(make_pair(std::string(row[0]), std::string(row[1])));
                     metin2::log::debug("Db string {} = \"{}\"", row[0], row[1]);
@@ -274,7 +274,7 @@ namespace metin2::game::inline persistence {
 
                 spam_manager::instance().clear();
 
-                while ((row = mysql_fetch_row(msg.get()->res)))
+                while ((row = mysql_fetch_row(msg.get()->res.get())))
                     spam_manager::instance().insert(row[0], atoi(row[1]));
             }
         },

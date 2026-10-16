@@ -32,7 +32,6 @@
 #include <ctime>
 #include <format>
 #include <iterator>
-#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -51,13 +50,7 @@ namespace metin2::game::inline protocol {
         return 0;
     }
 
-    input_processor::input_processor() : packet_info_(nullptr), buffer_left_(0) {
-        if (!packet_info_)
-            bind_packet_info(&packet_info_cg_);
-    }
-
-    void input_processor::bind_packet_info(packet_info *packet_info_value) {
-        packet_info_ = packet_info_value;
+    input_processor::input_processor() : packet_table_(&client_packet_table()), buffer_left_(0) {
     }
 
     auto input_processor::process(desc *desc_value, const void *orig, int bytes, int &bytes_processed) -> bool {
@@ -67,23 +60,21 @@ namespace metin2::game::inline protocol {
         int iLastPacketLen = 0;
         int iPacketLen;
 
-        if (!packet_info_) {
-            metin2::log::error("Input processor has no packet table");
-            return true;
-        }
-
         for (buffer_left_ = bytes; buffer_left_ > 0;) {
             uint8_t bHeader = (uint8_t)*(c_pData);
-            const char *c_pszName;
+            const packet_spec *spec = nullptr;
 
             if (bHeader == 0)
                 iPacketLen = 1;
-            else if (!packet_info_->get(bHeader, &iPacketLen, &c_pszName)) {
+            else if (!(spec = packet_table_->find(bHeader))) {
                 metin2::log::warn("Unknown packet header {:d} (last header {:d}, length {:d}, {:d} bytes left, host {}), closing",
                     bHeader, bLastHeader, iLastPacketLen, buffer_left_, desc_value->host_name());
                 desc_value->set_phase(PHASE_CLOSE);
                 return true;
-            }
+            } else
+                iPacketLen = spec->size;
+
+            const bool is_sequence = spec && spec->sequence;
 
             if (buffer_left_ < iPacketLen)
                 return true;
@@ -92,11 +83,9 @@ namespace metin2::game::inline protocol {
                 if (metin2::config::test_server() && bHeader != HEADER_CG_MOVE)
                     metin2::log::debug("Packet header {:d}, {:d} bytes buffered", bHeader, buffer_left_);
 
-                packet_info_->start();
-
                 const int iBufferLeft = buffer_left_;
 
-                if (packet_info_->is_sequence(bHeader))
+                if (is_sequence)
                     --buffer_left_;
 
                 int iExtraPacketSize = analyze(desc_value, bHeader, c_pData);
@@ -107,19 +96,18 @@ namespace metin2::game::inline protocol {
 
                 if (iExtraPacketSize > buffer_left_ - iPacketLen) {
                     metin2::log::warn("Packet {} (header {:d}) claims {:d} extra bytes, only {:d} left (host {}), closing",
-                        c_pszName, bHeader, iExtraPacketSize, buffer_left_ - iPacketLen, desc_value->host_name());
+                        spec->name, bHeader, iExtraPacketSize, buffer_left_ - iPacketLen, desc_value->host_name());
                     desc_value->set_phase(PHASE_CLOSE);
                     return true;
                 }
 
                 iPacketLen += iExtraPacketSize;
-                packet_info_->end();
             }
 
             if (bHeader == HEADER_CG_PONG)
-                metin2::log::debug("Ping reply: sequenced {:d}, sequence byte {:d}", packet_info_->is_sequence(bHeader), *(uint8_t *)(c_pData + iPacketLen - sizeof(uint8_t)));
+                metin2::log::debug("Ping reply: sequenced {:d}, sequence byte {:d}", is_sequence, *(uint8_t *)(c_pData + iPacketLen - sizeof(uint8_t)));
 
-            if (packet_info_->is_sequence(bHeader)) {
+            if (is_sequence) {
                 uint8_t bSeq = desc_value->sequence();
                 uint8_t bSeqReceived = *(uint8_t *)(c_pData + iPacketLen - sizeof(uint8_t));
 
@@ -212,18 +200,11 @@ namespace metin2::game::inline protocol {
     }
 
     input_handshake::input_handshake() {
-        handshake_packet_info_ = std::make_unique<packet_info_cg>();
-        handshake_packet_info_->set_sequence(HEADER_CG_PONG, false);
-
-        main_packet_info_ = packet_info_;
-        bind_packet_info(handshake_packet_info_.get());
-    }
-
-    input_handshake::~input_handshake() {
+        bind_packet_table(handshake_packet_table());
     }
 
     auto input_handshake::analyze(desc *d, uint8_t header_value, const char *data_value) -> int {
-        if (header_value == 10)
+        if (header_value == HEADER_CG_ENTERGAME)
             return 0;
 
         if (header_value == HEADER_CG_TEXT) {
@@ -255,38 +236,14 @@ namespace metin2::game::inline protocol {
                 else
                     stResult = "YES";
             } else if (!metin2::config::server().admin.password.empty() && stBuf == metin2::config::server().admin.password) {
-                if (!is_empty_admin_page()) {
-                    if (!is_admin_page(d->host_name())) {
-                        stResult += std::format("WEBADMIN : Wrong Connector : {}", d->host_name());
-                    } else {
-                        d->set_admin_mode();
-                        stResult = "UNKNOWN";
-                    }
-                } else {
-                    d->set_admin_mode();
-                    stResult = "UNKNOWN";
-                }
+                d->set_admin_mode();
+                stResult = "UNKNOWN";
             } else if (!stBuf.compare("USER_COUNT")) {
-                std::string text;
-
-                if (!is_empty_admin_page()) {
-                    if (!is_admin_page(d->host_name())) {
-                        text = std::format("WEBADMIN : Wrong Connector : {}", d->host_name());
-                    } else {
-                        int iTotal;
-                        int *paiEmpireUserCount;
-                        int iLocal;
-                        desc_manager::instance().user_count(iTotal, &paiEmpireUserCount, iLocal);
-                        text = std::format("{} {} {} {} {}", iTotal, paiEmpireUserCount[1], paiEmpireUserCount[2], paiEmpireUserCount[3], iLocal);
-                    }
-                } else {
-                    int iTotal;
-                    int *paiEmpireUserCount;
-                    int iLocal;
-                    desc_manager::instance().user_count(iTotal, &paiEmpireUserCount, iLocal);
-                    text = std::format("{} {} {} {} {}", iTotal, paiEmpireUserCount[1], paiEmpireUserCount[2], paiEmpireUserCount[3], iLocal);
-                }
-                stResult += text;
+                int iTotal;
+                int *paiEmpireUserCount;
+                int iLocal;
+                desc_manager::instance().user_count(iTotal, &paiEmpireUserCount, iLocal);
+                stResult = std::format("{} {} {} {} {}", iTotal, paiEmpireUserCount[1], paiEmpireUserCount[2], paiEmpireUserCount[3], iLocal);
             } else if (d->is_admin_mode() && !stBuf.compare("CHECK_P2P_CONNECTIONS")) {
                 std::ostringstream oss(std::ostringstream::out);
 
@@ -299,9 +256,6 @@ namespace metin2::game::inline protocol {
                 packet.header = HEADER_GG_CHECK_AWAKENESS;
 
                 p2p_manager::instance().send(&packet, sizeof(packet));
-            } else if (d->is_admin_mode() && !stBuf.compare("PACKET_INFO")) {
-                main_packet_info_->log("packet_info.txt");
-                stResult = "OK";
             } else if (d->is_admin_mode() && !stBuf.compare(0, 15, "DELETE_AWARDID ")) {
                 std::string msg = stBuf.substr(15, 26);
 
@@ -316,7 +270,7 @@ namespace metin2::game::inline protocol {
                 if (d->is_admin_mode()) {
                     if (!stBuf.compare(0, 7, "NOTICE ")) {
                         std::string msg = stBuf.substr(7);
-                        msg.resize(utf8_truncated_size(msg.c_str(), msg.size(), 50));
+                        msg.resize(utf8_truncated_size(msg, 50));
                         log_manager::instance().char_log(0, 0, 0, 1, "NOTICE", msg.c_str(), d->host_name());
                         broadcast_notice(msg.c_str());
                     } else if (!stBuf.compare("SHUTDOWN")) {
@@ -431,8 +385,6 @@ namespace metin2::game::inline protocol {
                             if (empire < 0 || 3 < empire)
                                 ;
                             else if (type < 1 || 4 < type)
-                                ;
-                            else if (value < 0)
                                 ;
                             else if (duration < 0)
                                 ;

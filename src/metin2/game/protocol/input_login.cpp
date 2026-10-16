@@ -103,7 +103,7 @@ namespace metin2::game::inline protocol {
         copy_packet_string(szLogin, pinfo->login);
 
         char login[LOGIN_MAX_LEN + 1];
-        trim_and_lower(szLogin, login, sizeof(login));
+        trim_and_lower(szLogin, login);
 
         metin2::log::info("Login attempt: account {}", login);
 
@@ -160,7 +160,7 @@ namespace metin2::game::inline protocol {
         copy_packet_string(szLogin, pinfo->login);
 
         char login[LOGIN_MAX_LEN + 1];
-        trim_and_lower(szLogin, login, sizeof(login));
+        trim_and_lower(szLogin, login);
 
         if (no_more_client) {
             packet_gc_login_failure failurePacket;
@@ -419,7 +419,7 @@ namespace metin2::game::inline protocol {
             return;
         }
 
-        trim_and_lower(c_rAccountTable.login, player_create_packet.login, sizeof(player_create_packet.login));
+        trim_and_lower(c_rAccountTable.login, player_create_packet.login);
         strlcpy(player_create_packet.passwd, c_rAccountTable.passwd, sizeof(player_create_packet.passwd));
 
         player_create_packet.account_id = c_rAccountTable.id;
@@ -461,7 +461,7 @@ namespace metin2::game::inline protocol {
 
         player_delete_packet player_delete_packet;
 
-        trim_and_lower(c_rAccountTable.login, player_delete_packet.login, sizeof(player_delete_packet.login));
+        trim_and_lower(c_rAccountTable.login, player_delete_packet.login);
         player_delete_packet.player_id = c_rAccountTable.players[pinfo->index].id;
         player_delete_packet.account_index = pinfo->index;
         strlcpy(player_delete_packet.private_code, szPrivateCode, sizeof(player_delete_packet.private_code));

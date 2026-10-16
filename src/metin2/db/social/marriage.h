@@ -42,7 +42,6 @@ namespace metin2::db::inline social {
             }
         };
 
-        extern auto operator<(const wedding &lhs, const wedding &rhs) -> bool;
         extern auto operator>(const wedding &lhs, const wedding &rhs) -> bool;
         extern auto operator>(const wedding_info &lhs, const wedding_info &rhs) -> bool;
 
@@ -73,7 +72,6 @@ namespace metin2::db::inline social {
         class manager : public singleton<manager> {
           public:
             manager();
-            ~manager() override;
 
             auto initialize() -> bool;
 

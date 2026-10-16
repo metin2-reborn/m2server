@@ -76,9 +76,6 @@ namespace metin2::db::inline clients {
         return handle_;
     }
 
-    void peer::set_user_count(uint32_t count) {
-    }
-
     auto peer::peek_packet(int &bytes_proceed, uint8_t &header, uint32_t &handle, uint32_t &length, const char **data) -> bool {
         const int iLength = (int)input_.size();
 

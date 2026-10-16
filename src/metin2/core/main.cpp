@@ -1,28 +1,23 @@
 #include <metin2/core/main.h>
 
-#include <metin2/core/internal.h>
-
 #include <metin2/core/heart.h>
 #include <metin2/core/utils.h>
 #include <metin2/log/log.h>
 
-#include <cerrno>
-#include <csignal>
 #include <cstdint>
 #include <cstdio>
-#include <cstring>
 #include <fstream>
+#include <optional>
 
 #include <unistd.h>
 
 namespace metin2::inline core {
 
-    heart *thecore_heart = nullptr;
-
-    volatile std::sig_atomic_t shutdowned = false;
     unsigned int thecore_idle_time = 0;
 
     namespace {
+        std::optional<heart> the_heart;
+
         auto pid_init() -> bool {
             std::ofstream pid("pid");
             if (!pid) {
@@ -48,23 +43,19 @@ namespace metin2::inline core {
             return false;
         }
 
-        thecore_heart = heart_new(fps);
+        the_heart.emplace(fps);
         return true;
-    }
-
-    void thecore_shutdown() {
-        shutdowned = true;
     }
 
     auto thecore_idle() -> int {
         thecore_tick();
 
-        if (shutdowned) {
+        if (thecore_is_shutdowned()) {
             return 0;
         }
 
         const uint32_t t = get_dword_time();
-        const int pulses = heart_idle(thecore_heart);
+        const int pulses = the_heart->idle();
 
         thecore_idle_time += get_dword_time() - t;
 
@@ -77,14 +68,14 @@ namespace metin2::inline core {
     }
 
     auto thecore_pulse() -> int {
-        return thecore_heart->pulse;
+        return the_heart->pulse();
     }
 
-    auto thecore_is_shutdowned() -> bool {
-        return shutdowned;
+    auto thecore_next_pulse() -> int {
+        return the_heart->next_pulse();
     }
 
-    void thecore_tick() {
-        ticks.fetch_add(1, std::memory_order_relaxed);
+    auto thecore_passes_per_sec() -> int {
+        return the_heart->passes_per_sec();
     }
 }

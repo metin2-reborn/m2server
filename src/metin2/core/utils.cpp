@@ -2,6 +2,7 @@
 
 #include <metin2/log/log.h>
 
+#include <algorithm>
 #include <cctype>
 #include <chrono>
 #include <cstdint>
@@ -9,6 +10,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <format>
 #include <random>
 #include <source_location>
 #include <utility>
@@ -18,65 +20,38 @@
 
 namespace metin2::inline core {
 
-    auto time_str(time_t ct) -> char * {
-        char *time_s = std::asctime(std::localtime(&ct));
-        time_s[std::strlen(time_s) - 6] = '\0';
-        return time_s + 4;
+    auto time_str(time_t ct) -> std::string {
+        using namespace std::chrono;
+        const zoned_time local{current_zone(), floor<seconds>(system_clock::from_time_t(ct))};
+        return std::format("{:%b %e %H:%M:%S}", local);
     }
 
-    void trim_and_lower(const char *src, char *dest, size_t dest_size) {
-        if (!dest || dest_size == 0) {
+    void trim_and_lower(std::string_view src, std::span<char> dest) {
+        if (dest.empty()) {
             return;
         }
 
-        if (!src) {
-            *dest = '\0';
+        const auto blank = [](char ch) { return is_space(ch); };
+        src.remove_prefix(std::ranges::find_if_not(src, blank) - src.begin());
+        src = src.substr(0, dest.size() - 1);
+
+        auto end = std::ranges::transform(src, dest.begin(), ascii_lower).out;
+        while (end != dest.begin() && is_space(end[-1])) {
+            --end;
+        }
+        *end = '\0';
+    }
+
+    void trim_and_lower(const char *src, std::span<char> dest) {
+        if (!src || dest.empty()) {
+            trim_and_lower(std::string_view{}, dest);
             return;
         }
 
         while (*src && is_space(*src)) {
             ++src;
         }
-
-        size_t len = 0;
-        while (src[len] && len < dest_size - 1) {
-            dest[len] = static_cast<char>(std::tolower(static_cast<unsigned char>(src[len])));
-            ++len;
-        }
-
-        while (len > 0 && is_space(dest[len - 1])) {
-            --len;
-        }
-
-        dest[len] = '\0';
-    }
-
-    void parse_token(char *src, char *token, char *value) {
-        char *tmp = src;
-
-        for (; *tmp && *tmp != ':'; ++tmp) {
-            {
-                if (is_space(*tmp)) {
-                    continue;
-                }
-            }
-
-            *(token++) = static_cast<char>(std::tolower(static_cast<unsigned char>(*tmp)));
-        }
-
-        *token = '\0';
-
-        for (tmp += 2; *tmp; ++tmp) {
-            {
-                if (*tmp == '\n' || *tmp == '\r') {
-                    continue;
-                }
-            }
-
-            *(value++) = *tmp;
-        }
-
-        *value = '\0';
+        trim_and_lower(std::string_view(src, strnlen(src, dest.size() - 1)), dest);
     }
 
     auto random_engine() -> std::mt19937 & {
@@ -145,13 +120,13 @@ namespace metin2::inline core {
                                               : 1;
     }
 
-    auto utf8_truncated_size(const char *s, size_t len, size_t max) -> size_t {
+    auto utf8_truncated_size(std::string_view s, size_t max) -> size_t {
         size_t pos = 0;
 
-        while (pos < len) {
+        while (pos < s.size()) {
             const size_t seq = utf8_sequence_length(static_cast<unsigned char>(s[pos]));
 
-            if (pos + seq > len || pos + seq > max) {
+            if (pos + seq > s.size() || pos + seq > max) {
                 break;
             }
 
@@ -161,27 +136,26 @@ namespace metin2::inline core {
         return pos;
     }
 
-    auto utf8_strnlcpy(char *dst, size_t dst_size, const char *src, size_t src_max) -> size_t {
-        if (dst_size == 0) {
-            return 0;
+    namespace {
+        auto utf8_copy(std::span<char> dst, std::string_view src) -> size_t {
+            const size_t n = utf8_truncated_size(src, dst.size() - 1);
+            std::ranges::copy(src.substr(0, n), dst.begin());
+            dst[n] = '\0';
+            return n;
         }
-
-        const size_t n = utf8_truncated_size(src, strnlen(src, src_max), dst_size - 1);
-        std::memcpy(dst, src, n);
-        dst[n] = '\0';
-        return n;
     }
 
-    auto utf8_strlcpy(char *dst, const char *src, size_t size) -> size_t {
-        const size_t src_len = std::strlen(src);
-
-        if (size == 0) {
-            return src_len;
+    auto utf8_strnlcpy(std::span<char> dst, std::span<const char> src) -> size_t {
+        if (dst.empty()) {
+            return 0;
         }
+        return utf8_copy(dst, std::string_view(src.data(), strnlen(src.data(), src.size())));
+    }
 
-        const size_t n = utf8_truncated_size(src, src_len, size - 1);
-        std::memcpy(dst, src, n);
-        dst[n] = '\0';
-        return src_len;
+    auto utf8_strlcpy(std::span<char> dst, std::string_view src) -> size_t {
+        if (!dst.empty()) {
+            utf8_copy(dst, src);
+        }
+        return src.size();
     }
 }

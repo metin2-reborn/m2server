@@ -1,26 +1,28 @@
 #pragma once
 
-#include <ctime>
+#include <chrono>
 
 namespace metin2::inline common {
 
     template <typename T>
     class cache {
       public:
+        using clock = std::chrono::steady_clock;
+
         cache() = default;
 
         virtual ~cache() = default;
 
         auto get(bool update_time = true) -> T * {
             if (update_time) {
-                last_update_time_ = std::time(nullptr);
+                last_update_time_ = clock::now();
             }
             return &data_;
         }
 
         void put(const T *data, bool skip_query = false) {
             data_ = *data;
-            last_update_time_ = std::time(nullptr);
+            last_update_time_ = clock::now();
 
             if (!skip_query) {
                 need_query_ = true;
@@ -28,11 +30,11 @@ namespace metin2::inline common {
         }
 
         auto check_flush_timeout() const -> bool {
-            return need_query_ && std::time(nullptr) - last_flush_time_ > expire_time_;
+            return need_query_ && last_flush_time_ < clock::now() - expire_time_;
         }
 
         auto check_timeout() const -> bool {
-            return std::time(nullptr) - last_update_time_ > expire_time_;
+            return last_update_time_ < clock::now() - expire_time_;
         }
 
         void flush() {
@@ -43,7 +45,7 @@ namespace metin2::inline common {
             on_flush();
 
             need_query_ = false;
-            last_flush_time_ = std::time(nullptr);
+            last_flush_time_ = clock::now();
         }
 
         virtual void on_flush() = 0;
@@ -51,8 +53,8 @@ namespace metin2::inline common {
       protected:
         T data_{};
         bool need_query_{false};
-        std::time_t expire_time_{600};
-        std::time_t last_update_time_{0};
-        std::time_t last_flush_time_{std::time(nullptr)};
+        std::chrono::seconds expire_time_{600};
+        clock::time_point last_update_time_{clock::time_point::min()};
+        clock::time_point last_flush_time_{clock::now()};
     };
 }

@@ -1,7 +1,7 @@
 #include "check.h"
 
-#include <cstdio>
 #include <cstring>
+#include <print>
 
 auto main(int argc, char **argv) -> int {
     int run = 0;
@@ -16,12 +16,12 @@ auto main(int argc, char **argv) -> int {
 
         const int failures_before = check::failures;
         test.function();
-        std::printf("%s %s\n", check::failures == failures_before ? "PASS" : "FAIL", test.name);
+        std::println("{} {}", check::failures == failures_before ? "PASS" : "FAIL", test.name);
         ++run;
     }
 
     if (run == 0) {
-        std::fprintf(stderr, "no test matched\n");
+        std::println(stderr, "no test matched");
         return 1;
     }
     return check::failures == 0 ? 0 : 1;

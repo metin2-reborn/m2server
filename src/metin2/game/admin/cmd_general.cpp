@@ -1456,7 +1456,7 @@ namespace metin2::game::inline admin {
         const mob *pkMob;
         uint32_t vnum = 0;
 
-        if (isdigit(*arg1)) {
+        if (is_digit(*arg1)) {
             str_to_number(vnum, arg1);
 
             if ((pkMob = mob_manager::instance().get(vnum)) == nullptr)
@@ -1735,11 +1735,11 @@ namespace metin2::game::inline admin {
             if (0 == arg2[0])
                 cube_request_result_list(ch);
             else {
-                if (isdigit(*arg2)) {
+                if (is_digit(*arg2)) {
                     int listIndex = 0, requestCount = 1;
                     str_to_number(listIndex, arg2);
 
-                    if (0 != arg3[0] && isdigit(*arg3))
+                    if (0 != arg3[0] && is_digit(*arg3))
                         str_to_number(requestCount, arg3);
 
                     cube_request_material_info(ch, listIndex, requestCount);
@@ -1764,8 +1764,8 @@ namespace metin2::game::inline admin {
 
         case 'a':
             {
-                if (0 == arg2[0] || !isdigit(*arg2) ||
-                    0 == arg3[0] || !isdigit(*arg3))
+                if (0 == arg2[0] || !is_digit(*arg2) ||
+                    0 == arg3[0] || !is_digit(*arg3))
                     return;
 
                 str_to_number(cube_index, arg2);
@@ -1776,7 +1776,7 @@ namespace metin2::game::inline admin {
 
         case 'd':
             {
-                if (0 == arg2[0] || !isdigit(*arg2))
+                if (0 == arg2[0] || !is_digit(*arg2))
                     return;
 
                 str_to_number(cube_index, arg2);

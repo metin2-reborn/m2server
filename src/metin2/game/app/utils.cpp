@@ -23,9 +23,7 @@ namespace metin2::game::inline app {
     void set_global_time(time_t t) {
         global_time_gap = t - time(nullptr);
 
-        const std::string time_str_buf(time_str(get_global_time()));
-
-        metin2::log::info("Global time set to {} (offset {:d} seconds)", time_str_buf, global_time_gap);
+        metin2::log::info("Global time set to {} (offset {:d} seconds)", time_str(get_global_time()), global_time_gap);
     }
 
     auto str_lower(const char *src, char *dest, size_t dest_size) -> size_t {
@@ -53,7 +51,7 @@ namespace metin2::game::inline app {
         return len;
     }
 
-    void skip_spaces(const char **string) {
+    static void skip_spaces(const char **string) {
         for (; **string != '\0' && is_space(**string); ++(*string))
             ;
     }
@@ -179,42 +177,31 @@ namespace metin2::game::inline app {
     }
 
     auto wild_case_cmp(const char *w, const char *s) -> bool {
-        for (;;) {
-            switch (*w) {
-            case '*':
-                if (!w[1])
-                    return true;
-                {
-                    for (size_t i = 0; i <= strlen(s); ++i) {
-                        if (true == wild_case_cmp(w + 1, s + i))
-                            return true;
-                    }
-                }
+        auto same = [](char a, char b) {
+            return std::tolower(static_cast<unsigned char>(a)) == std::tolower(static_cast<unsigned char>(b));
+        };
+
+        const char *star = nullptr;
+        const char *resume = nullptr;
+
+        while (*s) {
+            if (*w == '*') {
+                star = ++w;
+                resume = s;
+            } else if (*w && (*w == '?' || same(*w, *s))) {
+                ++w;
+                ++s;
+            } else if (star) {
+                w = star;
+                s = ++resume;
+            } else {
                 return false;
-
-            case '?':
-                if (!*s)
-                    return false;
-
-                ++w;
-                ++s;
-                break;
-
-            default:
-                if (*w != *s) {
-                    if (tolower(*w) != tolower(*s))
-                        return false;
-                }
-
-                if (!*w)
-                    return true;
-
-                ++w;
-                ++s;
-                break;
             }
         }
 
-        return false;
+        while (*w == '*')
+            ++w;
+
+        return !*w;
     }
 }

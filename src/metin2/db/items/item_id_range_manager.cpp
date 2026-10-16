@@ -83,7 +83,7 @@ namespace metin2::db::inline items {
 
         if (pMsg != nullptr) {
             if (pMsg->get()->num_rows > 0) {
-                row = mysql_fetch_row(pMsg->get()->res);
+                row = mysql_fetch_row(pMsg->get()->res.get());
                 str_to_number(dwItemMaxID, row[0]);
             }
         }
@@ -109,7 +109,7 @@ namespace metin2::db::inline items {
             if (pMsg != nullptr) {
                 if (pMsg->get()->num_rows > 0) {
                     uint32_t count = 0;
-                    row = mysql_fetch_row(pMsg->get()->res);
+                    row = mysql_fetch_row(pMsg->get()->res.get());
                     str_to_number(count, row[0]);
 
                     if (count > 0) {

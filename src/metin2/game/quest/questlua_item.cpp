@@ -5,6 +5,7 @@
 #include <metin2/game/items/over9refine.h>
 #include <metin2/game/persistence/log.h>
 #include <metin2/game/quest/lua_incl.h>
+#include <metin2/game/quest/questlua.h>
 #include <metin2/game/quest/questmanager.h>
 
 #include <metin2/proto/length.h>
@@ -130,8 +131,7 @@ namespace metin2::game {
             quest_manager &q = quest_manager::instance();
             item *item = q.current_item();
 
-            if (!lua_isnumber(lua, 1)) {
-                quest::error("Flag is not a number");
+            if (!require_number(lua, 1, "Flag is not a number")) {
                 lua_pushboolean(lua, 0);
                 return 1;
             }
@@ -156,8 +156,7 @@ namespace metin2::game {
                 return 1;
             }
 
-            if (!lua_isnumber(lua, 1)) {
-                quest::error("Index is not a number");
+            if (!require_number(lua, 1, "Index is not a number")) {
                 lua_pushnumber(lua, 0);
                 return 1;
             }

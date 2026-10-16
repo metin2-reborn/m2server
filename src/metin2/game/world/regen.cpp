@@ -14,26 +14,21 @@
 #include <metin2/log/log.h>
 #include <metin2/proto/length.h>
 
+#include <algorithm>
 #include <cstdint>
-#include <cstdio>
 #include <cstdlib>
-#include <cstring>
-
-#define INSERT_TO_TW_LIST(item, head, prev, next) \
-    if (!(head)) {                                \
-        head = item;                              \
-        (head)->prev = (head)->next = nullptr;    \
-    } else {                                      \
-        (head)->prev = item;                      \
-        (item)->next = head;                      \
-        (item)->prev = nullptr;                   \
-        head = item;                              \
-    }
+#include <fstream>
+#include <limits>
+#include <memory>
+#include <string>
+#include <tuple>
+#include <vector>
 
 namespace metin2::game::inline world {
 
-    regen *regen_list = nullptr;
-    regen_exception *regen_exception_list = nullptr;
+    namespace {
+        std::vector<std::unique_ptr<regen>> regen_list;
+    }
 
     enum regen_modes {
         MODE_TYPE = 0,
@@ -49,69 +44,52 @@ namespace metin2::game::inline world {
         MODE_VNUM
     };
 
-    static auto get_word(FILE *fp, char *buf) -> bool {
-        int i = 0;
-        int c;
+    static auto is_space(int c) -> bool {
+        return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+    }
 
-        int semicolon_mode = 0;
+    static auto get_word(std::istream &in, std::string &word) -> bool {
+        word.clear();
+        bool quoted = false;
 
-        while ((c = fgetc(fp)) != EOF) {
-            if (i == 0) {
+        for (int c; (c = in.get()) != std::char_traits<char>::eof();) {
+            if (word.empty()) {
                 if (c == '"') {
-                    semicolon_mode = 1;
+                    quoted = true;
                     continue;
                 }
 
-                if (c == ' ' || c == '\t' || c == '\n' || c == '\r')
+                if (is_space(c))
                     continue;
             }
 
-            if (semicolon_mode) {
-                if (c == '"') {
-                    buf[i] = '\0';
-                    return true;
-                }
-
-                buf[i++] = c;
-            } else {
-                if ((c == ' ' || c == '\t' || c == '\n' || c == '\r')) {
-                    buf[i] = '\0';
-                    return true;
-                }
-
-                buf[i++] = c;
-            }
-
-            if (i == 2 && buf[0] == '/' && buf[1] == '/') {
-                buf[i] = '\0';
+            if (quoted ? c == '"' : is_space(c))
                 return true;
-            }
+
+            word += static_cast<char>(c);
+
+            if (word == "//")
+                return true;
         }
 
-        buf[i] = '\0';
-        return (i != 0);
+        return !word.empty();
     }
 
-    static void next_line(FILE *fp) {
-        int c;
-
-        while ((c = fgetc(fp)) != EOF)
-            if (c == '\n')
-                return;
+    static void next_line(std::istream &in) {
+        in.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
     }
 
-    static auto read_line(FILE *fp, regen *regen) -> bool {
-        char szTmp[256];
-
+    static auto read_line(std::istream &in, regen *regen) -> bool {
+        std::string word;
         int mode = MODE_TYPE;
-        int tmpTime;
-        uint32_t i;
 
-        while (get_word(fp, szTmp)) {
-            if (!strncmp(szTmp, "//", 2)) {
-                next_line(fp);
+        while (get_word(in, word)) {
+            if (word.starts_with("//")) {
+                next_line(in);
                 continue;
             }
+
+            const char *szTmp = word.c_str();
 
             switch (mode) {
             case MODE_TYPE:
@@ -191,35 +169,37 @@ namespace metin2::game::inline world {
                 break;
 
             case MODE_REGEN_TIME:
-                regen->time = 0;
-                tmpTime = 0;
+                {
+                    regen->time = 0;
+                    int tmpTime = 0;
 
-                for (i = 0; i < strlen(szTmp); ++i) {
-                    switch (szTmp[i]) {
-                    case 'h':
-                        regen->time += tmpTime * 3600;
-                        tmpTime = 0;
-                        break;
+                    for (const char c : word) {
+                        switch (c) {
+                        case 'h':
+                            regen->time += tmpTime * 3600;
+                            tmpTime = 0;
+                            break;
 
-                    case 'm':
-                        regen->time += tmpTime * 60;
-                        tmpTime = 0;
-                        break;
+                        case 'm':
+                            regen->time += tmpTime * 60;
+                            tmpTime = 0;
+                            break;
 
-                    case 's':
-                        regen->time += tmpTime;
-                        tmpTime = 0;
-                        break;
+                        case 's':
+                            regen->time += tmpTime;
+                            tmpTime = 0;
+                            break;
 
-                    default:
-                        if (szTmp[i] >= '0' && szTmp[i] <= '9') {
-                            tmpTime *= 10;
-                            tmpTime += (szTmp[i] - '0');
+                        default:
+                            if (c >= '0' && c <= '9') {
+                                tmpTime *= 10;
+                                tmpTime += (c - '0');
+                            }
                         }
                     }
-                }
 
-                ++mode;
+                    ++mode;
+                }
                 break;
 
             case MODE_REGEN_PERCENT:
@@ -242,106 +222,87 @@ namespace metin2::game::inline world {
         return false;
     }
 
-    static void regen_spawn_dungeon(regen *regen, dungeon *dungeon_value, bool once) {
-        uint32_t num;
-        uint32_t i;
+    static void regen_spawn(regen *regen, bool once, dungeon *dungeon_value = nullptr) {
+        const uint32_t num = regen->max_count - regen->count;
+        auto &chars = character_manager::instance();
 
-        num = (regen->max_count - regen->count);
-
-        if (!num)
-            return;
-
-        for (i = 0; i < num; ++i) {
+        for (uint32_t i = 0; i < num; ++i) {
             character *ch = nullptr;
 
             if (regen->type == REGEN_TYPE_ANYWHERE) {
-                ch = character_manager::instance().spawn_mob_random_position(regen->vnum, regen->map_index);
-
-                if (ch) {
-                    ++regen->count;
-                    ch->set_dungeon(dungeon_value);
-                }
+                ch = chars.spawn_mob_random_position(regen->vnum, regen->map_index);
             } else if (regen->sx == regen->ex && regen->sy == regen->ey) {
-                ch = character_manager::instance().spawn_mob(regen->vnum,
+                ch = chars.spawn_mob(regen->vnum,
                     regen->map_index,
                     regen->sx,
                     regen->sy,
                     regen->z_section,
                     false,
                     regen->direction == 0 ? number(0, 7) * 45 : (regen->direction - 1) * 45);
-
-                if (ch) {
+            } else if (regen->type == REGEN_TYPE_MOB) {
+                if (dungeon_value)
+                    ch = chars.spawn_mob_range(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, true);
+                else
+                    ch = chars.spawn_mob_range(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, true, regen->is_aggressive, regen->is_aggressive);
+            } else if (regen->type == REGEN_TYPE_GROUP) {
+                if (chars.spawn_group(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, once ? nullptr : regen, regen->is_aggressive, dungeon_value))
                     ++regen->count;
-                    ch->set_dungeon(dungeon_value);
-                }
-            } else {
-                if (regen->type == REGEN_TYPE_MOB) {
-                    ch = character_manager::instance().spawn_mob_range(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, true);
-
-                    if (ch) {
-                        ++regen->count;
-                        ch->set_dungeon(dungeon_value);
-                    }
-                } else if (regen->type == REGEN_TYPE_GROUP) {
-                    if (character_manager::instance().spawn_group(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, once ? nullptr : regen, regen->is_aggressive, dungeon_value))
-                        ++regen->count;
-                } else if (regen->type == REGEN_TYPE_GROUP_GROUP) {
-                    if (character_manager::instance().spawn_group_group(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, once ? nullptr : regen, regen->is_aggressive, dungeon_value))
-                        ++regen->count;
-                }
+            } else if (regen->type == REGEN_TYPE_GROUP_GROUP) {
+                if (chars.spawn_group_group(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, once ? nullptr : regen, regen->is_aggressive, dungeon_value))
+                    ++regen->count;
             }
 
-            if (ch && !once)
-                ch->set_regen(regen);
+            if (ch) {
+                ++regen->count;
+
+                if (dungeon_value)
+                    ch->set_dungeon(dungeon_value);
+
+                if (!once)
+                    ch->set_regen(regen);
+            }
         }
     }
 
-    static void regen_spawn(regen *regen, bool once) {
-        uint32_t num;
-        uint32_t i;
+    static auto find_regen_mob(const regen &entry) -> const mob * {
+        const mob *p = mob_manager::instance().get(entry.vnum);
 
-        num = (regen->max_count - regen->count);
+        if (!p)
+            metin2::log::error("Regen refers to unknown mob vnum {:d}", entry.vnum);
 
-        if (!num)
-            return;
+        return p;
+    }
 
-        for (i = 0; i < num; ++i) {
-            character *ch = nullptr;
+    template <typename F>
+    static auto load_regen_file(const char *filename, int32_t map_index_value, int base_x, int base_y, bool missing_is_error, F &&on_entry) -> bool {
+        std::ifstream in(filename);
 
-            if (regen->type == REGEN_TYPE_ANYWHERE) {
-                ch = character_manager::instance().spawn_mob_random_position(regen->vnum, regen->map_index);
-
-                if (ch)
-                    ++regen->count;
-            } else if (regen->sx == regen->ex && regen->sy == regen->ey) {
-                ch = character_manager::instance().spawn_mob(regen->vnum,
-                    regen->map_index,
-                    regen->sx,
-                    regen->sy,
-                    regen->z_section,
-                    false,
-                    regen->direction == 0 ? number(0, 7) * 45 : (regen->direction - 1) * 45);
-
-                if (ch)
-                    ++regen->count;
-            } else {
-                if (regen->type == REGEN_TYPE_MOB) {
-                    ch = character_manager::instance().spawn_mob_range(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, true, regen->is_aggressive, regen->is_aggressive);
-
-                    if (ch)
-                        ++regen->count;
-                } else if (regen->type == REGEN_TYPE_GROUP) {
-                    if (character_manager::instance().spawn_group(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, once ? nullptr : regen, regen->is_aggressive))
-                        ++regen->count;
-                } else if (regen->type == REGEN_TYPE_GROUP_GROUP) {
-                    if (character_manager::instance().spawn_group_group(regen->vnum, regen->map_index, regen->sx, regen->sy, regen->ex, regen->ey, once ? nullptr : regen, regen->is_aggressive))
-                        ++regen->count;
-                }
-            }
-
-            if (ch && !once)
-                ch->set_regen(regen);
+        if (!in) {
+            if (missing_is_error)
+                metin2::log::error("Regen file {} not found", filename);
+            else
+                metin2::log::info("Regen file {} not found, skipping", filename);
+            return false;
         }
+
+        while (true) {
+            regen entry;
+
+            if (!read_line(in, &entry))
+                break;
+
+            if (entry.type == REGEN_TYPE_EXCEPTION)
+                continue;
+
+            entry.map_index = map_index_value;
+            entry.count = 0;
+            std::tie(entry.sx, entry.ex) = std::minmax({entry.sx + base_x, entry.ex + base_x});
+            std::tie(entry.sy, entry.ey) = std::minmax({entry.sy + base_y, entry.ey + base_y});
+
+            on_entry(entry);
+        }
+
+        return true;
     }
 
     EVENTFUNC(dungeon_regen_event) {
@@ -362,7 +323,7 @@ namespace metin2::game::inline world {
             regen->event = nullptr;
         }
 
-        regen_spawn_dungeon(regen, pDungeon, false);
+        regen_spawn(regen, false, pDungeon);
         return passes_per_sec(regen->time);
     }
 
@@ -373,146 +334,42 @@ namespace metin2::game::inline world {
         if (map_index_value >= 114 && map_index_value <= 117)
             return true;
 
-        regen *regen = nullptr;
-        FILE *fp = fopen(filename, "rt");
+        return load_regen_file(filename, map_index_value, base_x, base_y, true, [&](regen &entry) {
+            if (entry.type == REGEN_TYPE_MOB && !find_regen_mob(entry))
+                return;
 
-        if (nullptr == fp) {
-            metin2::log::error("Regen file {} not found", filename);
-            return false;
-        }
+            if (dungeon_value)
+                entry.is_aggressive = true;
 
-        while (true) {
-            game::world::regen tmp;
+            regen *r = once ? &entry : new regen(entry);
 
-            if (!read_line(fp, &tmp))
-                break;
+            if (!once && dungeon_value != nullptr) {
+                dungeon_regen_event_info *info = alloc_event_info<dungeon_regen_event_info>();
 
-            if (tmp.type == REGEN_TYPE_MOB ||
-                tmp.type == REGEN_TYPE_GROUP ||
-                tmp.type == REGEN_TYPE_GROUP_GROUP ||
-                tmp.type == REGEN_TYPE_ANYWHERE) {
-                if (!once) {
-                    regen = new game::world::regen(tmp);
-                } else
-                    regen = &tmp;
+                info->regen = r;
+                info->dungeon_id = dungeon_value->id();
 
-                if (dungeon_value)
-                    regen->is_aggressive = true;
+                r->event = event_create(dungeon_regen_event, info, passes_per_sec(number(0, 16)) + passes_per_sec(r->time));
 
-                regen->map_index = map_index_value;
-                regen->count = 0;
-
-                regen->sx += base_x;
-                regen->ex += base_x;
-
-                regen->sy += base_y;
-                regen->ey += base_y;
-
-                if (regen->sx > regen->ex) {
-                    regen->sx ^= regen->ex;
-                    regen->ex ^= regen->sx;
-                    regen->sx ^= regen->ex;
-                }
-
-                if (regen->sy > regen->ey) {
-                    regen->sy ^= regen->ey;
-                    regen->ey ^= regen->sy;
-                    regen->sy ^= regen->ey;
-                }
-
-                if (regen->type == REGEN_TYPE_MOB) {
-                    const mob *p = mob_manager::instance().get(regen->vnum);
-
-                    if (!p) {
-                        metin2::log::error("Regen refers to unknown mob vnum {:d}", regen->vnum);
-                        if (!once) {
-                            delete regen;
-                        }
-                        continue;
-                    }
-                }
-
-                if (!once && dungeon_value != nullptr) {
-                    dungeon_regen_event_info *info = alloc_event_info<dungeon_regen_event_info>();
-
-                    info->regen = regen;
-                    info->dungeon_id = dungeon_value->id();
-
-                    regen->event = event_create(dungeon_regen_event, info, passes_per_sec(number(0, 16)) + passes_per_sec(regen->time));
-
-                    dungeon_value->add_regen(regen);
-                }
-
-                regen_spawn_dungeon(regen, dungeon_value, once);
+                dungeon_value->add_regen(r);
             }
-        }
 
-        fclose(fp);
-        return true;
+            regen_spawn(r, once, dungeon_value);
+        });
     }
 
     auto regen_load_in_file(const char *filename, int32_t map_index_value, int base_x, int base_y) -> bool {
         if (metin2::config::game().no_regen)
             return true;
 
-        regen *regen = nullptr;
-        FILE *fp = fopen(filename, "rt");
+        return load_regen_file(filename, map_index_value, base_x, base_y, true, [](regen &entry) {
+            entry.is_aggressive = true;
 
-        if (nullptr == fp) {
-            metin2::log::error("Regen file {} not found", filename);
-            return false;
-        }
+            if (entry.type == REGEN_TYPE_MOB && !find_regen_mob(entry))
+                return;
 
-        while (true) {
-            game::world::regen tmp;
-
-            if (!read_line(fp, &tmp))
-                break;
-
-            if (tmp.type == REGEN_TYPE_MOB ||
-                tmp.type == REGEN_TYPE_GROUP ||
-                tmp.type == REGEN_TYPE_GROUP_GROUP ||
-                tmp.type == REGEN_TYPE_ANYWHERE) {
-                regen = &tmp;
-
-                regen->is_aggressive = true;
-
-                regen->map_index = map_index_value;
-                regen->count = 0;
-
-                regen->sx += base_x;
-                regen->ex += base_x;
-
-                regen->sy += base_y;
-                regen->ey += base_y;
-
-                if (regen->sx > regen->ex) {
-                    regen->sx ^= regen->ex;
-                    regen->ex ^= regen->sx;
-                    regen->sx ^= regen->ex;
-                }
-
-                if (regen->sy > regen->ey) {
-                    regen->sy ^= regen->ey;
-                    regen->ey ^= regen->sy;
-                    regen->sy ^= regen->ey;
-                }
-
-                if (regen->type == REGEN_TYPE_MOB) {
-                    const mob *p = mob_manager::instance().get(regen->vnum);
-
-                    if (!p) {
-                        metin2::log::error("Regen refers to unknown mob vnum {:d}", regen->vnum);
-                        continue;
-                    }
-                }
-
-                regen_spawn(regen, true);
-            }
-        }
-
-        fclose(fp);
-        return true;
+            regen_spawn(&entry, true);
+        });
     }
 
     EVENTFUNC(regen_event) {
@@ -536,131 +393,52 @@ namespace metin2::game::inline world {
         if (metin2::config::game().no_regen)
             return true;
 
-        regen *regen = nullptr;
-        FILE *fp = fopen(filename, "rt");
-
-        if (nullptr == fp) {
-            metin2::log::info("Regen file {} not found, skipping", filename);
-            return false;
-        }
-
-        while (true) {
-            game::world::regen tmp;
-
-            if (!read_line(fp, &tmp))
-                break;
-
-            if (tmp.type == REGEN_TYPE_MOB ||
-                tmp.type == REGEN_TYPE_GROUP ||
-                tmp.type == REGEN_TYPE_GROUP_GROUP ||
-                tmp.type == REGEN_TYPE_ANYWHERE) {
-                if (metin2::config::test_server()) {
-                    mob_manager::instance().inc_regen_count(tmp.type, tmp.vnum, tmp.max_count, tmp.time);
-                }
-
-                regen = new game::world::regen(tmp);
-                INSERT_TO_TW_LIST(regen, regen_list, prev, next);
-
-                regen->map_index = map_index_value;
-                regen->count = 0;
-
-                regen->sx += base_x;
-                regen->ex += base_x;
-
-                regen->sy += base_y;
-                regen->ey += base_y;
-
-                if (regen->sx > regen->ex) {
-                    regen->sx ^= regen->ex;
-                    regen->ex ^= regen->sx;
-                    regen->sx ^= regen->ex;
-                }
-
-                if (regen->sy > regen->ey) {
-                    regen->sy ^= regen->ey;
-                    regen->ey ^= regen->sy;
-                    regen->sy ^= regen->ey;
-                }
-
-                if (regen->type == REGEN_TYPE_MOB) {
-                    const mob *p = mob_manager::instance().get(regen->vnum);
-
-                    if (!p) {
-                        metin2::log::error("Regen refers to unknown mob vnum {:d}", regen->vnum);
-                    } else if (p->table.type == CHAR_TYPE_NPC || p->table.type == CHAR_TYPE_WARP || p->table.type == CHAR_TYPE_GOTO) {
-                        sectree_manager::instance().insert_npc_position(map_index_value,
-                            p->table.type,
-                            p->table.locale_name,
-                            (regen->sx + regen->ex) / 2 - base_x,
-                            (regen->sy + regen->ey) / 2 - base_y);
-                    }
-                }
-
-                if (regen->time != 0) {
-                    regen_spawn(regen, false);
-
-                    regen_event_info *info = alloc_event_info<regen_event_info>();
-
-                    info->regen = regen;
-
-                    regen->event = event_create(regen_event, info, passes_per_sec(number(0, 16)) + passes_per_sec(regen->time));
-                }
-            } else if (tmp.type == REGEN_TYPE_EXCEPTION) {
-                regen_exception *exc;
-
-                exc = new regen_exception;
-
-                exc->sx = tmp.sx;
-                exc->sy = tmp.sy;
-                exc->ex = tmp.ex;
-                exc->ey = tmp.ey;
-                exc->z_section = tmp.z_section;
-
-                INSERT_TO_TW_LIST(exc, regen_exception_list, prev, next);
+        return load_regen_file(filename, map_index_value, base_x, base_y, false, [&](regen &entry) {
+            if (metin2::config::test_server()) {
+                mob_manager::instance().inc_regen_count(entry.type, entry.vnum, entry.max_count, entry.time);
             }
-        }
 
-        fclose(fp);
-        return true;
+            regen *r = regen_list.emplace_back(std::make_unique<regen>(entry)).get();
+
+            if (r->type == REGEN_TYPE_MOB) {
+                if (const mob *p = find_regen_mob(*r); p && (p->table.type == CHAR_TYPE_NPC || p->table.type == CHAR_TYPE_WARP || p->table.type == CHAR_TYPE_GOTO)) {
+                    sectree_manager::instance().insert_npc_position(map_index_value,
+                        p->table.type,
+                        p->table.locale_name,
+                        (r->sx + r->ex) / 2 - base_x,
+                        (r->sy + r->ey) / 2 - base_y);
+                }
+            }
+
+            if (r->time != 0) {
+                regen_spawn(r, false);
+
+                regen_event_info *info = alloc_event_info<regen_event_info>();
+
+                info->regen = r;
+
+                r->event = event_create(regen_event, info, passes_per_sec(number(0, 16)) + passes_per_sec(r->time));
+            }
+        });
     }
 
-    void regen_free(void) {
-        regen *r;
-        regen *next_regen;
-        regen_exception *exc;
-        regen_exception *next_exc;
-
-        for (r = regen_list; r; r = next_regen) {
-            next_regen = r->next;
-
+    void regen_free() {
+        for (auto &r : regen_list)
             event_cancel(&r->event);
-            delete r;
-        }
 
-        regen_list = nullptr;
-
-        for (exc = regen_exception_list; exc; exc = next_exc) {
-            next_exc = exc->next;
-
-            delete exc;
-        }
-
-        regen_exception_list = nullptr;
+        regen_list.clear();
     }
 
     void regen_reset(int x, int y) {
-        regen *regen;
-
-        for (regen = regen_list; regen; regen = regen->next) {
-            if (!regen->event)
+        for (auto &r : regen_list) {
+            if (!r->event)
                 continue;
 
             if (x != 0 || y != 0) {
-                if (x >= regen->sx && x <= regen->ex)
-                    if (y >= regen->sy && y <= regen->ey)
-                        event_reset_time(regen->event, 1);
+                if (x >= r->sx && x <= r->ex && y >= r->sy && y <= r->ey)
+                    event_reset_time(r->event, 1);
             } else
-                event_reset_time(regen->event, 1);
+                event_reset_time(r->event, 1);
         }
     }
 }

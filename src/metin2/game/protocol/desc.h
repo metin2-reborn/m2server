@@ -13,6 +13,7 @@
 #include <cstdint>
 #include <cstdio>
 #include <ctime>
+#include <deque>
 #include <memory>
 #include <span>
 #include <string>
@@ -54,7 +55,7 @@ namespace metin2::game::inline protocol {
         uint8_t hdr;
         uint8_t seq;
     };
-    typedef std::vector<seq_t> seq_vector_t;
+    using seq_vector_t = std::deque<seq_t>;
 
     class desc : public net::connection_handler {
       public:
@@ -149,8 +150,6 @@ namespace metin2::game::inline protocol {
         void set_login_key(login_key *key_value);
         auto get_login_key() -> uint32_t;
 
-        void assemble_crc_magic_cube(uint8_t proc_piece, uint8_t file_piece);
-
         void set_client_version(const char *timestamp) { client_version_ = timestamp; }
         auto client_version() -> const char * { return client_version_.c_str(); }
 
@@ -188,7 +187,6 @@ namespace metin2::game::inline protocol {
         character *character_;
         account_table account_table_;
 
-        FILE *log_file_;
         std::string relay_name_;
 
         std::string p2p_host_;
@@ -203,10 +201,6 @@ namespace metin2::game::inline protocol {
 
         login_key *m_pk_login_key_;
         uint32_t login_key_;
-
-        uint8_t crc_magic_cube_idx_;
-        uint32_t proc_crc_;
-        uint32_t file_crc_;
 
         std::string client_version_;
 

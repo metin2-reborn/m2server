@@ -12,7 +12,6 @@
 
 #include <metin2/common/startup.h>
 #include <metin2/config/config.h>
-#include <metin2/core/core_signal.h>
 #include <metin2/core/main.h>
 #include <metin2/log/log.h>
 
@@ -26,7 +25,6 @@
 namespace metin2::db::inline app {
     void set_player_db_name(const char *name);
     void set_table_postfix(const char *postfix);
-    auto start() -> int;
 
     std::string table_postfix;
     std::string locale_name_column = "name";
@@ -79,8 +77,8 @@ namespace metin2::db::inline app {
         while (1) {
             iCount = 0;
 
-            iCount += db_manager::instance().count_return_query(SQL_PLAYER);
-            iCount += db_manager::instance().count_async_query(SQL_PLAYER);
+            iCount += db_manager::instance().return_stats(SQL_PLAYER).queued;
+            iCount += db_manager::instance().async_stats(SQL_PLAYER).queued;
 
             if (iCount == 0)
                 break;

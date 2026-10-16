@@ -7,6 +7,7 @@
 #include <string>
 #include <string_view>
 #include <type_traits>
+#include <utility>
 
 namespace metin2::log {
     enum class level : std::uint8_t {
@@ -28,27 +29,19 @@ namespace metin2::log {
     };
 
     namespace detail {
-        template <typename T, bool = std::is_enum_v<T>>
-        struct loggable_type {
-            using type = std::conditional_t<std::is_volatile_v<T>, std::remove_cv_t<T>, const T &>;
-        };
-
         template <typename T>
-        struct loggable_type<T, true> {
-            using type = std::underlying_type_t<T>;
-        };
-
-        template <typename T>
-        using loggable_t = typename loggable_type<T>::type;
-
-        template <typename T>
-        constexpr auto loggable(const T &value) -> loggable_t<T> {
+        constexpr auto loggable(const T &value) -> decltype(auto) {
             if constexpr (std::is_enum_v<T>) {
-                return static_cast<std::underlying_type_t<T>>(value);
+                return std::to_underlying(value);
+            } else if constexpr (std::is_volatile_v<T>) {
+                return std::remove_cv_t<T>(value);
             } else {
-                return value;
+                return (value);
             }
         }
+
+        template <typename T>
+        using loggable_t = decltype(loggable(std::declval<const T &>()));
     }
 
     template <typename... Args>

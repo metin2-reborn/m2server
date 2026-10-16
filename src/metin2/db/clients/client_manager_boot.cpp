@@ -22,12 +22,158 @@
 #include <cstring>
 #include <map>
 #include <memory>
+#include <optional>
 #include <set>
+#include <span>
 #include <string>
 #include <utility>
 #include <vector>
 
 namespace metin2::db::inline clients {
+
+    namespace {
+        auto load_locale_names(const char *file_name) -> std::map<int, std::string> {
+            std::map<int, std::string> names;
+            c_csv_table table;
+            if (!table.load(file_name, '\t')) {
+                metin2::log::warn("Cannot read {}", file_name);
+                return names;
+            }
+            table.next();
+            while (table.next())
+                names[atoi(table.as_string_by_index(0))] = table.as_string_by_index(1);
+            return names;
+        }
+
+        struct proto_files {
+            const char *names;
+            const char *proto;
+            const char *test;
+            const char *missing_test_warning;
+            const char *parse_error;
+            const char *reloading;
+        };
+
+        template <typename Table>
+        auto load_proto(const proto_files &files, auto (*parse)(Table *, c_csv_table &, const std::map<int, std::string> &)->bool,
+            void (*reset_untaken)(Table &), std::vector<Table> &tables) -> std::optional<size_t> {
+            const auto names = load_locale_names(files.names);
+
+            std::vector<Table> test_tables;
+            c_csv_table test_data;
+            if (!test_data.load(files.test, '\t')) {
+                metin2::log::warn("{}", files.missing_test_warning);
+            } else {
+                test_data.next();
+                while (test_data.next()) {
+                    if (!parse(&test_tables.emplace_back(), test_data, names))
+                        metin2::log::error("{}", files.parse_error);
+                }
+            }
+
+            std::map<uint32_t, const Table *> test_by_vnum;
+            for (const auto &table : test_tables)
+                test_by_vnum.try_emplace(table.vnum, &table);
+
+            c_csv_table data;
+            if (!data.load(files.proto, '\t')) {
+                metin2::log::error("Cannot read {}", files.proto);
+                return std::nullopt;
+            }
+
+            if (!tables.empty()) {
+                metin2::log::info("{}", files.reloading);
+                tables.clear();
+            }
+            tables.reserve(data.row_count() + test_tables.size());
+
+            std::set<uint32_t> proto_vnums;
+            data.next();
+            while (data.next()) {
+                Table &table = tables.emplace_back();
+                if (const auto it = test_by_vnum.find(atoi(data.as_string_by_index(0))); it != test_by_vnum.end()) {
+                    table = *it->second;
+                    reset_untaken(table);
+                } else if (!parse(&table, data, names)) {
+                    metin2::log::error("{}", files.parse_error);
+                }
+                proto_vnums.insert(table.vnum);
+            }
+
+            const size_t proto_count = tables.size();
+            for (const auto &table : test_tables) {
+                if (!proto_vnums.contains(table.vnum))
+                    tables.push_back(table);
+            }
+            return proto_count;
+        }
+
+        auto load_item_attr_table(const char *table_name, std::vector<item_attr_table> &tables) -> bool {
+            const std::string query = sql::format(
+                "SELECT apply, apply+0, prob, lv1, lv2, lv3, lv4, lv5, weapon, body, wrist, foots, neck, head, shield, ear FROM {}{} ORDER BY apply",
+                sql::raw(table_name), sql::raw(get_table_postfix()));
+
+            auto pkMsg = db_manager::instance().direct_query(query);
+            sql_result *pRes = pkMsg->get();
+
+            if (!pRes->num_rows) {
+                metin2::log::error("{} is empty", table_name);
+                return false;
+            }
+
+            if (!tables.empty()) {
+                metin2::log::info("Reloading {}", table_name);
+                tables.clear();
+            }
+
+            tables.reserve(pRes->num_rows);
+
+            static constexpr int sets[] = {ATTRIBUTE_SET_WEAPON, ATTRIBUTE_SET_BODY, ATTRIBUTE_SET_WRIST, ATTRIBUTE_SET_FOOTS,
+                ATTRIBUTE_SET_NECK, ATTRIBUTE_SET_HEAD, ATTRIBUTE_SET_SHIELD, ATTRIBUTE_SET_EAR};
+
+            MYSQL_ROW data;
+            while ((data = mysql_fetch_row(pRes->res.get()))) {
+                item_attr_table t;
+                int col = 0;
+
+                strlcpy(t.apply, data[col++], sizeof(t.apply));
+                str_to_number(t.apply_index, data[col++]);
+                str_to_number(t.prob, data[col++]);
+                for (auto &value : t.values)
+                    str_to_number(value, data[col++]);
+                for (const int set : sets)
+                    str_to_number(t.max_level_by_set[set], data[col++]);
+
+                metin2::log::debug("{}: apply {} prob {:d}, values {:d} {:d} {:d} {:d} {:d}, max level weapon {:d} body {:d} wrist {:d} foots {:d} neck {:d} head {:d} shield {:d} ear {:d}",
+                    table_name,
+                    t.apply,
+                    t.prob,
+                    t.values[0],
+                    t.values[1],
+                    t.values[2],
+                    t.values[3],
+                    t.values[4],
+                    t.max_level_by_set[ATTRIBUTE_SET_WEAPON],
+                    t.max_level_by_set[ATTRIBUTE_SET_BODY],
+                    t.max_level_by_set[ATTRIBUTE_SET_WRIST],
+                    t.max_level_by_set[ATTRIBUTE_SET_FOOTS],
+                    t.max_level_by_set[ATTRIBUTE_SET_NECK],
+                    t.max_level_by_set[ATTRIBUTE_SET_HEAD],
+                    t.max_level_by_set[ATTRIBUTE_SET_SHIELD],
+                    t.max_level_by_set[ATTRIBUTE_SET_EAR]);
+
+                tables.push_back(t);
+            }
+
+            return true;
+        }
+
+        auto locale_name_fragments(const char *locale_name) -> std::pair<std::string, std::string> {
+            if (locale_name_column == "name")
+                return {};
+            return {", " + locale_name_column, sql::format(", {}", locale_name)};
+        }
+    }
 
     auto client_manager::initialize_tables() -> bool {
         if (!initialize_mob_table()) {
@@ -126,7 +272,7 @@ namespace metin2::db::inline clients {
         refine_table *prt = refine_table_.get();
         MYSQL_ROW data;
 
-        while ((data = mysql_fetch_row(pRes->res))) {
+        while ((data = mysql_fetch_row(pRes->res.get()))) {
 
             int col = 0;
             str_to_number(prt->id, data[col++]);
@@ -150,186 +296,19 @@ namespace metin2::db::inline clients {
     }
 
     auto client_manager::initialize_mob_table() -> bool {
+        static constexpr proto_files files = {
+            "mob_names.txt", "mob_proto.txt", "mob_proto_test.txt",
+            "No mob_proto_test.txt, continuing without it", "Cannot parse a mob_proto row", "Reloading mob_proto"};
 
-        std::map<int, const char *> localMap;
-        c_csv_table nameData;
-        if (!nameData.load("mob_names.txt", '\t')) {
-            metin2::log::warn("Cannot read mob_names.txt");
-        } else {
-            nameData.next();
-            while (nameData.next()) {
-                localMap[atoi(nameData.as_string_by_index(0))] = nameData.as_string_by_index(1);
-            }
-        }
-
-        std::set<int> vnumSet;
-        bool isTestFile = true;
-        c_csv_table test_data;
-        if (!test_data.load("mob_proto_test.txt", '\t')) {
-            metin2::log::warn("No mob_proto_test.txt, continuing without it");
-            isTestFile = false;
-        }
-        std::map<uint32_t, mob_table *> test_map_mobTableByVnum;
-        std::unique_ptr<mob_table[]> test_mob_tables;
-        if (isTestFile) {
-            test_data.next();
-
-            mob_table *test_mob_table = nullptr;
-            int test_MobTableSize = test_data.file.row_count() - 1;
-            test_mob_tables = std::make_unique<mob_table[]>(test_MobTableSize);
-            test_mob_table = test_mob_tables.get();
-            memset(test_mob_table, 0, sizeof(mob_table) * test_MobTableSize);
-
-            while (test_data.next()) {
-
-                if (!set_proto_mob_table(test_mob_table, test_data, localMap)) {
-                    metin2::log::error("Cannot parse a mob_proto row");
-                }
-
-                test_map_mobTableByVnum.insert(std::map<uint32_t, mob_table *>::value_type(test_mob_table->vnum, test_mob_table));
-
-                ++test_mob_table;
-            }
-        }
-
-        c_csv_table data;
-        if (!data.load("mob_proto.txt", '\t')) {
-            metin2::log::error("Cannot read mob_proto.txt");
+        // The test override has never carried the mob colour.
+        const auto proto_count = load_proto<mob_table>(files, set_proto_mob_table, [](mob_table &t) { t.mob_color = 0; }, vec_mob_table_);
+        if (!proto_count)
             return false;
-        }
-        data.next();
-        int addNumber = 0;
-        while (data.next()) {
-            int vnum = atoi(data.as_string_by_index(0));
-            std::map<uint32_t, mob_table *>::iterator it_map_mobTable;
-            it_map_mobTable = test_map_mobTableByVnum.find(vnum);
-            if (it_map_mobTable != test_map_mobTableByVnum.end()) {
-                addNumber++;
-            }
-        }
-        data.destroy();
-        if (!data.load("mob_proto.txt", '\t')) {
-            metin2::log::error("Cannot read mob_proto.txt");
-            return false;
-        }
-        data.next();
-        if (!vec_mob_table_.empty()) {
-            metin2::log::info("Reloading mob_proto");
-            vec_mob_table_.clear();
-        }
-        vec_mob_table_.resize(data.file.row_count() - 1 + addNumber);
-        memset(&vec_mob_table_[0], 0, sizeof(mob_table) * vec_mob_table_.size());
-        mob_table *mob_table = &vec_mob_table_[0];
-        while (data.next()) {
-            int col = 0;
-            bool isSameRow = true;
-            std::map<uint32_t, proto::mob_table *>::iterator it_map_mobTable;
-            it_map_mobTable = test_map_mobTableByVnum.find(atoi(data.as_string_by_index(col)));
-            if (it_map_mobTable == test_map_mobTableByVnum.end()) {
-                isSameRow = false;
-            }
-            if (isSameRow) {
-                proto::mob_table *tempTable = it_map_mobTable->second;
 
-                mob_table->vnum = tempTable->vnum;
-                strlcpy(mob_table->name, tempTable->name, sizeof(tempTable->name));
-                strlcpy(mob_table->locale_name, tempTable->locale_name, sizeof(mob_table->locale_name));
-                mob_table->rank = tempTable->rank;
-                mob_table->type = tempTable->type;
-                mob_table->battle_type = tempTable->battle_type;
-                mob_table->level = tempTable->level;
-                mob_table->size = tempTable->size;
-                mob_table->ai_flag = tempTable->ai_flag;
-                mob_table->race_flag = tempTable->race_flag;
-                mob_table->immune_flag = tempTable->immune_flag;
-                mob_table->empire = tempTable->empire;
-                strlcpy(mob_table->folder, tempTable->folder, sizeof(mob_table->folder));
-                mob_table->on_click_type = tempTable->on_click_type;
-                mob_table->str = tempTable->str;
-                mob_table->dex = tempTable->dex;
-                mob_table->con = tempTable->con;
-                mob_table->iq = tempTable->iq;
-                mob_table->damage_range[0] = tempTable->damage_range[0];
-                mob_table->damage_range[1] = tempTable->damage_range[1];
-                mob_table->max_hp = tempTable->max_hp;
-                mob_table->regen_cycle = tempTable->regen_cycle;
-                mob_table->regen_percent = tempTable->regen_percent;
-                mob_table->gold_min = tempTable->gold_min;
-                mob_table->gold_max = tempTable->gold_max;
-                mob_table->exp = tempTable->exp;
-                mob_table->def = tempTable->def;
-                mob_table->s_attack_speed = tempTable->s_attack_speed;
-                mob_table->s_moving_speed = tempTable->s_moving_speed;
-                mob_table->aggresive_hp_pct = tempTable->aggresive_hp_pct;
-                mob_table->aggressive_sight = tempTable->aggressive_sight;
-                mob_table->attack_range = tempTable->attack_range;
+        for (const auto &t : std::span(vec_mob_table_).first(*proto_count))
+            metin2::log::debug("Mob {1} / {2} (vnum {0:d}) level {3:d} rank {4:d} empire {5:d}", t.vnum, t.name, t.locale_name, t.level, t.rank, t.empire);
 
-                mob_table->drop_item_vnum = tempTable->drop_item_vnum;
-                mob_table->resurrection_vnum = tempTable->resurrection_vnum;
-                for (int i = 0; i < MOB_ENCHANTS_MAX_NUM; ++i)
-                    mob_table->c_enchants[i] = tempTable->c_enchants[i];
-
-                for (int i = 0; i < MOB_RESISTS_MAX_NUM; ++i)
-                    mob_table->c_resists[i] = tempTable->c_resists[i];
-
-                mob_table->dam_multiply = tempTable->dam_multiply;
-                mob_table->summon_vnum = tempTable->summon_vnum;
-                mob_table->drain_sp = tempTable->drain_sp;
-                mob_table->polymorph_item_vnum = tempTable->polymorph_item_vnum;
-
-                mob_table->skills[0].level = tempTable->skills[0].level;
-                mob_table->skills[0].vnum = tempTable->skills[0].vnum;
-                mob_table->skills[1].level = tempTable->skills[1].level;
-                mob_table->skills[1].vnum = tempTable->skills[1].vnum;
-                mob_table->skills[2].level = tempTable->skills[2].level;
-                mob_table->skills[2].vnum = tempTable->skills[2].vnum;
-                mob_table->skills[3].level = tempTable->skills[3].level;
-                mob_table->skills[3].vnum = tempTable->skills[3].vnum;
-                mob_table->skills[4].level = tempTable->skills[4].level;
-                mob_table->skills[4].vnum = tempTable->skills[4].vnum;
-
-                mob_table->berserk_point = tempTable->berserk_point;
-                mob_table->stone_skin_point = tempTable->stone_skin_point;
-                mob_table->god_speed_point = tempTable->god_speed_point;
-                mob_table->death_blow_point = tempTable->death_blow_point;
-                mob_table->revive_point = tempTable->revive_point;
-            } else {
-
-                if (!set_proto_mob_table(mob_table, data, localMap)) {
-                    metin2::log::error("Cannot parse a mob_proto row");
-                }
-            }
-
-            vnumSet.insert(mob_table->vnum);
-
-            metin2::log::debug("Mob {1} / {2} (vnum {0:d}) level {3:d} rank {4:d} empire {5:d}", mob_table->vnum, mob_table->name, mob_table->locale_name, mob_table->level, mob_table->rank, mob_table->empire);
-            ++mob_table;
-        }
-
-        test_data.destroy();
-        isTestFile = true;
-        if (!test_data.load("mob_proto_test.txt", '\t')) {
-            metin2::log::warn("No mob_proto_test.txt, continuing without it");
-            isTestFile = false;
-        }
-        if (isTestFile) {
-            test_data.next();
-
-            while (test_data.next()) {
-                std::set<int>::iterator itVnum;
-                itVnum = vnumSet.find(atoi(test_data.as_string_by_index(0)));
-                if (itVnum != vnumSet.end()) {
-                    continue;
-                }
-
-                if (!set_proto_mob_table(mob_table, test_data, localMap)) {
-                    metin2::log::error("Cannot parse a mob_proto row");
-                }
-
-                ++mob_table;
-            }
-        }
-        sort(vec_mob_table_.begin(), vec_mob_table_.end(), [](const entity_table &a, const entity_table &b) { return a.vnum < b.vnum; });
+        std::ranges::sort(vec_mob_table_, {}, &mob_table::vnum);
         return true;
     }
 
@@ -363,7 +342,7 @@ namespace metin2::db::inline clients {
 
         shop_table *shop_table = shop_table_.get();
 
-        while ((data = mysql_fetch_row(pRes2->res))) {
+        while ((data = mysql_fetch_row(pRes2->res.get()))) {
             col = 0;
 
             int iShopVnum = 0;
@@ -400,13 +379,10 @@ namespace metin2::db::inline clients {
         shop_table_ = std::make_unique<proto::shop_table[]>(map_shop.size());
         shop_table_size_ = map_shop.size();
 
-        __typeof(map_shop.begin()) it = map_shop.begin();
-
         int i = 0;
-
-        while (it != map_shop.end()) {
-            std::memcpy((shop_table_.get() + i), (it++)->second.get(), sizeof(proto::shop_table));
-            metin2::log::debug("Shop {:d}: {:d} items", (shop_table_.get() + i)->vnum, (shop_table_.get() + i)->item_count);
+        for (const auto &[vnum, table] : map_shop) {
+            shop_table_[i] = *table;
+            metin2::log::debug("Shop {:d}: {:d} items", shop_table_[i].vnum, shop_table_[i].item_count);
             ++i;
         }
 
@@ -414,172 +390,23 @@ namespace metin2::db::inline clients {
     }
 
     auto client_manager::initialize_item_table() -> bool {
+        static constexpr proto_files files = {
+            "item_names.txt", "item_proto.txt", "item_proto_test.txt",
+            "Cannot read item_proto_test.txt", "Cannot parse an item_proto row", "Reloading item_proto"};
 
-        std::map<int, const char *> localMap;
-        c_csv_table nameData;
-        if (!nameData.load("item_names.txt", '\t')) {
-            metin2::log::warn("Cannot read item_names.txt");
-        } else {
-            nameData.next();
-            while (nameData.next()) {
-                localMap[atoi(nameData.as_string_by_index(0))] = nameData.as_string_by_index(1);
-            }
-        }
-
-        std::map<uint32_t, item_table *> test_map_itemTableByVnum;
-        std::unique_ptr<item_table[]> test_item_tables;
-        c_csv_table test_data;
-        if (!test_data.load("item_proto_test.txt", '\t')) {
-            metin2::log::warn("Cannot read item_proto_test.txt");
-        } else {
-            test_data.next();
-
-            item_table *test_item_table = nullptr;
-            int test_itemTableSize = test_data.file.row_count() - 1;
-            test_item_tables = std::make_unique<item_table[]>(test_itemTableSize);
-            test_item_table = test_item_tables.get();
-            memset(test_item_table, 0, sizeof(item_table) * test_itemTableSize);
-
-            while (test_data.next()) {
-
-                if (!set_proto_item_table(test_item_table, test_data, localMap)) {
-                    metin2::log::error("Cannot parse an item_proto row");
-                }
-
-                test_map_itemTableByVnum.insert(std::map<uint32_t, item_table *>::value_type(test_item_table->vnum, test_item_table));
-                test_item_table++;
-            }
-        }
-
-        std::set<int> vnumSet;
-
-        c_csv_table data;
-        if (!data.load("item_proto.txt", '\t')) {
-            metin2::log::error("Cannot read item_proto.txt");
+        // The test override has never carried the vnum range or the specular value.
+        const auto reset_untaken = [](item_table &t) {
+            t.vnum_range = 0;
+            t.specular = 0;
+        };
+        if (!load_proto<item_table>(files, set_proto_item_table, reset_untaken, vec_item_table_))
             return false;
-        }
-        data.next();
-
-        if (!vec_item_table_.empty()) {
-            metin2::log::info("Reloading item_proto");
-            vec_item_table_.clear();
-            map_item_table_by_vnum_.clear();
-        }
-
-        int addNumber = 0;
-        while (data.next()) {
-            int vnum = atoi(data.as_string_by_index(0));
-            std::map<uint32_t, item_table *>::iterator it_map_itemTable;
-            it_map_itemTable = test_map_itemTableByVnum.find(vnum);
-            if (it_map_itemTable != test_map_itemTableByVnum.end()) {
-                addNumber++;
-            }
-        }
-        data.destroy();
-        if (!data.load("item_proto.txt", '\t')) {
-            metin2::log::error("Cannot read item_proto.txt");
-            return false;
-        }
-        data.next();
-
-        vec_item_table_.resize(data.file.row_count() - 1 + addNumber);
-        memset(&vec_item_table_[0], 0, sizeof(item_table) * vec_item_table_.size());
-
-        item_table *item_table = &vec_item_table_[0];
-
-        while (data.next()) {
-            int col = 0;
-
-            std::map<uint32_t, proto::item_table *>::iterator it_map_itemTable;
-            it_map_itemTable = test_map_itemTableByVnum.find(atoi(data.as_string_by_index(col)));
-            if (it_map_itemTable == test_map_itemTableByVnum.end()) {
-
-                if (!set_proto_item_table(item_table, data, localMap)) {
-                    metin2::log::error("Cannot parse an item_proto row");
-                }
-
-            } else {
-                proto::item_table *tempTable = it_map_itemTable->second;
-
-                item_table->vnum = tempTable->vnum;
-                strlcpy(item_table->name, tempTable->name, sizeof(item_table->name));
-                strlcpy(item_table->locale_name, tempTable->locale_name, sizeof(item_table->locale_name));
-                item_table->type = tempTable->type;
-                item_table->sub_type = tempTable->sub_type;
-                item_table->size = tempTable->size;
-                item_table->anti_flags = tempTable->anti_flags;
-                item_table->flags = tempTable->flags;
-                item_table->wear_flags = tempTable->wear_flags;
-                item_table->immune_flag = tempTable->immune_flag;
-                item_table->gold = tempTable->gold;
-                item_table->shop_buy_price = tempTable->shop_buy_price;
-                item_table->refined_vnum = tempTable->refined_vnum;
-                item_table->refine_set = tempTable->refine_set;
-                item_table->alter_to_magic_item_pct = tempTable->alter_to_magic_item_pct;
-                item_table->c_limit_real_time_first_use_index = -1;
-                item_table->c_limit_timer_based_on_wear_index = -1;
-
-                int i;
-
-                for (i = 0; i < ITEM_LIMIT_MAX_NUM; ++i) {
-                    item_table->limits[i].type = tempTable->limits[i].type;
-                    item_table->limits[i].value = tempTable->limits[i].value;
-
-                    if (LIMIT_REAL_TIME_START_FIRST_USE == item_table->limits[i].type)
-                        item_table->c_limit_real_time_first_use_index = (char)i;
-
-                    if (LIMIT_TIMER_BASED_ON_WEAR == item_table->limits[i].type)
-                        item_table->c_limit_timer_based_on_wear_index = (char)i;
-                }
-
-                for (i = 0; i < ITEM_APPLY_MAX_NUM; ++i) {
-                    item_table->applies[i].type = tempTable->applies[i].type;
-                    item_table->applies[i].value = tempTable->applies[i].value;
-                }
-
-                for (i = 0; i < ITEM_VALUES_MAX_NUM; ++i)
-                    item_table->values[i] = tempTable->values[i];
-
-                item_table->gain_socket_pct = tempTable->gain_socket_pct;
-                item_table->s_addon_type = tempTable->s_addon_type;
-
-                item_table->weight = tempTable->weight;
-            }
-            vnumSet.insert(item_table->vnum);
-            map_item_table_by_vnum_.insert(std::map<uint32_t, proto::item_table *>::value_type(item_table->vnum, item_table));
-            ++item_table;
-        }
-
-        test_data.destroy();
-        if (!test_data.load("item_proto_test.txt", '\t')) {
-            metin2::log::warn("Cannot read item_proto_test.txt");
-        } else {
-            test_data.next();
-
-            while (test_data.next()) {
-                std::set<int>::iterator itVnum;
-                itVnum = vnumSet.find(atoi(test_data.as_string_by_index(0)));
-                if (itVnum != vnumSet.end()) {
-                    continue;
-                }
-
-                if (!set_proto_item_table(item_table, test_data, localMap)) {
-                    metin2::log::error("Cannot parse an item_proto row");
-                }
-
-                map_item_table_by_vnum_.insert(std::map<uint32_t, proto::item_table *>::value_type(item_table->vnum, item_table));
-
-                item_table++;
-            }
-        }
 
         std::ranges::sort(vec_item_table_, {}, &proto::item_table::vnum);
         map_item_table_by_vnum_.clear();
 
-        auto it = vec_item_table_.begin();
-
-        while (it != vec_item_table_.end()) {
-            proto::item_table *item_table = &(*(it++));
+        for (auto &t : vec_item_table_) {
+            const proto::item_table *item_table = &t;
 
             metin2::log::debug("Item {1} / {2} (vnum {0:d}) values {3:d} {4:d} {5:d} {6:d} {7:d} {8:d}, wear flags {9:d}, anti flags {10:d}, immune {11:d}, refined vnum {12:d}, refine set {13:d}, magic pct {14:d}",
                 item_table->vnum,
@@ -598,7 +425,7 @@ namespace metin2::db::inline clients {
                 item_table->refine_set,
                 item_table->alter_to_magic_item_pct);
 
-            map_item_table_by_vnum_.insert(std::map<uint32_t, proto::item_table *>::value_type(item_table->vnum, item_table));
+            map_item_table_by_vnum_.emplace(t.vnum, &t);
         }
         return true;
     }
@@ -632,7 +459,7 @@ namespace metin2::db::inline clients {
         MYSQL_ROW data;
         int col;
 
-        while ((data = mysql_fetch_row(pRes->res))) {
+        while ((data = mysql_fetch_row(pRes->res.get()))) {
             skill_table t;
             memset(&t, 0, sizeof(t));
 
@@ -698,7 +525,7 @@ namespace metin2::db::inline clients {
 
         MYSQL_ROW data;
 
-        while ((data = mysql_fetch_row(pRes->res))) {
+        while ((data = mysql_fetch_row(pRes->res.get()))) {
             banword_table t;
 
             if (data[0]) {
@@ -712,141 +539,11 @@ namespace metin2::db::inline clients {
     }
 
     auto client_manager::initialize_item_attr_table() -> bool {
-        const std::string query = sql::format(
-            "SELECT apply, apply+0, prob, lv1, lv2, lv3, lv4, lv5, weapon, body, wrist, foots, neck, head, shield, ear FROM item_attr{} ORDER BY apply",
-            sql::raw(get_table_postfix()));
-
-        auto pkMsg = db_manager::instance().direct_query(query);
-        sql_result *pRes = pkMsg->get();
-
-        if (!pRes->num_rows) {
-            metin2::log::error("item_attr is empty");
-            return false;
-        }
-
-        if (!vec_item_attr_table_.empty()) {
-            metin2::log::info("Reloading item_attr");
-            vec_item_attr_table_.clear();
-        }
-
-        vec_item_attr_table_.reserve(pRes->num_rows);
-
-        MYSQL_ROW data;
-
-        while ((data = mysql_fetch_row(pRes->res))) {
-            item_attr_table t;
-
-            t = item_attr_table();
-
-            int col = 0;
-
-            strlcpy(t.apply, data[col++], sizeof(t.apply));
-            str_to_number(t.apply_index, data[col++]);
-            str_to_number(t.prob, data[col++]);
-            str_to_number(t.values[0], data[col++]);
-            str_to_number(t.values[1], data[col++]);
-            str_to_number(t.values[2], data[col++]);
-            str_to_number(t.values[3], data[col++]);
-            str_to_number(t.values[4], data[col++]);
-            str_to_number(t.max_level_by_set[ATTRIBUTE_SET_WEAPON], data[col++]);
-            str_to_number(t.max_level_by_set[ATTRIBUTE_SET_BODY], data[col++]);
-            str_to_number(t.max_level_by_set[ATTRIBUTE_SET_WRIST], data[col++]);
-            str_to_number(t.max_level_by_set[ATTRIBUTE_SET_FOOTS], data[col++]);
-            str_to_number(t.max_level_by_set[ATTRIBUTE_SET_NECK], data[col++]);
-            str_to_number(t.max_level_by_set[ATTRIBUTE_SET_HEAD], data[col++]);
-            str_to_number(t.max_level_by_set[ATTRIBUTE_SET_SHIELD], data[col++]);
-            str_to_number(t.max_level_by_set[ATTRIBUTE_SET_EAR], data[col++]);
-
-            metin2::log::debug("Item attr: apply {} prob {:d}, values {:d} {:d} {:d} {:d} {:d}, max level weapon {:d} body {:d} wrist {:d} foots {:d} neck {:d} head {:d} shield {:d} ear {:d}",
-                t.apply,
-                t.prob,
-                t.values[0],
-                t.values[1],
-                t.values[2],
-                t.values[3],
-                t.values[4],
-                t.max_level_by_set[ATTRIBUTE_SET_WEAPON],
-                t.max_level_by_set[ATTRIBUTE_SET_BODY],
-                t.max_level_by_set[ATTRIBUTE_SET_WRIST],
-                t.max_level_by_set[ATTRIBUTE_SET_FOOTS],
-                t.max_level_by_set[ATTRIBUTE_SET_NECK],
-                t.max_level_by_set[ATTRIBUTE_SET_HEAD],
-                t.max_level_by_set[ATTRIBUTE_SET_SHIELD],
-                t.max_level_by_set[ATTRIBUTE_SET_EAR]);
-
-            vec_item_attr_table_.push_back(t);
-        }
-
-        return true;
+        return load_item_attr_table("item_attr", vec_item_attr_table_);
     }
 
     auto client_manager::initialize_item_rare_table() -> bool {
-        const std::string query = sql::format(
-            "SELECT apply, apply+0, prob, lv1, lv2, lv3, lv4, lv5, weapon, body, wrist, foots, neck, head, shield, ear FROM item_attr_rare{} ORDER BY apply",
-            sql::raw(get_table_postfix()));
-
-        auto pkMsg = db_manager::instance().direct_query(query);
-        sql_result *pRes = pkMsg->get();
-
-        if (!pRes->num_rows) {
-            metin2::log::error("item_attr_rare is empty");
-            return false;
-        }
-
-        if (!vec_item_rare_table_.empty()) {
-            metin2::log::info("Reloading item_attr_rare");
-            vec_item_rare_table_.clear();
-        }
-
-        vec_item_rare_table_.reserve(pRes->num_rows);
-
-        MYSQL_ROW data;
-
-        while ((data = mysql_fetch_row(pRes->res))) {
-            item_attr_table t;
-
-            t = item_attr_table();
-
-            int col = 0;
-
-            strlcpy(t.apply, data[col++], sizeof(t.apply));
-            str_to_number(t.apply_index, data[col++]);
-            str_to_number(t.prob, data[col++]);
-            str_to_number(t.values[0], data[col++]);
-            str_to_number(t.values[1], data[col++]);
-            str_to_number(t.values[2], data[col++]);
-            str_to_number(t.values[3], data[col++]);
-            str_to_number(t.values[4], data[col++]);
-            str_to_number(t.max_level_by_set[ATTRIBUTE_SET_WEAPON], data[col++]);
-            str_to_number(t.max_level_by_set[ATTRIBUTE_SET_BODY], data[col++]);
-            str_to_number(t.max_level_by_set[ATTRIBUTE_SET_WRIST], data[col++]);
-            str_to_number(t.max_level_by_set[ATTRIBUTE_SET_FOOTS], data[col++]);
-            str_to_number(t.max_level_by_set[ATTRIBUTE_SET_NECK], data[col++]);
-            str_to_number(t.max_level_by_set[ATTRIBUTE_SET_HEAD], data[col++]);
-            str_to_number(t.max_level_by_set[ATTRIBUTE_SET_SHIELD], data[col++]);
-            str_to_number(t.max_level_by_set[ATTRIBUTE_SET_EAR], data[col++]);
-
-            metin2::log::debug("Rare item attr: apply {} prob {:d}, values {:d} {:d} {:d} {:d} {:d}, max level weapon {:d} body {:d} wrist {:d} foots {:d} neck {:d} head {:d} shield {:d} ear {:d}",
-                t.apply,
-                t.prob,
-                t.values[0],
-                t.values[1],
-                t.values[2],
-                t.values[3],
-                t.values[4],
-                t.max_level_by_set[ATTRIBUTE_SET_WEAPON],
-                t.max_level_by_set[ATTRIBUTE_SET_BODY],
-                t.max_level_by_set[ATTRIBUTE_SET_WRIST],
-                t.max_level_by_set[ATTRIBUTE_SET_FOOTS],
-                t.max_level_by_set[ATTRIBUTE_SET_NECK],
-                t.max_level_by_set[ATTRIBUTE_SET_HEAD],
-                t.max_level_by_set[ATTRIBUTE_SET_SHIELD],
-                t.max_level_by_set[ATTRIBUTE_SET_EAR]);
-
-            vec_item_rare_table_.push_back(t);
-        }
-
-        return true;
+        return load_item_attr_table("item_attr_rare", vec_item_rare_table_);
     }
 
     auto client_manager::initialize_land_table() -> bool {
@@ -870,7 +567,7 @@ namespace metin2::db::inline clients {
         MYSQL_ROW data;
 
         if (pRes->num_rows > 0)
-            while ((data = mysql_fetch_row(pRes->res))) {
+            while ((data = mysql_fetch_row(pRes->res.get()))) {
                 land_table t;
 
                 memset(&t, 0, sizeof(t));
@@ -960,7 +657,7 @@ namespace metin2::db::inline clients {
         MYSQL_ROW data;
 
         if (pRes->num_rows > 0)
-            while ((data = mysql_fetch_row(pRes->res))) {
+            while ((data = mysql_fetch_row(pRes->res.get()))) {
                 object_proto t;
 
                 memset(&t, 0, sizeof(t));
@@ -1022,7 +719,7 @@ namespace metin2::db::inline clients {
         MYSQL_ROW data;
 
         if (pRes->num_rows > 0)
-            while ((data = mysql_fetch_row(pRes->res))) {
+            while ((data = mysql_fetch_row(pRes->res.get()))) {
                 auto k = std::make_unique<object_table>();
 
                 memset(k.get(), 0, sizeof(object_table));
@@ -1056,108 +753,56 @@ namespace metin2::db::inline clients {
     }
 
     auto client_manager::mirror_mob_table_into_db() -> bool {
-        for (auto it = vec_mob_table_.begin(); it != vec_mob_table_.end(); it++) {
-            const mob_table &t = *it;
-            std::string query;
-            if (locale_name_column == "name") {
-                query = sql::format(
-                    "replace into mob_proto{} "
-                    "("
-                    "vnum, name, type, rank, battle_type, level, size, ai_flag, setRaceFlag, setImmuneFlag, "
-                    "on_click, empire, drop_item, resurrection_vnum, folder, "
-                    "st, dx, ht, iq, damage_min, damage_max, max_hp, regen_cycle, regen_percent, exp, "
-                    "gold_min, gold_max, def, attack_speed, move_speed, aggressive_hp_pct, aggressive_sight, attack_range, polymorph_item, "
+        for (const mob_table &t : vec_mob_table_) {
+            const auto [locale_column, locale_value] = locale_name_fragments(t.locale_name);
+            const std::string query = sql::format(
+                "replace into mob_proto{} "
+                "("
+                "vnum, name{}, type, rank, battle_type, level, size, ai_flag, setRaceFlag, setImmuneFlag, "
+                "on_click, empire, drop_item, resurrection_vnum, folder, "
+                "st, dx, ht, iq, damage_min, damage_max, max_hp, regen_cycle, regen_percent, exp, "
+                "gold_min, gold_max, def, attack_speed, move_speed, aggressive_hp_pct, aggressive_sight, attack_range, polymorph_item, "
 
-                    "enchant_curse, enchant_slow, enchant_poison, enchant_stun, enchant_critical, enchant_penetrate, "
-                    "resist_sword, resist_twohand, resist_dagger, resist_bell, resist_fan, resist_bow, "
-                    "resist_fire, resist_elect, resist_magic, resist_wind, resist_poison, "
-                    "dam_multiply, summon, drain_sp, mob_color, "
+                "enchant_curse, enchant_slow, enchant_poison, enchant_stun, enchant_critical, enchant_penetrate, "
+                "resist_sword, resist_twohand, resist_dagger, resist_bell, resist_fan, resist_bow, "
+                "resist_fire, resist_elect, resist_magic, resist_wind, resist_poison, "
+                "dam_multiply, summon, drain_sp, mob_color, "
 
-                    "skill_vnum0, skill_level0, skill_vnum1, skill_level1, skill_vnum2, skill_level2, "
-                    "skill_vnum3, skill_level3, skill_vnum4, skill_level4, "
-                    "sp_berserk, sp_stoneskin, sp_godspeed, sp_deathblow, sp_revive"
-                    ") "
-                    "values ("
+                "skill_vnum0, skill_level0, skill_vnum1, skill_level1, skill_vnum2, skill_level2, "
+                "skill_vnum3, skill_level3, skill_vnum4, skill_level4, "
+                "sp_berserk, sp_stoneskin, sp_godspeed, sp_deathblow, sp_revive"
+                ") "
+                "values ("
 
-                    "{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, "
-                    "{}, {}, {}, {}, {}, "
-                    "{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, "
-                    "{}, {}, {}, {}, {}, {}, {}, {}, {}, "
+                "{}, {}{}, {}, {}, {}, {}, {}, {}, {}, {}, "
+                "{}, {}, {}, {}, {}, "
+                "{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, "
+                "{}, {}, {}, {}, {}, {}, {}, {}, {}, "
 
-                    "{}, {}, {}, {}, {}, {}, "
-                    "{}, {}, {}, {}, {}, {}, "
-                    "{}, {}, {}, {}, {}, "
-                    "{:f}, {}, {}, {}, "
+                "{}, {}, {}, {}, {}, {}, "
+                "{}, {}, {}, {}, {}, {}, "
+                "{}, {}, {}, {}, {}, "
+                "{:f}, {}, {}, {}, "
 
-                    "{}, {}, {}, {}, {}, {}, "
-                    "{}, {}, {}, {}, "
-                    "{}, {}, {}, {}, {}"
-                    ")",
-                    sql::raw(get_table_postfix()),
+                "{}, {}, {}, {}, {}, {}, "
+                "{}, {}, {}, {}, "
+                "{}, {}, {}, {}, {}"
+                ")",
+                sql::raw(get_table_postfix()), sql::raw(locale_column),
 
-                    t.vnum, t.name, t.type, t.rank, t.battle_type, t.level, t.size, t.ai_flag, t.race_flag, t.immune_flag,
-                    t.on_click_type, t.empire, t.drop_item_vnum, t.resurrection_vnum, t.folder,
-                    t.str, t.dex, t.con, t.iq, t.damage_range[0], t.damage_range[1], t.max_hp, t.regen_cycle, t.regen_percent, t.exp,
+                t.vnum, t.name, sql::raw(locale_value), t.type, t.rank, t.battle_type, t.level, t.size, t.ai_flag, t.race_flag, t.immune_flag,
+                t.on_click_type, t.empire, t.drop_item_vnum, t.resurrection_vnum, t.folder,
+                t.str, t.dex, t.con, t.iq, t.damage_range[0], t.damage_range[1], t.max_hp, t.regen_cycle, t.regen_percent, t.exp,
 
-                    t.gold_min, t.gold_max, t.def, t.s_attack_speed, t.s_moving_speed, t.aggresive_hp_pct, t.aggressive_sight, t.attack_range, t.polymorph_item_vnum,
-                    t.c_enchants[0], t.c_enchants[1], t.c_enchants[2], t.c_enchants[3], t.c_enchants[4], t.c_enchants[5],
-                    t.c_resists[0], t.c_resists[1], t.c_resists[2], t.c_resists[3], t.c_resists[4], t.c_resists[5],
-                    t.c_resists[6], t.c_resists[7], t.c_resists[8], t.c_resists[9], t.c_resists[10],
-                    t.dam_multiply, t.summon_vnum, t.drain_sp, t.mob_color,
+                t.gold_min, t.gold_max, t.def, t.s_attack_speed, t.s_moving_speed, t.aggresive_hp_pct, t.aggressive_sight, t.attack_range, t.polymorph_item_vnum,
+                t.c_enchants[0], t.c_enchants[1], t.c_enchants[2], t.c_enchants[3], t.c_enchants[4], t.c_enchants[5],
+                t.c_resists[0], t.c_resists[1], t.c_resists[2], t.c_resists[3], t.c_resists[4], t.c_resists[5],
+                t.c_resists[6], t.c_resists[7], t.c_resists[8], t.c_resists[9], t.c_resists[10],
+                t.dam_multiply, t.summon_vnum, t.drain_sp, t.mob_color,
 
-                    t.skills[0].vnum, t.skills[0].level, t.skills[1].vnum, t.skills[1].level, t.skills[2].vnum, t.skills[2].level,
-                    t.skills[3].vnum, t.skills[3].level, t.skills[4].vnum, t.skills[4].level,
-                    t.berserk_point, t.stone_skin_point, t.god_speed_point, t.death_blow_point, t.revive_point);
-            } else {
-                query = sql::format(
-                    "replace into mob_proto{} "
-                    "("
-                    "vnum, name, {}, type, rank, battle_type, level, size, ai_flag, setRaceFlag, setImmuneFlag, "
-                    "on_click, empire, drop_item, resurrection_vnum, folder, "
-                    "st, dx, ht, iq, damage_min, damage_max, max_hp, regen_cycle, regen_percent, exp, "
-                    "gold_min, gold_max, def, attack_speed, move_speed, aggressive_hp_pct, aggressive_sight, attack_range, polymorph_item, "
-
-                    "enchant_curse, enchant_slow, enchant_poison, enchant_stun, enchant_critical, enchant_penetrate, "
-                    "resist_sword, resist_twohand, resist_dagger, resist_bell, resist_fan, resist_bow, "
-                    "resist_fire, resist_elect, resist_magic, resist_wind, resist_poison, "
-                    "dam_multiply, summon, drain_sp, mob_color, "
-
-                    "skill_vnum0, skill_level0, skill_vnum1, skill_level1, skill_vnum2, skill_level2, "
-                    "skill_vnum3, skill_level3, skill_vnum4, skill_level4, "
-                    "sp_berserk, sp_stoneskin, sp_godspeed, sp_deathblow, sp_revive"
-                    ") "
-                    "values ("
-
-                    "{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, "
-                    "{}, {}, {}, {}, {}, "
-                    "{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, "
-                    "{}, {}, {}, {}, {}, {}, {}, {}, {}, "
-
-                    "{}, {}, {}, {}, {}, {}, "
-                    "{}, {}, {}, {}, {}, {}, "
-                    "{}, {}, {}, {}, {}, "
-                    "{:f}, {}, {}, {}, "
-
-                    "{}, {}, {}, {}, {}, {}, "
-                    "{}, {}, {}, {}, "
-                    "{}, {}, {}, {}, {}"
-                    ")",
-                    sql::raw(get_table_postfix()), sql::raw(locale_name_column),
-
-                    t.vnum, t.name, t.locale_name, t.type, t.rank, t.battle_type, t.level, t.size, t.ai_flag, t.race_flag, t.immune_flag,
-                    t.on_click_type, t.empire, t.drop_item_vnum, t.resurrection_vnum, t.folder,
-                    t.str, t.dex, t.con, t.iq, t.damage_range[0], t.damage_range[1], t.max_hp, t.regen_cycle, t.regen_percent, t.exp,
-
-                    t.gold_min, t.gold_max, t.def, t.s_attack_speed, t.s_moving_speed, t.aggresive_hp_pct, t.aggressive_sight, t.attack_range, t.polymorph_item_vnum,
-                    t.c_enchants[0], t.c_enchants[1], t.c_enchants[2], t.c_enchants[3], t.c_enchants[4], t.c_enchants[5],
-                    t.c_resists[0], t.c_resists[1], t.c_resists[2], t.c_resists[3], t.c_resists[4], t.c_resists[5],
-                    t.c_resists[6], t.c_resists[7], t.c_resists[8], t.c_resists[9], t.c_resists[10],
-                    t.dam_multiply, t.summon_vnum, t.drain_sp, t.mob_color,
-
-                    t.skills[0].vnum, t.skills[0].level, t.skills[1].vnum, t.skills[1].level, t.skills[2].vnum, t.skills[2].level,
-                    t.skills[3].vnum, t.skills[3].level, t.skills[4].vnum, t.skills[4].level,
-                    t.berserk_point, t.stone_skin_point, t.god_speed_point, t.death_blow_point, t.revive_point);
-            }
+                t.skills[0].vnum, t.skills[0].level, t.skills[1].vnum, t.skills[1].level, t.skills[2].vnum, t.skills[2].level,
+                t.skills[3].vnum, t.skills[3].level, t.skills[4].vnum, t.skills[4].level,
+                t.berserk_point, t.stone_skin_point, t.god_speed_point, t.death_blow_point, t.revive_point);
 
             db_manager::instance().async_query(query);
         }
@@ -1165,60 +810,32 @@ namespace metin2::db::inline clients {
     }
 
     auto client_manager::mirror_item_table_into_db() -> bool {
-        for (auto it = vec_item_table_.begin(); it != vec_item_table_.end(); it++) {
-            if (locale_name_column != "name") {
-                const item_table &t = *it;
-                const std::string query = sql::format(
-                    "replace into item_proto{} ("
-                    "vnum, type, subtype, name, {}, gold, shop_buy_price, weight, size, "
-                    "flag, wearflag, antiflag, immuneflag, "
-                    "refined_vnum, refine_set, magic_pct, socket_pct, addon_type, specular, "
-                    "limittype0, limitvalue0, limittype1, limitvalue1, "
-                    "applytype0, applyvalue0, applytype1, applyvalue1, applytype2, applyvalue2, "
-                    "value0, value1, value2, value3, value4, value5 ) "
-                    "values ("
-                    "{}, {}, {}, {}, {}, {}, {}, {}, {}, "
-                    "{}, {}, {}, {}, "
-                    "{}, {}, {}, {}, {}, {}, "
-                    "{}, {}, {}, {}, "
-                    "{}, {}, {}, {}, {}, {}, "
-                    "{}, {}, {}, {}, {}, {} )",
-                    sql::raw(get_table_postfix()), sql::raw(locale_name_column),
-                    t.vnum, t.type, t.sub_type, t.name, t.locale_name, static_cast<int32_t>(t.gold), t.shop_buy_price, t.weight, t.size,
-                    // Signed columns: keep the bit pattern the old printf %d wrote.
-                    static_cast<int32_t>(t.flags), static_cast<int32_t>(t.wear_flags), static_cast<int32_t>(t.anti_flags), t.immune_flag,
-                    t.refined_vnum, t.refine_set, t.alter_to_magic_item_pct, t.gain_socket_pct, t.s_addon_type, t.specular,
-                    t.limits[0].type, t.limits[0].value, t.limits[1].type, t.limits[1].value,
-                    t.applies[0].type, t.applies[0].value, t.applies[1].type, t.applies[1].value, t.applies[2].type, t.applies[2].value,
-                    t.values[0], t.values[1], t.values[2], t.values[3], t.values[4], t.values[5]);
-                db_manager::instance().async_query(query);
-            } else {
-                const item_table &t = *it;
-                const std::string query = sql::format(
-                    "replace into item_proto{} ("
-                    "vnum, type, subtype, name, gold, shop_buy_price, weight, size, "
-                    "flag, wearflag, antiflag, immuneflag, "
-                    "refined_vnum, refine_set, magic_pct, socket_pct, addon_type, specular, "
-                    "limittype0, limitvalue0, limittype1, limitvalue1, "
-                    "applytype0, applyvalue0, applytype1, applyvalue1, applytype2, applyvalue2, "
-                    "value0, value1, value2, value3, value4, value5 ) "
-                    "values ("
-                    "{}, {}, {}, {}, {}, {}, {}, {}, "
-                    "{}, {}, {}, {}, "
-                    "{}, {}, {}, {}, {}, {}, "
-                    "{}, {}, {}, {}, "
-                    "{}, {}, {}, {}, {}, {}, "
-                    "{}, {}, {}, {}, {}, {} )",
-                    sql::raw(get_table_postfix()),
-                    t.vnum, t.type, t.sub_type, t.name, static_cast<int32_t>(t.gold), t.shop_buy_price, t.weight, t.size,
-                    // Signed columns: keep the bit pattern the old printf %d wrote.
-                    static_cast<int32_t>(t.flags), static_cast<int32_t>(t.wear_flags), static_cast<int32_t>(t.anti_flags), t.immune_flag,
-                    t.refined_vnum, t.refine_set, t.alter_to_magic_item_pct, t.gain_socket_pct, t.s_addon_type, t.specular,
-                    t.limits[0].type, t.limits[0].value, t.limits[1].type, t.limits[1].value,
-                    t.applies[0].type, t.applies[0].value, t.applies[1].type, t.applies[1].value, t.applies[2].type, t.applies[2].value,
-                    t.values[0], t.values[1], t.values[2], t.values[3], t.values[4], t.values[5]);
-                db_manager::instance().async_query(query);
-            }
+        for (const item_table &t : vec_item_table_) {
+            const auto [locale_column, locale_value] = locale_name_fragments(t.locale_name);
+            const std::string query = sql::format(
+                "replace into item_proto{} ("
+                "vnum, type, subtype, name{}, gold, shop_buy_price, weight, size, "
+                "flag, wearflag, antiflag, immuneflag, "
+                "refined_vnum, refine_set, magic_pct, socket_pct, addon_type, specular, "
+                "limittype0, limitvalue0, limittype1, limitvalue1, "
+                "applytype0, applyvalue0, applytype1, applyvalue1, applytype2, applyvalue2, "
+                "value0, value1, value2, value3, value4, value5 ) "
+                "values ("
+                "{}, {}, {}, {}{}, {}, {}, {}, {}, "
+                "{}, {}, {}, {}, "
+                "{}, {}, {}, {}, {}, {}, "
+                "{}, {}, {}, {}, "
+                "{}, {}, {}, {}, {}, {}, "
+                "{}, {}, {}, {}, {}, {} )",
+                sql::raw(get_table_postfix()), sql::raw(locale_column),
+                t.vnum, t.type, t.sub_type, t.name, sql::raw(locale_value), static_cast<int32_t>(t.gold), t.shop_buy_price, t.weight, t.size,
+                // Signed columns: keep the bit pattern the old printf %d wrote.
+                static_cast<int32_t>(t.flags), static_cast<int32_t>(t.wear_flags), static_cast<int32_t>(t.anti_flags), t.immune_flag,
+                t.refined_vnum, t.refine_set, t.alter_to_magic_item_pct, t.gain_socket_pct, t.s_addon_type, t.specular,
+                t.limits[0].type, t.limits[0].value, t.limits[1].type, t.limits[1].value,
+                t.applies[0].type, t.applies[0].value, t.applies[1].type, t.applies[1].value, t.applies[2].type, t.applies[2].value,
+                t.values[0], t.values[1], t.values[2], t.values[3], t.values[4], t.values[5]);
+            db_manager::instance().async_query(query);
         }
         return true;
     }

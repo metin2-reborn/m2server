@@ -9,7 +9,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include <memory>
 
 namespace metin2::game::inline protocol {
 
@@ -27,11 +26,11 @@ namespace metin2::game::inline protocol {
 
     template <size_t N, size_t M>
     inline void copy_packet_string(char (&dst)[N], const char (&src)[M]) {
-        utf8_strnlcpy(dst, N, src, M);
+        utf8_strnlcpy(dst, src);
     }
 
     inline void copy_packet_string(char *dst, size_t dst_size, const char *src, size_t src_max) {
-        utf8_strnlcpy(dst, dst_size, src, src_max);
+        utf8_strnlcpy({dst, dst_size}, {src, src_max});
     }
 
     class input_processor {
@@ -42,7 +41,7 @@ namespace metin2::game::inline protocol {
         virtual auto process(desc *desc_value, const void *orig, int bytes, int &bytes_processed) -> bool;
         virtual auto type() -> uint8_t = 0;
 
-        void bind_packet_info(packet_info *packet_info_value);
+        void bind_packet_table(const packet_table &table) { packet_table_ = &table; }
         void pong(desc *d);
         void handshake(desc *d, const char *data);
         void version(character *ch, const char *data);
@@ -50,10 +49,8 @@ namespace metin2::game::inline protocol {
       protected:
         virtual auto analyze(desc *d, uint8_t header, const char *data) -> int = 0;
 
-        packet_info *packet_info_;
+        const packet_table *packet_table_;
         int buffer_left_;
-
-        packet_info_cg packet_info_cg_;
     };
 
     class input_close : public input_processor {
@@ -73,16 +70,11 @@ namespace metin2::game::inline protocol {
     class input_handshake : public input_processor {
       public:
         input_handshake();
-        ~input_handshake() override;
 
         auto type() -> uint8_t override { return INPROC_HANDSHAKE; }
 
       protected:
         auto analyze(desc *d, uint8_t header_value, const char *data_value) -> int override;
-
-      protected:
-        packet_info *main_packet_info_;
-        std::unique_ptr<packet_info_cg> handshake_packet_info_;
     };
 
     class input_login : public input_processor {
@@ -307,9 +299,6 @@ namespace metin2::game::inline protocol {
         void xmas_warp_santa_reply(const char *data);
         void block_chat(const char *data);
         void iam_awake(desc *d, const char *data);
-
-      protected:
-        packet_info_gg packet_info_gg_;
     };
 
     class input_auth : public input_processor {

@@ -38,7 +38,7 @@ namespace metin2::game::inline characters {
                 return 0;
             }
 
-            MYSQL_ROW row = mysql_fetch_row(msg->get()->res);
+            MYSQL_ROW row = mysql_fetch_row(msg->get()->res.get());
 
             str_to_number(dwAID, row[0]);
             str_to_number(dwPID[0], row[1]);
@@ -59,7 +59,7 @@ namespace metin2::game::inline characters {
 
                 if (pMsg != nullptr) {
                     if (pMsg->get()->num_rows > 0) {
-                        MYSQL_ROW row = mysql_fetch_row(pMsg->get()->res);
+                        MYSQL_ROW row = mysql_fetch_row(pMsg->get()->res.get());
 
                         str_to_number(dwGuildID[i], row[0]);
 
@@ -112,7 +112,7 @@ namespace metin2::game::inline characters {
                 return 0;
             }
 
-            MYSQL_ROW row = mysql_fetch_row(pMsg->get()->res);
+            MYSQL_ROW row = mysql_fetch_row(pMsg->get()->res.get());
 
             uint32_t count = 0;
             str_to_number(count, row[0]);
@@ -156,7 +156,7 @@ namespace metin2::game::inline characters {
                 return 0;
             }
 
-            MYSQL_ROW row = mysql_fetch_row(pMsg->get()->res);
+            MYSQL_ROW row = mysql_fetch_row(pMsg->get()->res.get());
 
             str_to_number(dwAID, row[0]);
 

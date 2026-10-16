@@ -52,7 +52,6 @@ namespace metin2::db::inline empire {
     class priv_manager : public singleton<priv_manager> {
       public:
         priv_manager();
-        ~priv_manager() override;
 
         void add_guild_priv(uint32_t guild_id, uint8_t type, int value, time_t duration_sec);
 

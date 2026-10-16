@@ -24,7 +24,7 @@ namespace metin2::db::inline clients {
         sql_result *pRes = pmsg->get();
         if (pRes->num_rows) {
             MYSQL_ROW row;
-            while ((row = mysql_fetch_row(pRes->res))) {
+            while ((row = mysql_fetch_row(pRes->res.get()))) {
                 packet_set_event_flag p;
                 strlcpy(p.flag_name, row[0], sizeof(p.flag_name));
                 str_to_number(p.value, row[1]);

@@ -31,26 +31,9 @@ namespace metin2::game::inline empire {
     constexpr int EMPIRE_YELLOW = 2;
     constexpr int EMPIRE_BLUE = 3;
 
-#define SIEGE_EVENT_PULSE passes_per_sec(60 * 5)
-
-#define GET_CASTLE(empire)                                 (castle.get() + (empire))
-#define GET_GUARD(empire, region_index, guard_index)       (GET_CASTLE(empire)->guard[region_index][guard_index])
-#define GET_GUARD_REGION(empire, region_index)             (s_guard_region[empire][region_index])
-#define GET_GUARD_GROUP(empire, region_index, guard_index) (GET_CASTLE(empire)->guard_group[region_index][guard_index])
-#define GET_FROG(empire, index)                            (GET_CASTLE(empire)->frog[index])
-#define GET_FROG_POS(empire, index)                        (frog_pos[empire][index])
-#define GET_TOWER(empire, index)                           (GET_CASTLE(empire)->tower[index])
-
-#define DO_ALL_EMPIRE(empire) for (int empire = 1; empire < 4; ++empire)
-#define DO_ALL_TOWER(i)       for (int i = 0; i < MAX_CASTLE_TOWER; ++i)
-#define DO_ALL_FROG(i)        for (int i = 0; i < MAX_CASTLE_FROG; ++i)
-
-#define GET_SIEGE_STATE()       siege_state
-#define GET_SIEGE_EMPIRE()      sige_empire
-#define GET_SIEGE_EVENT(empire) (GET_CASTLE(empire)->siege_event)
-#define GET_STONE_EVENT(empire) (GET_CASTLE(empire)->stone_event)
-
-#define GET_TOWER_REGION(empire) tower_region[empire]
+    static auto siege_event_pulse() -> int {
+        return passes_per_sec(60 * 5);
+    }
 
     static std::unique_ptr<castle_data[]> castle;
     static castle_state siege_state = CASTLE_SIEGE_NONE;
@@ -207,29 +190,29 @@ namespace metin2::game::inline empire {
             return 0;
         }
 
-        info->pulse += SIEGE_EVENT_PULSE;
+        info->pulse += siege_event_pulse();
 
         if (info->pulse < passes_per_sec(30 * 60)) {
             snprintf(buf, sizeof(buf), lc_text("%s에서 봉화를 둘러싸고 전투가 진행중입니다."),
-                empire_name(GET_SIEGE_EMPIRE()));
+                empire_name(sige_empire));
             broadcast_notice(buf);
 
-            return SIEGE_EVENT_PULSE;
+            return siege_event_pulse();
         }
 
-        switch (GET_SIEGE_STATE()) {
+        switch (siege_state) {
         case CASTLE_SIEGE_NONE:
             break;
 
         case CASTLE_SIEGE_STRUGGLE:
             {
-                snprintf(buf, sizeof(buf), lc_text("%s이 수성에 성공했습니다."), empire_name(GET_SIEGE_EMPIRE()));
+                snprintf(buf, sizeof(buf), lc_text("%s이 수성에 성공했습니다."), empire_name(sige_empire));
                 broadcast_notice(buf);
 
-                snprintf(buf, sizeof(buf), lc_text("지금부터 %s은 30분간 봉화를 파괴하여 보상을 획득 할 수 있습니다."), empire_name(GET_SIEGE_EMPIRE()));
+                snprintf(buf, sizeof(buf), lc_text("지금부터 %s은 30분간 봉화를 파괴하여 보상을 획득 할 수 있습니다."), empire_name(sige_empire));
                 broadcast_notice(buf);
 
-                GET_SIEGE_STATE() = CASTLE_SIEGE_END;
+                siege_state = CASTLE_SIEGE_END;
 
                 return passes_per_sec(60 * 30);
             }
@@ -274,7 +257,7 @@ namespace metin2::game::inline empire {
             return 0;
         }
 
-        int32_t map_index = fn_castle_map_index(GET_SIEGE_EMPIRE());
+        int32_t map_index = fn_castle_map_index(sige_empire);
 
         sectree_map *sectree_map = sectree_manager::instance().map(map_index);
 
@@ -285,10 +268,10 @@ namespace metin2::game::inline empire {
 
         if (info->spawn_count < (SPAWN_COUNT * 2)) {
             for (int i = 0; i < SPAWN_COUNT; ++i) {
-                uint32_t sx = sectree_map->setting.base_x + 100 * GET_TOWER_REGION(info->empire).sx;
-                uint32_t sy = sectree_map->setting.base_y + 100 * GET_TOWER_REGION(info->empire).sy;
-                uint32_t ex = sectree_map->setting.base_x + 100 * GET_TOWER_REGION(info->empire).ex;
-                uint32_t ey = sectree_map->setting.base_y + 100 * GET_TOWER_REGION(info->empire).ey;
+                uint32_t sx = sectree_map->setting.base_x + 100 * tower_region[info->empire].sx;
+                uint32_t sy = sectree_map->setting.base_y + 100 * tower_region[info->empire].sy;
+                uint32_t ex = sectree_map->setting.base_x + 100 * tower_region[info->empire].ex;
+                uint32_t ey = sectree_map->setting.base_y + 100 * tower_region[info->empire].ey;
 
                 character_manager::instance().spawn_mob_range(fn_random_stone(),
                     fn_castle_map_index(info->empire),
@@ -318,8 +301,8 @@ namespace metin2::game::inline empire {
     }
 
     static auto fn_empty_frog_index(int empire) -> int {
-        DO_ALL_FROG(i) {
-            if (nullptr == GET_FROG(empire, i))
+        for (int i = 0; i < MAX_CASTLE_FROG; ++i) {
+            if (nullptr == castle[empire].frog[i])
                 return i;
         }
         return (-1);
@@ -335,7 +318,7 @@ namespace metin2::game::inline empire {
         case EMPIRE_RED:
         case EMPIRE_YELLOW:
         case EMPIRE_BLUE:
-            return &GET_FROG_POS(empire, frog_index);
+            return &frog_pos[empire][frog_index];
         }
 
         return nullptr;
@@ -343,7 +326,7 @@ namespace metin2::game::inline empire {
 
     static auto fn_empty_guard_pos(int empire, int region_index) -> int {
         for (int i = 0; i < MAX_CASTLE_GUARD_PER_REGION; ++i) {
-            if (nullptr == GET_GUARD(empire, region_index, i)) {
+            if (nullptr == castle[empire].guard[region_index][i]) {
                 return i;
             }
         }
@@ -447,21 +430,21 @@ namespace metin2::game::inline empire {
             return;
         }
 
-        DO_ALL_EMPIRE(empire) {
+        for (int empire = 1; empire < 4; ++empire) {
             fprintf(fp, "section\n");
 
             fprintf(fp, "\tempire %d\n", empire);
 
             fprintf(fp, "\tfrog ");
             for (int i = 0; i < MAX_CASTLE_FROG; ++i) {
-                fprintf(fp, " %d", GET_FROG(empire, i) ? 1 : 0);
+                fprintf(fp, " %d", castle[empire].frog[i] ? 1 : 0);
             }
             fprintf(fp, "\n");
 
             for (int region_index = 0; region_index < MAX_CASTLE_GUARD_REGION; ++region_index) {
                 fprintf(fp, "\tguard ");
                 for (int guard_index = 0; guard_index < MAX_CASTLE_GUARD_PER_REGION; ++guard_index) {
-                    fprintf(fp, " %u", GET_GUARD_GROUP(empire, region_index, guard_index));
+                    fprintf(fp, " %u", castle[empire].guard_group[region_index][guard_index]);
                 }
                 fprintf(fp, "\n");
             }
@@ -478,7 +461,7 @@ namespace metin2::game::inline empire {
             if (nullptr == sectree_manager::instance().map(183)) return 0;
         }
 
-        switch (GET_SIEGE_STATE()) {
+        switch (siege_state) {
         case CASTLE_SIEGE_NONE:
             castle_start_siege(empire, tower_count);
             return 1;
@@ -495,11 +478,11 @@ namespace metin2::game::inline empire {
     }
 
     void castle_start_siege(int empire, int tower_count) {
-        if (CASTLE_SIEGE_NONE != GET_SIEGE_STATE())
+        if (CASTLE_SIEGE_NONE != siege_state)
             return;
 
-        GET_SIEGE_STATE() = CASTLE_SIEGE_STRUGGLE;
-        GET_SIEGE_EMPIRE() = empire;
+        siege_state = CASTLE_SIEGE_STRUGGLE;
+        sige_empire = empire;
 
         castle_spawn_tower(empire, tower_count);
 
@@ -509,7 +492,7 @@ namespace metin2::game::inline empire {
             info->empire = empire;
             info->pulse = 0;
 
-            GET_SIEGE_EVENT(empire) = event_create(castle_siege_event, info, SIEGE_EVENT_PULSE);
+            castle[empire].siege_event = event_create(castle_siege_event, info, siege_event_pulse());
         }
 
         {
@@ -518,24 +501,24 @@ namespace metin2::game::inline empire {
             info->spawn_count = 0;
             info->empire = empire;
 
-            GET_STONE_EVENT(empire) = event_create(castle_stone_event, info, passes_per_sec(1));
+            castle[empire].stone_event = event_create(castle_stone_event, info, passes_per_sec(1));
         }
     }
 
     void castle_end_siege() {
-        GET_SIEGE_EMPIRE() = EMPIRE_NONE;
-        GET_SIEGE_STATE() = CASTLE_SIEGE_NONE;
+        sige_empire = EMPIRE_NONE;
+        siege_state = CASTLE_SIEGE_NONE;
 
-        DO_ALL_EMPIRE(empire) {
-            if (GET_SIEGE_EVENT(empire)) {
-                event_cancel(&GET_SIEGE_EVENT(empire));
+        for (int empire = 1; empire < 4; ++empire) {
+            if (castle[empire].siege_event) {
+                event_cancel(&castle[empire].siege_event);
             }
 
-            DO_ALL_TOWER(i) {
-                if (GET_TOWER(empire, i)) {
-                    character *npc = GET_TOWER(empire, i);
+            for (int i = 0; i < MAX_CASTLE_TOWER; ++i) {
+                if (castle[empire].tower[i]) {
+                    character *npc = castle[empire].tower[i];
                     character_manager::instance().destroy_character(npc);
-                    GET_TOWER(empire, i) = nullptr;
+                    castle[empire].tower[i] = nullptr;
                 }
             }
         }
@@ -561,7 +544,7 @@ namespace metin2::game::inline empire {
         if (frog) {
             frog->set_empire(empire);
             int empty_index = fn_empty_frog_index(empire);
-            GET_FROG(empire, empty_index) = frog;
+            castle[empire].frog[empty_index] = frog;
             return frog;
         }
         return nullptr;
@@ -571,7 +554,7 @@ namespace metin2::game::inline empire {
         int dir = 1;
         int32_t map_index = fn_castle_map_index(empire);
 
-        position *empty_pos = &GET_FROG_POS(empire, empty_index);
+        position *empty_pos = &frog_pos[empire][empty_index];
 
         sectree_map *sectree_map = sectree_manager::instance().map(map_index);
         if (nullptr == sectree_map) {
@@ -585,7 +568,7 @@ namespace metin2::game::inline empire {
             false, dir);
         if (frog) {
             frog->set_empire(empire);
-            GET_FROG(empire, empty_index) = frog;
+            castle[empire].frog[empty_index] = frog;
             return frog;
         }
         return nullptr;
@@ -603,10 +586,10 @@ namespace metin2::game::inline empire {
         if (castle_guard_count(empire, region_index) >= MAX_CASTLE_GUARD_PER_REGION)
             return nullptr;
 
-        sx = sectree_map->setting.base_x + 100 * GET_GUARD_REGION(empire, region_index).sx;
-        sy = sectree_map->setting.base_y + 100 * GET_GUARD_REGION(empire, region_index).sy;
-        ex = sectree_map->setting.base_x + 100 * GET_GUARD_REGION(empire, region_index).ex;
-        ey = sectree_map->setting.base_y + 100 * GET_GUARD_REGION(empire, region_index).ey;
+        sx = sectree_map->setting.base_x + 100 * s_guard_region[empire][region_index].sx;
+        sy = sectree_map->setting.base_y + 100 * s_guard_region[empire][region_index].sy;
+        ex = sectree_map->setting.base_x + 100 * s_guard_region[empire][region_index].ex;
+        ey = sectree_map->setting.base_y + 100 * s_guard_region[empire][region_index].ey;
 
         mob = character_manager::instance().spawn_group(group_vnum, map_index,
             sx, sy, ex, ey);
@@ -614,8 +597,8 @@ namespace metin2::game::inline empire {
             mob->set_empire(empire);
 
             int pos = fn_empty_guard_pos(empire, region_index);
-            GET_GUARD(empire, region_index, pos) = mob;
-            GET_GUARD_GROUP(empire, region_index, pos) = group_vnum;
+            castle[empire].guard[region_index][pos] = mob;
+            castle[empire].guard_group[region_index][pos] = group_vnum;
         }
 
         return mob;
@@ -635,20 +618,20 @@ namespace metin2::game::inline empire {
     }
 
     static void fn_spawn_tower(int empire, sectree_map *sectree_map) {
-        DO_ALL_TOWER(i) {
-            if (GET_TOWER(empire, i))
+        for (int i = 0; i < MAX_CASTLE_TOWER; ++i) {
+            if (castle[empire].tower[i])
                 continue;
 
-            uint32_t sx = sectree_map->setting.base_x + 100 * GET_TOWER_REGION(empire).sx;
-            uint32_t sy = sectree_map->setting.base_y + 100 * GET_TOWER_REGION(empire).sy;
-            uint32_t ex = sectree_map->setting.base_x + 100 * GET_TOWER_REGION(empire).ex;
-            uint32_t ey = sectree_map->setting.base_y + 100 * GET_TOWER_REGION(empire).ey;
+            uint32_t sx = sectree_map->setting.base_x + 100 * tower_region[empire].sx;
+            uint32_t sy = sectree_map->setting.base_y + 100 * tower_region[empire].sy;
+            uint32_t ex = sectree_map->setting.base_x + 100 * tower_region[empire].ex;
+            uint32_t ey = sectree_map->setting.base_y + 100 * tower_region[empire].ey;
 
-            GET_TOWER(empire, i) =
+            castle[empire].tower[i] =
                 character_manager::instance().spawn_mob_range(fn_random_tower(),
                     fn_castle_map_index(empire),
                     sx, sy, ex, ey);
-            GET_TOWER(empire, i)->set_empire(empire);
+            castle[empire].tower[i]->set_empire(empire);
             return;
         }
     }
@@ -659,10 +642,10 @@ namespace metin2::game::inline empire {
         if (nullptr == sectree_map)
             return false;
 
-        DO_ALL_TOWER(i) {
-            if (GET_TOWER(empire, i))
-                GET_TOWER(empire, i)->dead(nullptr, true);
-            GET_TOWER(empire, i) = nullptr;
+        for (int i = 0; i < MAX_CASTLE_TOWER; ++i) {
+            if (castle[empire].tower[i])
+                castle[empire].tower[i]->dead(nullptr, true);
+            castle[empire].tower[i] = nullptr;
         }
 
         int spawn_count = std::clamp(tower_count, MIN_CASTLE_TOWER, MAX_CASTLE_TOWER);
@@ -684,9 +667,9 @@ namespace metin2::game::inline empire {
 
         for (int region_index = 0; region_index < MAX_CASTLE_GUARD_REGION; ++region_index) {
             for (int i = 0; i < MAX_CASTLE_GUARD_PER_REGION; ++i) {
-                if (GET_GUARD(empire, region_index, i) == ch) {
-                    GET_GUARD(empire, region_index, i) = nullptr;
-                    GET_GUARD_GROUP(empire, region_index, i) = 0;
+                if (castle[empire].guard[region_index][i] == ch) {
+                    castle[empire].guard[region_index][i] = nullptr;
+                    castle[empire].guard_group[region_index][i] = 0;
                 }
             }
         }
@@ -700,9 +683,9 @@ namespace metin2::game::inline empire {
 
         int empire = ch->empire();
 
-        DO_ALL_FROG(i) {
-            if (ch == GET_FROG(empire, i)) {
-                GET_FROG(empire, i) = nullptr;
+        for (int i = 0; i < MAX_CASTLE_FROG; ++i) {
+            if (ch == castle[empire].frog[i]) {
+                castle[empire].frog[i] = nullptr;
 
                 killer->point_change(POINT_GOLD, 10000000, true);
                 castle_save();
@@ -719,7 +702,7 @@ namespace metin2::game::inline empire {
 
         int killer_empire = killer->empire();
 
-        switch (GET_SIEGE_STATE()) {
+        switch (siege_state) {
         case CASTLE_SIEGE_NONE:
             break;
 
@@ -732,22 +715,22 @@ namespace metin2::game::inline empire {
 
                 log_manager::instance().char_log(killer, 0, "CASTLE_TORCH_KILL", "");
 
-                DO_ALL_TOWER(i) {
-                    if (ch == GET_TOWER(GET_SIEGE_EMPIRE(), i))
-                        GET_TOWER(GET_SIEGE_EMPIRE(), i) = nullptr;
+                for (int i = 0; i < MAX_CASTLE_TOWER; ++i) {
+                    if (ch == castle[sige_empire].tower[i])
+                        castle[sige_empire].tower[i] = nullptr;
                 }
 
-                DO_ALL_TOWER(i) {
-                    if (GET_TOWER(GET_SIEGE_EMPIRE(), i))
+                for (int i = 0; i < MAX_CASTLE_TOWER; ++i) {
+                    if (castle[sige_empire].tower[i])
                         siege_end = false;
                 }
 
                 if (siege_end) {
-                    if (GET_SIEGE_STATE() == CASTLE_SIEGE_STRUGGLE) {
-                        snprintf(buf, sizeof(buf), lc_text("%s이 수성에 실패하여 전쟁에 패배하였습니다.."), empire_name(GET_SIEGE_EMPIRE()));
+                    if (siege_state == CASTLE_SIEGE_STRUGGLE) {
+                        snprintf(buf, sizeof(buf), lc_text("%s이 수성에 실패하여 전쟁에 패배하였습니다.."), empire_name(sige_empire));
                         broadcast_notice(buf);
                     } else {
-                        snprintf(buf, sizeof(buf), lc_text("%s이 모든 봉화를 파괴하였습니다."), empire_name(GET_SIEGE_EMPIRE()));
+                        snprintf(buf, sizeof(buf), lc_text("%s이 모든 봉화를 파괴하였습니다."), empire_name(sige_empire));
                         broadcast_notice(buf);
                     }
                     castle_end_siege();
@@ -761,7 +744,7 @@ namespace metin2::game::inline empire {
         int count = 0;
 
         for (int i = 0; i < MAX_CASTLE_GUARD_PER_REGION; ++i) {
-            if (GET_GUARD(empire, region_index, i))
+            if (castle[empire].guard[region_index][i])
                 ++count;
         }
         return count;
@@ -836,7 +819,7 @@ namespace metin2::game::inline empire {
         if (ch->is_pc() && victim->is_pc())
             return true;
 
-        if (CASTLE_SIEGE_END == GET_SIEGE_STATE()) {
+        if (CASTLE_SIEGE_END == siege_state) {
             if (castle_is_tower_vnum(victim->race_num())) {
                 if (ch->empire() == victim->empire())
                     return true;

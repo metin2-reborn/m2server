@@ -23,9 +23,6 @@ namespace metin2::db::inline empire {
         }
     }
 
-    priv_manager::~priv_manager() {
-    }
-
     void priv_manager::update() {
         time_t now = client_manager::instance().current_time();
 

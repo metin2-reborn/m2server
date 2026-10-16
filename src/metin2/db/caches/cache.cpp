@@ -12,10 +12,10 @@
 #include <metin2/sql/query.h>
 
 #include <algorithm>
+#include <chrono>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
-#include <ctime>
 #include <string>
 #include <vector>
 
@@ -24,10 +24,7 @@
 namespace metin2::db::inline caches {
 
     item_cache::item_cache() {
-        expire_time_ = std::min(1800, metin2::config::db().item_cache_flush_seconds);
-    }
-
-    item_cache::~item_cache() {
+        expire_time_ = std::chrono::seconds(std::min(1800, metin2::config::db().item_cache_flush_seconds));
     }
 
     void item_cache::remove() {
@@ -41,7 +38,7 @@ namespace metin2::db::inline caches {
 
         data_.vnum = 0;
         need_query_ = true;
-        last_update_time_ = time(nullptr);
+        last_update_time_ = clock::now();
         on_flush();
     }
 
@@ -54,48 +51,7 @@ namespace metin2::db::inline caches {
                 metin2::log::debug("Item cache: deleting item {:d}: {}", data_.id, query);
             }
         } else {
-            int32_t alSockets[ITEM_SOCKET_MAX_NUM];
-            player_item_attribute aAttr[ITEM_ATTRIBUTE_MAX_NUM];
-            bool isSocket = false, isAttr = false;
-
-            memset(&alSockets, 0, sizeof(int32_t) * ITEM_SOCKET_MAX_NUM);
-            memset(&aAttr, 0, sizeof(player_item_attribute) * ITEM_ATTRIBUTE_MAX_NUM);
-
-            player_item *p = &data_;
-
-            if (memcmp(alSockets, p->sockets, sizeof(int32_t) * ITEM_SOCKET_MAX_NUM)) {
-                isSocket = true;
-            }
-
-            if (memcmp(aAttr, p->attr, sizeof(player_item_attribute) * ITEM_ATTRIBUTE_MAX_NUM)) {
-                isAttr = true;
-            }
-
-            std::string columns = "id, owner_id, window, pos, count, vnum";
-            std::string values = sql::format("{}, {}, {}, {}, {}, {}", p->id, p->owner, p->window, p->pos, p->count, p->vnum);
-
-            if (isSocket) {
-                columns += ", socket0, socket1, socket2";
-                values += sql::format(", {}, {}, {}",
-                    static_cast<uint32_t>(p->sockets[0]), static_cast<uint32_t>(p->sockets[1]), static_cast<uint32_t>(p->sockets[2]));
-            }
-
-            if (isAttr) {
-                columns +=
-                    ", attrtype0, attrvalue0, attrtype1, attrvalue1, attrtype2, attrvalue2, attrtype3, attrvalue3"
-                    ", attrtype4, attrvalue4, attrtype5, attrvalue5, attrtype6, attrvalue6";
-
-                values += sql::format(", {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}",
-                    p->attr[0].type, p->attr[0].s_value,
-                    p->attr[1].type, p->attr[1].s_value,
-                    p->attr[2].type, p->attr[2].s_value,
-                    p->attr[3].type, p->attr[3].s_value,
-                    p->attr[4].type, p->attr[4].s_value,
-                    p->attr[5].type, p->attr[5].s_value,
-                    p->attr[6].type, p->attr[6].s_value);
-            }
-
-            const std::string query = sql::format("REPLACE INTO item{} ({}) VALUES({})", sql::raw(get_table_postfix()), sql::raw(columns), sql::raw(values));
+            const std::string query = create_item_save_query(data_);
 
             if (metin2::config::test_server())
                 metin2::log::debug("Item cache: saving item: {}", query);
@@ -109,10 +65,7 @@ namespace metin2::db::inline caches {
     }
 
     player_table_cache::player_table_cache() {
-        expire_time_ = std::min(1800, metin2::config::db().player_cache_flush_seconds);
-    }
-
-    player_table_cache::~player_table_cache() {
+        expire_time_ = std::chrono::seconds(std::min(1800, metin2::config::db().player_cache_flush_seconds));
     }
 
     void player_table_cache::on_flush() {
@@ -126,7 +79,7 @@ namespace metin2::db::inline caches {
     const int item_price_list_table_cache::min_flush_sec_ = 1800;
 
     item_price_list_table_cache::item_price_list_table_cache() {
-        expire_time_ = std::min(min_flush_sec_, metin2::config::db().pricelist_cache_flush_seconds);
+        expire_time_ = std::chrono::seconds(std::min(min_flush_sec_, metin2::config::db().pricelist_cache_flush_seconds));
     }
 
     void item_price_list_table_cache::update_list(const item_price_list_table *update_list) {
@@ -160,7 +113,7 @@ namespace metin2::db::inline caches {
                 sizeAddOldDataSize = tmpvec.size();
             }
 
-            std::memcpy(data_.price_info + update_list->count, &tmpvec[0], sizeof(item_price_info) * sizeAddOldDataSize);
+            std::memcpy(data_.price_info + update_list->count, tmpvec.data(), sizeof(item_price_info) * sizeAddOldDataSize);
             data_.count += sizeAddOldDataSize;
 
             nDeletedNum = tmpvec.size() - sizeAddOldDataSize;

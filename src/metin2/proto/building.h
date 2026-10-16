@@ -7,7 +7,7 @@ namespace metin2::inline proto {
     namespace building {
         inline constexpr int OBJECT_MATERIAL_MAX_NUM = 5;
 
-        using land_table = struct land_table {
+        struct land_table {
             uint32_t id;
             int32_t map_index;
             int32_t x, y;
@@ -17,12 +17,12 @@ namespace metin2::inline proto {
             uint32_t price;
         };
 
-        using object_material = struct object_material {
+        struct object_material {
             uint32_t item_vnum;
             uint32_t count;
         };
 
-        using object_proto = struct object_proto {
+        struct object_proto {
             uint32_t vnum;
             uint32_t price;
 
@@ -41,7 +41,7 @@ namespace metin2::inline proto {
             uint32_t depend_on_group_vnum;
         };
 
-        using object_table = struct object_table {
+        struct object_table {
             uint32_t id;
             uint32_t land_id;
             uint32_t vnum;
@@ -53,5 +53,5 @@ namespace metin2::inline proto {
             float z_rot;
             int32_t life;
         };
-    };
+    }
 }

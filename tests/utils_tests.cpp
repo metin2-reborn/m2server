@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <ctime>
 #include <limits>
 #include <string>
 
@@ -49,51 +50,53 @@ TEST(to_lower_is_ascii_only) {
 
 TEST(trim_and_lower_trims_and_truncates) {
     char buffer[16];
-    trim_and_lower("  HeLLo World \t", buffer, sizeof(buffer));
+    trim_and_lower("  HeLLo World \t", buffer);
     CHECK_EQ(std::string(buffer), std::string("hello world"));
 
     char small[4];
-    trim_and_lower("ABCDEF", small, sizeof(small));
+    trim_and_lower("ABCDEF", small);
     CHECK_EQ(std::string(small), std::string("abc"));
 
-    trim_and_lower(nullptr, buffer, sizeof(buffer));
+    trim_and_lower(nullptr, buffer);
     CHECK_EQ(std::string(buffer), std::string(""));
+
+    trim_and_lower(std::string_view("\tMiXeD Case  "), buffer);
+    CHECK_EQ(std::string(buffer), std::string("mixed case"));
 }
 
-TEST(parse_token_splits_config_lines) {
-    char line[] = "Map Allow: 1 21 41\r\n";
-    char token[32];
-    char value[32];
-    parse_token(line, token, value);
-    CHECK_EQ(std::string(token), std::string("mapallow"));
-    CHECK_EQ(std::string(value), std::string("1 21 41"));
+TEST(time_str_matches_asctime_slice) {
+    for (const std::time_t t : {std::time_t{0}, std::time_t{1700000000}, std::time_t{1717200000}}) {
+        std::string expected = std::asctime(std::localtime(&t));
+        expected = expected.substr(4, expected.size() - 4 - 6);
+        CHECK_EQ(time_str(t), expected);
+    }
 }
 
 TEST(utf8_truncation_keeps_whole_characters) {
     const char *text = "가나다";
     CHECK_EQ(utf8_sequence_length(static_cast<unsigned char>(text[0])), size_t{3});
-    CHECK_EQ(utf8_truncated_size(text, std::strlen(text), 7), size_t{6});
-    CHECK_EQ(utf8_truncated_size(text, std::strlen(text), 2), size_t{0});
+    CHECK_EQ(utf8_truncated_size(text, 7), size_t{6});
+    CHECK_EQ(utf8_truncated_size(text, 2), size_t{0});
 
     char buffer[8];
-    CHECK_EQ(utf8_strlcpy(buffer, text, sizeof(buffer)), size_t{9});
+    CHECK_EQ(utf8_strlcpy(buffer, text), size_t{9});
     CHECK_EQ(std::string(buffer), std::string("가나"));
 }
 
 TEST(utf8_strnlcpy_bounds_unterminated_fields) {
     const char field[4] = {'a', 'b', 'c', 'd'};
     char buffer[16];
-    CHECK_EQ(utf8_strnlcpy(buffer, sizeof(buffer), field, sizeof(field)), size_t{4});
+    CHECK_EQ(utf8_strnlcpy(buffer, field), size_t{4});
     CHECK_EQ(std::string(buffer), std::string("abcd"));
 
     char small[5];
-    CHECK_EQ(utf8_strnlcpy(small, sizeof(small), "가나", 6), size_t{3});
+    CHECK_EQ(utf8_strnlcpy(small, {"가나", 6}), size_t{3});
     CHECK_EQ(std::string(small), std::string("가"));
 
-    CHECK_EQ(utf8_strnlcpy(buffer, sizeof(buffer), "hi\0junk", 7), size_t{2});
+    CHECK_EQ(utf8_strnlcpy(buffer, {"hi\0junk", 7}), size_t{2});
     CHECK_EQ(std::string(buffer), std::string("hi"));
 
-    CHECK_EQ(utf8_strnlcpy(buffer, 0, "x", 1), size_t{0});
+    CHECK_EQ(utf8_strnlcpy({buffer, 0}, {"x", 1}), size_t{0});
 }
 
 TEST(number_stays_in_range) {

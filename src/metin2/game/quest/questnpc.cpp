@@ -25,12 +25,38 @@
 #include <string>
 #include <vector>
 
-#include <dirent.h>
 #include <strings.h>
 
 namespace metin2::game {
 
     namespace quest {
+        namespace {
+            auto event_in_range(int event_index) -> bool {
+                if (event_index >= 0 && event_index < QUEST_EVENT_COUNT)
+                    return true;
+                metin2::log::error("Quest event index {:d} is out of range", event_index);
+                return false;
+            }
+
+            auto can_start_quest(pc &pc) -> bool {
+                if (!pc.is_running())
+                    return true;
+
+                if (metin2::config::test_server()) {
+                    quest_manager &mgr = quest_manager::instance();
+
+                    metin2::log::warn("Cannot start a quest while quest {} is suspended for player {}",
+                        pc.current_quest_name(),
+                        mgr.current_character_ptr() ? mgr.current_character_ptr()->name() : "<none>");
+                }
+                return false;
+            }
+
+            auto validate_event(pc &pc, int event_index) -> bool {
+                return event_in_range(event_index) && can_start_quest(pc);
+            }
+        }
+
         npc::npc() {
             vnum_ = 0;
         }
@@ -41,36 +67,17 @@ namespace metin2::game {
         void npc::set(unsigned int vnum, const std::string &script_name) {
             vnum_ = vnum;
 
-            quest_manager::event_name_map::iterator itEventName = quest_manager::instance().event_name.begin();
+            for (const auto &[event_name, event_index] : quest_manager::instance().event_name) {
+                for (const std::string &object_dir : quest_object_dir) {
+                    const std::string event_dir = std::format("{}/{}/{}/", object_dir, script_name, event_name);
 
-            while (itEventName != quest_manager::instance().event_name.end()) {
-                __typeof(itEventName) it = itEventName;
-                ++itEventName;
-
-                for (auto itObjectDir = quest_object_dir.begin(); itObjectDir != quest_object_dir.end(); ++itObjectDir) {
-                    const std::string event_dir = std::format("{}/{}/{}/", *itObjectDir, script_name, it->first);
-
-                    int event_index = it->second;
-
-                    DIR *pdir = opendir(event_dir.c_str());
-
-                    if (!pdir)
-                        continue;
-
-                    dirent *pde;
-
-                    while ((pde = readdir(pdir))) {
-                        if (pde->d_name[0] == '.')
+                    for (const std::string &name : list_directory(event_dir)) {
+                        if (!strncasecmp(name.c_str(), "CVS", 3))
                             continue;
 
-                        if (!strncasecmp(pde->d_name, "CVS", 3))
-                            continue;
-
-                        metin2::log::debug("Quest: reading {}", pde->d_name);
-                        load_state_script(event_index, (event_dir + pde->d_name).c_str(), pde->d_name);
+                        metin2::log::debug("Quest: reading {}", name);
+                        load_state_script(event_index, (event_dir + name).c_str(), name.c_str());
                     }
-
-                    closedir(pdir);
                 }
             }
         }
@@ -297,96 +304,54 @@ namespace metin2::game {
         }
 
         auto npc::handle_event(pc &pc, int event_index) -> bool {
-            if (event_index < 0 || event_index >= QUEST_EVENT_COUNT) {
-                metin2::log::error("Quest event index {:d} is out of range", event_index);
+            if (!validate_event(pc, event_index))
                 return false;
-            }
 
-            if (pc.is_running()) {
-                if (metin2::config::test_server()) {
-                    quest_manager &mgr = quest_manager::instance();
-
-                    metin2::log::warn("Cannot start a quest while quest {} is suspended for player {}",
-                        pc.current_quest_name(),
-                        mgr.current_character_ptr() ? mgr.current_character_ptr()->name() : "<none>");
-                }
-
-                return false;
-            }
+            struct matched_script {
+                uint32_t quest_index;
+                int state;
+                const a_state_script_type *script;
+            };
 
             std::vector<uint32_t> new_start_quest_indices;
-            std::vector<uint32_t> quest_indices;
-            std::vector<int> pc_states;
-            std::vector<const char *> codes;
-            std::vector<int> code_sizes;
+            std::vector<matched_script> matched;
 
-            matching_quest(pc, own_quest_[event_index],
-                [&](auto &pc_quest, auto &quest_map) {
+            matching_quest(pc, own_quest_[event_index], [&](auto &pc_quest, auto &quest_map) {
                     int iState = pc_quest->second.st;
                     auto itQuestScript = quest_map->second.find(iState);
-                    if (itQuestScript != quest_map->second.end()) {
-                        quest_indices.push_back(quest_map->first);
-                        pc_states.push_back(iState);
-                        codes.push_back(itQuestScript->second.get_code());
-                        code_sizes.push_back(itQuestScript->second.size());
-                    }
-                },
-                [&](auto &, auto &quest_map) {
+                    if (itQuestScript != quest_map->second.end())
+                        matched.push_back({quest_map->first, iState, &itQuestScript->second}); }, [&](auto &, auto &quest_map) {
                     uint32_t dwQuestIndex = quest_map->first;
 
                     if (has_start_state(quest_map->second) && quest_manager::instance().can_start_quest(dwQuestIndex)) {
                         new_start_quest_indices.push_back(dwQuestIndex);
-                    }
-                });
+                    } });
 
-            bool r = false;
-            if (!quest_indices.empty()) {
-                for (size_t i = 0; i < quest_indices.size(); i++) {
-                    if (i != 0) {
-                        quest_manager::instance().get_pc(pc.id());
-                    }
+            for (size_t i = 0; i < matched.size(); i++) {
+                if (i != 0)
+                    quest_manager::instance().get_pc(pc.id());
 
-                    quest_manager::execute_quest_script(pc, quest_indices[i], pc_states[i], codes[i], code_sizes[i]);
-                }
-                r = true;
+                const matched_script &m = matched[i];
+                quest_manager::execute_quest_script(pc, m.quest_index, m.state, m.script->get_code(), m.script->size());
             }
-            if (!new_start_quest_indices.empty()) {
-                quest_map_type &rmapEventOwnQuest = own_quest_[event_index];
 
-                for (uint32_t quest_index : new_start_quest_indices) {
-                    a_state_script_type &script = rmapEventOwnQuest[quest_index][0];
-                    quest_manager::execute_quest_script(pc, quest_index, 0, script.get_code(), script.size());
-                }
-                r = true;
-            } else {
-                return r;
+            quest_map_type &rmapEventOwnQuest = own_quest_[event_index];
+            for (uint32_t quest_index : new_start_quest_indices) {
+                a_state_script_type &script = rmapEventOwnQuest[quest_index][0];
+                quest_manager::execute_quest_script(pc, quest_index, 0, script.get_code(), script.size());
             }
-            return true;
+
+            return !matched.empty() || !new_start_quest_indices.empty();
         }
 
         auto npc::handle_receive_all_event(pc &pc, int event_index) -> bool {
-            if (event_index < 0 || event_index >= QUEST_EVENT_COUNT) {
-                metin2::log::error("Quest event index {:d} is out of range", event_index);
+            if (!validate_event(pc, event_index))
                 return false;
-            }
-
-            if (pc.is_running()) {
-                if (metin2::config::test_server()) {
-                    quest_manager &mgr = quest_manager::instance();
-
-                    metin2::log::warn("Cannot start a quest while quest {} is suspended for player {}",
-                        pc.current_quest_name(),
-                        mgr.current_character_ptr() ? mgr.current_character_ptr()->name() : "<none>");
-                }
-
-                return false;
-            }
 
             bool miss_handled = false;
             bool match_handled = false;
 
-            matching_quest(pc, own_quest_[event_index],
-                [&](auto &pc_quest, auto &quest_map) {
+            matching_quest(pc, own_quest_[event_index], [&](auto &pc_quest, auto &quest_map) {
                     const a_quest_script_type &QuestScript = quest_map->second;
                     int iPCState = pc_quest->second.st;
                     auto itQuestScript = QuestScript.find(iPCState);
@@ -400,9 +365,7 @@ namespace metin2::game {
                             iPCState,
                             itQuestScript->second.get_code(),
                             itQuestScript->second.size());
-                    }
-                },
-                [&](auto &, auto &quest_map) {
+                    } }, [&](auto &, auto &quest_map) {
                     uint32_t dwQuestIndex = quest_map->first;
 
                     if (has_start_state(quest_map->second) && quest_manager::instance().can_start_quest(dwQuestIndex)) {
@@ -418,23 +381,19 @@ namespace metin2::game {
                                 it->second.get_code(),
                                 it->second.size());
                         }
-                    }
-                });
+                    } });
             return miss_handled || match_handled;
         }
 
         auto npc::handle_receive_all_no_wait_event(pc &pc, int event_index) -> bool {
-            if (event_index < 0 || event_index >= QUEST_EVENT_COUNT) {
-                metin2::log::error("Quest event index {:d} is out of range", event_index);
+            if (!event_in_range(event_index))
                 return false;
-            }
 
             bool miss_handled = false;
             bool match_handled = false;
 
             quest_map_type &rmapEventOwnQuest = own_quest_[event_index];
-            matching_quest(pc, rmapEventOwnQuest,
-                [&](auto &pc_quest, auto &quest_map) {
+            matching_quest(pc, rmapEventOwnQuest, [&](auto &pc_quest, auto &quest_map) {
                     const a_quest_script_type &QuestScript = quest_map->second;
                     int iPCState = pc_quest->second.st;
                     auto itQuestScript = QuestScript.find(iPCState);
@@ -456,9 +415,7 @@ namespace metin2::game {
                             pPC->end_running();
                         }
                         match_handled = true;
-                    }
-                },
-                [&](auto &, auto &quest_map) {
+                    } }, [&](auto &, auto &quest_map) {
                     uint32_t dwQuestIndex = quest_map->first;
 
                     if (has_start_state(quest_map->second) && quest_manager::instance().can_start_quest(dwQuestIndex)) {
@@ -481,8 +438,7 @@ namespace metin2::game {
                                 pPC->end_running();
                             }
                         }
-                    }
-                });
+                    } });
 
             return match_handled || miss_handled;
         }
@@ -490,17 +446,8 @@ namespace metin2::game {
         auto npc::on_info(pc &pc, unsigned int quest_index) -> bool {
             const int EventIndex = QUEST_INFO_EVENT;
 
-            if (pc.is_running()) {
-                if (metin2::config::test_server()) {
-                    quest_manager &mgr = quest_manager::instance();
-
-                    metin2::log::warn("Cannot start a quest while quest {} is suspended for player {}",
-                        pc.current_quest_name(),
-                        mgr.current_character_ptr() ? mgr.current_character_ptr()->name() : "<none>");
-                }
-
+            if (!can_start_quest(pc))
                 return false;
-            }
 
             game::quest::pc::quest_info_iterator itPCQuest = pc.quest_find(quest_index);
 
@@ -533,17 +480,8 @@ namespace metin2::game {
         auto npc::on_button(pc &pc, unsigned int quest_index) -> bool {
             const int EventIndex = QUEST_BUTTON_EVENT;
 
-            if (pc.is_running()) {
-                if (metin2::config::test_server()) {
-                    quest_manager &mgr = quest_manager::instance();
-
-                    metin2::log::warn("Cannot start a quest while quest {} is suspended for player {}",
-                        pc.current_quest_name(),
-                        mgr.current_character_ptr() ? mgr.current_character_ptr()->name() : "<none>");
-                }
-
+            if (!can_start_quest(pc))
                 return false;
-            }
 
             game::quest::pc::quest_info_iterator itPCQuest = pc.quest_find(quest_index);
 
@@ -574,23 +512,13 @@ namespace metin2::game {
         }
 
         auto npc::on_chat(pc &pc) -> bool {
-            if (pc.is_running()) {
-                if (metin2::config::test_server()) {
-                    quest_manager &mgr = quest_manager::instance();
-
-                    metin2::log::warn("Cannot start a quest while quest {} is suspended for player {}",
-                        pc.current_quest_name(),
-                        mgr.current_character_ptr() ? mgr.current_character_ptr()->name() : "<none>");
-                }
-
+            if (!can_start_quest(pc))
                 return false;
-            }
 
             const int EventIndex = QUEST_CHAT_EVENT;
             std::vector<a_arg_script *> AvailScript;
 
-            matching_quest(pc, own_arg_quest_[EventIndex],
-                [&](auto &pc_quest, auto &quest_map) {
+            matching_quest(pc, own_arg_quest_[EventIndex], [&](auto &pc_quest, auto &quest_map) {
                     int iState = pc_quest->second.st;
                     if (quest_map->second.find(iState) != quest_map->second.end()) {
                         for (size_t i = 0; i < quest_map->second[iState].size(); i++) {
@@ -598,17 +526,14 @@ namespace metin2::game {
                                 is_script_true(&quest_map->second[iState][i].when_condition[0], quest_map->second[iState][i].when_condition.size()))
                                 AvailScript.push_back(&quest_map->second[iState][i]);
                         }
-                    }
-                },
-                [&](auto &, auto &quest_map) {
+                    } }, [&](auto &, auto &quest_map) {
                     if (quest_manager::instance().can_start_quest(quest_map->first) && has_start_state(quest_map->second)) {
                         for (size_t i = 0; i < quest_map->second[QUEST_START_STATE_INDEX].size(); ++i) {
                             if (quest_map->second[QUEST_START_STATE_INDEX][i].when_condition.size() == 0 ||
                                 is_script_true(&quest_map->second[QUEST_START_STATE_INDEX][i].when_condition[0], quest_map->second[QUEST_START_STATE_INDEX][i].when_condition.size()))
                                 AvailScript.push_back(&quest_map->second[QUEST_START_STATE_INDEX][i]);
                         }
-                    }
-                });
+                    } });
 
             if (AvailScript.empty())
                 return false;

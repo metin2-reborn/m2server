@@ -45,7 +45,6 @@
 #include <metin2/game/world/sectree_manager.h>
 
 #include <metin2/common/startup.h>
-#include <metin2/core/core_signal.h>
 #include <metin2/core/main.h>
 #include <metin2/core/utils.h>
 #include <metin2/log/log.h>
@@ -59,6 +58,8 @@
 #include <cstring>
 #include <format>
 #include <map>
+#include <optional>
+#include <span>
 #include <string>
 #include <vector>
 
@@ -377,6 +378,27 @@ namespace metin2::game::inline protocol {
         ch->query_safebox_size();
     }
 
+    namespace {
+
+        template <typename T>
+        auto read_table(const char *&data, const char *what) -> std::optional<std::span<T>> {
+            if (decode_2bytes(data) != sizeof(T)) {
+                metin2::log::error("Boot packet {} record size mismatch, shutting down", what);
+                thecore_shutdown();
+                return std::nullopt;
+            }
+            data += 2;
+
+            const uint16_t count = decode_2bytes(data);
+            data += 2;
+
+            std::span<T> records(reinterpret_cast<T *>(const_cast<char *>(data)), count);
+            data += count * sizeof(T);
+            return records;
+        }
+
+    }
+
     void input_db::boot(const char *data) {
         signal_timer_disable();
 
@@ -406,227 +428,108 @@ namespace metin2::game::inline protocol {
         metin2::log::debug("Boot: object_table size {:d}", sizeof(building::object_table));
         metin2::log::debug("Boot: t_admin_info size {:d}", sizeof(t_admin_info));
 
-        uint16_t size;
+        auto mobs = read_table<mob_table>(data, "mob table");
+        if (!mobs)
+            return;
+        metin2::log::info("Boot: {:d} mobs", mobs->size());
+        if (!mobs->empty())
+            mob_manager::instance().initialize(mobs->data(), mobs->size());
 
-        if (decode_2bytes(data) != sizeof(mob_table)) {
-            metin2::log::error("Boot packet mob table record size mismatch, shutting down");
+        auto items = read_table<item_table>(data, "item table");
+        if (!items)
+            return;
+        metin2::log::info("Boot: {:d} items", items->size());
+        if (!items->empty())
+            item_manager::instance().initialize(items->data(), items->size());
+
+        auto shops = read_table<shop_table>(data, "shop table");
+        if (!shops)
+            return;
+        metin2::log::info("Boot: {:d} shops", shops->size());
+        if (!shops->empty() && !shop_manager::instance().initialize(shops->data(), shops->size())) {
+            metin2::log::error("Cannot initialize shops, shutting down");
             thecore_shutdown();
             return;
         }
-        data += 2;
 
-        size = decode_2bytes(data);
-        data += 2;
-        metin2::log::info("Boot: {:d} mobs", size);
-
-        if (size) {
-            mob_manager::instance().initialize((mob_table *)data, size);
-            data += size * sizeof(mob_table);
-        }
-
-        if (decode_2bytes(data) != sizeof(item_table)) {
-            metin2::log::error("Boot packet item table record size mismatch, shutting down");
+        auto skills = read_table<skill_table>(data, "skill table");
+        if (!skills)
+            return;
+        metin2::log::info("Boot: {:d} skills", skills->size());
+        if (!skills->empty() && !skill_manager::instance().initialize(skills->data(), skills->size())) {
+            metin2::log::error("Cannot initialize skills, shutting down");
             thecore_shutdown();
             return;
         }
-        data += 2;
 
-        size = decode_2bytes(data);
-        data += 2;
-        metin2::log::info("Boot: {:d} items", size);
-
-        if (size) {
-            item_manager::instance().initialize((item_table *)data, size);
-            data += size * sizeof(item_table);
-        }
-
-        if (decode_2bytes(data) != sizeof(shop_table)) {
-            metin2::log::error("Boot packet shop table record size mismatch, shutting down");
-            thecore_shutdown();
+        auto refines = read_table<refine_table>(data, "refine table");
+        if (!refines)
             return;
-        }
-        data += 2;
+        metin2::log::info("Boot: {:d} refine recipes", refines->size());
+        if (!refines->empty())
+            refine_manager::instance().initialize(refines->data(), refines->size());
 
-        size = decode_2bytes(data);
-        data += 2;
-        metin2::log::info("Boot: {:d} shops", size);
-
-        if (size) {
-            if (!shop_manager::instance().initialize((shop_table *)data, size)) {
-                metin2::log::error("Cannot initialize shops, shutting down");
-                thecore_shutdown();
-                return;
-            }
-            data += size * sizeof(shop_table);
-        }
-
-        if (decode_2bytes(data) != sizeof(skill_table)) {
-            metin2::log::error("Boot packet skill table record size mismatch, shutting down");
-            thecore_shutdown();
+        auto attrs = read_table<item_attr_table>(data, "item attribute table");
+        if (!attrs)
             return;
+        metin2::log::info("Boot: {:d} item attributes", attrs->size());
+        for (const item_attr_table &attr : *attrs) {
+            if (attr.apply_index >= MAX_APPLY_NUM)
+                continue;
+
+            map_item_attr[attr.apply_index] = attr;
+            metin2::log::debug("Item attribute {:d}: {} (probability {:d})", attr.apply_index, attr.apply, attr.prob);
         }
-        data += 2;
 
-        size = decode_2bytes(data);
-        data += 2;
-        metin2::log::info("Boot: {:d} skills", size);
-
-        if (size) {
-            if (!skill_manager::instance().initialize((skill_table *)data, size)) {
-                metin2::log::error("Cannot initialize skills, shutting down");
-                thecore_shutdown();
-                return;
-            }
-
-            data += size * sizeof(skill_table);
-        }
-        if (decode_2bytes(data) != sizeof(refine_table)) {
-            metin2::log::error("Boot packet refine table record size mismatch, shutting down");
-            thecore_shutdown();
+        auto rare_attrs = read_table<item_attr_table>(data, "item rare attribute table");
+        if (!rare_attrs)
             return;
-        }
-        data += 2;
+        metin2::log::info("Boot: {:d} item rare attributes", rare_attrs->size());
+        for (const item_attr_table &attr : *rare_attrs) {
+            if (attr.apply_index >= MAX_APPLY_NUM)
+                continue;
 
-        size = decode_2bytes(data);
-        data += 2;
-        metin2::log::info("Boot: {:d} refine recipes", size);
-
-        if (size) {
-            refine_manager::instance().initialize((refine_table *)data, size);
-            data += size * sizeof(refine_table);
+            map_item_rare[attr.apply_index] = attr;
+            metin2::log::debug("Item rare attribute {:d}: {} (probability {:d})", attr.apply_index, attr.apply, attr.prob);
         }
 
-        if (decode_2bytes(data) != sizeof(item_attr_table)) {
-            metin2::log::error("Boot packet item attribute table record size mismatch, shutting down");
-            thecore_shutdown();
+        auto banwords = read_table<banword_table>(data, "banword table");
+        if (!banwords)
             return;
-        }
-        data += 2;
-
-        size = decode_2bytes(data);
-        data += 2;
-        metin2::log::info("Boot: {:d} item attributes", size);
-
-        if (size) {
-            item_attr_table *p = (item_attr_table *)data;
-
-            for (int i = 0; i < size; ++i, ++p) {
-                if (p->apply_index >= MAX_APPLY_NUM)
-                    continue;
-
-                map_item_attr[p->apply_index] = *p;
-                metin2::log::debug("Item attribute {:d}: {} (probability {:d})", p->apply_index, p->apply, p->prob);
-            }
-        }
-
-        data += size * sizeof(item_attr_table);
-
-        if (decode_2bytes(data) != sizeof(item_attr_table)) {
-            metin2::log::error("Boot packet item rare attribute table record size mismatch, shutting down");
-            thecore_shutdown();
-            return;
-        }
-        data += 2;
-
-        size = decode_2bytes(data);
-        data += 2;
-        metin2::log::info("Boot: {:d} item rare attributes", size);
-
-        if (size) {
-            item_attr_table *p = (item_attr_table *)data;
-
-            for (int i = 0; i < size; ++i, ++p) {
-                if (p->apply_index >= MAX_APPLY_NUM)
-                    continue;
-
-                map_item_rare[p->apply_index] = *p;
-                metin2::log::debug("Item rare attribute {:d}: {} (probability {:d})", p->apply_index, p->apply, p->prob);
-            }
-        }
-
-        data += size * sizeof(item_attr_table);
-
-        if (decode_2bytes(data) != sizeof(banword_table)) {
-            metin2::log::error("Boot packet banword table record size mismatch, shutting down");
-            thecore_shutdown();
-            return;
-        }
-        data += 2;
-
-        size = decode_2bytes(data);
-        data += 2;
-
-        banword_manager::instance().initialize((banword_table *)data, size);
-        data += size * sizeof(banword_table);
+        banword_manager::instance().initialize(banwords->data(), banwords->size());
 
         {
             using namespace building;
 
-            if (decode_2bytes(data) != sizeof(land_table)) {
-                metin2::log::error("Boot packet land table record size mismatch, shutting down");
-                thecore_shutdown();
+            auto lands = read_table<land_table>(data, "land table");
+            if (!lands)
                 return;
-            }
-            data += 2;
+            for (land_table &land : *lands)
+                manager::instance().load_land(&land);
 
-            size = decode_2bytes(data);
-            data += 2;
-
-            land_table *kLand = (land_table *)data;
-            data += size * sizeof(land_table);
-
-            for (uint16_t i = 0; i < size; ++i, ++kLand)
-                manager::instance().load_land(kLand);
-
-            if (decode_2bytes(data) != sizeof(object_proto)) {
-                metin2::log::error("Boot packet object proto table record size mismatch, shutting down");
-                thecore_shutdown();
+            auto object_protos = read_table<object_proto>(data, "object proto table");
+            if (!object_protos)
                 return;
-            }
-            data += 2;
+            manager::instance().load_object_proto(object_protos->data(), object_protos->size());
 
-            size = decode_2bytes(data);
-            data += 2;
-
-            manager::instance().load_object_proto((object_proto *)data, size);
-            data += size * sizeof(object_proto);
-
-            if (decode_2bytes(data) != sizeof(object_table)) {
-                metin2::log::error("Boot packet object table record size mismatch, shutting down");
-                thecore_shutdown();
+            auto objects = read_table<object_table>(data, "object table");
+            if (!objects)
                 return;
-            }
-            data += 2;
-
-            size = decode_2bytes(data);
-            data += 2;
-
-            object_table *kObj = (object_table *)data;
-            data += size * sizeof(object_table);
-
-            for (uint16_t i = 0; i < size; ++i, ++kObj)
-                manager::instance().load_object(kObj, true);
+            for (object_table &object : *objects)
+                manager::instance().load_object(&object, true);
         }
         int32_t server_time;
         memcpy(&server_time, data, sizeof(server_time));
         set_global_time(server_time);
         data += sizeof(int32_t);
 
-        if (decode_2bytes(data) != sizeof(item_id_range_table)) {
-            metin2::log::error("Boot packet item id range record size mismatch, shutting down");
-            thecore_shutdown();
+        auto ranges = read_table<item_id_range_table>(data, "item id range");
+        if (!ranges)
             return;
-        }
-        data += 2;
-
-        size = decode_2bytes(data);
-        data += 2;
-
-        item_id_range_table *range = (item_id_range_table *)data;
-        data += size * sizeof(item_id_range_table);
+        item_id_range_table *range = ranges->data();
 
         item_id_range_table *rangespare = (item_id_range_table *)data;
-        data += size * sizeof(item_id_range_table);
+        data += ranges->size() * sizeof(item_id_range_table);
 
         int ChunkSize = decode_2bytes(data);
         data += 2;
@@ -634,7 +537,6 @@ namespace metin2::game::inline protocol {
         data += 2;
         metin2::log::debug("Boot: {:d} gm hosts ({:d} bytes each)", HostSize, ChunkSize);
         for (int n = 0; n < HostSize; ++n) {
-            gm_new_host_inert(data);
             metin2::log::debug("Boot: gm host {}", data);
             data += ChunkSize;
         }
@@ -1539,12 +1441,7 @@ namespace metin2::game::inline protocol {
         int ChunkSize = decode_2bytes(data);
         data += 2;
         int HostSize = decode_2bytes(data);
-        data += 2;
-
-        for (int n = 0; n < HostSize; ++n) {
-            gm_new_host_inert(data);
-            data += ChunkSize;
-        }
+        data += 2 + ChunkSize * HostSize;
 
         data += 2;
         int size = decode_2bytes(data);
@@ -1565,6 +1462,8 @@ namespace metin2::game::inline protocol {
     }
 
     auto input_db::analyze(desc *d, uint8_t header, const char *data) -> int {
+        desc *handle_desc = desc_manager::instance().find_by_handle(handle_);
+
         switch (header) {
         case HEADER_DG_BOOT:
             boot(data);
@@ -1575,78 +1474,78 @@ namespace metin2::game::inline protocol {
             break;
 
         case HEADER_DG_LOGIN_NOT_EXIST:
-            login_failure(desc_manager::instance().find_by_handle(handle_), "NOID");
+            login_failure(handle_desc, "NOID");
             break;
 
         case HEADER_DG_LOGIN_WRONG_PASSWD:
-            login_failure(desc_manager::instance().find_by_handle(handle_), "WRONGPWD");
+            login_failure(handle_desc, "WRONGPWD");
             break;
 
         case HEADER_DG_LOGIN_ALREADY:
-            login_already(desc_manager::instance().find_by_handle(handle_), data);
+            login_already(handle_desc, data);
             break;
 
         case HEADER_DG_PLAYER_LOAD_SUCCESS:
-            player_load(desc_manager::instance().find_by_handle(handle_), data);
+            player_load(handle_desc, data);
             break;
 
         case HEADER_DG_PLAYER_CREATE_SUCCESS:
-            player_create_success(desc_manager::instance().find_by_handle(handle_), data);
+            player_create_success(handle_desc, data);
             break;
 
         case HEADER_DG_PLAYER_CREATE_FAILED:
-            player_create_failure(desc_manager::instance().find_by_handle(handle_), 0);
+            player_create_failure(handle_desc, 0);
             break;
 
         case HEADER_DG_PLAYER_CREATE_ALREADY:
-            player_create_failure(desc_manager::instance().find_by_handle(handle_), 1);
+            player_create_failure(handle_desc, 1);
             break;
 
         case HEADER_DG_PLAYER_DELETE_SUCCESS:
-            player_delete_success(desc_manager::instance().find_by_handle(handle_), data);
+            player_delete_success(handle_desc, data);
             break;
 
         case HEADER_DG_PLAYER_LOAD_FAILED:
             break;
 
         case HEADER_DG_PLAYER_DELETE_FAILED:
-            player_delete_fail(desc_manager::instance().find_by_handle(handle_));
+            player_delete_fail(handle_desc);
             break;
 
         case HEADER_DG_ITEM_LOAD:
-            item_load(desc_manager::instance().find_by_handle(handle_), data);
+            item_load(handle_desc, data);
             break;
 
         case HEADER_DG_QUEST_LOAD:
-            quest_load(desc_manager::instance().find_by_handle(handle_), data);
+            quest_load(handle_desc, data);
             break;
 
         case HEADER_DG_AFFECT_LOAD:
-            affect_load(desc_manager::instance().find_by_handle(handle_), data);
+            affect_load(handle_desc, data);
             break;
 
         case HEADER_DG_SAFEBOX_LOAD:
-            safebox_load(desc_manager::instance().find_by_handle(handle_), data);
+            safebox_load(handle_desc, data);
             break;
 
         case HEADER_DG_SAFEBOX_CHANGE_SIZE:
-            safebox_change_size(desc_manager::instance().find_by_handle(handle_), data);
+            safebox_change_size(handle_desc, data);
             break;
 
         case HEADER_DG_SAFEBOX_WRONG_PASSWORD:
-            safebox_wrong_password(desc_manager::instance().find_by_handle(handle_));
+            safebox_wrong_password(handle_desc);
             break;
 
         case HEADER_DG_SAFEBOX_CHANGE_PASSWORD_ANSWER:
-            safebox_change_password_answer(desc_manager::instance().find_by_handle(handle_), data);
+            safebox_change_password_answer(handle_desc, data);
             break;
 
         case HEADER_DG_MALL_LOAD:
-            mall_load(desc_manager::instance().find_by_handle(handle_), data);
+            mall_load(handle_desc, data);
             break;
 
         case HEADER_DG_EMPIRE_SELECT:
-            empire_select(desc_manager::instance().find_by_handle(handle_), data);
+            empire_select(handle_desc, data);
             break;
 
         case HEADER_DG_MAP_LOCATIONS:
@@ -1742,11 +1641,11 @@ namespace metin2::game::inline protocol {
             break;
 
         case HEADER_DG_CHANGE_NAME:
-            change_name(desc_manager::instance().find_by_handle(handle_), data);
+            change_name(handle_desc, data);
             break;
 
         case HEADER_DG_AUTH_LOGIN:
-            auth_login(desc_manager::instance().find_by_handle(handle_), data);
+            auth_login(handle_desc, data);
             break;
 
         case HEADER_DG_CHANGE_EMPIRE_PRIV:
@@ -1834,22 +1733,22 @@ namespace metin2::game::inline protocol {
             break;
 
         case HEADER_DG_MYSHOP_PRICELIST_RES:
-            myshop_pricelist_res(desc_manager::instance().find_by_handle(handle_), (packet_myshop_pricelist_header *)data);
+            myshop_pricelist_res(handle_desc, (packet_myshop_pricelist_header *)data);
             break;
         case HEADER_DG_RELOAD_ADMIN:
             reload_admin(data);
             break;
 
         case HEADER_DG_ADD_MONARCH_MONEY:
-            add_monarch_money(desc_manager::instance().find_by_handle(handle_), data);
+            add_monarch_money(handle_desc, data);
             break;
 
         case HEADER_DG_DEC_MONARCH_MONEY:
-            dec_monarch_money(desc_manager::instance().find_by_handle(handle_), data);
+            dec_monarch_money(handle_desc, data);
             break;
 
         case HEADER_DG_TAKE_MONARCH_MONEY:
-            take_monarch_money(desc_manager::instance().find_by_handle(handle_), data);
+            take_monarch_money(handle_desc, data);
             break;
 
         case HEADER_DG_CHANGE_MONARCH_LORD_ACK:
@@ -1881,7 +1780,7 @@ namespace metin2::game::inline protocol {
             item_award_informer((packet_item_award_infromer *)data);
             break;
         case HEADER_DG_RESPOND_CHANNELSTATUS:
-            respond_channel_status(desc_manager::instance().find_by_handle(handle_), data);
+            respond_channel_status(handle_desc, data);
             break;
         default:
             return (-1);

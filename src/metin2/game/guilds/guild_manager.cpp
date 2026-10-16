@@ -75,7 +75,7 @@ namespace metin2::game::inline guilds {
             sql::raw(get_table_postfix()), gcp.name)));
 
         if (pmsg->get()->num_rows > 0) {
-            MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
+            MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res.get());
 
             if (!(row[0] && row[0][0] == '0')) {
                 gcp.master->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 이미 같은 이름의 길드가 있습니다."));
@@ -175,7 +175,7 @@ namespace metin2::game::inline guilds {
         auto pmsg = db_manager::instance().direct_query(sql::format("SELECT id FROM guild{}", sql::raw(get_table_postfix())));
 
         for (uint i = 0; i < pmsg->get()->num_rows; i++) {
-            MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
+            MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res.get());
             uint32_t guild_id = strtoul(row[0], (char **)nullptr, 10);
             load_guild(guild_id);
         }
@@ -233,12 +233,41 @@ namespace metin2::game::inline guilds {
 
     namespace {
         auto guild_rank_less(guild *g1, guild *g2) -> bool {
-            return std::tuple(g1->ladder_point(), g1->guild_war_win_count(), g1->guild_war_loss_count(), std::string_view(g2->name()))
-                 < std::tuple(g2->ladder_point(), g2->guild_war_win_count(), g2->guild_war_loss_count(), std::string_view(g1->name()));
+            return std::tuple(g1->ladder_point(), g1->guild_war_win_count(), g1->guild_war_loss_count(), std::string_view(g2->name())) < std::tuple(g2->ladder_point(), g2->guild_war_win_count(), g2->guild_war_loss_count(), std::string_view(g1->name()));
+        }
+
+        void append_rank_line(std::string &text, guild *g, int rank, uint32_t my_guild, bool separator) {
+            if (my_guild == g->id()) {
+                text += "[COLOR r;255|g;255|b;0]";
+            }
+
+            if (separator) {
+                text += "[ENTER]";
+            }
+
+            std::format_to(std::back_inserter(text), "{:3} | {:<12} | {:<8} | {:4} | {:4} | {:4}",
+                rank,
+                g->name(),
+                g->ladder_point(),
+                g->guild_war_win_count(),
+                g->guild_war_draw_count(),
+                g->guild_war_loss_count());
+
+            if (g->id() == my_guild) {
+                text += "[/COLOR]";
+            }
+        }
+
+        void send_war_request(uint8_t war, uint32_t guild_id1, uint32_t guild_id2) {
+            packet_guild_war p;
+            p.war = war;
+            p.guild_from = guild_id1;
+            p.guild_to = guild_id2;
+            db_clientdesc->db_packet(HEADER_GD_GUILD_WAR, 0, &p, sizeof(p));
         }
     }
 
-    void guild_manager::high_rank_string(uint32_t my_guild, char *buffer, size_t buflen) {
+    auto guild_manager::sorted_by_rank() -> std::vector<guild *> {
         std::vector<guild *> v;
 
         for (auto it = guild_.begin(); it != guild_.end(); ++it) {
@@ -247,6 +276,11 @@ namespace metin2::game::inline guilds {
         }
 
         std::sort(v.begin(), v.end(), guild_rank_less);
+        return v;
+    }
+
+    void guild_manager::high_rank_string(uint32_t my_guild, char *buffer, size_t buflen) {
+        std::vector<guild *> v = sorted_by_rank();
         int n = v.size();
         std::string text;
 
@@ -262,39 +296,14 @@ namespace metin2::game::inline guilds {
             if (g->ladder_point() <= 0)
                 break;
 
-            if (my_guild == g->id()) {
-                text += "[COLOR r;255|g;255|b;0]";
-            }
-
-            if (i) {
-                text += "[ENTER]";
-            }
-
-            std::format_to(std::back_inserter(text), "{:3} | {:<12} | {:<8} | {:4} | {:4} | {:4}",
-                rank(g),
-                g->name(),
-                g->ladder_point(),
-                g->guild_war_win_count(),
-                g->guild_war_draw_count(),
-                g->guild_war_loss_count());
-
-            if (g->id() == my_guild) {
-                text += "[/COLOR]";
-            }
+            append_rank_line(text, g, rank(g), my_guild, i != 0);
         }
 
         strlcpy(buffer, text.c_str(), buflen);
     }
 
     void guild_manager::around_rank_string(uint32_t my_guild, char *buffer, size_t buflen) {
-        std::vector<guild *> v;
-
-        for (auto it = guild_.begin(); it != guild_.end(); ++it) {
-            if (it->second)
-                v.push_back(it->second.get());
-        }
-
-        std::sort(v.begin(), v.end(), guild_rank_less);
+        std::vector<guild *> v = sorted_by_rank();
         int n = v.size();
         int idx;
 
@@ -317,27 +326,8 @@ namespace metin2::game::inline guilds {
             if (!g)
                 continue;
 
-            if (my_guild == g->id()) {
-                text += "[COLOR r;255|g;255|b;0]";
-            }
-
-            if (count) {
-                text += "[ENTER]";
-            }
-
-            std::format_to(std::back_inserter(text), "{:3} | {:<12} | {:<8} | {:4} | {:4} | {:4}",
-                rank(g),
-                g->name(),
-                g->ladder_point(),
-                g->guild_war_win_count(),
-                g->guild_war_draw_count(),
-                g->guild_war_loss_count());
-
+            append_rank_line(text, g, rank(g), my_guild, count != 0);
             ++count;
-
-            if (g->id() == my_guild) {
-                text += "[/COLOR]";
-            }
         }
 
         strlcpy(buffer, text.c_str(), buflen);
@@ -345,22 +335,12 @@ namespace metin2::game::inline guilds {
 
     void guild_manager::request_cancel_war(uint32_t guild_id1, uint32_t guild_id2) {
         metin2::log::info("Guild war: requesting cancel of war between guild {:d} and {:d}", guild_id1, guild_id2);
-
-        packet_guild_war p;
-        p.war = GUILD_WAR_CANCEL;
-        p.guild_from = guild_id1;
-        p.guild_to = guild_id2;
-        db_clientdesc->db_packet(HEADER_GD_GUILD_WAR, 0, &p, sizeof(p));
+        send_war_request(GUILD_WAR_CANCEL, guild_id1, guild_id2);
     }
 
     void guild_manager::request_end_war(uint32_t guild_id1, uint32_t guild_id2) {
         metin2::log::info("Guild war: requesting end of war between guild {:d} and {:d}", guild_id1, guild_id2);
-
-        packet_guild_war p;
-        p.war = GUILD_WAR_END;
-        p.guild_from = guild_id1;
-        p.guild_to = guild_id2;
-        db_clientdesc->db_packet(HEADER_GD_GUILD_WAR, 0, &p, sizeof(p));
+        send_war_request(GUILD_WAR_END, guild_id1, guild_id2);
     }
 
     void guild_manager::request_war_over(uint32_t guild1, uint32_t guild2, uint32_t guild_winner, int32_t reward) {

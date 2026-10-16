@@ -1,6 +1,5 @@
-#include <metin2/core/internal.h>
+#include <metin2/core/main.h>
 
-#include <metin2/core/core_signal.h>
 #include <metin2/core/utils.h>
 
 #include <atomic>
@@ -19,6 +18,8 @@
 namespace metin2::inline core {
 
     namespace {
+        std::atomic<unsigned> ticks{0};
+        volatile std::sig_atomic_t shutdowned = false;
         std::atomic<int> watchdog_seconds{0};
         volatile std::sig_atomic_t dump_requested = 0;
 
@@ -80,7 +81,17 @@ namespace metin2::inline core {
         }
     }
 
-    std::atomic<unsigned> ticks{0};
+    void thecore_shutdown() {
+        shutdowned = true;
+    }
+
+    auto thecore_is_shutdowned() -> bool {
+        return shutdowned;
+    }
+
+    void thecore_tick() {
+        ticks.fetch_add(1, std::memory_order_relaxed);
+    }
 
     void signal_timer_disable() {
         watchdog_seconds = 0;

@@ -73,6 +73,68 @@
 
 namespace metin2::game::inline admin {
 
+    namespace {
+
+        auto resolve_mob(const char *arg) -> const mob * {
+            const mob *pkMob;
+
+            if (is_digit(*arg)) {
+                uint32_t vnum = 0;
+                str_to_number(vnum, arg);
+                pkMob = mob_manager::instance().get(vnum);
+            } else
+                pkMob = mob_manager::instance().get(arg, true);
+
+            return pkMob && pkMob->table.vnum ? pkMob : nullptr;
+        }
+
+        auto spawn_count(const char *arg, int max_count) -> int {
+            int count = 1;
+
+            if (*arg) {
+                count = 0;
+                str_to_number(count, arg);
+            }
+
+            return std::min(max_count, count);
+        }
+
+        void spawn_around(character *ch, const mob *pkMob, int count, void (character::*on_spawn)() = nullptr) {
+            while (count--) {
+                character *tch = character_manager::instance().spawn_mob_range(pkMob->table.vnum,
+                    ch->map_index(),
+                    ch->x() - number(200, 750),
+                    ch->y() - number(200, 750),
+                    ch->x() + number(200, 750),
+                    ch->y() + number(200, 750),
+                    true,
+                    pkMob->table.type == CHAR_TYPE_STONE);
+
+                if (tch && on_spawn)
+                    (tch->*on_spawn)();
+            }
+        }
+
+        auto find_target_or_self(character *ch, const char *name) -> character * {
+            if (!*name)
+                return ch;
+
+            character *tch = character_manager::instance().find_pc(name);
+
+            if (!tch)
+                ch->chat_packet(CHAT_TYPE_INFO, "There is no such character.");
+
+            return tch;
+        }
+
+        template <typename F>
+        void with_weapon(character *ch, F &&fn) {
+            if (item *weapon = ch->wear(WEAR_WEAPON))
+                fn(weapon);
+        }
+
+    }
+
     enum {
         COMMANDAFFECT_STUN,
         COMMANDAFFECT_SLOW,
@@ -448,8 +510,6 @@ namespace metin2::game::inline admin {
 
     ACMD(do_mob_coward) {
         char arg1[256], arg2[256];
-        uint32_t vnum = 0;
-        character *tch;
 
         two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -458,46 +518,14 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        const mob *pkMob;
+        const mob *pkMob = resolve_mob(arg1);
 
-        if (isdigit(*arg1)) {
-            str_to_number(vnum, arg1);
-
-            if ((pkMob = mob_manager::instance().get(vnum)) == nullptr)
-                vnum = 0;
-        } else {
-            pkMob = mob_manager::instance().get(arg1, true);
-
-            if (pkMob)
-                vnum = pkMob->table.vnum;
-        }
-
-        if (vnum == 0) {
+        if (!pkMob) {
             ch->chat_packet(CHAT_TYPE_INFO, "No such mob by that vnum");
             return;
         }
 
-        int iCount = 0;
-
-        if (*arg2)
-            str_to_number(iCount, arg2);
-        else
-            iCount = 1;
-
-        iCount = std::min(20, iCount);
-
-        while (iCount--) {
-            tch = character_manager::instance().spawn_mob_range(vnum,
-                ch->map_index(),
-                ch->x() - number(200, 750),
-                ch->y() - number(200, 750),
-                ch->x() + number(200, 750),
-                ch->y() + number(200, 750),
-                true,
-                pkMob->table.type == CHAR_TYPE_STONE);
-            if (tch)
-                tch->set_coward();
-        }
+        spawn_around(ch, pkMob, spawn_count(arg2, 20), &character::set_coward);
     }
 
     ACMD(do_mob_map) {
@@ -521,8 +549,6 @@ namespace metin2::game::inline admin {
 
     ACMD(do_mob_aggresive) {
         char arg1[256], arg2[256];
-        uint32_t vnum = 0;
-        character *tch;
 
         two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -531,51 +557,18 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        const mob *pkMob;
+        const mob *pkMob = resolve_mob(arg1);
 
-        if (isdigit(*arg1)) {
-            str_to_number(vnum, arg1);
-
-            if ((pkMob = mob_manager::instance().get(vnum)) == nullptr)
-                vnum = 0;
-        } else {
-            pkMob = mob_manager::instance().get(arg1, true);
-
-            if (pkMob)
-                vnum = pkMob->table.vnum;
-        }
-
-        if (vnum == 0) {
+        if (!pkMob) {
             ch->chat_packet(CHAT_TYPE_INFO, "No such mob by that vnum");
             return;
         }
 
-        int iCount = 0;
-
-        if (*arg2)
-            str_to_number(iCount, arg2);
-        else
-            iCount = 1;
-
-        iCount = std::min(20, iCount);
-
-        while (iCount--) {
-            tch = character_manager::instance().spawn_mob_range(vnum,
-                ch->map_index(),
-                ch->x() - number(200, 750),
-                ch->y() - number(200, 750),
-                ch->x() + number(200, 750),
-                ch->y() + number(200, 750),
-                true,
-                pkMob->table.type == CHAR_TYPE_STONE);
-            if (tch)
-                tch->set_aggressive();
-        }
+        spawn_around(ch, pkMob, spawn_count(arg2, 20), &character::set_aggressive);
     }
 
     ACMD(do_mob) {
         char arg1[256], arg2[256];
-        uint32_t vnum = 0;
 
         two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
@@ -584,52 +577,18 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        const mob *pkMob = nullptr;
+        const mob *pkMob = resolve_mob(arg1);
 
-        if (is_digit(*arg1)) {
-            str_to_number(vnum, arg1);
-
-            if ((pkMob = mob_manager::instance().get(vnum)) == nullptr)
-                vnum = 0;
-        } else {
-            pkMob = mob_manager::instance().get(arg1, true);
-
-            if (pkMob)
-                vnum = pkMob->table.vnum;
-        }
-
-        if (vnum == 0) {
+        if (!pkMob) {
             ch->chat_packet(CHAT_TYPE_INFO, "No such mob by that vnum");
             return;
         }
 
-        int iCount = 0;
-
-        if (*arg2)
-            str_to_number(iCount, arg2);
-        else
-            iCount = 1;
-
-        if (metin2::config::test_server())
-            iCount = std::min(40, iCount);
-        else
-            iCount = std::min(20, iCount);
-
-        while (iCount--) {
-            character_manager::instance().spawn_mob_range(vnum,
-                ch->map_index(),
-                ch->x() - number(200, 750),
-                ch->y() - number(200, 750),
-                ch->x() + number(200, 750),
-                ch->y() + number(200, 750),
-                true,
-                pkMob->table.type == CHAR_TYPE_STONE);
-        }
+        spawn_around(ch, pkMob, spawn_count(arg2, metin2::config::test_server() ? 40 : 20));
     }
 
     ACMD(do_mob_ld) {
         char arg1[256], arg2[256], arg3[256], arg4[256];
-        uint32_t vnum = 0;
 
         two_arguments(two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2)), arg3, sizeof(arg3), arg4, sizeof(arg4));
 
@@ -638,21 +597,9 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        const mob *pkMob = nullptr;
+        const mob *pkMob = resolve_mob(arg1);
 
-        if (is_digit(*arg1)) {
-            str_to_number(vnum, arg1);
-
-            if ((pkMob = mob_manager::instance().get(vnum)) == nullptr)
-                vnum = 0;
-        } else {
-            pkMob = mob_manager::instance().get(arg1, true);
-
-            if (pkMob)
-                vnum = pkMob->table.vnum;
-        }
-
-        if (vnum == 0) {
+        if (!pkMob) {
             ch->chat_packet(CHAT_TYPE_INFO, "No such mob by that vnum");
             return;
         }
@@ -668,7 +615,7 @@ namespace metin2::game::inline admin {
         if (*arg4)
             str_to_number(dir, arg4);
 
-        character_manager::instance().spawn_mob(vnum,
+        character_manager::instance().spawn_mob(pkMob->table.vnum,
             ch->map_index(),
             x * 100,
             y * 100,
@@ -1445,23 +1392,19 @@ namespace metin2::game::inline admin {
         argument = two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
         one_argument(argument, arg3, sizeof(arg3));
 
-        if (!*arg1 || !*arg2 || !*arg3 || !isdigit(*arg3)) {
+        if (!*arg1 || !*arg2 || !*arg3 || !is_digit(*arg3)) {
             ch->chat_packet(CHAT_TYPE_INFO, "Syntax: setskillother <target> <skillname> <lev>");
             return;
         }
 
-        character *tch;
+        character *tch = find_target_or_self(ch, arg1);
 
-        tch = character_manager::instance().find_pc(arg1);
-
-        if (!tch) {
-            ch->chat_packet(CHAT_TYPE_INFO, "There is no such character.");
+        if (!tch)
             return;
-        }
 
         skill_proto *pk;
 
-        if (isdigit(*arg2)) {
+        if (is_digit(*arg2)) {
             uint32_t vnum = 0;
             str_to_number(vnum, arg2);
             pk = skill_manager::instance().get(vnum);
@@ -1484,14 +1427,14 @@ namespace metin2::game::inline admin {
         char arg1[256], arg2[256];
         two_arguments(argument, arg1, sizeof(arg1), arg2, sizeof(arg2));
 
-        if (!*arg1 || !*arg2 || !isdigit(*arg2)) {
+        if (!*arg1 || !*arg2 || !is_digit(*arg2)) {
             ch->chat_packet(CHAT_TYPE_INFO, "Syntax: setskill <name> <lev>");
             return;
         }
 
         skill_proto *pk;
 
-        if (isdigit(*arg1)) {
+        if (is_digit(*arg1)) {
             uint32_t vnum = 0;
             str_to_number(vnum, arg1);
             pk = skill_manager::instance().get(vnum);
@@ -1694,18 +1637,10 @@ namespace metin2::game::inline admin {
 
         one_argument(argument, arg1, sizeof(arg1));
 
-        character *tch;
+        character *tch = find_target_or_self(ch, arg1);
 
-        if (!*arg1)
-            tch = ch;
-        else {
-            tch = character_manager::instance().find_pc(arg1);
-
-            if (!tch) {
-                ch->chat_packet(CHAT_TYPE_INFO, "There is no such character.");
-                return;
-            }
-        }
+        if (!tch)
+            return;
 
         quest::pc *pPC = quest::quest_manager::instance().get_pc(tch->player_id());
 
@@ -1762,15 +1697,10 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        character *tch = ch;
+        character *tch = find_target_or_self(ch, arg3);
 
-        if (*arg3)
-            tch = character_manager::instance().find_pc(arg3);
-
-        if (!tch) {
-            ch->chat_packet(CHAT_TYPE_INFO, "There is no such character.");
+        if (!tch)
             return;
-        }
 
         quest::pc *pPC = quest::quest_manager::instance().get_pc(tch->player_id());
 
@@ -1793,15 +1723,10 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        character *tch = ch;
+        character *tch = find_target_or_self(ch, arg2);
 
-        if (*arg2)
-            tch = character_manager::instance().find_pc(arg2);
-
-        if (!tch) {
-            ch->chat_packet(CHAT_TYPE_INFO, "There is no such character.");
+        if (!tch)
             return;
-        }
 
         quest::pc *pPC = quest::quest_manager::instance().get_pc(tch->player_id());
 
@@ -2050,15 +1975,14 @@ namespace metin2::game::inline admin {
                 return;
             if (msg.get()->num_rows) {
                 MYSQL_ROW row;
-                while ((row = mysql_fetch_row(msg.get()->res))) {
+                while ((row = mysql_fetch_row(msg.get()->res.get()))) {
                     ch->chat_packet(CHAT_TYPE_INFO, "%s %s sec", row[0], row[1]);
                 }
             } else {
                 ch->chat_packet(CHAT_TYPE_INFO, "No one currently blocked.");
             }
         },
-            sql::format("SELECT p.name, a.lDuration FROM affect{} as a, player{} as p WHERE a.bType = {} AND a.dwPID = p.id",
-                sql::raw(get_table_postfix()), sql::raw(get_table_postfix()), AFFECT_BLOCK_CHAT));
+            sql::format("SELECT p.name, a.lDuration FROM affect{} as a, player{} as p WHERE a.bType = {} AND a.dwPID = p.id", sql::raw(get_table_postfix()), sql::raw(get_table_postfix()), AFFECT_BLOCK_CHAT));
     }
 
     ACMD(do_vote_block_chat) {
@@ -2554,21 +2478,15 @@ namespace metin2::game::inline admin {
     }
 
     ACMD(do_change_attr) {
-        item *weapon = ch->wear(WEAR_WEAPON);
-        if (weapon)
-            weapon->change_attribute();
+        with_weapon(ch, [](item *weapon) { weapon->change_attribute(); });
     }
 
     ACMD(do_add_attr) {
-        item *weapon = ch->wear(WEAR_WEAPON);
-        if (weapon)
-            weapon->add_attribute();
+        with_weapon(ch, [](item *weapon) { weapon->add_attribute(); });
     }
 
     ACMD(do_add_socket) {
-        item *weapon = ch->wear(WEAR_WEAPON);
-        if (weapon)
-            weapon->add_socket();
+        with_weapon(ch, [](item *weapon) { weapon->add_socket(); });
     }
 
     ACMD(do_show_arena_list) {

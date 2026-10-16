@@ -29,7 +29,7 @@ namespace metin2::db::inline clients {
 
     auto client_manager::insert_logon_account(const char *login, uint32_t handle) -> bool {
         char szLogin[LOGIN_MAX_LEN + 1];
-        trim_and_lower(login, szLogin, sizeof(szLogin));
+        trim_and_lower(login, szLogin);
 
         auto it = map_logon_account_.find(szLogin);
 
@@ -49,7 +49,7 @@ namespace metin2::db::inline clients {
 
     auto client_manager::delete_logon_account(const char *login, uint32_t handle) -> bool {
         char szLogin[LOGIN_MAX_LEN + 1];
-        trim_and_lower(login, szLogin, sizeof(szLogin));
+        trim_and_lower(login, szLogin);
 
         auto it = map_logon_account_.find(szLogin);
 
@@ -75,7 +75,7 @@ namespace metin2::db::inline clients {
 
     auto client_manager::find_logon_account(const char *login) -> bool {
         char szLogin[LOGIN_MAX_LEN + 1];
-        trim_and_lower(login, szLogin, sizeof(szLogin));
+        trim_and_lower(login, szLogin);
 
         if (map_logon_account_.end() == map_logon_account_.find(szLogin))
             return false;
@@ -87,7 +87,7 @@ namespace metin2::db::inline clients {
 
         login_data *pkLoginData = get_login_data(p->login_key);
         char szLogin[LOGIN_MAX_LEN + 1];
-        trim_and_lower(p->login, szLogin, sizeof(szLogin));
+        trim_and_lower(p->login, szLogin);
 
         if (!pkLoginData) {
             metin2::log::info("Login: account {} used unknown login key {:d}", szLogin, p->login_key);
@@ -128,7 +128,7 @@ namespace metin2::db::inline clients {
         memset(pkTab.get(), 0, sizeof(account_table));
 
         pkTab->id = r.id;
-        trim_and_lower(r.login, pkTab->login, sizeof(pkTab->login));
+        trim_and_lower(r.login, pkTab->login);
         strlcpy(pkTab->passwd, r.passwd, sizeof(pkTab->passwd));
         strlcpy(pkTab->social_id, r.social_id, sizeof(pkTab->social_id));
         strlcpy(pkTab->status, "OK", sizeof(pkTab->status));
@@ -170,7 +170,7 @@ namespace metin2::db::inline clients {
             return;
         }
 
-        MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
+        MYSQL_ROW row = mysql_fetch_row(msg.get()->res.get());
 
         int col = 0;
 
@@ -178,7 +178,6 @@ namespace metin2::db::inline clients {
             str_to_number(info->account_table->players[col].id, row[col]);
 
         str_to_number(info->account_table->empire, row[col++]);
-        info->account_index = 1;
 
         const std::string query = sql::format(
             "SELECT id, name, job, level, playtime, st, ht, dx, iq, part_main, part_hair, x, y, skill_group, change_name FROM player{} WHERE account_id={}",
@@ -197,36 +196,6 @@ namespace metin2::db::inline clients {
             if (auto *peer_value = get_peer(handle))
                 result_login_by_key(peer_value, msg, std::move(info));
         });
-    }
-
-    auto create_account_table_from_res(MYSQL_RES *res) -> std::unique_ptr<account_table> {
-        char input_pwd[PASSWD_MAX_LEN + 1];
-        MYSQL_ROW row = nullptr;
-        uint32_t col;
-
-        row = mysql_fetch_row(res);
-        col = 0;
-
-        auto pkTab = std::make_unique<account_table>();
-        memset(pkTab.get(), 0, sizeof(account_table));
-
-        strlcpy(input_pwd, row[col++], sizeof(input_pwd));
-        str_to_number(pkTab->id, row[col++]);
-        strlcpy(pkTab->login, row[col++], sizeof(pkTab->login));
-        strlcpy(pkTab->passwd, row[col++], sizeof(pkTab->passwd));
-        strlcpy(pkTab->social_id, row[col++], sizeof(pkTab->social_id));
-        str_to_number(pkTab->empire, row[col++]);
-
-        for (int j = 0; j < PLAYER_PER_ACCOUNT; ++j)
-            str_to_number(pkTab->players[j].id, row[col++]);
-
-        strlcpy(pkTab->status, row[col++], sizeof(pkTab->status));
-
-        if (strcmp(pkTab->passwd, input_pwd)) {
-            return nullptr;
-        }
-
-        return pkTab;
     }
 
     void create_account_player_data_from_res(MYSQL_RES *res, account_table *tab) {
@@ -310,57 +279,25 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::result_login(peer *peer, sql_msg &msg, std::unique_ptr<client_handle_info> info) {
-        if (info->account_index == 0) {
-            if (msg.get()->num_rows == 0) {
-                metin2::log::info("Login: account not found");
-                peer->encode_header(HEADER_DG_LOGIN_NOT_EXIST, info->handle, 0);
-                return;
-            }
+        if (!insert_logon_account(info->account_table->login, peer->handle())) {
+            metin2::log::info("Login: account {} is already logged in", info->account_table->login);
 
-            info->account_table = create_account_table_from_res(msg.get()->res);
+            packet_dg_login_already p;
+            strlcpy(p.login, info->account_table->login, sizeof(p.login));
 
-            if (!info->account_table) {
-                metin2::log::info("Login: wrong password");
-                peer->encode_return(HEADER_DG_LOGIN_WRONG_PASSWD, info->handle);
-            } else {
-                ++info->account_index;
-
-                const std::string query = sql::format(
-                    "SELECT id, name, job, level, playtime, st, ht, dx, iq, part_main, part_hair, x, y, skill_group, change_name FROM player{} WHERE account_id={}",
-                    sql::raw(get_table_postfix()), info->account_table->id);
-
-                db_manager::instance().return_query(query, [this, handle = peer->handle(), info = std::move(info)](sql_msg &msg) mutable {
-                    if (auto *peer_value = get_peer(handle))
-                        result_login(peer_value, msg, std::move(info));
-                });
-            }
-            return;
+            peer->encode_header(HEADER_DG_LOGIN_ALREADY, info->handle, sizeof(packet_dg_login_already));
+            peer->encode(&p, sizeof(p));
         } else {
-            if (!info->account_table) {
-                peer->encode_return(HEADER_DG_LOGIN_WRONG_PASSWD, info->handle);
-                return;
-            }
+            metin2::log::info("Login: account {} logged in ({:d} players)", info->account_table->login, msg.get()->num_rows);
 
-            if (!insert_logon_account(info->account_table->login, peer->handle())) {
-                metin2::log::info("Login: account {} is already logged in", info->account_table->login);
+            if (msg.get()->num_rows > 0)
+                create_account_player_data_from_res(msg.get()->res.get(), info->account_table.get());
 
-                packet_dg_login_already p;
-                strlcpy(p.login, info->account_table->login, sizeof(p.login));
+            login_data *p = get_login_data_by_login(info->account_table->login);
+            memcpy(&p->account_ref(), info->account_table.get(), sizeof(account_table));
 
-                peer->encode_header(HEADER_DG_LOGIN_ALREADY, info->handle, sizeof(packet_dg_login_already));
-                peer->encode(&p, sizeof(p));
-            } else {
-                metin2::log::info("Login: account {} logged in ({:d} players)", info->account_table->login, msg.get()->num_rows);
-
-                if (msg.get()->num_rows > 0)
-                    create_account_player_data_from_res(msg.get()->res, info->account_table.get());
-
-                login_data *p = get_login_data_by_login(info->account_table->login);
-                memcpy(&p->account_ref(), info->account_table.get(), sizeof(account_table));
-
-                peer->encode_header(HEADER_DG_LOGIN_SUCCESS, info->handle, sizeof(account_table));
-                peer->encode(info->account_table.get(), sizeof(account_table));
-            }
+            peer->encode_header(HEADER_DG_LOGIN_SUCCESS, info->handle, sizeof(account_table));
+            peer->encode(info->account_table.get(), sizeof(account_table));
         }
     }
 
@@ -405,12 +342,12 @@ namespace metin2::db::inline clients {
         auto pMsg = db_manager::instance().direct_query(query, SQL_PLAYER);
 
         if (pMsg->get()->num_rows) {
-            if (!pMsg->get()->res) {
+            if (!pMsg->get()->res.get()) {
                 peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, handle, 0);
                 return;
             }
 
-            MYSQL_ROW row = mysql_fetch_row(pMsg->get()->res);
+            MYSQL_ROW row = mysql_fetch_row(pMsg->get()->res.get());
 
             if (*row[0] != '0') {
                 peer->encode_header(HEADER_DG_PLAYER_CREATE_ALREADY, handle, 0);

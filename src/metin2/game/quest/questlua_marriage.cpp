@@ -2,6 +2,7 @@
 #include <metin2/game/characters/character.h>
 #include <metin2/game/characters/character_manager.h>
 #include <metin2/game/quest/lua_incl.h>
+#include <metin2/game/quest/questlua.h>
 #include <metin2/game/quest/questmanager.h>
 #include <metin2/game/social/marriage.h>
 #include <metin2/game/social/wedding.h>
@@ -157,10 +158,8 @@ namespace metin2::game {
         }
 
         auto marriage_wedding_client_command(lua_State *lua) -> int {
-            if (!lua_isstring(lua, 1)) {
-                quest::error("Argument 1 must be a string");
+            if (!require_string(lua, 1, "Argument 1 must be a string"))
                 return 0;
-            }
 
             character *ch = quest_manager::instance().current_character_ptr();
             marriage::marriage *pMarriage = marriage::manager::instance().get(ch->player_id());
@@ -198,10 +197,8 @@ namespace metin2::game {
                 quest::error("Argument 1 must be a boolean");
                 return 0;
             }
-            if (!lua_isstring(lua, 2)) {
-                quest::error("Argument 2 must be a string");
+            if (!require_string(lua, 2, "Argument 2 must be a string"))
                 return 0;
-            }
 
             character *ch = quest_manager::instance().current_character_ptr();
             marriage::marriage *pMarriage = marriage::manager::instance().get(ch->player_id());

@@ -15,3 +15,4 @@ target_compile_definitions(config_tests PRIVATE M2_SOURCE_DIR="${PROJECT_SOURCE_
 m2_add_test(cipher_tests SOURCES cipher_tests.cpp ${PROJECT_SOURCE_DIR}/src/metin2/game/protocol/cipher.cpp LIBRARIES monocypher)
 m2_add_test(sql_tests SOURCES sql_tests.cpp LIBRARIES metin2_sql)
 m2_add_test(net_tests SOURCES net_tests.cpp LIBRARIES metin2_net)
+m2_add_test(poly_tests SOURCES poly_tests.cpp LIBRARIES metin2_poly metin2_core)

@@ -279,11 +279,8 @@ namespace metin2::game::inline trade {
     }
 
     auto exchange::check_space() -> bool {
-        static grid s_grid1(5, INVENTORY_MAX_NUM / 5 / 2);
-        static grid s_grid2(5, INVENTORY_MAX_NUM / 5 / 2);
-
-        s_grid1.clear();
-        s_grid2.clear();
+        grid s_grid1(5, INVENTORY_MAX_NUM / 5 / 2);
+        grid s_grid2(5, INVENTORY_MAX_NUM / 5 / 2);
 
         character *victim = company()->owner();
         item *item;
@@ -303,7 +300,7 @@ namespace metin2::game::inline trade {
             s_grid2.put(i - INVENTORY_MAX_NUM / 2, 1, item->size());
         }
 
-        static std::vector<uint16_t> s_vDSGrid(DRAGON_SOUL_INVENTORY_MAX_NUM);
+        std::vector<uint16_t> s_vDSGrid(DRAGON_SOUL_INVENTORY_MAX_NUM);
 
         bool bDSInitialized = false;
 
@@ -435,72 +432,77 @@ namespace metin2::game::inline trade {
         return true;
     }
 
+    auto exchange::validate() -> bool {
+        int iItemCount;
+
+        character *victim = company()->owner();
+
+        if (!check(&iItemCount)) {
+            owner()->chat_packet(CHAT_TYPE_INFO, lc_text("돈이 부족하거나 아이템이 제자리에 없습니다."));
+            victim->chat_packet(CHAT_TYPE_INFO, lc_text("상대방의 돈이 부족하거나 아이템이 제자리에 없습니다."));
+            return false;
+        }
+
+        if (!check_space()) {
+            owner()->chat_packet(CHAT_TYPE_INFO, lc_text("상대방의 소지품에 빈 공간이 없습니다."));
+            victim->chat_packet(CHAT_TYPE_INFO, lc_text("소지품에 빈 공간이 없습니다."));
+            return false;
+        }
+
+        if (!company()->check(&iItemCount)) {
+            victim->chat_packet(CHAT_TYPE_INFO, lc_text("돈이 부족하거나 아이템이 제자리에 없습니다."));
+            owner()->chat_packet(CHAT_TYPE_INFO, lc_text("상대방의 돈이 부족하거나 아이템이 제자리에 없습니다."));
+            return false;
+        }
+
+        if (!company()->check_space()) {
+            victim->chat_packet(CHAT_TYPE_INFO, lc_text("상대방의 소지품에 빈 공간이 없습니다."));
+            owner()->chat_packet(CHAT_TYPE_INFO, lc_text("소지품에 빈 공간이 없습니다."));
+            return false;
+        }
+
+        if (!db_clientdesc->is_connected()) {
+            metin2::log::warn("Exchange refused: db cache connection is down");
+            victim->chat_packet(CHAT_TYPE_INFO, "Unknown error");
+            owner()->chat_packet(CHAT_TYPE_INFO, "Unknown error");
+            return false;
+        }
+
+        return true;
+    }
+
     auto exchange::accept(bool accept) -> bool {
         if (accept_ == accept)
             return true;
 
         accept_ = accept;
 
-        if (accept_ && company()->accept_) {
-            int iItemCount;
-
-            character *victim = company()->owner();
-
-            owner()->set_exchange_time();
-            victim->set_exchange_time();
-
-            if (!check(&iItemCount)) {
-                owner()->chat_packet(CHAT_TYPE_INFO, lc_text("돈이 부족하거나 아이템이 제자리에 없습니다."));
-                victim->chat_packet(CHAT_TYPE_INFO, lc_text("상대방의 돈이 부족하거나 아이템이 제자리에 없습니다."));
-                goto EXCHANGE_END;
-            }
-
-            if (!check_space()) {
-                owner()->chat_packet(CHAT_TYPE_INFO, lc_text("상대방의 소지품에 빈 공간이 없습니다."));
-                victim->chat_packet(CHAT_TYPE_INFO, lc_text("소지품에 빈 공간이 없습니다."));
-                goto EXCHANGE_END;
-            }
-
-            if (!company()->check(&iItemCount)) {
-                victim->chat_packet(CHAT_TYPE_INFO, lc_text("돈이 부족하거나 아이템이 제자리에 없습니다."));
-                owner()->chat_packet(CHAT_TYPE_INFO, lc_text("상대방의 돈이 부족하거나 아이템이 제자리에 없습니다."));
-                goto EXCHANGE_END;
-            }
-
-            if (!company()->check_space()) {
-                victim->chat_packet(CHAT_TYPE_INFO, lc_text("상대방의 소지품에 빈 공간이 없습니다."));
-                owner()->chat_packet(CHAT_TYPE_INFO, lc_text("소지품에 빈 공간이 없습니다."));
-                goto EXCHANGE_END;
-            }
-
-            if (!db_clientdesc->is_connected()) {
-                metin2::log::warn("Exchange refused: db cache connection is down");
-                victim->chat_packet(CHAT_TYPE_INFO, "Unknown error");
-                owner()->chat_packet(CHAT_TYPE_INFO, "Unknown error");
-                goto EXCHANGE_END;
-            }
-
-            if (done()) {
-                if (gold_)
-                    owner()->save();
-
-                if (company()->done()) {
-                    if (company()->gold_)
-                        victim->save();
-
-                    owner()->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님과의 교환이 성사 되었습니다."), victim->name());
-                    victim->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님과의 교환이 성사 되었습니다."), owner()->name());
-                }
-            }
-
-        EXCHANGE_END:
-            cancel();
-            return false;
-        } else {
+        if (!accept_ || !company()->accept_) {
             exchange_packet(owner(), EXCHANGE_SUBHEADER_GC_ACCEPT, true, accept_, NPOS, 0);
             exchange_packet(company()->owner(), EXCHANGE_SUBHEADER_GC_ACCEPT, false, accept_, NPOS, 0);
             return true;
         }
+
+        character *victim = company()->owner();
+
+        owner()->set_exchange_time();
+        victim->set_exchange_time();
+
+        if (validate() && done()) {
+            if (gold_)
+                owner()->save();
+
+            if (company()->done()) {
+                if (company()->gold_)
+                    victim->save();
+
+                owner()->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님과의 교환이 성사 되었습니다."), victim->name());
+                victim->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님과의 교환이 성사 되었습니다."), owner()->name());
+            }
+        }
+
+        cancel();
+        return false;
     }
 
     void exchange::cancel() {

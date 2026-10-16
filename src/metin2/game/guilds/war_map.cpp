@@ -158,40 +158,31 @@ namespace metin2::game::inline guilds {
         set_chr_.clear();
     }
 
+    namespace {
+        void replace_event(event_ptr &slot, event_ptr ev) {
+            if (slot != nullptr) {
+                event_cancel(&slot);
+            }
+            if (ev != nullptr) {
+                slot = ev;
+            }
+        }
+    }
+
     void war_map::set_begin_event(event_ptr ev) {
-        if (begin_event_ != nullptr) {
-            event_cancel(&begin_event_);
-        }
-        if (ev != nullptr) {
-            begin_event_ = ev;
-        }
+        replace_event(begin_event_, ev);
     }
 
     void war_map::set_end_event(event_ptr ev) {
-        if (end_event_ != nullptr) {
-            event_cancel(&end_event_);
-        }
-        if (ev != nullptr) {
-            end_event_ = ev;
-        }
+        replace_event(end_event_, ev);
     }
 
     void war_map::set_timeout_event(event_ptr ev) {
-        if (timeout_event_ != nullptr) {
-            event_cancel(&timeout_event_);
-        }
-        if (ev != nullptr) {
-            timeout_event_ = ev;
-        }
+        replace_event(timeout_event_, ev);
     }
 
     void war_map::set_reset_flag_event(event_ptr ev) {
-        if (reset_flag_event_ != nullptr) {
-            event_cancel(&reset_flag_event_);
-        }
-        if (ev != nullptr) {
-            reset_flag_event_ = ev;
-        }
+        replace_event(reset_flag_event_, ev);
     }
 
     auto war_map::team_index(uint32_t guild_id, uint8_t &idx) -> bool {
@@ -487,7 +478,6 @@ namespace metin2::game::inline guilds {
 
         timeout_ = true;
     }
-
 
     void war_map::notice(const char *psz) {
         for (character *ch : set_chr_)

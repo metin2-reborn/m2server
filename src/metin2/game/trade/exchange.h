@@ -37,6 +37,7 @@ namespace metin2::game::inline trade {
         auto done() -> bool;
         auto check(int *item_count_value) -> bool;
         auto check_space() -> bool;
+        auto validate() -> bool;
 
       private:
         exchange *company_;

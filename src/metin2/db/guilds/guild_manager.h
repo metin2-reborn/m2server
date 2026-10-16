@@ -9,6 +9,7 @@
 
 #include <mysql.h>
 
+#include <algorithm>
 #include <cstdint>
 #include <ctime>
 #include <functional>
@@ -200,20 +201,23 @@ namespace metin2::db::inline guilds {
 
         auto ladder_point(uint32_t gid) -> int;
 
-        void guild_war_win(uint32_t gid);
-        void guild_war_draw(uint32_t gid);
-        void guild_war_lose(uint32_t gid);
+        void count_war_result(uint32_t gid, int guild::*counter, const char *column);
 
         void process_draw(uint32_t guild_id1, uint32_t guild_id2);
         void process_win_lose(uint32_t guild_winner, uint32_t guild_loser);
 
         auto is_half_win_ladder_point(uint32_t guild_winner, uint32_t guild_loser) -> bool;
 
+        using war_key = std::pair<uint32_t, uint32_t>;
+
+        static auto make_war_key(uint32_t gid1, uint32_t gid2) -> war_key { return std::minmax(gid1, gid2); }
+        auto find_war(uint32_t gid1, uint32_t gid2) -> guild_war_info *;
+
         std::map<uint32_t, guild> map_guild_;
-        std::map<uint32_t, std::map<uint32_t, time_t>> guild_war_end_time_;
+        std::map<war_key, time_t> guild_war_end_time_;
 
         std::set<guild_declare_info> declare_map_;
-        std::map<uint32_t, std::map<uint32_t, guild_war_info>> war_map_;
+        std::map<war_key, guild_war_info> war_map_;
 
         typedef std::pair<time_t, std::shared_ptr<guild_war_pq_element>> st_pair_guild_war;
         typedef std::pair<time_t, guild_skill_used> st_pair_skill_used;

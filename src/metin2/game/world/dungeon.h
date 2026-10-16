@@ -144,6 +144,8 @@ namespace metin2::game::inline world {
         area_map &map_area_;
         unique_mob_map map_unique_mob_;
 
+        auto find_unique(const std::string &key, bool may_be_dead) -> unique_mob_map::iterator;
+
         int mob_kill_;
         int stone_kill_;
         bool use_potion_;

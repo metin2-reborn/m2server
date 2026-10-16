@@ -25,7 +25,7 @@ m2_library(metin2_poly SOURCES ${POLY_SOURCES})
 
 file(GLOB COMMON_SOURCES CONFIGURE_DEPENDS common/*.cpp common/*.h proto/*.h)
 m2_library(metin2_common SOURCES ${COMMON_SOURCES})
-target_link_libraries(metin2_common PUBLIC metin2_core metin2_log)
+target_link_libraries(metin2_common PUBLIC metin2_core metin2_log PRIVATE asio)
 
 m2_library(metin2_config SOURCES config/config.cpp config/config.h config/settings.h)
 target_link_libraries(metin2_config PUBLIC metin2_log PRIVATE tomlplusplus)

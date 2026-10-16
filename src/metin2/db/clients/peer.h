@@ -46,7 +46,6 @@ namespace metin2::db::inline clients {
         void recv_end(int bytes_proceed) { input_consumed_ = bytes_proceed; }
 
         auto handle() -> uint32_t;
-        void set_user_count(uint32_t count);
 
         void set_public_ip(const char *ip) { public_ip_ = ip; }
         auto public_ip() -> const char * { return public_ip_.c_str(); }

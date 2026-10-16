@@ -25,6 +25,7 @@
 #include <list>
 #include <memory>
 #include <random>
+#include <ranges>
 #include <set>
 #include <string>
 #include <vector>
@@ -424,192 +425,89 @@ namespace metin2::game::inline items {
         return bSuccess;
     }
 
-    auto ds_manager::do_refine_grade(character *ch, item_pos (&item_poses)[DRAGON_SOUL_REFINE_GRID_SIZE]) -> bool {
-        if (nullptr == ch)
-            return false;
-
-        if (!ch->dragon_soul_refine_window_can_refine()) {
-            metin2::log::warn("Player {} sent a dragon soul refine without the refine window open", ch->name());
-            ch->chat_packet(CHAT_TYPE_INFO, "[SYSTEM ERROR]You cannot upgrade dragon soul without refine window.");
-            return false;
-        }
-
-        std::set<item *> set_items;
-        for (int i = 0; i < DRAGON_SOUL_REFINE_GRID_SIZE; i++) {
-            if (item_poses[i].is_equip_position())
+    namespace {
+        auto can_use_refine_window(character *ch, const char *error_message) -> bool {
+            if (nullptr == ch)
                 return false;
-            item *pItem = ch->get_item(item_poses[i]);
-            if (nullptr != pItem) {
-                if (pItem->is_equipped() || pItem->is_exchanging())
-                    return false;
 
-                if (!pItem->is_dragon_soul()) {
-                    ch->chat_packet(CHAT_TYPE_INFO, lc_text("등급 개량에 필요한 재료가 아닙니다."));
-                    send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_INVALID_MATERIAL, item_pos(pItem->window(), pItem->cell()));
-
-                    return false;
-                }
-
-                set_items.insert(pItem);
-            }
-        }
-
-        if (set_items.size() == 0) {
-            send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_NOT_ENOUGH_MATERIAL, NPOS);
-            return false;
-        }
-
-        int count = set_items.size();
-        int need_count = 0;
-        int fee = 0;
-        std::vector<float> vec_probs;
-
-        uint8_t ds_type, grade_idx, step_idx, strength_idx;
-        int result_grade;
-
-        std::set<item *>::iterator it = set_items.begin();
-        {
-            item *pItem = *it;
-
-            dragon_soul_info(pItem->vnum(), ds_type, grade_idx, step_idx, strength_idx);
-
-            if (!table_->refine_grade_values(ds_type, grade_idx, need_count, fee, vec_probs)) {
-                ch->chat_packet(CHAT_TYPE_INFO, lc_text("등급 개량할 수 없는 용혼석입니다."));
-                send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_INVALID_MATERIAL, item_pos(pItem->window(), pItem->cell()));
-
+            if (!ch->dragon_soul_refine_window_can_refine()) {
+                metin2::log::warn("Player {} sent a dragon soul refine without the refine window open", ch->name());
+                ch->chat_packet(CHAT_TYPE_INFO, error_message);
                 return false;
             }
-        }
-        while (++it != set_items.end()) {
-            item *pItem = *it;
-
-            if (pItem->is_equipped()) {
-                return false;
-            }
-
-            if (ds_type != get_type(pItem->vnum()) || grade_idx != get_grade_idx(pItem->vnum())) {
-                ch->chat_packet(CHAT_TYPE_INFO, lc_text("등급 개량에 필요한 재료가 아닙니다."));
-                send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_INVALID_MATERIAL, item_pos(pItem->window(), pItem->cell()));
-
-                return false;
-            }
-        }
-
-        if (count != need_count) {
-            metin2::log::warn("Player {} sent a dragon soul refine with the wrong material count (possible modified client)", ch->name());
-            uint8_t bSubHeader = count < need_count ? DS_SUB_HEADER_REFINE_FAIL_NOT_ENOUGH_MATERIAL : DS_SUB_HEADER_REFINE_FAIL_TOO_MUCH_MATERIAL;
-            send_refine_result_packet(ch, bSubHeader, NPOS);
-            return false;
-        }
-
-        if (ch->gold() < fee) {
-            ch->chat_packet(CHAT_TYPE_INFO, lc_text("개량을 하기 위한 돈이 부족합니다."));
-            send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_NOT_ENOUGH_MONEY, NPOS);
-            return false;
-        }
-
-        if (-1 == (result_grade = gamble(vec_probs))) {
-            metin2::log::error("Dragon soul grade refine roll failed; check RefineGradeTables probabilities");
-            return false;
-        }
-
-        item *pResultItem = item_manager::instance().create_item(make_dragon_soul_vnum(ds_type, (uint8_t)result_grade, 0, 0));
-
-        if (nullptr == pResultItem) {
-            metin2::log::error("Cannot create dragon soul (vnum {:d})", make_dragon_soul_vnum(ds_type, (uint8_t)result_grade, 0, 0));
-            return false;
-        }
-
-        ch->point_change(POINT_GOLD, -fee);
-        int left_count = need_count;
-
-        for (std::set<item *>::iterator it = set_items.begin(); it != set_items.end(); it++) {
-            item *pItem = *it;
-            int n = pItem->count();
-            if (left_count > n) {
-                pItem->remove_from_character();
-                item_manager::instance().destroy_item(pItem);
-                left_count -= n;
-            } else {
-                pItem->set_count(n - left_count);
-            }
-        }
-
-        ch->auto_give_item(pResultItem, true);
-
-        if (result_grade > grade_idx) {
-            const std::string buf = std::format("GRADE : {} -> {}", grade_idx, result_grade);
-            log_manager::instance().item_log(ch, pResultItem, "DS_GRADE_REFINE_SUCCESS", buf.c_str());
-            ch->chat_packet(CHAT_TYPE_INFO, lc_text("등급 개량에 성공했습니다."));
-            send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_SUCCEED, item_pos(pResultItem->window(), pResultItem->cell()));
             return true;
-        } else {
-            const std::string buf = std::format("GRADE : {} -> {}", grade_idx, result_grade);
-            log_manager::instance().item_log(ch, pResultItem, "DS_GRADE_REFINE_FAIL", buf.c_str());
-            ch->chat_packet(CHAT_TYPE_INFO, lc_text("등급 개량에 실패했습니다."));
-            send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL, item_pos(pResultItem->window(), pResultItem->cell()));
-            return false;
         }
     }
 
-    auto ds_manager::do_refine_step(character *ch, item_pos (&item_poses)[DRAGON_SOUL_REFINE_GRID_SIZE]) -> bool {
-        if (nullptr == ch)
-            return false;
-        if (!ch->dragon_soul_refine_window_can_refine()) {
-            metin2::log::warn("Player {} sent a dragon soul refine without the refine window open", ch->name());
-            ch->chat_packet(CHAT_TYPE_INFO, "[SYSTEM ERROR]You cannot use dragon soul refine window.");
+    auto ds_manager::collect_refine_items(character *ch, item_pos (&item_poses)[DRAGON_SOUL_REFINE_GRID_SIZE], std::set<item *> &items, bool reject_equip_position, const char *non_dragon_soul_message) -> bool {
+        for (const item_pos &pos : item_poses) {
+            if (reject_equip_position && pos.is_equip_position())
+                return false;
+
+            item *pItem = ch->get_item(pos);
+            if (nullptr == pItem)
+                continue;
+
+            if (pItem->is_equipped() || pItem->is_exchanging())
+                return false;
+
+            if (non_dragon_soul_message && !pItem->is_dragon_soul()) {
+                ch->chat_packet(CHAT_TYPE_INFO, lc_text(non_dragon_soul_message));
+                send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_INVALID_MATERIAL, item_pos(pItem->window(), pItem->cell()));
+                return false;
+            }
+
+            items.insert(pItem);
+        }
+        return true;
+    }
+
+    auto ds_manager::has_refine_fee(character *ch, int fee) -> bool {
+        if (ch->gold() < fee) {
+            ch->chat_packet(CHAT_TYPE_INFO, lc_text("개량을 하기 위한 돈이 부족합니다."));
+            send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_NOT_ENOUGH_MONEY, NPOS);
             return false;
         }
+        return true;
+    }
+
+    auto ds_manager::refine_grade_or_step(character *ch, item_pos (&item_poses)[DRAGON_SOUL_REFINE_GRID_SIZE], bool by_grade) -> bool {
+        if (!can_use_refine_window(ch, by_grade ? "[SYSTEM ERROR]You cannot upgrade dragon soul without refine window." : "[SYSTEM ERROR]You cannot use dragon soul refine window."))
+            return false;
+
+        const char *invalid_material = by_grade ? "등급 개량에 필요한 재료가 아닙니다." : "단계 개량에 필요한 재료가 아닙니다.";
 
         std::set<item *> set_items;
-        for (int i = 0; i < DRAGON_SOUL_REFINE_GRID_SIZE; i++) {
-            item *pItem = ch->get_item(item_poses[i]);
-            if (nullptr != pItem) {
-                if (pItem->is_equipped() || pItem->is_exchanging())
-                    return false;
+        if (!collect_refine_items(ch, item_poses, set_items, by_grade, invalid_material))
+            return false;
 
-                if (!pItem->is_dragon_soul()) {
-                    ch->chat_packet(CHAT_TYPE_INFO, lc_text("단계 개량에 필요한 재료가 아닙니다."));
-                    send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_INVALID_MATERIAL, item_pos(pItem->window(), pItem->cell()));
-                    return false;
-                }
-                set_items.insert(pItem);
-            }
-        }
-
-        if (set_items.size() == 0) {
+        if (set_items.empty()) {
             send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_NOT_ENOUGH_MATERIAL, NPOS);
             return false;
         }
 
-        std::string stGroupName;
-        int count = set_items.size();
+        const int count = set_items.size();
         int need_count = 0;
         int fee = 0;
         std::vector<float> vec_probs;
 
         uint8_t ds_type, grade_idx, step_idx, strength_idx;
-        int result_step;
 
-        std::set<item *>::iterator it = set_items.begin();
-        {
-            item *pItem = *it;
-            dragon_soul_info(pItem->vnum(), ds_type, grade_idx, step_idx, strength_idx);
+        item *first = *set_items.begin();
+        dragon_soul_info(first->vnum(), ds_type, grade_idx, step_idx, strength_idx);
 
-            if (!table_->refine_step_values(ds_type, step_idx, need_count, fee, vec_probs)) {
-                ch->chat_packet(CHAT_TYPE_INFO, lc_text("단계 개량할 수 없는 용혼석입니다."));
-                send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_INVALID_MATERIAL, item_pos(pItem->window(), pItem->cell()));
-                return false;
-            }
+        const bool has_values = by_grade ? table_->refine_grade_values(ds_type, grade_idx, need_count, fee, vec_probs)
+                                         : table_->refine_step_values(ds_type, step_idx, need_count, fee, vec_probs);
+        if (!has_values) {
+            ch->chat_packet(CHAT_TYPE_INFO, lc_text(by_grade ? "등급 개량할 수 없는 용혼석입니다." : "단계 개량할 수 없는 용혼석입니다."));
+            send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_INVALID_MATERIAL, item_pos(first->window(), first->cell()));
+            return false;
         }
 
-        while (++it != set_items.end()) {
-            item *pItem = *it;
-            if (pItem->is_equipped()) {
-                return false;
-            }
-            if (ds_type != get_type(pItem->vnum()) || grade_idx != get_grade_idx(pItem->vnum()) || step_idx != get_step_idx(pItem->vnum())) {
-                ch->chat_packet(CHAT_TYPE_INFO, lc_text("단계 개량에 필요한 재료가 아닙니다."));
+        for (item *pItem : set_items | std::views::drop(1)) {
+            const uint32_t vnum = pItem->vnum();
+            if (ds_type != get_type(vnum) || grade_idx != get_grade_idx(vnum) || (!by_grade && step_idx != get_step_idx(vnum))) {
+                ch->chat_packet(CHAT_TYPE_INFO, lc_text(invalid_material));
                 send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_INVALID_MATERIAL, item_pos(pItem->window(), pItem->cell()));
                 return false;
             }
@@ -622,28 +520,27 @@ namespace metin2::game::inline items {
             return false;
         }
 
-        if (ch->gold() < fee) {
-            ch->chat_packet(CHAT_TYPE_INFO, lc_text("개량을 하기 위한 돈이 부족합니다."));
-            send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_NOT_ENOUGH_MONEY, NPOS);
+        if (!has_refine_fee(ch, fee))
+            return false;
+
+        const int result = gamble(vec_probs);
+        if (-1 == result) {
+            metin2::log::error("Dragon soul {} refine roll failed; check {} probabilities", by_grade ? "grade" : "step", by_grade ? "RefineGradeTables" : "RefineStepTables");
             return false;
         }
 
-        if (-1 == (result_step = gamble(vec_probs))) {
-            metin2::log::error("Dragon soul step refine roll failed; check RefineStepTables probabilities");
-            return false;
-        }
-
-        item *pResultItem = item_manager::instance().create_item(make_dragon_soul_vnum(ds_type, grade_idx, (uint8_t)result_step, 0));
+        const uint32_t result_vnum = by_grade ? make_dragon_soul_vnum(ds_type, (uint8_t)result, 0, 0) : make_dragon_soul_vnum(ds_type, grade_idx, (uint8_t)result, 0);
+        item *pResultItem = item_manager::instance().create_item(result_vnum);
 
         if (nullptr == pResultItem) {
-            metin2::log::error("Cannot create dragon soul (vnum {:d})", make_dragon_soul_vnum(ds_type, grade_idx, (uint8_t)result_step, 0));
+            metin2::log::error("Cannot create dragon soul (vnum {:d})", result_vnum);
             return false;
         }
 
         ch->point_change(POINT_GOLD, -fee);
         int left_count = need_count;
-        for (std::set<item *>::iterator it = set_items.begin(); it != set_items.end(); it++) {
-            item *pItem = *it;
+
+        for (item *pItem : set_items) {
             int n = pItem->count();
             if (left_count > n) {
                 pItem->remove_from_character();
@@ -655,19 +552,28 @@ namespace metin2::game::inline items {
         }
 
         ch->auto_give_item(pResultItem, true);
-        if (result_step > step_idx) {
-            const std::string buf = std::format("STEP : {} -> {}", step_idx, result_step);
-            log_manager::instance().item_log(ch, pResultItem, "DS_STEP_REFINE_SUCCESS", buf.c_str());
-            ch->chat_packet(CHAT_TYPE_INFO, lc_text("단계 개량에 성공했습니다."));
-            send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_SUCCEED, item_pos(pResultItem->window(), pResultItem->cell()));
-            return true;
-        } else {
-            const std::string buf = std::format("STEP : {} -> {}", step_idx, result_step);
-            log_manager::instance().item_log(ch, pResultItem, "DS_STEP_REFINE_FAIL", buf.c_str());
-            ch->chat_packet(CHAT_TYPE_INFO, lc_text("단계 개량에 실패했습니다."));
-            send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL, item_pos(pResultItem->window(), pResultItem->cell()));
-            return false;
-        }
+
+        const int previous = by_grade ? grade_idx : step_idx;
+        const bool succeeded = result > previous;
+        const char *kind = by_grade ? "GRADE" : "STEP";
+        const std::string buf = std::format("{} : {} -> {}", kind, previous, result);
+        log_manager::instance().item_log(ch, pResultItem, std::format("DS_{}_REFINE_{}", kind, succeeded ? "SUCCESS" : "FAIL").c_str(), buf.c_str());
+
+        if (by_grade)
+            ch->chat_packet(CHAT_TYPE_INFO, lc_text(succeeded ? "등급 개량에 성공했습니다." : "등급 개량에 실패했습니다."));
+        else
+            ch->chat_packet(CHAT_TYPE_INFO, lc_text(succeeded ? "단계 개량에 성공했습니다." : "단계 개량에 실패했습니다."));
+
+        send_refine_result_packet(ch, succeeded ? DS_SUB_HEADER_REFINE_SUCCEED : DS_SUB_HEADER_REFINE_FAIL, item_pos(pResultItem->window(), pResultItem->cell()));
+        return succeeded;
+    }
+
+    auto ds_manager::do_refine_grade(character *ch, item_pos (&item_poses)[DRAGON_SOUL_REFINE_GRID_SIZE]) -> bool {
+        return refine_grade_or_step(ch, item_poses, true);
+    }
+
+    auto ds_manager::do_refine_step(character *ch, item_pos (&item_poses)[DRAGON_SOUL_REFINE_GRID_SIZE]) -> bool {
+        return refine_grade_or_step(ch, item_poses, false);
     }
 
     auto is_dragon_soul_refine_material(item *item_value) -> bool {
@@ -679,38 +585,18 @@ namespace metin2::game::inline items {
     }
 
     auto ds_manager::do_refine_strength(character *ch, item_pos (&item_poses)[DRAGON_SOUL_REFINE_GRID_SIZE]) -> bool {
-        if (nullptr == ch)
+        if (!can_use_refine_window(ch, "[SYSTEM ERROR]You cannot use dragon soul refine window."))
             return false;
-        if (!ch->dragon_soul_refine_window_can_refine()) {
-            metin2::log::warn("Player {} sent a dragon soul refine without the refine window open", ch->name());
-            ch->chat_packet(CHAT_TYPE_INFO, "[SYSTEM ERROR]You cannot use dragon soul refine window.");
-            return false;
-        }
 
         std::set<item *> set_items;
-        for (int i = 0; i < DRAGON_SOUL_REFINE_GRID_SIZE; i++) {
-            item *pItem = ch->get_item(item_poses[i]);
-            if (pItem) {
-                if (pItem->is_equipped() || pItem->is_exchanging())
-                    return false;
-
-                set_items.insert(pItem);
-            }
-        }
-        if (set_items.size() == 0) {
+        if (!collect_refine_items(ch, item_poses, set_items, false, nullptr) || set_items.empty())
             return false;
-        }
 
         int fee;
 
         item *pRefineStone = nullptr;
         item *pDragonSoul = nullptr;
-        for (std::set<item *>::iterator it = set_items.begin(); it != set_items.end(); it++) {
-            item *pItem = *it;
-            if (pItem->is_equipped()) {
-                return false;
-            }
-
+        for (item *pItem : set_items) {
             if (pItem->is_dragon_soul()) {
                 if (pDragonSoul != nullptr) {
                     send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_TOO_MUCH_MATERIAL, item_pos(pItem->window(), pItem->cell()));
@@ -738,20 +624,13 @@ namespace metin2::game::inline items {
             return false;
         }
 
-        if (nullptr != pDragonSoul) {
-            dragon_soul_info(pDragonSoul->vnum(), bType, bGrade, bStep, bStrength);
+        dragon_soul_info(pDragonSoul->vnum(), bType, bGrade, bStep, bStrength);
 
-            float fWeight = 0.f;
-            if (!table_->weight(bType, bGrade, bStep, bStrength + 1, fWeight)) {
-                ch->chat_packet(CHAT_TYPE_INFO, lc_text("강화할 수 없는 용혼석입니다."));
-                send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_MAX_REFINE, item_pos(pDragonSoul->window(), pDragonSoul->cell()));
-                return false;
-            }
-            if (fWeight < FLT_EPSILON) {
-                ch->chat_packet(CHAT_TYPE_INFO, lc_text("강화할 수 없는 용혼석입니다."));
-                send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_MAX_REFINE, item_pos(pDragonSoul->window(), pDragonSoul->cell()));
-                return false;
-            }
+        float fWeight = 0.f;
+        if (!table_->weight(bType, bGrade, bStep, bStrength + 1, fWeight) || fWeight < FLT_EPSILON) {
+            ch->chat_packet(CHAT_TYPE_INFO, lc_text("강화할 수 없는 용혼석입니다."));
+            send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_MAX_REFINE, item_pos(pDragonSoul->window(), pDragonSoul->cell()));
+            return false;
         }
 
         float fProb;
@@ -762,11 +641,8 @@ namespace metin2::game::inline items {
             return false;
         }
 
-        if (ch->gold() < fee) {
-            ch->chat_packet(CHAT_TYPE_INFO, lc_text("개량을 하기 위한 돈이 부족합니다."));
-            send_refine_result_packet(ch, DS_SUB_HEADER_REFINE_FAIL_NOT_ENOUGH_MONEY, NPOS);
+        if (!has_refine_fee(ch, fee))
             return false;
-        }
 
         ch->point_change(POINT_GOLD, -fee);
         item *pResult = nullptr;

@@ -553,8 +553,7 @@ namespace metin2::game {
         }
 
         auto get_guildid_byname(lua_State *lua) -> int {
-            if (!lua_isstring(lua, 1)) {
-                quest::error("Invalid guild name argument");
+            if (!require_string(lua, 1, "Invalid guild name argument")) {
                 lua_pushnumber(lua, 0);
                 return 1;
             }
@@ -647,8 +646,7 @@ namespace metin2::game {
         }
 
         auto find_pc(lua_State *lua) -> int {
-            if (!lua_isstring(lua, 1)) {
-                quest::error("Invalid arguments");
+            if (!require_string(lua, 1)) {
                 lua_pushnumber(lua, 0);
                 return 1;
             }
@@ -691,8 +689,7 @@ namespace metin2::game {
         }
 
         auto find_npc_by_vnum(lua_State *lua) -> int {
-            if (!lua_isnumber(lua, 1)) {
-                quest::error("Invalid arguments");
+            if (!require_number(lua, 1)) {
                 lua_pushnumber(lua, 0);
                 return 1;
             }

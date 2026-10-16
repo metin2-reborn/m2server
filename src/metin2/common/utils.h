@@ -1,5 +1,7 @@
 #pragma once
 
+#include <metin2/core/utils.h>
+
 #include <algorithm>
 #include <cctype>
 #include <charconv>
@@ -61,9 +63,6 @@ namespace metin2::inline common {
     }
 
     inline void to_lower(std::string &str) {
-        std::ranges::transform(str, str.begin(),
-            [](unsigned char c) -> char {
-                return static_cast<char>(std::tolower(c));
-            });
+        std::ranges::transform(str, str.begin(), ascii_lower);
     }
 }

@@ -182,7 +182,7 @@ namespace metin2::game::inline app {
 
             MYSQL_ROW row;
 
-            while (nullptr != (row = mysql_fetch_row(pMsg->get()->res))) {
+            while (nullptr != (row = mysql_fetch_row(pMsg->get()->res.get()))) {
                 if (strcasecmp(row[0], "LOCALE") == 0) {
                     if (locale_service_init(row[1]) == false) {
                         metin2::log::error("Invalid locale {} in common database", row[1]);
@@ -232,7 +232,7 @@ namespace metin2::game::inline app {
 
             MYSQL_ROW row;
 
-            row = mysql_fetch_row(pMsg->get()->res);
+            row = mysql_fetch_row(pMsg->get()->res.get());
 
             const char *p = row[0];
             int cnt = 0;
@@ -264,7 +264,7 @@ namespace metin2::game::inline app {
                     continue;
                 }
 
-                row = mysql_fetch_row(pMsg->get()->res);
+                row = mysql_fetch_row(pMsg->get()->res.get());
                 cnt = 0;
                 p = row[0];
                 int aiSkillTable[SKILL_MAX_LEVEL + 1];

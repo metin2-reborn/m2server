@@ -41,7 +41,7 @@ namespace metin2::game::inline persistence {
         void delete_login_data(login_data *ld);
         auto get_login_data(uint32_t key) -> login_data *;
 
-        auto count_query() -> uint32_t { return sql_.count_query(); }
+        auto count_query() -> uint32_t { return static_cast<uint32_t>(sql_.stats().queued); }
 
         void load_db_string();
         auto greet_message() -> const std::vector<std::string> &;

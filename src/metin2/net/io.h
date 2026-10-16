@@ -24,5 +24,4 @@ namespace metin2::net {
     auto connect(const std::string &host, std::uint16_t port, std::chrono::milliseconds timeout) -> std::optional<tcp::socket>;
 
     auto write(tcp::socket &socket, std::span<const std::uint8_t> data, std::chrono::milliseconds timeout) -> bool;
-    auto read_some(tcp::socket &socket, std::span<std::uint8_t> buffer, std::chrono::milliseconds timeout) -> std::size_t;
 }

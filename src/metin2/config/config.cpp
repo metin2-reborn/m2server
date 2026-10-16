@@ -3,19 +3,52 @@
 #include <toml++/toml.hpp>
 
 #include <algorithm>
+#include <array>
 #include <concepts>
 #include <cstdint>
 #include <format>
 #include <limits>
 #include <optional>
+#include <ranges>
 #include <set>
 #include <string>
+#include <string_view>
 #include <type_traits>
 #include <utility>
 #include <vector>
 
 namespace metin2::config {
     namespace {
+        template <typename E, std::size_t N>
+        using name_table = std::array<std::pair<std::string_view, E>, N>;
+
+        constexpr name_table<log::level, 4> level_names{
+            {
+             {"debug", log::level::debug},
+             {"info", log::level::info},
+             {"warn", log::level::warn},
+             {"error", log::level::error},
+             }
+        };
+
+        constexpr name_table<config::role, 3> role_names{
+            {
+             {"db", role::db},
+             {"auth", role::auth},
+             {"game", role::game},
+             }
+        };
+
+        template <typename E, std::size_t N>
+        auto quoted_choices(const name_table<E, N> &names) -> std::string {
+            std::string text;
+            for (std::size_t i = 0; i < N; ++i)
+                text += std::format("{}\"{}\"", i == 0 ? "" : i + 1 == N ? " or "
+                                                                         : ", ",
+                    names[i].first);
+            return text;
+        }
+
         auto where(const toml::node &node) -> std::string {
             const toml::source_region &source = node.source();
             if (!source.path)
@@ -66,7 +99,7 @@ namespace metin2::config {
                 if (!table_)
                     return;
                 for (const auto &[key, node] : *table_)
-                    if (!used_.contains(std::string(key.str())))
+                    if (!used_.contains(key.str()))
                         errors_.push_back(std::format("{}: unknown key {}", where(node), name(key.str())));
             }
 
@@ -120,32 +153,19 @@ namespace metin2::config {
                 }
             }
 
-            void read(const toml::node &node, const std::string &key, log::level &out) {
-                static constexpr std::pair<std::string_view, log::level> levels[] = {
-                    {"debug", log::level::debug},
-                    {"info",  log::level::info },
-                    {"warn",  log::level::warn },
-                    {"error", log::level::error}
-                };
+            template <typename E, std::size_t N>
+            void read_named(const toml::node &node, const std::string &key, E &out, const name_table<E, N> &names) {
                 const auto value = node.value_exact<std::string>();
-                const auto *match = value ? std::ranges::find(levels, *value, &std::pair<std::string_view, log::level>::first) : std::end(levels);
-                if (match == std::end(levels))
-                    fail(node, key, R"("debug", "info", "warn" or "error")");
+                const auto match = value ? std::ranges::find(names, *value, &std::pair<std::string_view, E>::first) : names.end();
+                if (match == names.end())
+                    fail(node, key, quoted_choices(names));
                 else
                     out = match->second;
             }
 
-            void read(const toml::node &node, const std::string &key, config::role &out) {
-                const auto value = node.value_exact<std::string>();
-                if (value == "db")
-                    out = role::db;
-                else if (value == "auth")
-                    out = role::auth;
-                else if (value == "game")
-                    out = role::game;
-                else
-                    fail(node, key, R"("db", "auth" or "game")");
-            }
+            void read(const toml::node &node, const std::string &key, log::level &out) { read_named(node, key, out, level_names); }
+
+            void read(const toml::node &node, const std::string &key, config::role &out) { read_named(node, key, out, role_names); }
 
             const toml::table *table_;
             std::string path_;
@@ -163,130 +183,119 @@ namespace metin2::config {
             }
         }
 
-        auto read_settings(const toml::table &root) -> std::expected<settings, std::string> {
-            settings s;
-            std::vector<std::string> errors;
-            reader top(&root, "", errors);
+        void read_log(reader r, log_settings &log) {
+            r.get("level", log.level);
+            r.get("keep_days", log.keep_days);
+            r.finish();
+        }
 
-            if (!top.has("role"))
-                errors.emplace_back("role is required (\"db\", \"auth\" or \"game\")");
-            top.get("role", s.role);
-            top.get("test_server", s.test_server);
+        void read_database(reader r, database_settings &database) {
+            r.get("host", database.host);
+            r.get("port", database.port);
+            r.get("user", database.user);
+            r.get("password", database.password);
+            r.get("table_postfix", database.table_postfix);
+            reader names = r.table("names");
+            names.get("account", database.account);
+            names.get("common", database.common);
+            names.get("player", database.player);
+            names.get("log", database.log);
+            names.finish();
+            r.finish();
+        }
 
-            {
-                reader r = top.table("log");
-                r.get("level", s.log.level);
-                r.get("keep_days", s.log.keep_days);
-                r.finish();
-            }
-            {
-                reader r = top.table("database");
-                r.get("host", s.database.host);
-                r.get("port", s.database.port);
-                r.get("user", s.database.user);
-                r.get("password", s.database.password);
-                r.get("table_postfix", s.database.table_postfix);
-                reader names = r.table("names");
-                names.get("account", s.database.account);
-                names.get("common", s.database.common);
-                names.get("player", s.database.player);
-                names.get("log", s.database.log);
-                names.finish();
-                r.finish();
-            }
-            {
-                reader r = top.table("db");
-                r.get("bind_ip", s.db.bind_ip);
-                r.get("port", s.db.port);
-                r.get("allowed_peers", s.db.allowed_peers);
-                r.get("heart_fps", s.db.heart_fps);
-                r.get("login_log", s.db.login_log);
-                r.get("player_id_start", s.db.player_id_start);
-                r.range("item_id_range", s.db.item_id_min, s.db.item_id_max);
-                r.get("player_delete_level_limit", s.db.player_delete_level_limit);
-                r.get("player_delete_level_limit_lower", s.db.player_delete_level_limit_lower);
-                r.get("name_column", s.db.name_column);
-                r.get("guild_war_power", s.db.guild_war_power);
-                r.get("guild_war_handicap", s.db.guild_war_handicap);
-                reader cache = r.table("cache");
-                cache.get("player_flush_seconds", s.db.player_cache_flush_seconds);
-                cache.get("item_flush_seconds", s.db.item_cache_flush_seconds);
-                cache.get("pricelist_flush_seconds", s.db.pricelist_cache_flush_seconds);
-                cache.get("flush_limit_per_second", s.db.cache_flush_limit_per_second);
-                cache.finish();
-                r.finish();
-            }
-            {
-                reader r = top.table("server");
-                r.get("hostname", s.server.hostname);
-                r.get("channel", s.server.channel);
-                r.get("bind_ip", s.server.bind_ip);
-                r.get("proxy_ip", s.server.proxy_ip);
-                r.get("port", s.server.port);
-                r.get("p2p_port", s.server.p2p_port);
-                r.get("p2p_allowed_hosts", s.server.p2p_allowed_hosts);
-                r.get("db_host", s.server.db_host);
-                r.get("db_port", s.server.db_port);
-                r.get("passes_per_sec", s.server.passes_per_sec);
-                r.get("ping_seconds", s.server.ping_seconds);
-                r.get("user_limit", s.server.user_limit);
-                reader admin = r.table("admin");
-                admin.get("ips", s.server.admin.ips);
-                admin.get("password", s.server.admin.password);
-                admin.finish();
-                r.finish();
-            }
-            {
-                reader r = top.table("auth");
-                r.get("master", s.auth.master);
-                r.get("master_host", s.auth.master_host);
-                r.get("master_port", s.auth.master_port);
-                r.get("block_login_date", s.auth.block_login_date);
-                r.finish();
-            }
-            {
-                reader r = top.table("game");
-                r.get("map_allow", s.game.map_allow);
-                r.get("save_seconds", s.game.save_seconds);
-                r.get("view_range", s.game.view_range);
-                r.get("max_level", s.game.max_level);
-                r.get("pk_protect_level", s.game.pk_protect_level);
-                r.get("refuse_clients", s.game.refuse_clients);
-                r.get("no_regen", s.game.no_regen);
-                r.get("no_wander", s.game.no_wander);
-                r.get("speed_server", s.game.speed_server);
-                r.get("distribution_test_server", s.game.distribution_test_server);
-                r.get("skill_disable", s.game.skill_disable);
-                r.get("empire_whisper", s.game.empire_whisper);
-                r.get("protect_normal_player", s.game.protect_normal_player);
-                r.get("notice_battle_zone", s.game.notice_battle_zone);
-                r.get("block_char_creation", s.game.block_char_creation);
-                r.get("server_id", s.game.server_id);
-                r.get("mall_url", s.game.mall_url);
-                reader mark = r.table("mark");
-                mark.get("server", s.game.mark.server);
-                mark.get("min_level", s.game.mark.min_level);
-                mark.finish();
-                reader quest = r.table("quest");
-                quest.get("dir", s.game.quest.dir);
-                quest.get("object_dirs", s.game.quest.object_dirs);
-                quest.finish();
-                reader spam = r.table("spam");
-                spam.get("block_duration", s.game.spam.block_duration);
-                spam.get("block_score", s.game.spam.block_score);
-                spam.get("reload_cycle", s.game.spam.reload_cycle);
-                spam.get("block_max_level", s.game.spam.block_max_level);
-                spam.finish();
-                reader cheat = r.table("anti_cheat");
-                cheat.get("sync_hack_limit", s.game.anti_cheat.sync_hack_limit);
-                cheat.get("speed_hack_limit", s.game.anti_cheat.speed_hack_limit);
-                cheat.get("speed_hack_bonus", s.game.anti_cheat.speed_hack_bonus);
-                cheat.get("check_multihack", s.game.anti_cheat.check_multihack);
-                cheat.finish();
-                r.finish();
-            }
-            top.finish();
+        void read_db(reader r, db_settings &db) {
+            r.get("bind_ip", db.bind_ip);
+            r.get("port", db.port);
+            r.get("allowed_peers", db.allowed_peers);
+            r.get("heart_fps", db.heart_fps);
+            r.get("login_log", db.login_log);
+            r.get("player_id_start", db.player_id_start);
+            r.range("item_id_range", db.item_id_min, db.item_id_max);
+            r.get("player_delete_level_limit", db.player_delete_level_limit);
+            r.get("player_delete_level_limit_lower", db.player_delete_level_limit_lower);
+            r.get("name_column", db.name_column);
+            r.get("guild_war_power", db.guild_war_power);
+            r.get("guild_war_handicap", db.guild_war_handicap);
+            reader cache = r.table("cache");
+            cache.get("player_flush_seconds", db.player_cache_flush_seconds);
+            cache.get("item_flush_seconds", db.item_cache_flush_seconds);
+            cache.get("pricelist_flush_seconds", db.pricelist_cache_flush_seconds);
+            cache.get("flush_limit_per_second", db.cache_flush_limit_per_second);
+            cache.finish();
+            r.finish();
+        }
 
+        void read_server(reader r, server_settings &server) {
+            r.get("hostname", server.hostname);
+            r.get("channel", server.channel);
+            r.get("bind_ip", server.bind_ip);
+            r.get("proxy_ip", server.proxy_ip);
+            r.get("port", server.port);
+            r.get("p2p_port", server.p2p_port);
+            r.get("p2p_allowed_hosts", server.p2p_allowed_hosts);
+            r.get("db_host", server.db_host);
+            r.get("db_port", server.db_port);
+            r.get("passes_per_sec", server.passes_per_sec);
+            r.get("ping_seconds", server.ping_seconds);
+            r.get("user_limit", server.user_limit);
+            reader admin = r.table("admin");
+            admin.get("ips", server.admin.ips);
+            admin.get("password", server.admin.password);
+            admin.finish();
+            r.finish();
+        }
+
+        void read_auth(reader r, auth_settings &auth) {
+            r.get("master", auth.master);
+            r.get("master_host", auth.master_host);
+            r.get("master_port", auth.master_port);
+            r.get("block_login_date", auth.block_login_date);
+            r.finish();
+        }
+
+        void read_game(reader r, game_settings &game) {
+            r.get("map_allow", game.map_allow);
+            r.get("save_seconds", game.save_seconds);
+            r.get("view_range", game.view_range);
+            r.get("max_level", game.max_level);
+            r.get("pk_protect_level", game.pk_protect_level);
+            r.get("refuse_clients", game.refuse_clients);
+            r.get("no_regen", game.no_regen);
+            r.get("no_wander", game.no_wander);
+            r.get("speed_server", game.speed_server);
+            r.get("distribution_test_server", game.distribution_test_server);
+            r.get("skill_disable", game.skill_disable);
+            r.get("empire_whisper", game.empire_whisper);
+            r.get("protect_normal_player", game.protect_normal_player);
+            r.get("notice_battle_zone", game.notice_battle_zone);
+            r.get("block_char_creation", game.block_char_creation);
+            r.get("server_id", game.server_id);
+            r.get("mall_url", game.mall_url);
+            reader mark = r.table("mark");
+            mark.get("server", game.mark.server);
+            mark.get("min_level", game.mark.min_level);
+            mark.finish();
+            reader quest = r.table("quest");
+            quest.get("dir", game.quest.dir);
+            quest.get("object_dirs", game.quest.object_dirs);
+            quest.finish();
+            reader spam = r.table("spam");
+            spam.get("block_duration", game.spam.block_duration);
+            spam.get("block_score", game.spam.block_score);
+            spam.get("reload_cycle", game.spam.reload_cycle);
+            spam.get("block_max_level", game.spam.block_max_level);
+            spam.finish();
+            reader cheat = r.table("anti_cheat");
+            cheat.get("sync_hack_limit", game.anti_cheat.sync_hack_limit);
+            cheat.get("speed_hack_limit", game.anti_cheat.speed_hack_limit);
+            cheat.get("speed_hack_bonus", game.anti_cheat.speed_hack_bonus);
+            cheat.get("check_multihack", game.anti_cheat.check_multihack);
+            cheat.finish();
+            r.finish();
+        }
+
+        void check_required(const settings &s, std::vector<std::string> &errors) {
             if (s.role == role::db) {
                 if (s.db.player_id_start <= 0)
                     errors.emplace_back("db.player_id_start is required");
@@ -306,14 +315,30 @@ namespace metin2::config {
             }
             if (s.database.user.empty())
                 errors.emplace_back("database.user is required");
+        }
+
+        auto read_settings(const toml::table &root) -> std::expected<settings, std::string> {
+            settings s;
+            std::vector<std::string> errors;
+            reader top(&root, "", errors);
+
+            if (!top.has("role"))
+                errors.push_back(std::format("role is required ({})", quoted_choices(role_names)));
+            top.get("role", s.role);
+            top.get("test_server", s.test_server);
+            read_log(top.table("log"), s.log);
+            read_database(top.table("database"), s.database);
+            read_db(top.table("db"), s.db);
+            read_server(top.table("server"), s.server);
+            read_auth(top.table("auth"), s.auth);
+            read_game(top.table("game"), s.game);
+            top.finish();
+
+            check_required(s, errors);
             s.log.keep_days = std::clamp(s.log.keep_days, 1u, 90u);
 
-            if (!errors.empty()) {
-                std::string text;
-                for (const std::string &error : errors)
-                    text += error + "\n";
-                return std::unexpected(text);
-            }
+            if (!errors.empty())
+                return std::unexpected(std::ranges::to<std::string>(errors | std::views::join_with('\n')) + '\n');
             return s;
         }
 
@@ -356,11 +381,7 @@ namespace metin2::config {
     }
 
     auto role_name(config::role value) -> std::string_view {
-        switch (value) {
-        case role::db:   return "db";
-        case role::auth: return "auth";
-        case role::game: return "game";
-        }
-        return "?";
+        const auto match = std::ranges::find(role_names, value, &std::pair<std::string_view, config::role>::second);
+        return match == role_names.end() ? "?" : match->first;
     }
 }

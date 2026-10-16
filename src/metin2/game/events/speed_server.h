@@ -65,7 +65,6 @@ namespace metin2::game::inline events {
 
       private:
         auto load_exp_table() -> bool;
-        auto load_wday_exp_table(int wday, char *str) -> bool;
 
         uint8_t empire_;
         std::string file_name_;

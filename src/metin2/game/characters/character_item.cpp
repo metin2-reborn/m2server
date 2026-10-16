@@ -93,6 +93,31 @@ namespace metin2::game::inline characters {
         return false;
     }
 
+    static constexpr auto ability_potion_affect_type(int32_t apply) -> uint32_t {
+        switch (apply) {
+        case APPLY_MOV_SPEED:
+            return AFFECT_MOV_SPEED;
+        case APPLY_ATT_SPEED:
+            return AFFECT_ATT_SPEED;
+        case APPLY_STR:
+            return AFFECT_STR;
+        case APPLY_DEX:
+            return AFFECT_DEX;
+        case APPLY_CON:
+            return AFFECT_CON;
+        case APPLY_INT:
+            return AFFECT_INT;
+        case APPLY_CAST_SPEED:
+            return AFFECT_CAST_SPEED;
+        case APPLY_ATT_GRADE_BONUS:
+            return AFFECT_ATT_GRADE;
+        case APPLY_DEF_GRADE_BONUS:
+            return AFFECT_DEF_GRADE;
+        }
+
+        return AFFECT_NONE;
+    }
+
     static auto is_monkey_dungeon(int map_index) -> bool {
         switch (map_index) {
         case 5:
@@ -419,6 +444,31 @@ namespace metin2::game::inline characters {
     }
 
     auto character::is_empty_item_grid(item_pos cell_value, uint8_t size, int exception_cell) const -> bool {
+        const auto is_free_column = [&](const auto &grid, uint16_t cell, uint16_t row_stride, uint16_t grid_size, uint16_t page_size) -> bool {
+            if (grid[cell] && grid[cell] != exception_cell)
+                return false;
+
+            if (size == 1)
+                return true;
+
+            int j = 1;
+
+            do {
+                const uint16_t p = cell + (row_stride * j);
+
+                if (p >= grid_size)
+                    return false;
+
+                if (p / page_size != cell / page_size)
+                    return false;
+
+                if (grid[p] && grid[p] != exception_cell)
+                    return false;
+            } while (++j < size);
+
+            return true;
+        };
+
         switch (cell_value.window_type) {
         case INVENTORY:
             {
@@ -451,57 +501,8 @@ namespace metin2::game::inline characters {
                 } else if (bCell >= INVENTORY_MAX_NUM)
                     return false;
 
-                if (points_instant_.item_grid[bCell]) {
-                    if (points_instant_.item_grid[bCell] == exception_cell) {
-                        if (size == 1)
-                            return true;
-
-                        int j = 1;
-                        uint8_t bPage = bCell / (INVENTORY_MAX_NUM / 2);
-
-                        do {
-                            uint8_t p = bCell + (5 * j);
-
-                            if (p >= INVENTORY_MAX_NUM)
-                                return false;
-
-                            if (p / (INVENTORY_MAX_NUM / 2) != bPage)
-                                return false;
-
-                            if (points_instant_.item_grid[p])
-                                if (points_instant_.item_grid[p] != exception_cell)
-                                    return false;
-                        } while (++j < size);
-
-                        return true;
-                    } else
-                        return false;
-                }
-
-                if (1 == size)
-                    return true;
-                else {
-                    int j = 1;
-                    uint8_t bPage = bCell / (INVENTORY_MAX_NUM / 2);
-
-                    do {
-                        uint8_t p = bCell + (5 * j);
-
-                        if (p >= INVENTORY_MAX_NUM)
-                            return false;
-
-                        if (p / (INVENTORY_MAX_NUM / 2) != bPage)
-                            return false;
-
-                        if (points_instant_.item_grid[p])
-                            if (points_instant_.item_grid[p] != exception_cell)
-                                return false;
-                    } while (++j < size);
-
-                    return true;
-                }
+                return is_free_column(points_instant_.item_grid, bCell, 5, INVENTORY_MAX_NUM, INVENTORY_MAX_NUM / 2);
             }
-            break;
         case DRAGON_SOUL_INVENTORY:
             {
                 uint16_t wCell = cell_value.cell;
@@ -510,47 +511,7 @@ namespace metin2::game::inline characters {
 
                 exception_cell++;
 
-                if (points_instant_.ds_item_grid[wCell]) {
-                    if (points_instant_.ds_item_grid[wCell] == exception_cell) {
-                        if (size == 1)
-                            return true;
-
-                        int j = 1;
-
-                        do {
-                            const uint16_t p = wCell + (DRAGON_SOUL_BOX_COLUMN_NUM * j);
-
-                            if (p >= DRAGON_SOUL_INVENTORY_MAX_NUM)
-                                return false;
-
-                            if (points_instant_.ds_item_grid[p])
-                                if (points_instant_.ds_item_grid[p] != exception_cell)
-                                    return false;
-                        } while (++j < size);
-
-                        return true;
-                    } else
-                        return false;
-                }
-
-                if (1 == size)
-                    return true;
-                else {
-                    int j = 1;
-
-                    do {
-                        const uint16_t p = wCell + (DRAGON_SOUL_BOX_COLUMN_NUM * j);
-
-                        if (p >= DRAGON_SOUL_INVENTORY_MAX_NUM)
-                            return false;
-
-                        if (points_instant_.ds_item_grid[p])
-                            if (points_instant_.ds_item_grid[p] != exception_cell)
-                                return false;
-                    } while (++j < size);
-
-                    return true;
-                }
+                return is_free_column(points_instant_.ds_item_grid, wCell, DRAGON_SOUL_BOX_COLUMN_NUM, DRAGON_SOUL_INVENTORY_MAX_NUM, DRAGON_SOUL_INVENTORY_MAX_NUM);
             }
         }
 
@@ -616,6 +577,47 @@ namespace metin2::game::inline characters {
         }
     }
 
+    auto character::is_refine_paused_after_update() const -> bool {
+        if (quest::quest_manager::instance().event_flag("update_refine_time") != 0) {
+            if (get_global_time() < quest::quest_manager::instance().event_flag("update_refine_time") + (60 * 5)) {
+                metin2::log::info("{} (pid {:d}) cannot refine: refining is paused after an update", name(), player_id());
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    auto character::replace_refined_item(item *item, uint32_t new_vnum, int cost, bool refine_succeeded, const char *way) -> bool {
+        game::items::item *new_item = item_manager::instance().create_item(new_vnum, 1, 0, false);
+
+        if (!new_item) {
+            metin2::log::error("Cannot create refined item {:d}", new_vnum);
+            return false;
+        }
+
+        item_manager::copy_all_attr_to(item, new_item);
+        log_manager::instance().item_log(this, new_item, refine_succeeded ? "REFINE SUCCESS" : "REFINE FAIL", new_item->name());
+
+        uint8_t cell = item->cell();
+
+        if (refine_succeeded) {
+            notify_refine_success(this, item, way);
+            db_manager::instance().send_money_log(MONEY_LOG_REFINE, item->vnum(), -cost);
+        } else {
+            db_manager::instance().send_money_log(MONEY_LOG_REFINE, item->vnum(), -cost);
+            notify_refine_fail(this, item, way, -1);
+        }
+
+        item_manager::instance().remove_item(item, refine_succeeded ? "REMOVE (REFINE SUCCESS)" : "REMOVE (REFINE FAIL)");
+
+        new_item->add_to_character(this, item_pos(INVENTORY, cell));
+        item_manager::instance().flush_delayed_save(new_item);
+        new_item->attr_log();
+        pay_refine_fee(cost);
+        return true;
+    }
+
     void character::set_refine_npc(character *ch) {
         if (ch != nullptr) {
             refine_npcvid_ = ch->get_vid();
@@ -630,12 +632,8 @@ namespace metin2::game::inline characters {
             return false;
         }
 
-        if (quest::quest_manager::instance().event_flag("update_refine_time") != 0) {
-            if (get_global_time() < quest::quest_manager::instance().event_flag("update_refine_time") + (60 * 5)) {
-                metin2::log::info("{} (pid {:d}) cannot refine: refining is paused after an update", name(), player_id());
-                return false;
-            }
-        }
+        if (is_refine_paused_after_update())
+            return false;
 
         const refine_table *prt = refine_manager::instance().refine_recipe(item->refine_set());
 
@@ -700,28 +698,10 @@ namespace metin2::game::inline characters {
             prob -= 10;
 
         if (prob <= prt->prob) {
-            game::items::item *pkNewItem = item_manager::instance().create_item(result_vnum, 1, 0, false);
-
-            if (pkNewItem) {
-                item_manager::copy_all_attr_to(item, pkNewItem);
-                log_manager::instance().item_log(this, pkNewItem, "REFINE SUCCESS", pkNewItem->name());
-
-                uint8_t bCell = item->cell();
-
-                notify_refine_success(this, item, is_refine_through_guild() ? "GUILD" : "POWER");
-                db_manager::instance().send_money_log(MONEY_LOG_REFINE, item->vnum(), -cost);
-                item_manager::instance().remove_item(item, "REMOVE (REFINE SUCCESS)");
-
-                pkNewItem->add_to_character(this, item_pos(INVENTORY, bCell));
-                item_manager::instance().flush_delayed_save(pkNewItem);
-
+            if (replace_refined_item(item, result_vnum, cost, true, is_refine_through_guild() ? "GUILD" : "POWER"))
                 metin2::log::debug("Refine succeeded, fee {:d}", cost);
-                pkNewItem->attr_log();
-                pay_refine_fee(cost);
-            } else {
-                metin2::log::error("Cannot create refined item {:d}", result_vnum);
+            else
                 notify_refine_fail(this, item, is_refine_through_guild() ? "GUILD" : "POWER");
-            }
         } else {
             db_manager::instance().send_money_log(MONEY_LOG_REFINE, item->vnum(), -cost);
             notify_refine_fail(this, item, is_refine_through_guild() ? "GUILD" : "POWER");
@@ -743,6 +723,9 @@ namespace metin2::game::inline characters {
         BDRAGON_SCROLL = 6,
     };
 
+    constexpr int hyuniron_refine_prob[9] = {100, 75, 65, 55, 45, 40, 35, 25, 20};
+    constexpr int yagong_refine_prob[9] = {100, 100, 90, 80, 70, 60, 50, 30, 20};
+
     auto character::do_refine_with_scroll(item *item) -> bool {
         if (!can_handle_item(true)) {
             clear_refine_mode();
@@ -751,12 +734,8 @@ namespace metin2::game::inline characters {
 
         clear_refine_mode();
 
-        if (quest::quest_manager::instance().event_flag("update_refine_time") != 0) {
-            if (get_global_time() < quest::quest_manager::instance().event_flag("update_refine_time") + (60 * 5)) {
-                metin2::log::info("{} (pid {:d}) cannot refine: refining is paused after an update", name(), player_id());
-                return false;
-            }
-        }
+        if (is_refine_paused_after_update())
+            return false;
 
         const refine_table *prt = refine_manager::instance().refine_recipe(item->refine_set());
 
@@ -787,23 +766,29 @@ namespace metin2::game::inline characters {
             return false;
         }
 
-        if (pkItemScroll->value(0) == MUSIN_SCROLL) {
+        const int32_t scroll_type = pkItemScroll->value(0);
+
+        switch (scroll_type) {
+        case MUSIN_SCROLL:
             if (item->refine_level() >= 4) {
                 chat_packet(CHAT_TYPE_INFO, lc_text("이 개량서로 더 이상 개량할 수 없습니다."));
                 return false;
             }
-        }
+            break;
 
-        else if (pkItemScroll->value(0) == MEMO_SCROLL) {
+        case MEMO_SCROLL:
             if (item->refine_level() != pkItemScroll->value(1)) {
                 chat_packet(CHAT_TYPE_INFO, lc_text("이 개량서로 개량할 수 없습니다."));
                 return false;
             }
-        } else if (pkItemScroll->value(0) == BDRAGON_SCROLL) {
+            break;
+
+        case BDRAGON_SCROLL:
             if (item->type() != ITEM_METIN || item->refine_level() != 4) {
                 chat_packet(CHAT_TYPE_INFO, lc_text("이 아이템으로 개량할 수 없습니다."));
                 return false;
             }
+            break;
         }
 
         item_table *pProto = item_manager::instance().table(item->refined_vnum());
@@ -838,93 +823,50 @@ namespace metin2::game::inline characters {
 
         const char *szRefineType = "SCROLL";
 
-        if (pkItemScroll->value(0) == HYUNIRON_CHN ||
-            pkItemScroll->value(0) == YONGSIN_SCROLL ||
-            pkItemScroll->value(0) == YAGONG_SCROLL) {
-            const char hyuniron_prob[9] = {100, 75, 65, 55, 45, 40, 35, 25, 20};
-            const char yagong_prob[9] = {100, 100, 90, 80, 70, 60, 50, 30, 20};
+        switch (scroll_type) {
+        case HYUNIRON_CHN:
+            metin2::log::error("Unknown refine scroll type {:d}", scroll_type);
+            bDestroyWhenFail = true;
+            szRefineType = "HYUNIRON";
+            break;
 
-            if (pkItemScroll->value(0) == YONGSIN_SCROLL) {
-                success_prob = hyuniron_prob[std::clamp(item->refine_level(), 0, 8)];
-            } else if (pkItemScroll->value(0) == YAGONG_SCROLL) {
-                success_prob = yagong_prob[std::clamp(item->refine_level(), 0, 8)];
-            } else {
-                metin2::log::error("Unknown refine scroll type {:d}", pkItemScroll->value(0));
-            }
+        case YONGSIN_SCROLL:
+            success_prob = hyuniron_refine_prob[std::clamp(item->refine_level(), 0, 8)];
+            szRefineType = "GOD_SCROLL";
+            break;
 
-            if (metin2::config::test_server()) {
-                chat_packet(CHAT_TYPE_INFO, "[Only Test] Success_Prob %d, RefineLevel %d ", success_prob, item->refine_level());
-            }
-            if (pkItemScroll->value(0) == HYUNIRON_CHN)
-                bDestroyWhenFail = true;
+        case YAGONG_SCROLL:
+            success_prob = yagong_refine_prob[std::clamp(item->refine_level(), 0, 8)];
+            szRefineType = "YAGONG_SCROLL";
+            break;
 
-            if (pkItemScroll->value(0) == HYUNIRON_CHN) {
-                szRefineType = "HYUNIRON";
-            } else if (pkItemScroll->value(0) == YONGSIN_SCROLL) {
-                szRefineType = "GOD_SCROLL";
-            } else if (pkItemScroll->value(0) == YAGONG_SCROLL) {
-                szRefineType = "YAGONG_SCROLL";
-            }
-        }
-
-        if (pkItemScroll->value(0) == MUSIN_SCROLL) {
+        case MUSIN_SCROLL:
             success_prob = 100;
-
             szRefineType = "MUSIN_SCROLL";
-        } else if (pkItemScroll->value(0) == MEMO_SCROLL) {
+            break;
+
+        case MEMO_SCROLL:
             success_prob = 100;
             szRefineType = "MEMO_SCROLL";
-        } else if (pkItemScroll->value(0) == BDRAGON_SCROLL) {
+            break;
+
+        case BDRAGON_SCROLL:
             success_prob = 80;
             szRefineType = "BDRAGON_SCROLL";
+            break;
         }
+
+        if (metin2::config::test_server() && (scroll_type == HYUNIRON_CHN || scroll_type == YONGSIN_SCROLL || scroll_type == YAGONG_SCROLL))
+            chat_packet(CHAT_TYPE_INFO, "[Only Test] Success_Prob %d, RefineLevel %d ", success_prob, item->refine_level());
 
         pkItemScroll->set_count(pkItemScroll->count() - 1);
 
         if (prob <= success_prob) {
-            game::items::item *pkNewItem = item_manager::instance().create_item(result_vnum, 1, 0, false);
-
-            if (pkNewItem) {
-                item_manager::copy_all_attr_to(item, pkNewItem);
-                log_manager::instance().item_log(this, pkNewItem, "REFINE SUCCESS", pkNewItem->name());
-
-                uint8_t bCell = item->cell();
-
-                notify_refine_success(this, item, szRefineType);
-                db_manager::instance().send_money_log(MONEY_LOG_REFINE, item->vnum(), -prt->cost);
-                item_manager::instance().remove_item(item, "REMOVE (REFINE SUCCESS)");
-
-                pkNewItem->add_to_character(this, item_pos(INVENTORY, bCell));
-                item_manager::instance().flush_delayed_save(pkNewItem);
-                pkNewItem->attr_log();
-                pay_refine_fee(prt->cost);
-            } else {
-                metin2::log::error("Cannot create refined item {:d}", result_vnum);
+            if (!replace_refined_item(item, result_vnum, prt->cost, true, szRefineType))
                 notify_refine_fail(this, item, szRefineType);
-            }
         } else if (!bDestroyWhenFail && result_fail_vnum) {
-            game::items::item *pkNewItem = item_manager::instance().create_item(result_fail_vnum, 1, 0, false);
-
-            if (pkNewItem) {
-                item_manager::copy_all_attr_to(item, pkNewItem);
-                log_manager::instance().item_log(this, pkNewItem, "REFINE FAIL", pkNewItem->name());
-
-                uint8_t bCell = item->cell();
-
-                db_manager::instance().send_money_log(MONEY_LOG_REFINE, item->vnum(), -prt->cost);
-                notify_refine_fail(this, item, szRefineType, -1);
-                item_manager::instance().remove_item(item, "REMOVE (REFINE FAIL)");
-
-                pkNewItem->add_to_character(this, item_pos(INVENTORY, bCell));
-                item_manager::instance().flush_delayed_save(pkNewItem);
-
-                pkNewItem->attr_log();
-
-                pay_refine_fee(prt->cost);
-            } else {
-                metin2::log::error("Cannot create refined item {:d}", result_fail_vnum);
+            if (!replace_refined_item(item, result_fail_vnum, prt->cost, false, szRefineType))
                 notify_refine_fail(this, item, szRefineType);
-            }
         } else {
             notify_refine_fail(this, item, szRefineType);
 
@@ -1308,131 +1250,13 @@ namespace metin2::game::inline characters {
             return item_process_polymorph(item);
 
         case ITEM_QUEST:
-            if (get_arena() != nullptr || is_observer_mode() == true) {
-                if (item->vnum() == 50051 || item->vnum() == 50052 || item->vnum() == 50053) {
-                    chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
-                    return false;
-                }
-            }
-
-            if (!is_set(item->flag(), ITEM_FLAG_QUEST_USE | ITEM_FLAG_QUEST_USE_MULTIPLE)) {
-                if (item->sig_vnum() == 0) {
-                    quest::quest_manager::instance().use_item(player_id(), item, false);
-                } else {
-                    quest::quest_manager::instance().sig_use(player_id(), item->sig_vnum(), item, false);
-                }
-            }
-            break;
+            return use_item_quest(item);
 
         case ITEM_CAMPFIRE:
-            {
-                float fx, fy;
-                get_delta_by_degree(rotation(), 100.0f, &fx, &fy);
-
-                sectree *tree = sectree_manager::instance().get(map_index(), (int32_t)(x() + fx), (int32_t)(y() + fy));
-
-                if (!tree) {
-                    chat_packet(CHAT_TYPE_INFO, lc_text("모닥불을 피울 수 없는 지점입니다."));
-                    return false;
-                }
-
-                if (tree->is_attr((int32_t)(x() + fx), (int32_t)(y() + fy), ATTR_WATER)) {
-                    chat_packet(CHAT_TYPE_INFO, lc_text("물 속에 모닥불을 피울 수 없습니다."));
-                    return false;
-                }
-
-                character *campfire = character_manager::instance().spawn_mob(fishing::CAMPFIRE_MOB, map_index(), (int32_t)(x() + fx), (int32_t)(y() + fy), 0, false, number(0, 359));
-
-                char_event_info *info = alloc_event_info<char_event_info>();
-
-                info->ch = campfire;
-
-                campfire->mining_event = event_create(kill_campfire_event, info, passes_per_sec(40));
-
-                item->set_count(item->count() - 1);
-            }
-            break;
+            return use_item_campfire(item);
 
         case ITEM_UNIQUE:
-            {
-                switch (item->sub_type()) {
-                case USE_ABILITY_UP:
-                    {
-                        switch (item->value(0)) {
-                        case APPLY_MOV_SPEED:
-                            add_affect(AFFECT_UNIQUE_ABILITY, POINT_MOV_SPEED, item->value(2), AFF_MOV_SPEED_POTION, item->value(1), 0, true, true);
-                            break;
-
-                        case APPLY_ATT_SPEED:
-                            add_affect(AFFECT_UNIQUE_ABILITY, POINT_ATT_SPEED, item->value(2), AFF_ATT_SPEED_POTION, item->value(1), 0, true, true);
-                            break;
-
-                        case APPLY_STR:
-                            add_affect(AFFECT_UNIQUE_ABILITY, POINT_ST, item->value(2), 0, item->value(1), 0, true, true);
-                            break;
-
-                        case APPLY_DEX:
-                            add_affect(AFFECT_UNIQUE_ABILITY, POINT_DX, item->value(2), 0, item->value(1), 0, true, true);
-                            break;
-
-                        case APPLY_CON:
-                            add_affect(AFFECT_UNIQUE_ABILITY, POINT_HT, item->value(2), 0, item->value(1), 0, true, true);
-                            break;
-
-                        case APPLY_INT:
-                            add_affect(AFFECT_UNIQUE_ABILITY, POINT_IQ, item->value(2), 0, item->value(1), 0, true, true);
-                            break;
-
-                        case APPLY_CAST_SPEED:
-                            add_affect(AFFECT_UNIQUE_ABILITY, POINT_CASTING_SPEED, item->value(2), 0, item->value(1), 0, true, true);
-                            break;
-
-                        case APPLY_RESIST_MAGIC:
-                            add_affect(AFFECT_UNIQUE_ABILITY, POINT_RESIST_MAGIC, item->value(2), 0, item->value(1), 0, true, true);
-                            break;
-
-                        case APPLY_ATT_GRADE_BONUS:
-                            add_affect(AFFECT_UNIQUE_ABILITY, POINT_ATT_GRADE_BONUS,
-                                item->value(2), 0, item->value(1), 0, true, true);
-                            break;
-
-                        case APPLY_DEF_GRADE_BONUS:
-                            add_affect(AFFECT_UNIQUE_ABILITY, POINT_DEF_GRADE_BONUS,
-                                item->value(2), 0, item->value(1), 0, true, true);
-                            break;
-                        }
-                    }
-
-                    if (get_dungeon())
-                        get_dungeon()->use_potion(this);
-
-                    if (get_war_map())
-                        get_war_map()->use_potion(this, item);
-
-                    item->set_count(item->count() - 1);
-                    break;
-
-                default:
-                    {
-                        if (item->sub_type() == USE_SPECIAL) {
-                            metin2::log::debug("Unique item {:d}: special use", item->vnum());
-
-                            switch (item->vnum()) {
-                            case 71049:
-                                use_silk_botary();
-                                break;
-                            }
-                        } else {
-                            if (!item->is_equipped())
-                                equip_item(item);
-                            else
-                                unequip_item(item);
-                        }
-                    }
-                    break;
-                }
-            }
-            break;
+            return use_item_unique(item);
 
         case ITEM_COSTUME:
         case ITEM_WEAPON:
@@ -1479,2527 +1303,22 @@ namespace metin2::game::inline characters {
             break;
 
         case ITEM_TREASURE_KEY:
-            {
-                game::items::item *item2;
-
-                if (!get_item(dest_cell) || !(item2 = get_item(dest_cell)))
-                    return false;
-
-                if (item2->is_exchanging())
-                    return false;
-
-                if (item2->type() != ITEM_TREASURE_BOX) {
-                    chat_packet(CHAT_TYPE_TALKING, lc_text("열쇠로 여는 물건이 아닌것 같다."));
-                    return false;
-                }
-
-                if (item->value(0) == item2->value(0)) {
-                    uint32_t dwBoxVnum = item2->vnum();
-                    std::vector<uint32_t> dwVnums;
-                    std::vector<uint32_t> dwCounts;
-                    std::vector<game::items::item *> item_gets;
-                    int count = 0;
-
-                    if (give_item_from_special_item_group(dwBoxVnum, dwVnums, dwCounts, item_gets, count)) {
-                        item_manager::instance().remove_item(item);
-                        item_manager::instance().remove_item(item2);
-
-                        for (int i = 0; i < count; i++) {
-                            switch (dwVnums[i]) {
-                            case special_item_group::GOLD:
-                                chat_packet(CHAT_TYPE_INFO, lc_text("돈 %d 냥을 획득했습니다."), dwCounts[i]);
-                                break;
-                            case special_item_group::EXP:
-                                chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 부터 신비한 빛이 나옵니다."));
-                                chat_packet(CHAT_TYPE_INFO, lc_text("%d의 경험치를 획득했습니다."), dwCounts[i]);
-                                break;
-                            case special_item_group::MOB:
-                                chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 몬스터가 나타났습니다!"));
-                                break;
-                            case special_item_group::SLOW:
-                                chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 나온 빨간 연기를 들이마시자 움직이는 속도가 느려졌습니다!"));
-                                break;
-                            case special_item_group::DRAIN_HP:
-                                chat_packet(CHAT_TYPE_INFO, lc_text("상자가 갑자기 폭발하였습니다! 생명력이 감소했습니다."));
-                                break;
-                            case special_item_group::POISON:
-                                chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 나온 녹색 연기를 들이마시자 독이 온몸으로 퍼집니다!"));
-                                break;
-                            case special_item_group::MOB_GROUP:
-                                chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 몬스터가 나타났습니다!"));
-                                break;
-                            default:
-                                if (item_gets[i]) {
-                                    if (dwCounts[i] > 1)
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 %s 가 %d 개 나왔습니다."), item_gets[i]->name(), dwCounts[i]);
-                                    else
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 %s 가 나왔습니다."), item_gets[i]->name());
-                                }
-                            }
-                        }
-                    } else {
-                        chat_packet(CHAT_TYPE_TALKING, lc_text("열쇠가 맞지 않는 것 같다."));
-                        return false;
-                    }
-                } else {
-                    chat_packet(CHAT_TYPE_TALKING, lc_text("열쇠가 맞지 않는 것 같다."));
-                    return false;
-                }
-            }
-            break;
+            return use_item_treasure_key(item, dest_cell);
 
         case ITEM_GIFTBOX:
-            {
-                uint32_t dwBoxVnum = item->vnum();
-                std::vector<uint32_t> dwVnums;
-                std::vector<uint32_t> dwCounts;
-                std::vector<game::items::item *> item_gets;
-                int count = 0;
-
-                if ((dwBoxVnum > 51500 && dwBoxVnum < 52000) || (dwBoxVnum >= 50255 && dwBoxVnum <= 50260)) {
-                    if (!(this->dragon_soul_is_qualified())) {
-                        chat_packet(CHAT_TYPE_INFO, lc_text("먼저 용혼석 퀘스트를 완료하셔야 합니다."));
-                        return false;
-                    }
-                }
-
-                if (give_item_from_special_item_group(dwBoxVnum, dwVnums, dwCounts, item_gets, count)) {
-                    item->set_count(item->count() - 1);
-
-                    for (int i = 0; i < count; i++) {
-                        switch (dwVnums[i]) {
-                        case special_item_group::GOLD:
-                            chat_packet(CHAT_TYPE_INFO, lc_text("돈 %d 냥을 획득했습니다."), dwCounts[i]);
-                            break;
-                        case special_item_group::EXP:
-                            chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 부터 신비한 빛이 나옵니다."));
-                            chat_packet(CHAT_TYPE_INFO, lc_text("%d의 경험치를 획득했습니다."), dwCounts[i]);
-                            break;
-                        case special_item_group::MOB:
-                            chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 몬스터가 나타났습니다!"));
-                            break;
-                        case special_item_group::SLOW:
-                            chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 나온 빨간 연기를 들이마시자 움직이는 속도가 느려졌습니다!"));
-                            break;
-                        case special_item_group::DRAIN_HP:
-                            chat_packet(CHAT_TYPE_INFO, lc_text("상자가 갑자기 폭발하였습니다! 생명력이 감소했습니다."));
-                            break;
-                        case special_item_group::POISON:
-                            chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 나온 녹색 연기를 들이마시자 독이 온몸으로 퍼집니다!"));
-                            break;
-                        case special_item_group::MOB_GROUP:
-                            chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 몬스터가 나타났습니다!"));
-                            break;
-                        default:
-                            if (item_gets[i]) {
-                                if (dwCounts[i] > 1)
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 %s 가 %d 개 나왔습니다."), item_gets[i]->name(), dwCounts[i]);
-                                else
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 %s 가 나왔습니다."), item_gets[i]->name());
-                            }
-                        }
-                    }
-                } else {
-                    chat_packet(CHAT_TYPE_TALKING, lc_text("아무것도 얻을 수 없었습니다."));
-                    return false;
-                }
-            }
-            break;
+            return use_item_giftbox(item);
 
         case ITEM_SKILLFORGET:
-            {
-                if (!item->get_socket(0)) {
-                    item_manager::instance().remove_item(item);
-                    return false;
-                }
-
-                uint32_t dwVnum = item->get_socket(0);
-
-                if (skill_level_down(dwVnum)) {
-                    item_manager::instance().remove_item(item);
-                    chat_packet(CHAT_TYPE_INFO, lc_text("스킬 레벨을 내리는데 성공하였습니다."));
-                } else
-                    chat_packet(CHAT_TYPE_INFO, lc_text("스킬 레벨을 내릴 수 없습니다."));
-            }
-            break;
+            return use_item_skill_forget(item);
 
         case ITEM_SKILLBOOK:
-            {
-                if (is_polymorphed()) {
-                    chat_packet(CHAT_TYPE_INFO, lc_text("변신중에는 책을 읽을수 없습니다."));
-                    return false;
-                }
-
-                uint32_t dwVnum = 0;
-
-                if (item->vnum() == 50300) {
-                    dwVnum = item->get_socket(0);
-                } else {
-                    dwVnum = item->value(0);
-                }
-
-                if (0 == dwVnum) {
-                    item_manager::instance().remove_item(item);
-
-                    return false;
-                }
-
-                if (true == learn_skill_by_book(dwVnum)) {
-                    item_manager::instance().remove_item(item);
-
-                    int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-
-                    if (metin2::config::game().distribution_test_server)
-                        iReadDelay /= 3;
-
-                    set_skill_next_read_time(dwVnum, get_global_time() + iReadDelay);
-                }
-            }
-            break;
+            return use_item_skillbook(item);
 
         case ITEM_USE:
-            {
-                if (item->vnum() > 50800 && item->vnum() <= 50820) {
-                    if (metin2::config::test_server())
-                        metin2::log::debug("Additional effect item {:d} (subtype {:d})", item->original_vnum(), item->sub_type());
-
-                    if (item->value(0) < 0 || item->value(0) >= static_cast<int32_t>(std::size(a_apply_info))) {
-                        metin2::log::error("Item {:d} has invalid apply type {:d}", item->original_vnum(), item->value(0));
-                        return false;
-                    }
-
-                    int affect_type = AFFECT_EXP_BONUS_EURO_FREE;
-                    int apply_type = a_apply_info[item->value(0)].point_type;
-                    int apply_value = item->value(2);
-                    int apply_duration = item->value(1);
-
-                    switch (item->sub_type()) {
-                    case USE_ABILITY_UP:
-                        if (find_affect(affect_type, apply_type)) {
-                            chat_packet(CHAT_TYPE_INFO, lc_text("이미 효과가 걸려 있습니다."));
-                            return false;
-                        }
-
-                        {
-                            switch (item->value(0)) {
-                            case APPLY_MOV_SPEED:
-                                add_affect(affect_type, apply_type, apply_value, AFF_MOV_SPEED_POTION, apply_duration, 0, true, true);
-                                break;
-
-                            case APPLY_ATT_SPEED:
-                                add_affect(affect_type, apply_type, apply_value, AFF_ATT_SPEED_POTION, apply_duration, 0, true, true);
-                                break;
-
-                            case APPLY_STR:
-                            case APPLY_DEX:
-                            case APPLY_CON:
-                            case APPLY_INT:
-                            case APPLY_CAST_SPEED:
-                            case APPLY_RESIST_MAGIC:
-                            case APPLY_ATT_GRADE_BONUS:
-                            case APPLY_DEF_GRADE_BONUS:
-                                add_affect(affect_type, apply_type, apply_value, 0, apply_duration, 0, true, true);
-                                break;
-                            }
-                        }
-
-                        if (get_dungeon())
-                            get_dungeon()->use_potion(this);
-
-                        if (get_war_map())
-                            get_war_map()->use_potion(this, item);
-
-                        item->set_count(item->count() - 1);
-                        break;
-
-                    case USE_AFFECT:
-                        {
-                            if (find_affect(AFFECT_EXP_BONUS_EURO_FREE, a_apply_info[item->value(1)].point_type)) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("이미 효과가 걸려 있습니다."));
-                            } else {
-                                if (item->is_pc_bang_item() == true) {
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("이 아이템은 PC방에서만 사용할 수 있습니다."));
-                                    return false;
-                                }
-
-                                add_affect(AFFECT_EXP_BONUS_EURO_FREE, a_apply_info[item->value(1)].point_type, item->value(2), 0, item->value(3), 0, false, true);
-                                item->set_count(item->count() - 1);
-                            }
-                        }
-                        break;
-
-                    case USE_POTION_NODELAY:
-                        {
-                            if (arena_manager::instance().is_arena_map(map_index()) == true) {
-                                if (quest::quest_manager::instance().event_flag("arena_potion_limit") > 0) {
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("대련장에서 사용하실 수 없습니다."));
-                                    return false;
-                                }
-
-                                switch (item->vnum()) {
-                                case 70020:
-                                case 71018:
-                                case 71019:
-                                case 71020:
-                                    if (quest::quest_manager::instance().event_flag("arena_potion_limit_count") < 10000) {
-                                        if (potion_limit_ <= 0) {
-                                            chat_packet(CHAT_TYPE_INFO, lc_text("사용 제한량을 초과하였습니다."));
-                                            return false;
-                                        }
-                                    }
-                                    break;
-
-                                default:
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("대련장에서 사용하실 수 없습니다."));
-                                    return false;
-                                    break;
-                                }
-                            }
-
-                            bool used = false;
-
-                            if (item->value(0) != 0) {
-                                if (hp() < max_hp()) {
-                                    point_change(POINT_HP, item->value(0) * (100 + point(POINT_POTION_BONUS)) / 100);
-                                    effect_packet(SE_HPUP_RED);
-                                    used = true;
-                                }
-                            }
-
-                            if (item->value(1) != 0) {
-                                if (sp() < max_sp()) {
-                                    point_change(POINT_SP, item->value(1) * (100 + point(POINT_POTION_BONUS)) / 100);
-                                    effect_packet(SE_SPUP_BLUE);
-                                    used = true;
-                                }
-                            }
-
-                            if (item->value(3) != 0) {
-                                if (hp() < max_hp()) {
-                                    point_change(POINT_HP, item->value(3) * max_hp() / 100);
-                                    effect_packet(SE_HPUP_RED);
-                                    used = true;
-                                }
-                            }
-
-                            if (item->value(4) != 0) {
-                                if (sp() < max_sp()) {
-                                    point_change(POINT_SP, item->value(4) * max_sp() / 100);
-                                    effect_packet(SE_SPUP_BLUE);
-                                    used = true;
-                                }
-                            }
-
-                            if (used) {
-                                if (item->vnum() == 50085 || item->vnum() == 50086) {
-                                    if (metin2::config::test_server())
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("월병 또는 종자 를 사용하였습니다"));
-                                }
-                                if (get_dungeon())
-                                    get_dungeon()->use_potion(this);
-
-                                if (get_war_map())
-                                    get_war_map()->use_potion(this, item);
-
-                                potion_limit_--;
-
-                                item->set_count(item->count() - 1);
-                            }
-                        }
-                        break;
-                    }
-
-                    return true;
-                }
-
-                if (item->vnum() >= 27863 && item->vnum() <= 27883) {
-                    if (arena_manager::instance().is_arena_map(map_index()) == true) {
-                        chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
-                        return false;
-                    }
-                }
-
-                if (metin2::config::test_server()) {
-                    metin2::log::debug("Use item {}: type {:d}, subtype {:d}, vnum {:d}", item->name(), item->type(), item->sub_type(), item->original_vnum());
-                }
-
-                switch (item->sub_type()) {
-                case USE_TIME_CHARGE_PER:
-                    {
-                        game::items::item *pDestItem = get_item(dest_cell);
-                        if (nullptr == pDestItem) {
-                            return false;
-                        }
-                        if (pDestItem->is_dragon_soul()) {
-                            int ret;
-                            std::string buf;
-                            if (item->vnum() == DRAGON_HEART_VNUM) {
-                                ret = pDestItem->give_more_time_per((float)item->get_socket(ITEM_SOCKET_CHARGING_AMOUNT_IDX));
-                            } else {
-                                ret = pDestItem->give_more_time_per((float)item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
-                            }
-                            if (ret > 0) {
-                                if (item->vnum() == DRAGON_HEART_VNUM) {
-                                    buf = std::format("Inc {}s by item{{VN:{} SOC{}:{}}}", ret, item->vnum(), ITEM_SOCKET_CHARGING_AMOUNT_IDX, item->get_socket(ITEM_SOCKET_CHARGING_AMOUNT_IDX));
-                                } else {
-                                    buf = std::format("Inc {}s by item{{VN:{} VAL{}:{}}}", ret, item->vnum(), ITEM_VALUE_CHARGING_AMOUNT_IDX, item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
-                                }
-
-                                chat_packet(CHAT_TYPE_INFO, lc_text("%d초 만큼 충전되었습니다."), ret);
-                                item->set_count(item->count() - 1);
-                                log_manager::instance().item_log(this, item, "DS_CHARGING_SUCCESS", buf.c_str());
-                                return true;
-                            } else {
-                                if (item->vnum() == DRAGON_HEART_VNUM) {
-                                    buf = std::format("No change by item{{VN:{} SOC{}:{}}}", item->vnum(), ITEM_SOCKET_CHARGING_AMOUNT_IDX, item->get_socket(ITEM_SOCKET_CHARGING_AMOUNT_IDX));
-                                } else {
-                                    buf = std::format("No change by item{{VN:{} VAL{}:{}}}", item->vnum(), ITEM_VALUE_CHARGING_AMOUNT_IDX, item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
-                                }
-
-                                chat_packet(CHAT_TYPE_INFO, lc_text("충전할 수 없습니다."));
-                                log_manager::instance().item_log(this, item, "DS_CHARGING_FAILED", buf.c_str());
-                                return false;
-                            }
-                        } else
-                            return false;
-                    }
-                    break;
-                case USE_TIME_CHARGE_FIX:
-                    {
-                        game::items::item *pDestItem = get_item(dest_cell);
-                        if (nullptr == pDestItem) {
-                            return false;
-                        }
-                        if (pDestItem->is_dragon_soul()) {
-                            int ret = pDestItem->give_more_time_fix(item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
-                            std::string buf;
-                            if (ret) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("%d초 만큼 충전되었습니다."), ret);
-                                buf = std::format("Increase {}s by item{{VN:{} VAL{}:{}}}", ret, item->vnum(), ITEM_VALUE_CHARGING_AMOUNT_IDX, item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
-                                log_manager::instance().item_log(this, item, "DS_CHARGING_SUCCESS", buf.c_str());
-                                item->set_count(item->count() - 1);
-                                return true;
-                            } else {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("충전할 수 없습니다."));
-                                buf = std::format("No change by item{{VN:{} VAL{}:{}}}", item->vnum(), ITEM_VALUE_CHARGING_AMOUNT_IDX, item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
-                                log_manager::instance().item_log(this, item, "DS_CHARGING_FAILED", buf.c_str());
-                                return false;
-                            }
-                        } else
-                            return false;
-                    }
-                    break;
-                case USE_SPECIAL:
-
-                    switch (item->vnum()) {
-                    case ITEM_NOG_POCKET:
-                        {
-                            if (find_affect(AFFECT_NOG_ABILITY)) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("이미 효과가 걸려 있습니다."));
-                                return false;
-                            }
-                            int32_t time = item->value(0);
-                            int32_t moveSpeedPer = item->value(1);
-                            int32_t attPer = item->value(2);
-                            int32_t expPer = item->value(3);
-                            add_affect(AFFECT_NOG_ABILITY, POINT_MOV_SPEED, moveSpeedPer, AFF_MOV_SPEED_POTION, time, 0, true, true);
-                            add_affect(AFFECT_NOG_ABILITY, POINT_MALL_ATTBONUS, attPer, AFF_NONE, time, 0, true, true);
-                            add_affect(AFFECT_NOG_ABILITY, POINT_MALL_EXPBONUS, expPer, AFF_NONE, time, 0, true, true);
-                            item->set_count(item->count() - 1);
-                        }
-                        break;
-
-                    case ITEM_RAMADAN_CANDY:
-                        {
-                            int32_t time = item->value(0);
-                            int32_t moveSpeedPer = item->value(1);
-                            int32_t attPer = item->value(2);
-                            int32_t expPer = item->value(3);
-                            add_affect(AFFECT_RAMADAN_ABILITY, POINT_MOV_SPEED, moveSpeedPer, AFF_MOV_SPEED_POTION, time, 0, true, true);
-                            add_affect(AFFECT_RAMADAN_ABILITY, POINT_MALL_ATTBONUS, attPer, AFF_NONE, time, 0, true, true);
-                            add_affect(AFFECT_RAMADAN_ABILITY, POINT_MALL_EXPBONUS, expPer, AFF_NONE, time, 0, true, true);
-                            item->set_count(item->count() - 1);
-                        }
-                        break;
-                    case ITEM_MARRIAGE_RING:
-                        {
-                            marriage::marriage *pMarriage = marriage::manager::instance().get(player_id());
-                            if (pMarriage) {
-                                if (pMarriage->ch1 != nullptr) {
-                                    if (arena_manager::instance().is_arena_map(pMarriage->ch1->map_index()) == true) {
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
-                                        break;
-                                    }
-                                }
-
-                                if (pMarriage->ch2 != nullptr) {
-                                    if (arena_manager::instance().is_arena_map(pMarriage->ch2->map_index()) == true) {
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
-                                        break;
-                                    }
-                                }
-
-                                int consumeSP = calculate_consume_sp(this);
-
-                                if (consumeSP < 0)
-                                    return false;
-
-                                point_change(POINT_SP, -consumeSP, false);
-
-                                warp_to_pid(pMarriage->other(player_id()));
-                            } else
-                                chat_packet(CHAT_TYPE_INFO, lc_text("결혼 상태가 아니면 결혼반지를 사용할 수 없습니다."));
-                        }
-                        break;
-
-                    case UNIQUE_ITEM_CAPE_OF_COURAGE:
-                    case 70057:
-                    case REWARD_BOX_UNIQUE_ITEM_CAPE_OF_COURAGE:
-                        aggregate_monster();
-                        item->set_count(item->count() - 1);
-                        break;
-
-                    case UNIQUE_ITEM_WHITE_FLAG:
-                        forget_my_attacker();
-                        item->set_count(item->count() - 1);
-                        break;
-
-                    case UNIQUE_ITEM_TREASURE_BOX:
-                        break;
-
-                    case 30093:
-                    case 30094:
-                    case 30095:
-                    case 30096:
-                        {
-                            const int MAX_BAG_INFO = 26;
-                            static struct lucky_bag_info {
-                                uint32_t count;
-                                int prob;
-                                uint32_t vnum;
-                            } b1[MAX_BAG_INFO] =
-                                {
-                                    {1000, 302, 1    },
-                                    {10,   150, 27002},
-                                    {10,   75,  27003},
-                                    {10,   100, 27005},
-                                    {10,   50,  27006},
-                                    {10,   80,  27001},
-                                    {10,   50,  27002},
-                                    {10,   80,  27004},
-                                    {10,   50,  27005},
-                                    {1,    10,  50300},
-                                    {1,    6,   92   },
-                                    {1,    2,   132  },
-                                    {1,    6,   1052 },
-                                    {1,    2,   1092 },
-                                    {1,    6,   2082 },
-                                    {1,    2,   2122 },
-                                    {1,    6,   3082 },
-                                    {1,    2,   3122 },
-                                    {1,    6,   5052 },
-                                    {1,    2,   5082 },
-                                    {1,    6,   7082 },
-                                    {1,    2,   7122 },
-                                    {1,    1,   11282},
-                                    {1,    1,   11482},
-                                    {1,    1,   11682},
-                                    {1,    1,   11882},
-                            };
-
-                            lucky_bag_info *bi = nullptr;
-                            bi = b1;
-
-                            int pct = number(1, 1000);
-
-                            int i;
-                            for (i = 0; i < MAX_BAG_INFO; i++) {
-                                if (pct <= bi[i].prob)
-                                    break;
-                                pct -= bi[i].prob;
-                            }
-                            if (i >= MAX_BAG_INFO)
-                                return false;
-
-                            if (bi[i].vnum == 50300) {
-                                give_random_skill_book();
-                            } else if (bi[i].vnum == 1) {
-                                point_change(POINT_GOLD, 1000, true);
-                            } else {
-                                auto_give_item(bi[i].vnum, bi[i].count);
-                            }
-                            item_manager::instance().remove_item(item);
-                        }
-                        break;
-
-                    case 50004:
-                        {
-                            if (item->get_socket(0)) {
-                                item->set_socket(0, item->get_socket(0) + 1);
-                            } else {
-                                int iMapIndex = map_index();
-
-                                pixel_position pos;
-
-                                if (sectree_manager::instance().random_location(iMapIndex, pos, 700)) {
-                                    item->set_socket(0, 1);
-                                    item->set_socket(1, pos.x);
-                                    item->set_socket(2, pos.y);
-                                } else {
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("이 곳에선 이벤트용 감지기가 동작하지 않는것 같습니다."));
-                                    return false;
-                                }
-                            }
-
-                            int dist = 0;
-                            float distance = (distance_sqrt(x() - item->get_socket(1), y() - item->get_socket(2)));
-
-                            if (distance < 1000.0f) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("이벤트용 감지기가 신비로운 빛을 내며 사라집니다."));
-
-                                struct event_stone_info {
-                                    uint32_t vnum;
-                                    int count;
-                                    int prob;
-                                };
-                                const int EVENT_STONE_MAX_INFO = 15;
-                                event_stone_info info_10[EVENT_STONE_MAX_INFO] =
-                                    {
-                                        {27001, 10, 8 },
-                                        {27004, 10, 6 },
-                                        {27002, 10, 12},
-                                        {27005, 10, 12},
-                                        {27100, 1,  9 },
-                                        {27103, 1,  9 },
-                                        {27101, 1,  10},
-                                        {27104, 1,  10},
-                                        {27999, 1,  12},
-
-                                        {25040, 1,  4 },
-
-                                        {27410, 1,  0 },
-                                        {27600, 1,  0 },
-                                        {25100, 1,  0 },
-
-                                        {50001, 1,  0 },
-                                        {50003, 1,  1 },
-                                };
-                                event_stone_info info_7[EVENT_STONE_MAX_INFO] =
-                                    {
-                                        {27001, 10, 1 },
-                                        {27004, 10, 1 },
-                                        {27004, 10, 9 },
-                                        {27005, 10, 9 },
-                                        {27100, 1,  5 },
-                                        {27103, 1,  5 },
-                                        {27101, 1,  10},
-                                        {27104, 1,  10},
-                                        {27999, 1,  14},
-
-                                        {25040, 1,  5 },
-
-                                        {27410, 1,  5 },
-                                        {27600, 1,  5 },
-                                        {25100, 1,  5 },
-
-                                        {50001, 1,  0 },
-                                        {50003, 1,  5 },
-                                };
-                                event_stone_info info_4[EVENT_STONE_MAX_INFO] =
-                                    {
-                                        {27001, 10, 0 },
-                                        {27004, 10, 0 },
-                                        {27002, 10, 0 },
-                                        {27005, 10, 0 },
-                                        {27100, 1,  0 },
-                                        {27103, 1,  0 },
-                                        {27101, 1,  0 },
-                                        {27104, 1,  0 },
-                                        {27999, 1,  25},
-
-                                        {25040, 1,  0 },
-
-                                        {27410, 1,  0 },
-                                        {27600, 1,  0 },
-                                        {25100, 1,  15},
-
-                                        {50001, 1,  10},
-                                        {50003, 1,  50},
-                                };
-
-                                {
-                                    event_stone_info *info;
-                                    if (item->get_socket(0) <= 4)
-                                        info = info_4;
-                                    else if (item->get_socket(0) <= 7)
-                                        info = info_7;
-                                    else
-                                        info = info_10;
-
-                                    int prob = number(1, 100);
-
-                                    for (int i = 0; i < EVENT_STONE_MAX_INFO; ++i) {
-                                        if (!info[i].prob)
-                                            continue;
-
-                                        if (prob <= info[i].prob) {
-                                            if (info[i].vnum == 50001) {
-                                                db_manager::instance().func_query([pid = player_id(), vnum = info[i].vnum, count = info[i].count](sql_msg &msg) { give_lotto_ticket_result(msg, pid, vnum, count, 0); },
-                                                    sql::format("INSERT INTO lotto_list VALUES(0, 'server{}', {}, NOW())", sql::raw(get_table_postfix()), player_id()));
-                                            } else
-                                                auto_give_item(info[i].vnum, info[i].count);
-
-                                            break;
-                                        }
-                                        prob -= info[i].prob;
-                                    }
-                                }
-
-                                const std::string chatbuf = std::format("StoneDetect {} 0 0", (uint32_t)get_vid());
-                                int len = static_cast<int>(chatbuf.size()) + 1;
-
-                                packet_gc_chat pack_chat;
-                                pack_chat.header = HEADER_GC_CHAT;
-                                pack_chat.size = sizeof(packet_gc_chat) + len;
-                                pack_chat.type = CHAT_TYPE_COMMAND;
-                                pack_chat.id = 0;
-                                pack_chat.empire = get_desc()->empire();
-
-                                temp_buffer buf;
-                                buf.write(&pack_chat, sizeof(packet_gc_chat));
-                                buf.write(chatbuf.c_str(), len);
-
-                                packet_around(buf.read_peek(), buf.size());
-
-                                item_manager::instance().remove_item(item, "REMOVE (DETECT_EVENT_STONE) 1");
-                                return true;
-                            } else if (distance < 20000)
-                                dist = 1;
-                            else if (distance < 70000)
-                                dist = 2;
-                            else
-                                dist = 3;
-
-                            const int STONE_DETECT_MAX_TRY = 10;
-                            if (item->get_socket(0) >= STONE_DETECT_MAX_TRY) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("이벤트용 감지기가 흔적도 없이 사라집니다."));
-                                item_manager::instance().remove_item(item, "REMOVE (DETECT_EVENT_STONE) 0");
-                                auto_give_item(27002);
-                                return true;
-                            }
-
-                            if (dist) {
-                                const std::string chatbuf = std::format("StoneDetect {} {} {}",
-                                    (uint32_t)get_vid(), dist, (int)get_degree_from_position_xy(x(), item->get_socket(2), item->get_socket(1), y()));
-                                int len = static_cast<int>(chatbuf.size()) + 1;
-
-                                packet_gc_chat pack_chat;
-                                pack_chat.header = HEADER_GC_CHAT;
-                                pack_chat.size = sizeof(packet_gc_chat) + len;
-                                pack_chat.type = CHAT_TYPE_COMMAND;
-                                pack_chat.id = 0;
-                                pack_chat.empire = get_desc()->empire();
-
-                                temp_buffer buf;
-                                buf.write(&pack_chat, sizeof(packet_gc_chat));
-                                buf.write(chatbuf.c_str(), len);
-
-                                packet_around(buf.read_peek(), buf.size());
-                            }
-                        }
-                        break;
-
-                    case 27989:
-                    case 76006:
-                        {
-                            sectree_map *pMap = sectree_manager::instance().map(map_index());
-
-                            if (pMap != nullptr) {
-                                item->set_socket(0, item->get_socket(0) + 1);
-
-                                std::vector<character *> stones;
-
-                                pMap->for_each([&](entity *ent) {
-                                    if (ent->is_type(ENTITY_CHARACTER) == true) {
-                                        character *pChar = (character *)ent;
-
-                                        if (pChar->is_stone() == true)
-                                            stones.push_back(pChar);
-                                    }
-                                });
-
-                                if (!stones.empty()) {
-                                    auto stone_key = [&](character *stone) {
-                                        uint32_t dist = (uint32_t)distance_sqrt(x() - stone->x(), y() - stone->y());
-                                        return std::pair(dist != 0 ? dist : UINT_MAX, (uint32_t)stone->get_vid());
-                                    };
-
-                                    character *pTarget = *std::ranges::min_element(stones, {}, stone_key);
-                                    uint32_t max = stone_key(pTarget).first;
-                                    int val = 3;
-
-                                    if (max < 10000)
-                                        val = 2;
-                                    else if (max < 70000)
-                                        val = 1;
-
-                                    chat_packet(CHAT_TYPE_COMMAND, "StoneDetect %u %d %d", (uint32_t)get_vid(), val,
-                                        (int)get_degree_from_position_xy(x(), pTarget->y(), pTarget->x(), y()));
-                                } else {
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("감지기를 작용하였으나 감지되는 영석이 없습니다."));
-                                }
-
-                                if (item->get_socket(0) >= 6) {
-                                    chat_packet(CHAT_TYPE_COMMAND, "StoneDetect %u 0 0", (uint32_t)get_vid());
-                                    item_manager::instance().remove_item(item);
-                                }
-                            }
-                            break;
-                        }
-                        break;
-
-                    case 27996:
-                        item->set_count(item->count() - 1);
-                        break;
-
-                    case 27987:
-                        {
-                            item->set_count(item->count() - 1);
-
-                            int r = number(1, 100);
-
-                            if (r <= 50) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("조개에서 돌조각이 나왔습니다."));
-                                auto_give_item(27990);
-                            } else {
-                                const int prob_table[] =
-                                    {
-                                        95, 97, 99};
-
-                                if (r <= prob_table[0]) {
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("조개가 흔적도 없이 사라집니다."));
-                                } else if (r <= prob_table[1]) {
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("조개에서 백진주가 나왔습니다."));
-                                    auto_give_item(27992);
-                                } else if (r <= prob_table[2]) {
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("조개에서 청진주가 나왔습니다."));
-                                    auto_give_item(27993);
-                                } else {
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("조개에서 피진주가 나왔습니다."));
-                                    auto_give_item(27994);
-                                }
-                            }
-                        }
-                        break;
-
-                    case 71013:
-                        create_fly(number(FLY_FIREWORK1, FLY_FIREWORK6), this);
-                        item->set_count(item->count() - 1);
-                        break;
-
-                    case 50100:
-                    case 50101:
-                    case 50102:
-                    case 50103:
-                    case 50104:
-                    case 50105:
-                    case 50106:
-                        create_fly(item->vnum() - 50100 + FLY_FIREWORK1, this);
-                        item->set_count(item->count() - 1);
-                        break;
-
-                    case 50200:
-                        open_private_shop();
-                        break;
-
-                    case fishing::FISH_MIND_PILL_VNUM:
-                        add_affect(AFFECT_FISH_MIND_PILL, POINT_NONE, 0, AFF_FISH_MIND, 20 * 60, 0, true);
-                        item->set_count(item->count() - 1);
-                        break;
-
-                    case 50301:
-                    case 50302:
-                    case 50303:
-                        {
-                            if (is_polymorphed() == true) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("둔갑 중에는 능력을 올릴 수 없습니다."));
-                                return false;
-                            }
-
-                            int lv = skill_level(SKILL_LEADERSHIP);
-
-                            if (lv < item->value(0)) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("이 책은 너무 어려워 이해하기가 힘듭니다."));
-                                return false;
-                            }
-
-                            if (lv >= item->value(1)) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("이 책은 아무리 봐도 도움이 될 것 같지 않습니다."));
-                                return false;
-                            }
-
-                            if (learn_skill_by_book(SKILL_LEADERSHIP)) {
-                                item_manager::instance().remove_item(item);
-
-                                int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-                                if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
-
-                                set_skill_next_read_time(SKILL_LEADERSHIP, get_global_time() + iReadDelay);
-                            }
-                        }
-                        break;
-
-                    case 50304:
-                    case 50305:
-                    case 50306:
-                        {
-                            if (is_polymorphed()) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("변신중에는 책을 읽을수 없습니다."));
-                                return false;
-                            }
-                            if (skill_level(SKILL_COMBO) == 0 && level() < 30) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("레벨 30이 되기 전에는 습득할 수 있을 것 같지 않습니다."));
-                                return false;
-                            }
-
-                            if (skill_level(SKILL_COMBO) == 1 && level() < 50) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("레벨 50이 되기 전에는 습득할 수 있을 것 같지 않습니다."));
-                                return false;
-                            }
-
-                            if (skill_level(SKILL_COMBO) >= 2) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("연계기는 더이상 수련할 수 없습니다."));
-                                return false;
-                            }
-
-                            int iPct = item->value(0);
-
-                            if (learn_skill_by_book(SKILL_COMBO, iPct)) {
-                                item_manager::instance().remove_item(item);
-
-                                int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-                                if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
-
-                                set_skill_next_read_time(SKILL_COMBO, get_global_time() + iReadDelay);
-                            }
-                        }
-                        break;
-                    case 50311:
-                    case 50312:
-                    case 50313:
-                        {
-                            if (is_polymorphed()) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("변신중에는 책을 읽을수 없습니다."));
-                                return false;
-                            }
-                            uint32_t dwSkillVnum = item->value(0);
-                            int iPct = std::clamp(item->value(1), 0, 100);
-                            if (skill_level(dwSkillVnum) >= 20 || dwSkillVnum - SKILL_LANGUAGE1 + 1 == empire()) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("이미 완벽하게 알아들을 수 있는 언어이다."));
-                                return false;
-                            }
-
-                            if (learn_skill_by_book(dwSkillVnum, iPct)) {
-                                item_manager::instance().remove_item(item);
-
-                                int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-                                if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
-
-                                set_skill_next_read_time(dwSkillVnum, get_global_time() + iReadDelay);
-                            }
-                        }
-                        break;
-
-                    case 50061:
-                        {
-                            if (is_polymorphed()) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("변신중에는 책을 읽을수 없습니다."));
-                                return false;
-                            }
-                            uint32_t dwSkillVnum = item->value(0);
-                            int iPct = std::clamp(item->value(1), 0, 100);
-
-                            if (skill_level(dwSkillVnum) >= 10) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("더 이상 수련할 수 없습니다."));
-                                return false;
-                            }
-
-                            if (learn_skill_by_book(dwSkillVnum, iPct)) {
-                                item_manager::instance().remove_item(item);
-
-                                int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-                                if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
-
-                                set_skill_next_read_time(dwSkillVnum, get_global_time() + iReadDelay);
-                            }
-                        }
-                        break;
-
-                    case 50314:
-                    case 50315:
-                    case 50316:
-                    case 50323:
-                    case 50324:
-                    case 50325:
-                    case 50326:
-                        {
-                            if (is_polymorphed() == true) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("둔갑 중에는 능력을 올릴 수 없습니다."));
-                                return false;
-                            }
-
-                            int iSkillLevelLowLimit = item->value(0);
-                            int iSkillLevelHighLimit = item->value(1);
-                            int iPct = std::clamp(item->value(2), 0, 100);
-                            int iLevelLimit = item->value(3);
-                            uint32_t dwSkillVnum = 0;
-
-                            switch (item->vnum()) {
-                            case 50314:
-                            case 50315:
-                            case 50316:
-                                dwSkillVnum = SKILL_POLYMORPH;
-                                break;
-
-                            case 50323:
-                            case 50324:
-                                dwSkillVnum = SKILL_ADD_HP;
-                                break;
-
-                            case 50325:
-                            case 50326:
-                                dwSkillVnum = SKILL_RESIST_PENETRATE;
-                                break;
-
-                            default:
-                                return false;
-                            }
-
-                            if (0 == dwSkillVnum)
-                                return false;
-
-                            if (level() < iLevelLimit) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("이 책을 읽으려면 레벨을 더 올려야 합니다."));
-                                return false;
-                            }
-
-                            if (skill_level(dwSkillVnum) >= 40) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("더 이상 수련할 수 없습니다."));
-                                return false;
-                            }
-
-                            if (skill_level(dwSkillVnum) < iSkillLevelLowLimit) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("이 책은 너무 어려워 이해하기가 힘듭니다."));
-                                return false;
-                            }
-
-                            if (skill_level(dwSkillVnum) >= iSkillLevelHighLimit) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("이 책으로는 더 이상 수련할 수 없습니다."));
-                                return false;
-                            }
-
-                            if (learn_skill_by_book(dwSkillVnum, iPct)) {
-                                item_manager::instance().remove_item(item);
-
-                                int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-                                if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
-
-                                set_skill_next_read_time(dwSkillVnum, get_global_time() + iReadDelay);
-                            }
-                        }
-                        break;
-
-                    case 50902:
-                    case 50903:
-                    case 50904:
-                        {
-                            if (is_polymorphed()) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("변신중에는 책을 읽을수 없습니다."));
-                                return false;
-                            }
-                            uint32_t dwSkillVnum = SKILL_CREATE;
-                            int iPct = std::clamp(item->value(1), 0, 100);
-
-                            if (skill_level(dwSkillVnum) >= 40) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("더 이상 수련할 수 없습니다."));
-                                return false;
-                            }
-
-                            if (learn_skill_by_book(dwSkillVnum, iPct)) {
-                                item_manager::instance().remove_item(item);
-
-                                int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-                                if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
-
-                                set_skill_next_read_time(dwSkillVnum, get_global_time() + iReadDelay);
-
-                                if (metin2::config::test_server()) {
-                                    chat_packet(CHAT_TYPE_INFO, "[TEST_SERVER] Success to learn skill ");
-                                }
-                            } else {
-                                if (metin2::config::test_server()) {
-                                    chat_packet(CHAT_TYPE_INFO, "[TEST_SERVER] Failed to learn skill ");
-                                }
-                            }
-                        }
-                        break;
-
-                    case ITEM_MINING_SKILL_TRAIN_BOOK:
-                        {
-                            if (is_polymorphed()) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("변신중에는 책을 읽을수 없습니다."));
-                                return false;
-                            }
-                            uint32_t dwSkillVnum = SKILL_MINING;
-                            int iPct = std::clamp(item->value(1), 0, 100);
-
-                            if (skill_level(dwSkillVnum) >= 40) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("더 이상 수련할 수 없습니다."));
-                                return false;
-                            }
-
-                            if (learn_skill_by_book(dwSkillVnum, iPct)) {
-                                item_manager::instance().remove_item(item);
-
-                                int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-                                if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
-
-                                set_skill_next_read_time(dwSkillVnum, get_global_time() + iReadDelay);
-                            }
-                        }
-                        break;
-
-                    case ITEM_HORSE_SKILL_TRAIN_BOOK:
-                        {
-                            if (is_polymorphed()) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("변신중에는 책을 읽을수 없습니다."));
-                                return false;
-                            }
-                            uint32_t dwSkillVnum = SKILL_HORSE;
-                            int iPct = std::clamp(item->value(1), 0, 100);
-
-                            if (level() < 50) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("아직 승마 스킬을 수련할 수 있는 레벨이 아닙니다."));
-                                return false;
-                            }
-
-                            if (!metin2::config::test_server() && get_global_time() < skill_next_read_time(dwSkillVnum)) {
-                                if (find_affect(AFFECT_SKILL_NO_BOOK_DELAY)) {
-                                    remove_affect(AFFECT_SKILL_NO_BOOK_DELAY);
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("주안술서를 통해 주화입마에서 빠져나왔습니다."));
-                                } else {
-                                    skill_learn_wait_more_time_message(skill_next_read_time(dwSkillVnum) - get_global_time());
-                                    return false;
-                                }
-                            }
-
-                            if (point(POINT_HORSE_SKILL) >= 20 ||
-                                skill_level(SKILL_HORSE_WILDATTACK) + skill_level(SKILL_HORSE_CHARGE) + skill_level(SKILL_HORSE_ESCAPE) >= 60 ||
-                                skill_level(SKILL_HORSE_WILDATTACK_RANGE) + skill_level(SKILL_HORSE_CHARGE) + skill_level(SKILL_HORSE_ESCAPE) >= 60) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("더 이상 승마 수련서를 읽을 수 없습니다."));
-                                return false;
-                            }
-
-                            if (prob(iPct)) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("승마 수련서를 읽어 승마 스킬 포인트를 얻었습니다."));
-                                chat_packet(CHAT_TYPE_INFO, lc_text("얻은 포인트로는 승마 스킬의 레벨을 올릴 수 있습니다."));
-                                point_change(POINT_HORSE_SKILL, 1);
-
-                                int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
-                                if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
-
-                                if (!metin2::config::test_server())
-                                    set_skill_next_read_time(dwSkillVnum, get_global_time() + iReadDelay);
-                            } else {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("승마 수련서 이해에 실패하였습니다."));
-                            }
-
-                            item_manager::instance().remove_item(item);
-                        }
-                        break;
-
-                    case 70102:
-                    case 70103:
-                        {
-                            if (alignment() >= 0)
-                                return false;
-
-                            int delta = std::min(-alignment(), item->value(0));
-
-                            metin2::log::info("{}: alignment item, delta {:d}", name(), delta);
-
-                            update_alignment(delta);
-                            item->set_count(item->count() - 1);
-
-                            if (delta / 10 > 0) {
-                                chat_packet(CHAT_TYPE_TALKING, lc_text("마음이 맑아지는군. 가슴을 짓누르던 무언가가 좀 가벼워진 느낌이야."));
-                                chat_packet(CHAT_TYPE_INFO, lc_text("선악치가 %d 증가하였습니다."), delta / 10);
-                            }
-                        }
-                        break;
-
-                    case 71107:
-                        {
-                            int val = item->value(0);
-                            int interval = item->value(1);
-                            quest::pc *pPC = quest::quest_manager::instance().get_pc(player_id());
-                            int last_use_time = pPC->flag("mythical_peach.last_use_time");
-
-                            if (get_global_time() - last_use_time < interval * 60 * 60) {
-                                if (metin2::config::test_server() == false) {
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("아직 사용할 수 없습니다."));
-                                    return false;
-                                } else {
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("테스트 서버 시간제한 통과"));
-                                }
-                            }
-
-                            if (alignment() == 200000) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("선악치를 더 이상 올릴 수 없습니다."));
-                                return false;
-                            }
-
-                            if (200000 - alignment() < val * 10) {
-                                val = (200000 - alignment()) / 10;
-                            }
-
-                            int old_alignment = alignment() / 10;
-
-                            update_alignment(val * 10);
-
-                            item->set_count(item->count() - 1);
-                            pPC->set_flag("mythical_peach.last_use_time", get_global_time());
-
-                            chat_packet(CHAT_TYPE_TALKING, lc_text("마음이 맑아지는군. 가슴을 짓누르던 무언가가 좀 가벼워진 느낌이야."));
-                            chat_packet(CHAT_TYPE_INFO, lc_text("선악치가 %d 증가하였습니다."), val);
-
-                            const std::string buf = std::format("{} {}", old_alignment, alignment() / 10);
-                            log_manager::instance().char_log(this, val, "MYTHICAL_PEACH", buf.c_str());
-                        }
-                        break;
-
-                    case 71109:
-                    case 72719:
-                        {
-                            game::items::item *item2;
-
-                            if (!is_valid_item_position(dest_cell) || !(item2 = get_item(dest_cell)))
-                                return false;
-
-                            if (item2->is_exchanging() == true)
-                                return false;
-
-                            if (item2->socket_count() == 0)
-                                return false;
-
-                            switch (item2->type()) {
-                            case ITEM_WEAPON:
-                                break;
-                            case ITEM_ARMOR:
-                                switch (item2->sub_type()) {
-                                case ARMOR_EAR:
-                                case ARMOR_WRIST:
-                                case ARMOR_NECK:
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("빼낼 영석이 없습니다"));
-                                    return false;
-                                }
-                                break;
-
-                            default:
-                                return false;
-                            }
-
-                            std::stack<int32_t> socket;
-
-                            for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
-                                socket.push(item2->get_socket(i));
-
-                            int idx = ITEM_SOCKET_MAX_NUM - 1;
-
-                            while (socket.size() > 0) {
-                                if (socket.top() > 2 && socket.top() != ITEM_BROKEN_METIN_VNUM)
-                                    break;
-
-                                idx--;
-                                socket.pop();
-                            }
-
-                            if (socket.size() == 0) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("빼낼 영석이 없습니다"));
-                                return false;
-                            }
-
-                            game::items::item *pItemReward = auto_give_item(socket.top());
-
-                            if (pItemReward != nullptr) {
-                                item2->set_socket(idx, 1);
-
-                                const std::string buf = std::format("{}({}) {}({})",
-                                    item2->name(), item2->id(), pItemReward->name(), pItemReward->id());
-                                log_manager::instance().item_log(this, item, "USE_DETACHMENT_ONE", buf.c_str());
-
-                                item->set_count(item->count() - 1);
-                            }
-                        }
-                        break;
-
-                    case 70201:
-                    case 70202:
-                    case 70203:
-                    case 70204:
-                    case 70205:
-                    case 70206:
-                        {
-                            if (part(PART_HAIR) >= 1001) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("현재 헤어스타일에서는 염색과 탈색이 불가능합니다."));
-                            } else {
-                                quest::quest_manager &q = quest::quest_manager::instance();
-                                quest::pc *pPC = q.get_pc(player_id());
-
-                                if (pPC) {
-                                    int last_dye_level = pPC->flag("dyeing_hair.last_dye_level");
-
-                                    if (last_dye_level == 0 ||
-                                        last_dye_level + 3 <= level() ||
-                                        item->vnum() == 70201) {
-                                        set_part(PART_HAIR, item->vnum() - 70201);
-
-                                        if (item->vnum() == 70201)
-                                            pPC->set_flag("dyeing_hair.last_dye_level", 0);
-                                        else
-                                            pPC->set_flag("dyeing_hair.last_dye_level", level());
-
-                                        item->set_count(item->count() - 1);
-                                        update_packet();
-                                    } else {
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("%d 레벨이 되어야 다시 염색하실 수 있습니다."), last_dye_level + 3);
-                                    }
-                                }
-                            }
-                        }
-                        break;
-
-                    case ITEM_NEW_YEAR_GREETING_VNUM:
-                        {
-                            uint32_t dwBoxVnum = ITEM_NEW_YEAR_GREETING_VNUM;
-                            std::vector<uint32_t> dwVnums;
-                            std::vector<uint32_t> dwCounts;
-                            std::vector<game::items::item *> item_gets;
-                            int count = 0;
-
-                            if (give_item_from_special_item_group(dwBoxVnum, dwVnums, dwCounts, item_gets, count)) {
-                                for (int i = 0; i < count; i++) {
-                                    if (dwVnums[i] == special_item_group::GOLD)
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("돈 %d 냥을 획득했습니다."), dwCounts[i]);
-                                }
-
-                                item->set_count(item->count() - 1);
-                            }
-                        }
-                        break;
-
-                    case ITEM_VALENTINE_ROSE:
-                    case ITEM_VALENTINE_CHOCOLATE:
-                        {
-                            uint32_t dwBoxVnum = item->vnum();
-                            std::vector<uint32_t> dwVnums;
-                            std::vector<uint32_t> dwCounts;
-                            std::vector<game::items::item *> item_gets;
-                            int count = 0;
-
-                            if ((item->vnum() == ITEM_VALENTINE_ROSE && SEX_MALE == get_sex(this)) ||
-                                (item->vnum() == ITEM_VALENTINE_CHOCOLATE && SEX_FEMALE == get_sex(this))) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("성별이 맞지않아 이 아이템을 열 수 없습니다."));
-                                return false;
-                            }
-
-                            if (give_item_from_special_item_group(dwBoxVnum, dwVnums, dwCounts, item_gets, count))
-                                item->set_count(item->count() - 1);
-                        }
-                        break;
-
-                    case ITEM_WHITEDAY_CANDY:
-                    case ITEM_WHITEDAY_ROSE:
-                        {
-                            uint32_t dwBoxVnum = item->vnum();
-                            std::vector<uint32_t> dwVnums;
-                            std::vector<uint32_t> dwCounts;
-                            std::vector<game::items::item *> item_gets;
-                            int count = 0;
-
-                            if ((item->vnum() == ITEM_WHITEDAY_CANDY && SEX_MALE == get_sex(this)) ||
-                                (item->vnum() == ITEM_WHITEDAY_ROSE && SEX_FEMALE == get_sex(this))) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("성별이 맞지않아 이 아이템을 열 수 없습니다."));
-                                return false;
-                            }
-
-                            if (give_item_from_special_item_group(dwBoxVnum, dwVnums, dwCounts, item_gets, count))
-                                item->set_count(item->count() - 1);
-                        }
-                        break;
-
-                    case 50011:
-                        {
-                            uint32_t dwBoxVnum = 50011;
-                            std::vector<uint32_t> dwVnums;
-                            std::vector<uint32_t> dwCounts;
-                            std::vector<game::items::item *> item_gets;
-                            int count = 0;
-
-                            if (give_item_from_special_item_group(dwBoxVnum, dwVnums, dwCounts, item_gets, count)) {
-                                for (int i = 0; i < count; i++) {
-                                    const std::string buf = std::format("{} {}", dwVnums[i], dwCounts[i]);
-                                    log_manager::instance().item_log(this, item, "MOONLIGHT_GET", buf.c_str());
-
-                                    item->set_count(item->count() - 1);
-
-                                    switch (dwVnums[i]) {
-                                    case special_item_group::GOLD:
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("돈 %d 냥을 획득했습니다."), dwCounts[i]);
-                                        break;
-
-                                    case special_item_group::EXP:
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 부터 신비한 빛이 나옵니다."));
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("%d의 경험치를 획득했습니다."), dwCounts[i]);
-                                        break;
-
-                                    case special_item_group::MOB:
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 몬스터가 나타났습니다!"));
-                                        break;
-
-                                    case special_item_group::SLOW:
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 나온 빨간 연기를 들이마시자 움직이는 속도가 느려졌습니다!"));
-                                        break;
-
-                                    case special_item_group::DRAIN_HP:
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("상자가 갑자기 폭발하였습니다! 생명력이 감소했습니다."));
-                                        break;
-
-                                    case special_item_group::POISON:
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 나온 녹색 연기를 들이마시자 독이 온몸으로 퍼집니다!"));
-                                        break;
-
-                                    case special_item_group::MOB_GROUP:
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 몬스터가 나타났습니다!"));
-                                        break;
-
-                                    default:
-                                        if (item_gets[i]) {
-                                            if (dwCounts[i] > 1)
-                                                chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 %s 가 %d 개 나왔습니다."), item_gets[i]->name(), dwCounts[i]);
-                                            else
-                                                chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 %s 가 나왔습니다."), item_gets[i]->name());
-                                        }
-                                        break;
-                                    }
-                                }
-                            } else {
-                                chat_packet(CHAT_TYPE_TALKING, lc_text("아무것도 얻을 수 없었습니다."));
-                                return false;
-                            }
-                        }
-                        break;
-
-                    case ITEM_GIVE_STAT_RESET_COUNT_VNUM:
-                        {
-                            point_change(POINT_STAT_RESET_COUNT, 1);
-                            item->set_count(item->count() - 1);
-                        }
-                        break;
-
-                    case 50107:
-                        {
-                            effect_packet(SE_CHINA_FIREWORK);
-                            add_affect(AFFECT_CHINA_FIREWORK, POINT_STUN_PCT, 30, AFF_CHINA_FIREWORK, 5 * 60, 0, true);
-                            item->set_count(item->count() - 1);
-                        }
-                        break;
-
-                    case 50108:
-                        {
-                            if (arena_manager::instance().is_arena_map(map_index()) == true) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
-                                return false;
-                            }
-
-                            effect_packet(SE_SPIN_TOP);
-                            add_affect(AFFECT_CHINA_FIREWORK, POINT_STUN_PCT, 30, AFF_CHINA_FIREWORK, 5 * 60, 0, true);
-                            item->set_count(item->count() - 1);
-                        }
-                        break;
-
-                    case ITEM_WONSO_BEAN_VNUM:
-                        point_change(POINT_HP, max_hp() - hp());
-                        item->set_count(item->count() - 1);
-                        break;
-
-                    case ITEM_WONSO_SUGAR_VNUM:
-                        point_change(POINT_SP, max_sp() - sp());
-                        item->set_count(item->count() - 1);
-                        break;
-
-                    case ITEM_WONSO_FRUIT_VNUM:
-                        point_change(POINT_STAMINA, max_stamina() - stamina());
-                        item->set_count(item->count() - 1);
-                        break;
-
-                    case ITEM_ELK_VNUM:
-                        {
-                            int iGold = item->get_socket(0);
-                            item_manager::instance().remove_item(item);
-                            chat_packet(CHAT_TYPE_INFO, lc_text("돈 %d 냥을 획득했습니다."), iGold);
-                            point_change(POINT_GOLD, iGold);
-                        }
-                        break;
-
-                    case 70021:
-                        {
-                            int HealPrice = quest::quest_manager::instance().event_flag("MonarchHealGold");
-                            if (HealPrice == 0)
-                                HealPrice = 2000000;
-
-                            if (monarch::instance().heal_my_empire(this, HealPrice)) {
-                                char szNotice[256];
-                                snprintf(szNotice, sizeof(szNotice), lc_text("군주의 축복으로 이지역 %s 유저는 HP,SP가 모두 채워집니다."), empire_name(empire()));
-                                send_notice_map(szNotice, map_index(), false);
-
-                                chat_packet(CHAT_TYPE_INFO, lc_text("군주의 축복을 사용하였습니다."));
-                            }
-                        }
-                        break;
-
-                    case 27995:
-                        {
-                        }
-                        break;
-
-                    case 71092:
-                        {
-                            if (chr_target_ != nullptr) {
-                                if (chr_target_->is_polymorphed()) {
-                                    chr_target_->set_polymorph(0);
-                                    chr_target_->remove_affect(AFFECT_POLYMORPH);
-                                }
-                            } else {
-                                if (is_polymorphed()) {
-                                    set_polymorph(0);
-                                    remove_affect(AFFECT_POLYMORPH);
-                                }
-                            }
-                        }
-                        break;
-
-                    case 71051:
-                        {
-
-                            game::items::item *item2;
-
-                            if (!is_valid_item_position(dest_cell) || !(item2 = inventory_item(wDestCell)))
-                                return false;
-
-                            if (item2->is_exchanging() == true)
-                                return false;
-
-                            if (item2->is_equipped() == true)
-                                return false;
-
-                            if (item2->type() == ITEM_COSTUME)
-                                return false;
-
-                            if (item2->attribute_set_index() == -1) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("속성을 변경할 수 없는 아이템입니다."));
-                                return false;
-                            }
-
-                            if (item2->add_rare_attribute() == true) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("성공적으로 속성이 추가 되었습니다"));
-
-                                int iAddedIdx = item2->rare_attr_count() + 4;
-                                const std::string buf = std::to_string(item2->id());
-
-                                log_manager::instance().item_log(
-                                    player_id(),
-                                    item2->attribute_type(iAddedIdx),
-                                    item2->attribute_value(iAddedIdx),
-                                    item->id(),
-                                    "ADD_RARE_ATTR",
-                                    buf.c_str(),
-                                    get_desc()->host_name(),
-                                    item->original_vnum());
-
-                                item->set_count(item->count() - 1);
-                            } else {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("더 이상 이 아이템으로 속성을 추가할 수 없습니다"));
-                            }
-                        }
-                        break;
-
-                    case 71052:
-                        {
-
-                            game::items::item *item2;
-
-                            if (!is_valid_item_position(dest_cell) || !(item2 = get_item(dest_cell)))
-                                return false;
-
-                            if (item2->is_exchanging() == true)
-                                return false;
-
-                            if (item2->is_equipped() == true)
-                                return false;
-
-                            if (item2->type() == ITEM_COSTUME)
-                                return false;
-
-                            if (item2->attribute_set_index() == -1) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("속성을 변경할 수 없는 아이템입니다."));
-                                return false;
-                            }
-
-                            if (item2->change_rare_attribute() == true) {
-                                const std::string buf = std::to_string(item2->id());
-                                log_manager::instance().item_log(this, item, "CHANGE_RARE_ATTR", buf.c_str());
-
-                                item->set_count(item->count() - 1);
-                            } else {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("변경 시킬 속성이 없습니다"));
-                            }
-                        }
-                        break;
-
-                    case ITEM_AUTO_HP_RECOVERY_S:
-                    case ITEM_AUTO_HP_RECOVERY_M:
-                    case ITEM_AUTO_HP_RECOVERY_L:
-                    case ITEM_AUTO_HP_RECOVERY_X:
-                    case ITEM_AUTO_SP_RECOVERY_S:
-                    case ITEM_AUTO_SP_RECOVERY_M:
-                    case ITEM_AUTO_SP_RECOVERY_L:
-                    case ITEM_AUTO_SP_RECOVERY_X:
-                    case REWARD_BOX_ITEM_AUTO_SP_RECOVERY_XS:
-                    case REWARD_BOX_ITEM_AUTO_SP_RECOVERY_S:
-                    case REWARD_BOX_ITEM_AUTO_HP_RECOVERY_XS:
-                    case REWARD_BOX_ITEM_AUTO_HP_RECOVERY_S:
-                    case FUCKING_BRAZIL_ITEM_AUTO_SP_RECOVERY_S:
-                    case FUCKING_BRAZIL_ITEM_AUTO_HP_RECOVERY_S:
-                        {
-                            if (arena_manager::instance().is_arena_map(map_index()) == true) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("대련장에서 사용하실 수 없습니다."));
-                                return false;
-                            }
-
-                            affect_types type = AFFECT_NONE;
-                            bool isSpecialPotion = false;
-
-                            switch (item->vnum()) {
-                            case ITEM_AUTO_HP_RECOVERY_X:
-                                isSpecialPotion = true;
-                                [[fallthrough]];
-
-                            case ITEM_AUTO_HP_RECOVERY_S:
-                            case ITEM_AUTO_HP_RECOVERY_M:
-                            case ITEM_AUTO_HP_RECOVERY_L:
-                            case REWARD_BOX_ITEM_AUTO_HP_RECOVERY_XS:
-                            case REWARD_BOX_ITEM_AUTO_HP_RECOVERY_S:
-                            case FUCKING_BRAZIL_ITEM_AUTO_HP_RECOVERY_S:
-                                type = AFFECT_AUTO_HP_RECOVERY;
-                                break;
-
-                            case ITEM_AUTO_SP_RECOVERY_X:
-                                isSpecialPotion = true;
-                                [[fallthrough]];
-
-                            case ITEM_AUTO_SP_RECOVERY_S:
-                            case ITEM_AUTO_SP_RECOVERY_M:
-                            case ITEM_AUTO_SP_RECOVERY_L:
-                            case REWARD_BOX_ITEM_AUTO_SP_RECOVERY_XS:
-                            case REWARD_BOX_ITEM_AUTO_SP_RECOVERY_S:
-                            case FUCKING_BRAZIL_ITEM_AUTO_SP_RECOVERY_S:
-                                type = AFFECT_AUTO_SP_RECOVERY;
-                                break;
-                            }
-
-                            if (AFFECT_NONE == type)
-                                break;
-
-                            if (item->count() > 1) {
-                                int pos = empty_inventory(item->size());
-
-                                if (-1 == pos) {
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("소지품에 빈 공간이 없습니다."));
-                                    break;
-                                }
-
-                                item->set_count(item->count() - 1);
-
-                                game::items::item *item2 = item_manager::instance().create_item(item->vnum(), 1);
-                                item2->add_to_character(this, item_pos(INVENTORY, pos));
-
-                                if (item->get_socket(1) != 0) {
-                                    item2->set_socket(1, item->get_socket(1));
-                                }
-
-                                item = item2;
-                            }
-
-                            affect *pAffect = find_affect(type);
-
-                            if (nullptr == pAffect) {
-                                point_types bonus = POINT_NONE;
-
-                                if (true == isSpecialPotion) {
-                                    if (type == AFFECT_AUTO_HP_RECOVERY) {
-                                        bonus = POINT_MAX_HP_PCT;
-                                    } else if (type == AFFECT_AUTO_SP_RECOVERY) {
-                                        bonus = POINT_MAX_SP_PCT;
-                                    }
-                                }
-
-                                add_affect(type, bonus, 4, item->id(), INFINITE_AFFECT_DURATION, 0, true, false);
-
-                                item->lock(true);
-                                item->set_socket(0, true);
-
-                                auto_recovery_item_process(type);
-                            } else {
-                                if (item->id() == pAffect->flag) {
-                                    remove_affect(pAffect);
-
-                                    item->lock(false);
-                                    item->set_socket(0, false);
-                                } else {
-                                    game::items::item *old = find_item_by_id(pAffect->flag);
-
-                                    if (nullptr != old) {
-                                        old->lock(false);
-                                        old->set_socket(0, false);
-                                    }
-
-                                    remove_affect(pAffect);
-
-                                    point_types bonus = POINT_NONE;
-
-                                    if (true == isSpecialPotion) {
-                                        if (type == AFFECT_AUTO_HP_RECOVERY) {
-                                            bonus = POINT_MAX_HP_PCT;
-                                        } else if (type == AFFECT_AUTO_SP_RECOVERY) {
-                                            bonus = POINT_MAX_SP_PCT;
-                                        }
-                                    }
-
-                                    add_affect(type, bonus, 4, item->id(), INFINITE_AFFECT_DURATION, 0, true, false);
-
-                                    item->lock(true);
-                                    item->set_socket(0, true);
-
-                                    auto_recovery_item_process(type);
-                                }
-                            }
-                        }
-                        break;
-                    }
-                    break;
-
-                case USE_CLEAR:
-                    {
-                        remove_bad_affect();
-                        item->set_count(item->count() - 1);
-                    }
-                    break;
-
-                case USE_INVISIBILITY:
-                    {
-                        if (item->vnum() == 70026) {
-                            quest::quest_manager &q = quest::quest_manager::instance();
-                            quest::pc *pPC = q.get_pc(player_id());
-
-                            if (pPC != nullptr) {
-                                int last_use_time = pPC->flag("mirror_of_disapper.last_use_time");
-
-                                if (get_global_time() - last_use_time < 10 * 60) {
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("아직 사용할 수 없습니다."));
-                                    return false;
-                                }
-
-                                pPC->set_flag("mirror_of_disapper.last_use_time", get_global_time());
-                            }
-                        }
-
-                        add_affect(AFFECT_INVISIBILITY, POINT_NONE, 0, AFF_INVISIBILITY, 300, 0, true);
-                        item->set_count(item->count() - 1);
-                    }
-                    break;
-
-                case USE_POTION_NODELAY:
-                    {
-                        if (arena_manager::instance().is_arena_map(map_index()) == true) {
-                            if (quest::quest_manager::instance().event_flag("arena_potion_limit") > 0) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("대련장에서 사용하실 수 없습니다."));
-                                return false;
-                            }
-
-                            switch (item->vnum()) {
-                            case 70020:
-                            case 71018:
-                            case 71019:
-                            case 71020:
-                                if (quest::quest_manager::instance().event_flag("arena_potion_limit_count") < 10000) {
-                                    if (potion_limit_ <= 0) {
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("사용 제한량을 초과하였습니다."));
-                                        return false;
-                                    }
-                                }
-                                break;
-
-                            default:
-                                chat_packet(CHAT_TYPE_INFO, lc_text("대련장에서 사용하실 수 없습니다."));
-                                return false;
-                            }
-                        }
-
-                        bool used = false;
-
-                        if (item->value(0) != 0) {
-                            if (hp() < max_hp()) {
-                                point_change(POINT_HP, item->value(0) * (100 + point(POINT_POTION_BONUS)) / 100);
-                                effect_packet(SE_HPUP_RED);
-                                used = true;
-                            }
-                        }
-
-                        if (item->value(1) != 0) {
-                            if (sp() < max_sp()) {
-                                point_change(POINT_SP, item->value(1) * (100 + point(POINT_POTION_BONUS)) / 100);
-                                effect_packet(SE_SPUP_BLUE);
-                                used = true;
-                            }
-                        }
-
-                        if (item->value(3) != 0) {
-                            if (hp() < max_hp()) {
-                                point_change(POINT_HP, item->value(3) * max_hp() / 100);
-                                effect_packet(SE_HPUP_RED);
-                                used = true;
-                            }
-                        }
-
-                        if (item->value(4) != 0) {
-                            if (sp() < max_sp()) {
-                                point_change(POINT_SP, item->value(4) * max_sp() / 100);
-                                effect_packet(SE_SPUP_BLUE);
-                                used = true;
-                            }
-                        }
-
-                        if (used) {
-                            if (item->vnum() == 50085 || item->vnum() == 50086) {
-                                if (metin2::config::test_server())
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("월병 또는 종자 를 사용하였습니다"));
-                            }
-                            if (get_dungeon())
-                                get_dungeon()->use_potion(this);
-
-                            if (get_war_map())
-                                get_war_map()->use_potion(this, item);
-
-                            potion_limit_--;
-
-                            item->set_count(item->count() - 1);
-                        }
-                    }
-                    break;
-
-                case USE_POTION:
-                    if (arena_manager::instance().is_arena_map(map_index()) == true) {
-                        if (quest::quest_manager::instance().event_flag("arena_potion_limit") > 0) {
-                            chat_packet(CHAT_TYPE_INFO, lc_text("대련장에서 사용하실 수 없습니다."));
-                            return false;
-                        }
-
-                        switch (item->vnum()) {
-                        case 27001:
-                        case 27002:
-                        case 27003:
-                        case 27004:
-                        case 27005:
-                        case 27006:
-                            if (quest::quest_manager::instance().event_flag("arena_potion_limit_count") < 10000) {
-                                if (potion_limit_ <= 0) {
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("사용 제한량을 초과하였습니다."));
-                                    return false;
-                                }
-                            }
-                            break;
-
-                        default:
-                            chat_packet(CHAT_TYPE_INFO, lc_text("대련장에서 사용하실 수 없습니다."));
-                            return false;
-                        }
-                    }
-
-                    if (item->value(1) != 0) {
-                        if (point(POINT_SP_RECOVERY) + sp() >= max_sp()) {
-                            return false;
-                        }
-
-                        point_change(POINT_SP_RECOVERY, item->value(1) * std::min(200, (100 + point(POINT_POTION_BONUS))) / 100);
-                        start_affect_event();
-                        effect_packet(SE_SPUP_BLUE);
-                    }
-
-                    if (item->value(0) != 0) {
-                        if (point(POINT_HP_RECOVERY) + hp() >= max_hp()) {
-                            return false;
-                        }
-
-                        point_change(POINT_HP_RECOVERY, item->value(0) * std::min(200, (100 + point(POINT_POTION_BONUS))) / 100);
-                        start_affect_event();
-                        effect_packet(SE_HPUP_RED);
-                    }
-
-                    if (get_dungeon())
-                        get_dungeon()->use_potion(this);
-
-                    if (get_war_map())
-                        get_war_map()->use_potion(this, item);
-
-                    item->set_count(item->count() - 1);
-                    potion_limit_--;
-                    break;
-
-                case USE_POTION_CONTINUE:
-                    {
-                        if (item->value(0) != 0) {
-                            add_affect(AFFECT_HP_RECOVER_CONTINUE, POINT_HP_RECOVER_CONTINUE, item->value(0), 0, item->value(2), 0, true);
-                        } else if (item->value(1) != 0) {
-                            add_affect(AFFECT_SP_RECOVER_CONTINUE, POINT_SP_RECOVER_CONTINUE, item->value(1), 0, item->value(2), 0, true);
-                        } else
-                            return false;
-                    }
-
-                    if (get_dungeon())
-                        get_dungeon()->use_potion(this);
-
-                    if (get_war_map())
-                        get_war_map()->use_potion(this, item);
-
-                    item->set_count(item->count() - 1);
-                    break;
-
-                case USE_ABILITY_UP:
-                    {
-                        switch (item->value(0)) {
-                        case APPLY_MOV_SPEED:
-                            add_affect(AFFECT_MOV_SPEED, POINT_MOV_SPEED, item->value(2), AFF_MOV_SPEED_POTION, item->value(1), 0, true);
-                            break;
-
-                        case APPLY_ATT_SPEED:
-                            add_affect(AFFECT_ATT_SPEED, POINT_ATT_SPEED, item->value(2), AFF_ATT_SPEED_POTION, item->value(1), 0, true);
-                            break;
-
-                        case APPLY_STR:
-                            add_affect(AFFECT_STR, POINT_ST, item->value(2), 0, item->value(1), 0, true);
-                            break;
-
-                        case APPLY_DEX:
-                            add_affect(AFFECT_DEX, POINT_DX, item->value(2), 0, item->value(1), 0, true);
-                            break;
-
-                        case APPLY_CON:
-                            add_affect(AFFECT_CON, POINT_HT, item->value(2), 0, item->value(1), 0, true);
-                            break;
-
-                        case APPLY_INT:
-                            add_affect(AFFECT_INT, POINT_IQ, item->value(2), 0, item->value(1), 0, true);
-                            break;
-
-                        case APPLY_CAST_SPEED:
-                            add_affect(AFFECT_CAST_SPEED, POINT_CASTING_SPEED, item->value(2), 0, item->value(1), 0, true);
-                            break;
-
-                        case APPLY_ATT_GRADE_BONUS:
-                            add_affect(AFFECT_ATT_GRADE, POINT_ATT_GRADE_BONUS,
-                                item->value(2), 0, item->value(1), 0, true);
-                            break;
-
-                        case APPLY_DEF_GRADE_BONUS:
-                            add_affect(AFFECT_DEF_GRADE, POINT_DEF_GRADE_BONUS,
-                                item->value(2), 0, item->value(1), 0, true);
-                            break;
-                        }
-                    }
-
-                    if (get_dungeon())
-                        get_dungeon()->use_potion(this);
-
-                    if (get_war_map())
-                        get_war_map()->use_potion(this, item);
-
-                    item->set_count(item->count() - 1);
-                    break;
-
-                case USE_TALISMAN:
-                    {
-                        const int TOWN_PORTAL = 1;
-                        const int MEMORY_PORTAL = 2;
-
-                        if (map_index() == 200 || map_index() == 113) {
-                            chat_packet(CHAT_TYPE_INFO, lc_text("현재 위치에서 사용할 수 없습니다."));
-                            return false;
-                        }
-
-                        if (arena_manager::instance().is_arena_map(map_index()) == true) {
-                            chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
-                            return false;
-                        }
-
-                        if (warp_event) {
-                            chat_packet(CHAT_TYPE_INFO, lc_text("이동할 준비가 되어있음으로 귀환부를 사용할수 없습니다"));
-                            return false;
-                        }
-
-                        int consumeLife = calculate_consume(this);
-
-                        if (consumeLife < 0)
-                            return false;
-
-                        if (item->value(0) == TOWN_PORTAL) {
-                            if (item->get_socket(0) == 0) {
-                                if (!get_dungeon())
-                                    if (!give_recall_item(item))
-                                        return false;
-
-                                pixel_position posWarp;
-
-                                if (sectree_manager::instance().recall_position_by_empire(map_index(), empire(), posWarp)) {
-                                    point_change(POINT_HP, -consumeLife, false);
-
-                                    warp_set(posWarp.x, posWarp.y);
-                                } else {
-                                    metin2::log::error("Cannot find spawn position for {} near {:d} x {:d}", name(), x(), y());
-                                }
-                            } else {
-                                if (metin2::config::test_server())
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("원래 위치로 복귀"));
-
-                                process_recall_item(item);
-                            }
-                        } else if (item->value(0) == MEMORY_PORTAL) {
-                            if (item->get_socket(0) == 0) {
-                                if (get_dungeon()) {
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("던전 안에서는 %s%s 사용할 수 없습니다."),
-                                        item->name(),
-                                        "");
-                                    return false;
-                                }
-
-                                if (!give_recall_item(item))
-                                    return false;
-                            } else {
-                                point_change(POINT_HP, -consumeLife, false);
-
-                                process_recall_item(item);
-                            }
-                        }
-                    }
-                    break;
-
-                case USE_TUNING:
-                case USE_DETACHMENT:
-                    {
-                        game::items::item *item2;
-
-                        if (!is_valid_item_position(dest_cell) || !(item2 = get_item(dest_cell)))
-                            return false;
-
-                        if (item2->is_exchanging())
-                            return false;
-
-                        if (item2->is_equipped())
-                            return false;
-
-                        if (item2->vnum() >= 28330 && item2->vnum() <= 28343) {
-                            chat_packet(CHAT_TYPE_INFO, lc_text("+3 영석은 이 아이템으로 개량할 수 없습니다"));
-                            return false;
-                        }
-
-                        if (item2->vnum() >= 28430 && item2->vnum() <= 28443) {
-                            if (item->vnum() == 71056) {
-                                refine_item(item, item2);
-                            } else {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("영석은 이 아이템으로 개량할 수 없습니다"));
-                            }
-                        } else {
-                            refine_item(item, item2);
-                        }
-                    }
-                    break;
-
-                case USE_PUT_INTO_BELT_SOCKET:
-                case USE_PUT_INTO_RING_SOCKET:
-                case USE_PUT_INTO_ACCESSORY_SOCKET:
-                case USE_ADD_ACCESSORY_SOCKET:
-                case USE_CLEAN_SOCKET:
-                case USE_CHANGE_ATTRIBUTE:
-                case USE_CHANGE_ATTRIBUTE2:
-                case USE_ADD_ATTRIBUTE:
-                case USE_ADD_ATTRIBUTE2:
-                    {
-                        game::items::item *item2;
-                        if (!is_valid_item_position(dest_cell) || !(item2 = get_item(dest_cell)))
-                            return false;
-
-                        if (item2->is_equipped()) {
-                            buff_on_attr_remove_buffs_from_item(item2);
-                        }
-
-                        if (ITEM_COSTUME == item2->type()) {
-                            chat_packet(CHAT_TYPE_INFO, lc_text("속성을 변경할 수 없는 아이템입니다."));
-                            return false;
-                        }
-
-                        if (item2->is_exchanging())
-                            return false;
-
-                        if (item2->is_equipped())
-                            return false;
-
-                        switch (item->sub_type()) {
-                        case USE_CLEAN_SOCKET:
-                            {
-                                int i;
-                                for (i = 0; i < ITEM_SOCKET_MAX_NUM; ++i) {
-                                    if (item2->get_socket(i) == ITEM_BROKEN_METIN_VNUM)
-                                        break;
-                                }
-
-                                if (i == ITEM_SOCKET_MAX_NUM) {
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("청소할 석이 박혀있지 않습니다."));
-                                    return false;
-                                }
-
-                                int j = 0;
-
-                                for (i = 0; i < ITEM_SOCKET_MAX_NUM; ++i) {
-                                    if (item2->get_socket(i) != ITEM_BROKEN_METIN_VNUM && item2->get_socket(i) != 0)
-                                        item2->set_socket(j++, item2->get_socket(i));
-                                }
-
-                                for (; j < ITEM_SOCKET_MAX_NUM; ++j) {
-                                    if (item2->get_socket(j) > 0)
-                                        item2->set_socket(j, 1);
-                                }
-
-                                {
-                                    const std::string buf = std::to_string(item2->id());
-                                    log_manager::instance().item_log(this, item, "CLEAN_SOCKET", buf.c_str());
-                                }
-
-                                item->set_count(item->count() - 1);
-                            }
-                            break;
-
-                        case USE_CHANGE_ATTRIBUTE:
-                            if (item2->attribute_set_index() == -1) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("속성을 변경할 수 없는 아이템입니다."));
-                                return false;
-                            }
-
-                            if (item2->attribute_count() == 0) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("변경할 속성이 없습니다."));
-                                return false;
-                            }
-
-                            if (GM_PLAYER == gm_level() && false == metin2::config::test_server()) {
-
-                                uint32_t dwChangeItemAttrCycle = quest::quest_manager::instance().event_flag(change_item_attr_cycle_flag_);
-                                if (dwChangeItemAttrCycle < default_change_item_attr_cycle_)
-                                    dwChangeItemAttrCycle = default_change_item_attr_cycle_;
-
-                                quest::pc *pPC = quest::quest_manager::instance().get_pc(player_id());
-
-                                if (pPC) {
-                                    uint32_t dwNowMin = get_global_time() / 60;
-
-                                    pPC->set_flag(last_change_item_attr_flag_, dwNowMin);
-                                }
-                            }
-
-                            if (item->sub_type() == USE_CHANGE_ATTRIBUTE2) {
-                                int aiChangeProb[ITEM_ATTRIBUTE_MAX_LEVEL] =
-                                    {
-                                        0, 0, 30, 40, 3};
-
-                                item2->change_attribute(aiChangeProb);
-                            } else if (item->vnum() == 76014) {
-                                int aiChangeProb[ITEM_ATTRIBUTE_MAX_LEVEL] =
-                                    {
-                                        0, 10, 50, 39, 1};
-
-                                item2->change_attribute(aiChangeProb);
-                            }
-
-                            else {
-                                if (item->vnum() == 71151 || item->vnum() == 76023) {
-                                    if ((item2->type() == ITEM_WEAPON) || (item2->type() == ITEM_ARMOR && item2->sub_type() == ARMOR_BODY)) {
-                                        bool bCanUse = true;
-                                        for (int i = 0; i < ITEM_LIMIT_MAX_NUM; ++i) {
-                                            if (item2->limit_type(i) == LIMIT_LEVEL && item2->limit_value(i) > 40) {
-                                                bCanUse = false;
-                                                break;
-                                            }
-                                        }
-                                        if (false == bCanUse) {
-                                            chat_packet(CHAT_TYPE_INFO, lc_text("적용 레벨보다 높아 사용이 불가능합니다."));
-                                            break;
-                                        }
-                                    } else {
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("무기와 갑옷에만 사용 가능합니다."));
-                                        break;
-                                    }
-                                }
-                                item2->change_attribute();
-                            }
-
-                            chat_packet(CHAT_TYPE_INFO, lc_text("속성을 변경하였습니다."));
-                            {
-                                const std::string buf = std::to_string(item2->id());
-                                log_manager::instance().item_log(this, item, "CHANGE_ATTRIBUTE", buf.c_str());
-                            }
-
-                            item->set_count(item->count() - 1);
-                            break;
-
-                        case USE_ADD_ATTRIBUTE:
-                            if (item2->attribute_set_index() == -1) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("속성을 변경할 수 없는 아이템입니다."));
-                                return false;
-                            }
-
-                            if (item2->attribute_count() < 4) {
-                                if (item->vnum() == 71152 || item->vnum() == 76024) {
-                                    if ((item2->type() == ITEM_WEAPON) || (item2->type() == ITEM_ARMOR && item2->sub_type() == ARMOR_BODY)) {
-                                        bool bCanUse = true;
-                                        for (int i = 0; i < ITEM_LIMIT_MAX_NUM; ++i) {
-                                            if (item2->limit_type(i) == LIMIT_LEVEL && item2->limit_value(i) > 40) {
-                                                bCanUse = false;
-                                                break;
-                                            }
-                                        }
-                                        if (false == bCanUse) {
-                                            chat_packet(CHAT_TYPE_INFO, lc_text("적용 레벨보다 높아 사용이 불가능합니다."));
-                                            break;
-                                        }
-                                    } else {
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("무기와 갑옷에만 사용 가능합니다."));
-                                        break;
-                                    }
-                                }
-                                const std::string buf = std::to_string(item2->id());
-
-                                if (prob(item_attribute_add_percent[item2->attribute_count()])) {
-                                    item2->add_attribute();
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("속성 추가에 성공하였습니다."));
-
-                                    int iAddedIdx = item2->attribute_count() - 1;
-                                    log_manager::instance().item_log(
-                                        player_id(),
-                                        item2->attribute_type(iAddedIdx),
-                                        item2->attribute_value(iAddedIdx),
-                                        item->id(),
-                                        "ADD_ATTRIBUTE_SUCCESS",
-                                        buf.c_str(),
-                                        get_desc()->host_name(),
-                                        item->original_vnum());
-                                } else {
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("속성 추가에 실패하였습니다."));
-                                    log_manager::instance().item_log(this, item, "ADD_ATTRIBUTE_FAIL", buf.c_str());
-                                }
-
-                                item->set_count(item->count() - 1);
-                            } else {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("더이상 이 아이템을 이용하여 속성을 추가할 수 없습니다."));
-                            }
-                            break;
-
-                        case USE_ADD_ATTRIBUTE2:
-                            if (item2->attribute_set_index() == -1) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("속성을 변경할 수 없는 아이템입니다."));
-                                return false;
-                            }
-
-                            if (item2->attribute_count() == 4) {
-                                const std::string buf = std::to_string(item2->id());
-
-                                if (prob(item_attribute_add_percent[item2->attribute_count()])) {
-                                    item2->add_attribute();
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("속성 추가에 성공하였습니다."));
-
-                                    int iAddedIdx = item2->attribute_count() - 1;
-                                    log_manager::instance().item_log(
-                                        player_id(),
-                                        item2->attribute_type(iAddedIdx),
-                                        item2->attribute_value(iAddedIdx),
-                                        item->id(),
-                                        "ADD_ATTRIBUTE2_SUCCESS",
-                                        buf.c_str(),
-                                        get_desc()->host_name(),
-                                        item->original_vnum());
-                                } else {
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("속성 추가에 실패하였습니다."));
-                                    log_manager::instance().item_log(this, item, "ADD_ATTRIBUTE2_FAIL", buf.c_str());
-                                }
-
-                                item->set_count(item->count() - 1);
-                            } else if (item2->attribute_count() == 5) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("더 이상 이 아이템을 이용하여 속성을 추가할 수 없습니다."));
-                            } else if (item2->attribute_count() < 4) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("먼저 재가비서를 이용하여 속성을 추가시켜 주세요."));
-                            } else {
-                                metin2::log::error("Item has invalid attribute count {:d}", item2->attribute_count());
-                            }
-                            break;
-
-                        case USE_ADD_ACCESSORY_SOCKET:
-                            {
-                                const std::string buf = std::to_string(item2->id());
-
-                                if (item2->is_accessory_for_socket()) {
-                                    if (item2->accessory_socket_max_grade() < ITEM_ACCESSORY_SOCKET_MAX_NUM) {
-                                        if (prob(50)) {
-                                            item2->set_accessory_socket_max_grade(item2->accessory_socket_max_grade() + 1);
-                                            chat_packet(CHAT_TYPE_INFO, lc_text("소켓이 성공적으로 추가되었습니다."));
-                                            log_manager::instance().item_log(this, item, "ADD_SOCKET_SUCCESS", buf.c_str());
-                                        } else {
-                                            chat_packet(CHAT_TYPE_INFO, lc_text("소켓 추가에 실패하였습니다."));
-                                            log_manager::instance().item_log(this, item, "ADD_SOCKET_FAIL", buf.c_str());
-                                        }
-
-                                        item->set_count(item->count() - 1);
-                                    } else {
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("이 액세서리에는 더이상 소켓을 추가할 공간이 없습니다."));
-                                    }
-                                } else {
-                                    chat_packet(CHAT_TYPE_INFO, lc_text("이 아이템으로 소켓을 추가할 수 없는 아이템입니다."));
-                                }
-                            }
-                            break;
-
-                        case USE_PUT_INTO_BELT_SOCKET:
-                        case USE_PUT_INTO_ACCESSORY_SOCKET:
-                            if (item2->is_accessory_for_socket() && item->can_put_into(item2)) {
-                                const std::string buf = std::to_string(item2->id());
-
-                                if (item2->accessory_socket_grade() < item2->accessory_socket_max_grade()) {
-                                    if (prob(accessory_socket_put_pct[item2->accessory_socket_grade()])) {
-                                        item2->set_accessory_socket_grade(item2->accessory_socket_grade() + 1);
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("장착에 성공하였습니다."));
-                                        log_manager::instance().item_log(this, item, "PUT_SOCKET_SUCCESS", buf.c_str());
-                                    } else {
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("장착에 실패하였습니다."));
-                                        log_manager::instance().item_log(this, item, "PUT_SOCKET_FAIL", buf.c_str());
-                                    }
-
-                                    item->set_count(item->count() - 1);
-                                } else {
-                                    if (item2->accessory_socket_max_grade() == 0)
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("먼저 다이아몬드로 악세서리에 소켓을 추가해야합니다."));
-                                    else if (item2->accessory_socket_max_grade() < ITEM_ACCESSORY_SOCKET_MAX_NUM) {
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("이 액세서리에는 더이상 장착할 소켓이 없습니다."));
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("다이아몬드로 소켓을 추가해야합니다."));
-                                    } else
-                                        chat_packet(CHAT_TYPE_INFO, lc_text("이 액세서리에는 더이상 보석을 장착할 수 없습니다."));
-                                }
-                            } else {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("이 아이템을 장착할 수 없습니다."));
-                            }
-                            break;
-                        }
-                        if (item2->is_equipped()) {
-                            buff_on_attr_add_buffs_from_item(item2);
-                        }
-                    }
-                    break;
-
-                case USE_BAIT:
-                    {
-
-                        if (fishing_event) {
-                            chat_packet(CHAT_TYPE_INFO, lc_text("낚시 중에 미끼를 갈아끼울 수 없습니다."));
-                            return false;
-                        }
-
-                        game::items::item *weapon = wear(WEAR_WEAPON);
-
-                        if (!weapon || weapon->type() != ITEM_ROD)
-                            return false;
-
-                        if (weapon->get_socket(2)) {
-                            chat_packet(CHAT_TYPE_INFO, lc_text("이미 꽂혀있던 미끼를 빼고 %s를 끼웁니다."), item->name());
-                        } else {
-                            chat_packet(CHAT_TYPE_INFO, lc_text("낚시대에 %s를 미끼로 끼웁니다."), item->name());
-                        }
-
-                        weapon->set_socket(2, item->value(0));
-                        item->set_count(item->count() - 1);
-                    }
-                    break;
-
-                case USE_MOVE:
-                case USE_TREASURE_BOX:
-                case USE_MONEYBAG:
-                    break;
-
-                case USE_AFFECT:
-                    {
-                        if (find_affect(item->value(0), a_apply_info[item->value(1)].point_type)) {
-                            chat_packet(CHAT_TYPE_INFO, lc_text("이미 효과가 걸려 있습니다."));
-                        } else {
-                            if (item->is_pc_bang_item() == true) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("이 아이템은 PC방에서만 사용할 수 있습니다."));
-                                return false;
-                            }
-
-                            add_affect(item->value(0), a_apply_info[item->value(1)].point_type, item->value(2), 0, item->value(3), 0, false);
-                            item->set_count(item->count() - 1);
-                        }
-                    }
-                    break;
-
-                case USE_CREATE_STONE:
-                    auto_give_item(number(28000, 28013));
-                    item->set_count(item->count() - 1);
-                    break;
-
-                case USE_RECIPE:
-                    {
-                        game::items::item *pSource1 = find_specify_item(item->value(1));
-                        uint32_t dwSourceCount1 = item->value(2);
-
-                        game::items::item *pSource2 = find_specify_item(item->value(3));
-                        uint32_t dwSourceCount2 = item->value(4);
-
-                        if (dwSourceCount1 != 0) {
-                            if (pSource1 == nullptr) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("물약 조합을 위한 재료가 부족합니다."));
-                                return false;
-                            }
-                        }
-
-                        if (dwSourceCount2 != 0) {
-                            if (pSource2 == nullptr) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("물약 조합을 위한 재료가 부족합니다."));
-                                return false;
-                            }
-                        }
-
-                        if (pSource1 != nullptr) {
-                            if (pSource1->count() < dwSourceCount1) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("재료(%s)가 부족합니다."), pSource1->name());
-                                return false;
-                            }
-
-                            pSource1->set_count(pSource1->count() - dwSourceCount1);
-                        }
-
-                        if (pSource2 != nullptr) {
-                            if (pSource2->count() < dwSourceCount2) {
-                                chat_packet(CHAT_TYPE_INFO, lc_text("재료(%s)가 부족합니다."), pSource2->name());
-                                return false;
-                            }
-
-                            pSource2->set_count(pSource2->count() - dwSourceCount2);
-                        }
-
-                        game::items::item *pBottle = find_specify_item(50901);
-
-                        if (!pBottle || pBottle->count() < 1) {
-                            chat_packet(CHAT_TYPE_INFO, lc_text("빈 병이 모자릅니다."));
-                            return false;
-                        }
-
-                        pBottle->set_count(pBottle->count() - 1);
-
-                        if (number(1, 100) > item->value(5)) {
-                            chat_packet(CHAT_TYPE_INFO, lc_text("물약 제조에 실패했습니다."));
-                            return false;
-                        }
-
-                        auto_give_item(item->value(0));
-                    }
-                    break;
-                }
-            }
-            break;
+            return use_item_use(item, dest_cell);
 
         case ITEM_METIN:
-            {
-                game::items::item *item2;
-
-                if (!is_valid_item_position(dest_cell) || !(item2 = get_item(dest_cell)))
-                    return false;
-
-                if (item2->is_exchanging())
-                    return false;
-
-                if (item2->is_equipped())
-                    return false;
-
-                if (item2->type() == ITEM_PICK) return false;
-                if (item2->type() == ITEM_ROD) return false;
-
-                int i;
-
-                for (i = 0; i < ITEM_SOCKET_MAX_NUM; ++i) {
-                    uint32_t dwVnum;
-
-                    if ((dwVnum = item2->get_socket(i)) <= 2)
-                        continue;
-
-                    item_table *p = item_manager::instance().table(dwVnum);
-
-                    if (!p)
-                        continue;
-
-                    if (item->value(5) == p->values[5]) {
-                        chat_packet(CHAT_TYPE_INFO, lc_text("같은 종류의 메틴석은 여러개 부착할 수 없습니다."));
-                        return false;
-                    }
-                }
-
-                if (item2->type() == ITEM_ARMOR) {
-                    if (!is_set(item->wear_flag(), WEARABLE_BODY) || !is_set(item2->wear_flag(), WEARABLE_BODY)) {
-                        chat_packet(CHAT_TYPE_INFO, lc_text("이 메틴석은 장비에 부착할 수 없습니다."));
-                        return false;
-                    }
-                } else if (item2->type() == ITEM_WEAPON) {
-                    if (!is_set(item->wear_flag(), WEARABLE_WEAPON)) {
-                        chat_packet(CHAT_TYPE_INFO, lc_text("이 메틴석은 무기에 부착할 수 없습니다."));
-                        return false;
-                    }
-                } else {
-                    chat_packet(CHAT_TYPE_INFO, lc_text("부착할 수 있는 슬롯이 없습니다."));
-                    return false;
-                }
-
-                for (i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
-                    if (item2->get_socket(i) >= 1 && item2->get_socket(i) <= 2 && item2->get_socket(i) >= item->value(2)) {
-                        if (prob(30)) {
-                            chat_packet(CHAT_TYPE_INFO, lc_text("메틴석 부착에 성공하였습니다."));
-                            item2->set_socket(i, item->vnum());
-                        } else {
-                            chat_packet(CHAT_TYPE_INFO, lc_text("메틴석 부착에 실패하였습니다."));
-                            item2->set_socket(i, ITEM_BROKEN_METIN_VNUM);
-                        }
-
-                        log_manager::instance().item_log(this, item2, "SOCKET", item->name());
-                        item_manager::instance().remove_item(item, "REMOVE (METIN)");
-                        break;
-                    }
-
-                if (i == ITEM_SOCKET_MAX_NUM)
-                    chat_packet(CHAT_TYPE_INFO, lc_text("부착할 수 있는 슬롯이 없습니다."));
-            }
-            break;
+            return use_item_metin(item, dest_cell);
 
         case ITEM_AUTOUSE:
         case ITEM_MATERIAL:
@@ -4016,50 +1335,10 @@ namespace metin2::game::inline characters {
             break;
 
         case ITEM_BLEND:
-            if (blend_item_find(item->vnum())) {
-                int affect_type = AFFECT_BLEND;
-                if (item->get_socket(0) >= static_cast<int32_t>(std::size(a_apply_info))) {
-                    metin2::log::error("Invalid blend item (id {:d}, vnum {:d}): apply type {:d}", item->id(), item->vnum(), item->get_socket(0));
-                    return false;
-                }
-                int apply_type = a_apply_info[item->get_socket(0)].point_type;
-                int apply_value = item->get_socket(1);
-                int apply_duration = item->get_socket(2);
+            return use_item_blend(item);
 
-                if (find_affect(affect_type, apply_type)) {
-                    chat_packet(CHAT_TYPE_INFO, lc_text("이미 효과가 걸려 있습니다."));
-                } else {
-                    if (find_affect(AFFECT_EXP_BONUS_EURO_FREE, POINT_RESIST_MAGIC)) {
-                        chat_packet(CHAT_TYPE_INFO, lc_text("이미 효과가 걸려 있습니다."));
-                    } else {
-                        add_affect(affect_type, apply_type, apply_value, 0, apply_duration, 0, false);
-                        item->set_count(item->count() - 1);
-                    }
-                }
-            }
-            break;
         case ITEM_EXTRACT:
-            {
-                game::items::item *pDestItem = get_item(dest_cell);
-                if (nullptr == pDestItem) {
-                    return false;
-                }
-                switch (item->sub_type()) {
-                case EXTRACT_DRAGON_SOUL:
-                    if (pDestItem->is_dragon_soul()) {
-                        return ds_manager::instance().pull_out(this, NPOS, pDestItem, item);
-                    }
-                    return false;
-                case EXTRACT_DRAGON_HEART:
-                    if (pDestItem->is_dragon_soul()) {
-                        return ds_manager::instance().extract_dragon_heart(this, pDestItem, item);
-                    }
-                    return false;
-                default:
-                    return false;
-                }
-            }
-            break;
+            return use_item_extract(item, dest_cell);
 
         case ITEM_NONE:
             metin2::log::error("Item {} has type none", item->name());
@@ -4071,6 +1350,2497 @@ namespace metin2::game::inline characters {
         }
 
         return true;
+    }
+
+    auto character::use_item_quest(item *item) -> bool {
+        if (get_arena() != nullptr || is_observer_mode() == true) {
+            if (item->vnum() == 50051 || item->vnum() == 50052 || item->vnum() == 50053) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
+                return false;
+            }
+        }
+
+        if (!is_set(item->flag(), ITEM_FLAG_QUEST_USE | ITEM_FLAG_QUEST_USE_MULTIPLE)) {
+            if (item->sig_vnum() == 0) {
+                quest::quest_manager::instance().use_item(player_id(), item, false);
+            } else {
+                quest::quest_manager::instance().sig_use(player_id(), item->sig_vnum(), item, false);
+            }
+        }
+
+        return true;
+    }
+
+    auto character::use_item_campfire(item *item) -> bool {
+        float fx, fy;
+        get_delta_by_degree(rotation(), 100.0f, &fx, &fy);
+
+        sectree *tree = sectree_manager::instance().get(map_index(), (int32_t)(x() + fx), (int32_t)(y() + fy));
+
+        if (!tree) {
+            chat_packet(CHAT_TYPE_INFO, lc_text("모닥불을 피울 수 없는 지점입니다."));
+            return false;
+        }
+
+        if (tree->is_attr((int32_t)(x() + fx), (int32_t)(y() + fy), ATTR_WATER)) {
+            chat_packet(CHAT_TYPE_INFO, lc_text("물 속에 모닥불을 피울 수 없습니다."));
+            return false;
+        }
+
+        character *campfire = character_manager::instance().spawn_mob(fishing::CAMPFIRE_MOB, map_index(), (int32_t)(x() + fx), (int32_t)(y() + fy), 0, false, number(0, 359));
+
+        char_event_info *info = alloc_event_info<char_event_info>();
+
+        info->ch = campfire;
+
+        campfire->mining_event = event_create(kill_campfire_event, info, passes_per_sec(40));
+
+        item->set_count(item->count() - 1);
+
+        return true;
+    }
+
+    auto character::use_item_unique(item *item) -> bool {
+        switch (item->sub_type()) {
+        case USE_ABILITY_UP:
+            add_ability_affect(AFFECT_UNIQUE_ABILITY, item->value(0), item->value(2), item->value(1), true);
+            consume_potion(item);
+            break;
+
+        default:
+            if (item->sub_type() == USE_SPECIAL) {
+                metin2::log::debug("Unique item {:d}: special use", item->vnum());
+
+                switch (item->vnum()) {
+                case 71049:
+                    use_silk_botary();
+                    break;
+                }
+            } else {
+                if (!item->is_equipped())
+                    equip_item(item);
+                else
+                    unequip_item(item);
+            }
+            break;
+        }
+
+        return true;
+    }
+
+    auto character::use_item_treasure_key(item *item, item_pos dest_cell) -> bool {
+        game::items::item *item2;
+
+        if (!get_item(dest_cell) || !(item2 = get_item(dest_cell)))
+            return false;
+
+        if (item2->is_exchanging())
+            return false;
+
+        if (item2->type() != ITEM_TREASURE_BOX) {
+            chat_packet(CHAT_TYPE_TALKING, lc_text("열쇠로 여는 물건이 아닌것 같다."));
+            return false;
+        }
+
+        if (item->value(0) == item2->value(0)) {
+            uint32_t dwBoxVnum = item2->vnum();
+            std::vector<uint32_t> dwVnums;
+            std::vector<uint32_t> dwCounts;
+            std::vector<game::items::item *> item_gets;
+            int count = 0;
+
+            if (give_item_from_special_item_group(dwBoxVnum, dwVnums, dwCounts, item_gets, count)) {
+                item_manager::instance().remove_item(item);
+                item_manager::instance().remove_item(item2);
+
+                for (int i = 0; i < count; i++) {
+                    notify_box_reward(dwVnums[i], dwCounts[i], item_gets[i]);
+                }
+            } else {
+                chat_packet(CHAT_TYPE_TALKING, lc_text("열쇠가 맞지 않는 것 같다."));
+                return false;
+            }
+        } else {
+            chat_packet(CHAT_TYPE_TALKING, lc_text("열쇠가 맞지 않는 것 같다."));
+            return false;
+        }
+
+        return true;
+    }
+
+    auto character::use_item_giftbox(item *item) -> bool {
+        uint32_t dwBoxVnum = item->vnum();
+        std::vector<uint32_t> dwVnums;
+        std::vector<uint32_t> dwCounts;
+        std::vector<game::items::item *> item_gets;
+        int count = 0;
+
+        if ((dwBoxVnum > 51500 && dwBoxVnum < 52000) || (dwBoxVnum >= 50255 && dwBoxVnum <= 50260)) {
+            if (!(this->dragon_soul_is_qualified())) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("먼저 용혼석 퀘스트를 완료하셔야 합니다."));
+                return false;
+            }
+        }
+
+        if (give_item_from_special_item_group(dwBoxVnum, dwVnums, dwCounts, item_gets, count)) {
+            item->set_count(item->count() - 1);
+
+            for (int i = 0; i < count; i++) {
+                notify_box_reward(dwVnums[i], dwCounts[i], item_gets[i]);
+            }
+        } else {
+            chat_packet(CHAT_TYPE_TALKING, lc_text("아무것도 얻을 수 없었습니다."));
+            return false;
+        }
+
+        return true;
+    }
+
+    auto character::use_item_skill_forget(item *item) -> bool {
+        if (!item->get_socket(0)) {
+            item_manager::instance().remove_item(item);
+            return false;
+        }
+
+        uint32_t dwVnum = item->get_socket(0);
+
+        if (skill_level_down(dwVnum)) {
+            item_manager::instance().remove_item(item);
+            chat_packet(CHAT_TYPE_INFO, lc_text("스킬 레벨을 내리는데 성공하였습니다."));
+        } else
+            chat_packet(CHAT_TYPE_INFO, lc_text("스킬 레벨을 내릴 수 없습니다."));
+
+        return true;
+    }
+
+    auto character::use_item_skillbook(item *item) -> bool {
+        if (is_polymorphed()) {
+            chat_packet(CHAT_TYPE_INFO, lc_text("변신중에는 책을 읽을수 없습니다."));
+            return false;
+        }
+
+        uint32_t dwVnum = 0;
+
+        if (item->vnum() == 50300) {
+            dwVnum = item->get_socket(0);
+        } else {
+            dwVnum = item->value(0);
+        }
+
+        if (0 == dwVnum) {
+            item_manager::instance().remove_item(item);
+
+            return false;
+        }
+
+        if (true == learn_skill_by_book(dwVnum)) {
+            item_manager::instance().remove_item(item);
+
+            int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
+
+            if (metin2::config::game().distribution_test_server)
+                iReadDelay /= 3;
+
+            set_skill_next_read_time(dwVnum, get_global_time() + iReadDelay);
+        }
+
+        return true;
+    }
+
+    auto character::use_item_use(item *item, item_pos dest_cell) -> bool {
+        if (item->vnum() > 50800 && item->vnum() <= 50820)
+            return use_item_euro_free(item);
+
+        if (item->vnum() >= 27863 && item->vnum() <= 27883) {
+            if (arena_manager::instance().is_arena_map(map_index()) == true) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
+                return false;
+            }
+        }
+
+        if (metin2::config::test_server()) {
+            metin2::log::debug("Use item {}: type {:d}, subtype {:d}, vnum {:d}", item->name(), item->type(), item->sub_type(), item->original_vnum());
+        }
+
+        switch (item->sub_type()) {
+        case USE_TIME_CHARGE_PER:
+            return use_item_use_time_charge_per(item, dest_cell);
+
+        case USE_TIME_CHARGE_FIX:
+            return use_item_use_time_charge_fix(item, dest_cell);
+
+        case USE_SPECIAL:
+            return use_item_use_special(item, dest_cell);
+
+        case USE_CLEAR:
+            remove_bad_affect();
+            item->set_count(item->count() - 1);
+            break;
+
+        case USE_INVISIBILITY:
+            return use_item_use_invisibility(item);
+
+        case USE_POTION_NODELAY:
+            return use_item_use_potion_nodelay(item);
+
+        case USE_POTION:
+            return use_item_use_potion(item);
+
+        case USE_POTION_CONTINUE:
+            return use_item_use_potion_continue(item);
+
+        case USE_ABILITY_UP:
+            if (const uint32_t affect_type = ability_potion_affect_type(item->value(0)); affect_type != AFFECT_NONE)
+                add_ability_affect(affect_type, item->value(0), item->value(2), item->value(1), false);
+
+            consume_potion(item);
+            break;
+
+        case USE_TALISMAN:
+            return use_item_use_talisman(item);
+
+        case USE_TUNING:
+        case USE_DETACHMENT:
+            return use_item_use_tuning(item, dest_cell);
+
+        case USE_PUT_INTO_BELT_SOCKET:
+        case USE_PUT_INTO_RING_SOCKET:
+        case USE_PUT_INTO_ACCESSORY_SOCKET:
+        case USE_ADD_ACCESSORY_SOCKET:
+        case USE_CLEAN_SOCKET:
+        case USE_CHANGE_ATTRIBUTE:
+        case USE_CHANGE_ATTRIBUTE2:
+        case USE_ADD_ATTRIBUTE:
+        case USE_ADD_ATTRIBUTE2:
+            return use_item_use_socket_or_attribute(item, dest_cell);
+
+        case USE_BAIT:
+            return use_item_use_bait(item);
+
+        case USE_MOVE:
+        case USE_TREASURE_BOX:
+        case USE_MONEYBAG:
+            break;
+
+        case USE_AFFECT:
+            return use_affect_item(item, item->value(0), false);
+
+        case USE_CREATE_STONE:
+            auto_give_item(number(28000, 28013));
+            item->set_count(item->count() - 1);
+            break;
+
+        case USE_RECIPE:
+            return use_item_use_recipe(item);
+        }
+
+        return true;
+    }
+
+    auto character::use_item_euro_free(item *item) -> bool {
+        if (metin2::config::test_server())
+            metin2::log::debug("Additional effect item {:d} (subtype {:d})", item->original_vnum(), item->sub_type());
+
+        if (item->value(0) < 0 || item->value(0) >= static_cast<int32_t>(std::size(a_apply_info))) {
+            metin2::log::error("Item {:d} has invalid apply type {:d}", item->original_vnum(), item->value(0));
+            return false;
+        }
+
+        switch (item->sub_type()) {
+        case USE_ABILITY_UP:
+            if (find_affect(AFFECT_EXP_BONUS_EURO_FREE, a_apply_info[item->value(0)].point_type)) {
+                notify_already_affected();
+                return false;
+            }
+
+            add_ability_affect(AFFECT_EXP_BONUS_EURO_FREE, item->value(0), item->value(2), item->value(1), true);
+            consume_potion(item);
+            break;
+
+        case USE_AFFECT:
+            return use_affect_item(item, AFFECT_EXP_BONUS_EURO_FREE, true);
+
+        case USE_POTION_NODELAY:
+            return use_item_use_potion_nodelay(item);
+        }
+
+        return true;
+    }
+
+    auto character::use_item_use_time_charge_per(item *item, item_pos dest_cell) -> bool {
+        game::items::item *pDestItem = get_item(dest_cell);
+        if (nullptr == pDestItem) {
+            return false;
+        }
+        if (pDestItem->is_dragon_soul()) {
+            int ret;
+            std::string buf;
+            if (item->vnum() == DRAGON_HEART_VNUM) {
+                ret = pDestItem->give_more_time_per((float)item->get_socket(ITEM_SOCKET_CHARGING_AMOUNT_IDX));
+            } else {
+                ret = pDestItem->give_more_time_per((float)item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
+            }
+            if (ret > 0) {
+                if (item->vnum() == DRAGON_HEART_VNUM) {
+                    buf = std::format("Inc {}s by item{{VN:{} SOC{}:{}}}", ret, item->vnum(), ITEM_SOCKET_CHARGING_AMOUNT_IDX, item->get_socket(ITEM_SOCKET_CHARGING_AMOUNT_IDX));
+                } else {
+                    buf = std::format("Inc {}s by item{{VN:{} VAL{}:{}}}", ret, item->vnum(), ITEM_VALUE_CHARGING_AMOUNT_IDX, item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
+                }
+
+                chat_packet(CHAT_TYPE_INFO, lc_text("%d초 만큼 충전되었습니다."), ret);
+                item->set_count(item->count() - 1);
+                log_manager::instance().item_log(this, item, "DS_CHARGING_SUCCESS", buf.c_str());
+                return true;
+            } else {
+                if (item->vnum() == DRAGON_HEART_VNUM) {
+                    buf = std::format("No change by item{{VN:{} SOC{}:{}}}", item->vnum(), ITEM_SOCKET_CHARGING_AMOUNT_IDX, item->get_socket(ITEM_SOCKET_CHARGING_AMOUNT_IDX));
+                } else {
+                    buf = std::format("No change by item{{VN:{} VAL{}:{}}}", item->vnum(), ITEM_VALUE_CHARGING_AMOUNT_IDX, item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
+                }
+
+                chat_packet(CHAT_TYPE_INFO, lc_text("충전할 수 없습니다."));
+                log_manager::instance().item_log(this, item, "DS_CHARGING_FAILED", buf.c_str());
+                return false;
+            }
+        } else
+            return false;
+    }
+
+    auto character::use_item_use_time_charge_fix(item *item, item_pos dest_cell) -> bool {
+        game::items::item *pDestItem = get_item(dest_cell);
+        if (nullptr == pDestItem) {
+            return false;
+        }
+        if (pDestItem->is_dragon_soul()) {
+            int ret = pDestItem->give_more_time_fix(item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
+            std::string buf;
+            if (ret) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("%d초 만큼 충전되었습니다."), ret);
+                buf = std::format("Increase {}s by item{{VN:{} VAL{}:{}}}", ret, item->vnum(), ITEM_VALUE_CHARGING_AMOUNT_IDX, item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
+                log_manager::instance().item_log(this, item, "DS_CHARGING_SUCCESS", buf.c_str());
+                item->set_count(item->count() - 1);
+                return true;
+            } else {
+                chat_packet(CHAT_TYPE_INFO, lc_text("충전할 수 없습니다."));
+                buf = std::format("No change by item{{VN:{} VAL{}:{}}}", item->vnum(), ITEM_VALUE_CHARGING_AMOUNT_IDX, item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
+                log_manager::instance().item_log(this, item, "DS_CHARGING_FAILED", buf.c_str());
+                return false;
+            }
+        } else
+            return false;
+    }
+
+    auto character::use_item_use_special(item *item, item_pos dest_cell) -> bool {
+        switch (item->vnum()) {
+        case ITEM_NOG_POCKET:
+            {
+                if (find_affect(AFFECT_NOG_ABILITY)) {
+                    notify_already_affected();
+                    return false;
+                }
+                int32_t time = item->value(0);
+                int32_t moveSpeedPer = item->value(1);
+                int32_t attPer = item->value(2);
+                int32_t expPer = item->value(3);
+                add_affect(AFFECT_NOG_ABILITY, POINT_MOV_SPEED, moveSpeedPer, AFF_MOV_SPEED_POTION, time, 0, true, true);
+                add_affect(AFFECT_NOG_ABILITY, POINT_MALL_ATTBONUS, attPer, AFF_NONE, time, 0, true, true);
+                add_affect(AFFECT_NOG_ABILITY, POINT_MALL_EXPBONUS, expPer, AFF_NONE, time, 0, true, true);
+                item->set_count(item->count() - 1);
+            }
+            break;
+
+        case ITEM_RAMADAN_CANDY:
+            {
+                int32_t time = item->value(0);
+                int32_t moveSpeedPer = item->value(1);
+                int32_t attPer = item->value(2);
+                int32_t expPer = item->value(3);
+                add_affect(AFFECT_RAMADAN_ABILITY, POINT_MOV_SPEED, moveSpeedPer, AFF_MOV_SPEED_POTION, time, 0, true, true);
+                add_affect(AFFECT_RAMADAN_ABILITY, POINT_MALL_ATTBONUS, attPer, AFF_NONE, time, 0, true, true);
+                add_affect(AFFECT_RAMADAN_ABILITY, POINT_MALL_EXPBONUS, expPer, AFF_NONE, time, 0, true, true);
+                item->set_count(item->count() - 1);
+            }
+            break;
+        case ITEM_MARRIAGE_RING:
+            {
+                marriage::marriage *pMarriage = marriage::manager::instance().get(player_id());
+                if (pMarriage) {
+                    if (pMarriage->ch1 != nullptr) {
+                        if (arena_manager::instance().is_arena_map(pMarriage->ch1->map_index()) == true) {
+                            chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
+                            break;
+                        }
+                    }
+
+                    if (pMarriage->ch2 != nullptr) {
+                        if (arena_manager::instance().is_arena_map(pMarriage->ch2->map_index()) == true) {
+                            chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
+                            break;
+                        }
+                    }
+
+                    int consumeSP = calculate_consume_sp(this);
+
+                    if (consumeSP < 0)
+                        return false;
+
+                    point_change(POINT_SP, -consumeSP, false);
+
+                    warp_to_pid(pMarriage->other(player_id()));
+                } else
+                    chat_packet(CHAT_TYPE_INFO, lc_text("결혼 상태가 아니면 결혼반지를 사용할 수 없습니다."));
+            }
+            break;
+
+        case UNIQUE_ITEM_CAPE_OF_COURAGE:
+        case 70057:
+        case REWARD_BOX_UNIQUE_ITEM_CAPE_OF_COURAGE:
+            aggregate_monster();
+            item->set_count(item->count() - 1);
+            break;
+
+        case UNIQUE_ITEM_WHITE_FLAG:
+            forget_my_attacker();
+            item->set_count(item->count() - 1);
+            break;
+
+        case UNIQUE_ITEM_TREASURE_BOX:
+            break;
+
+        case 30093:
+        case 30094:
+        case 30095:
+        case 30096:
+            return use_item_lucky_bag(item);
+
+        case 50004:
+            return use_item_event_stone_detector(item);
+
+        case 27989:
+        case 76006:
+            return use_item_stone_detector(item);
+
+        case 27996:
+            item->set_count(item->count() - 1);
+            break;
+
+        case 27987:
+            {
+                item->set_count(item->count() - 1);
+
+                int r = number(1, 100);
+
+                if (r <= 50) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("조개에서 돌조각이 나왔습니다."));
+                    auto_give_item(27990);
+                } else {
+                    const int prob_table[] =
+                        {
+                            95, 97, 99};
+
+                    if (r <= prob_table[0]) {
+                        chat_packet(CHAT_TYPE_INFO, lc_text("조개가 흔적도 없이 사라집니다."));
+                    } else if (r <= prob_table[1]) {
+                        chat_packet(CHAT_TYPE_INFO, lc_text("조개에서 백진주가 나왔습니다."));
+                        auto_give_item(27992);
+                    } else if (r <= prob_table[2]) {
+                        chat_packet(CHAT_TYPE_INFO, lc_text("조개에서 청진주가 나왔습니다."));
+                        auto_give_item(27993);
+                    } else {
+                        chat_packet(CHAT_TYPE_INFO, lc_text("조개에서 피진주가 나왔습니다."));
+                        auto_give_item(27994);
+                    }
+                }
+            }
+            break;
+
+        case 71013:
+            create_fly(number(FLY_FIREWORK1, FLY_FIREWORK6), this);
+            item->set_count(item->count() - 1);
+            break;
+
+        case 50100:
+        case 50101:
+        case 50102:
+        case 50103:
+        case 50104:
+        case 50105:
+        case 50106:
+            create_fly(item->vnum() - 50100 + FLY_FIREWORK1, this);
+            item->set_count(item->count() - 1);
+            break;
+
+        case 50200:
+            open_private_shop();
+            break;
+
+        case fishing::FISH_MIND_PILL_VNUM:
+            add_affect(AFFECT_FISH_MIND_PILL, POINT_NONE, 0, AFF_FISH_MIND, 20 * 60, 0, true);
+            item->set_count(item->count() - 1);
+            break;
+
+        case 50301:
+        case 50302:
+        case 50303:
+            {
+                if (is_polymorphed() == true) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("둔갑 중에는 능력을 올릴 수 없습니다."));
+                    return false;
+                }
+
+                int lv = skill_level(SKILL_LEADERSHIP);
+
+                if (lv < item->value(0)) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("이 책은 너무 어려워 이해하기가 힘듭니다."));
+                    return false;
+                }
+
+                if (lv >= item->value(1)) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("이 책은 아무리 봐도 도움이 될 것 같지 않습니다."));
+                    return false;
+                }
+
+                if (learn_skill_by_book(SKILL_LEADERSHIP)) {
+                    item_manager::instance().remove_item(item);
+
+                    int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
+                    if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
+
+                    set_skill_next_read_time(SKILL_LEADERSHIP, get_global_time() + iReadDelay);
+                }
+            }
+            break;
+
+        case 50304:
+        case 50305:
+        case 50306:
+            {
+                if (is_polymorphed()) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("변신중에는 책을 읽을수 없습니다."));
+                    return false;
+                }
+                if (skill_level(SKILL_COMBO) == 0 && level() < 30) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("레벨 30이 되기 전에는 습득할 수 있을 것 같지 않습니다."));
+                    return false;
+                }
+
+                if (skill_level(SKILL_COMBO) == 1 && level() < 50) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("레벨 50이 되기 전에는 습득할 수 있을 것 같지 않습니다."));
+                    return false;
+                }
+
+                if (skill_level(SKILL_COMBO) >= 2) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("연계기는 더이상 수련할 수 없습니다."));
+                    return false;
+                }
+
+                int iPct = item->value(0);
+
+                if (learn_skill_by_book(SKILL_COMBO, iPct)) {
+                    item_manager::instance().remove_item(item);
+
+                    int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
+                    if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
+
+                    set_skill_next_read_time(SKILL_COMBO, get_global_time() + iReadDelay);
+                }
+            }
+            break;
+        case 50311:
+        case 50312:
+        case 50313:
+            {
+                if (is_polymorphed()) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("변신중에는 책을 읽을수 없습니다."));
+                    return false;
+                }
+                uint32_t dwSkillVnum = item->value(0);
+                int iPct = std::clamp(item->value(1), 0, 100);
+                if (skill_level(dwSkillVnum) >= 20 || dwSkillVnum - SKILL_LANGUAGE1 + 1 == empire()) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("이미 완벽하게 알아들을 수 있는 언어이다."));
+                    return false;
+                }
+
+                if (learn_skill_by_book(dwSkillVnum, iPct)) {
+                    item_manager::instance().remove_item(item);
+
+                    int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
+                    if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
+
+                    set_skill_next_read_time(dwSkillVnum, get_global_time() + iReadDelay);
+                }
+            }
+            break;
+
+        case 50061:
+            {
+                if (is_polymorphed()) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("변신중에는 책을 읽을수 없습니다."));
+                    return false;
+                }
+                uint32_t dwSkillVnum = item->value(0);
+                int iPct = std::clamp(item->value(1), 0, 100);
+
+                if (skill_level(dwSkillVnum) >= 10) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("더 이상 수련할 수 없습니다."));
+                    return false;
+                }
+
+                if (learn_skill_by_book(dwSkillVnum, iPct)) {
+                    item_manager::instance().remove_item(item);
+
+                    int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
+                    if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
+
+                    set_skill_next_read_time(dwSkillVnum, get_global_time() + iReadDelay);
+                }
+            }
+            break;
+
+        case 50314:
+        case 50315:
+        case 50316:
+        case 50323:
+        case 50324:
+        case 50325:
+        case 50326:
+            {
+                if (is_polymorphed() == true) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("둔갑 중에는 능력을 올릴 수 없습니다."));
+                    return false;
+                }
+
+                int iSkillLevelLowLimit = item->value(0);
+                int iSkillLevelHighLimit = item->value(1);
+                int iPct = std::clamp(item->value(2), 0, 100);
+                int iLevelLimit = item->value(3);
+                uint32_t dwSkillVnum = 0;
+
+                switch (item->vnum()) {
+                case 50314:
+                case 50315:
+                case 50316:
+                    dwSkillVnum = SKILL_POLYMORPH;
+                    break;
+
+                case 50323:
+                case 50324:
+                    dwSkillVnum = SKILL_ADD_HP;
+                    break;
+
+                case 50325:
+                case 50326:
+                    dwSkillVnum = SKILL_RESIST_PENETRATE;
+                    break;
+
+                default:
+                    return false;
+                }
+
+                if (0 == dwSkillVnum)
+                    return false;
+
+                if (level() < iLevelLimit) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("이 책을 읽으려면 레벨을 더 올려야 합니다."));
+                    return false;
+                }
+
+                if (skill_level(dwSkillVnum) >= 40) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("더 이상 수련할 수 없습니다."));
+                    return false;
+                }
+
+                if (skill_level(dwSkillVnum) < iSkillLevelLowLimit) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("이 책은 너무 어려워 이해하기가 힘듭니다."));
+                    return false;
+                }
+
+                if (skill_level(dwSkillVnum) >= iSkillLevelHighLimit) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("이 책으로는 더 이상 수련할 수 없습니다."));
+                    return false;
+                }
+
+                if (learn_skill_by_book(dwSkillVnum, iPct)) {
+                    item_manager::instance().remove_item(item);
+
+                    int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
+                    if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
+
+                    set_skill_next_read_time(dwSkillVnum, get_global_time() + iReadDelay);
+                }
+            }
+            break;
+
+        case 50902:
+        case 50903:
+        case 50904:
+            {
+                if (is_polymorphed()) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("변신중에는 책을 읽을수 없습니다."));
+                    return false;
+                }
+                uint32_t dwSkillVnum = SKILL_CREATE;
+                int iPct = std::clamp(item->value(1), 0, 100);
+
+                if (skill_level(dwSkillVnum) >= 40) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("더 이상 수련할 수 없습니다."));
+                    return false;
+                }
+
+                if (learn_skill_by_book(dwSkillVnum, iPct)) {
+                    item_manager::instance().remove_item(item);
+
+                    int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
+                    if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
+
+                    set_skill_next_read_time(dwSkillVnum, get_global_time() + iReadDelay);
+
+                    if (metin2::config::test_server()) {
+                        chat_packet(CHAT_TYPE_INFO, "[TEST_SERVER] Success to learn skill ");
+                    }
+                } else {
+                    if (metin2::config::test_server()) {
+                        chat_packet(CHAT_TYPE_INFO, "[TEST_SERVER] Failed to learn skill ");
+                    }
+                }
+            }
+            break;
+
+        case ITEM_MINING_SKILL_TRAIN_BOOK:
+            {
+                if (is_polymorphed()) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("변신중에는 책을 읽을수 없습니다."));
+                    return false;
+                }
+                uint32_t dwSkillVnum = SKILL_MINING;
+                int iPct = std::clamp(item->value(1), 0, 100);
+
+                if (skill_level(dwSkillVnum) >= 40) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("더 이상 수련할 수 없습니다."));
+                    return false;
+                }
+
+                if (learn_skill_by_book(dwSkillVnum, iPct)) {
+                    item_manager::instance().remove_item(item);
+
+                    int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
+                    if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
+
+                    set_skill_next_read_time(dwSkillVnum, get_global_time() + iReadDelay);
+                }
+            }
+            break;
+
+        case ITEM_HORSE_SKILL_TRAIN_BOOK:
+            {
+                if (is_polymorphed()) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("변신중에는 책을 읽을수 없습니다."));
+                    return false;
+                }
+                uint32_t dwSkillVnum = SKILL_HORSE;
+                int iPct = std::clamp(item->value(1), 0, 100);
+
+                if (level() < 50) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("아직 승마 스킬을 수련할 수 있는 레벨이 아닙니다."));
+                    return false;
+                }
+
+                if (!metin2::config::test_server() && get_global_time() < skill_next_read_time(dwSkillVnum)) {
+                    if (find_affect(AFFECT_SKILL_NO_BOOK_DELAY)) {
+                        remove_affect(AFFECT_SKILL_NO_BOOK_DELAY);
+                        chat_packet(CHAT_TYPE_INFO, lc_text("주안술서를 통해 주화입마에서 빠져나왔습니다."));
+                    } else {
+                        skill_learn_wait_more_time_message(skill_next_read_time(dwSkillVnum) - get_global_time());
+                        return false;
+                    }
+                }
+
+                if (point(POINT_HORSE_SKILL) >= 20 ||
+                    skill_level(SKILL_HORSE_WILDATTACK) + skill_level(SKILL_HORSE_CHARGE) + skill_level(SKILL_HORSE_ESCAPE) >= 60 ||
+                    skill_level(SKILL_HORSE_WILDATTACK_RANGE) + skill_level(SKILL_HORSE_CHARGE) + skill_level(SKILL_HORSE_ESCAPE) >= 60) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("더 이상 승마 수련서를 읽을 수 없습니다."));
+                    return false;
+                }
+
+                if (prob(iPct)) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("승마 수련서를 읽어 승마 스킬 포인트를 얻었습니다."));
+                    chat_packet(CHAT_TYPE_INFO, lc_text("얻은 포인트로는 승마 스킬의 레벨을 올릴 수 있습니다."));
+                    point_change(POINT_HORSE_SKILL, 1);
+
+                    int iReadDelay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
+                    if (metin2::config::game().distribution_test_server) iReadDelay /= 3;
+
+                    if (!metin2::config::test_server())
+                        set_skill_next_read_time(dwSkillVnum, get_global_time() + iReadDelay);
+                } else {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("승마 수련서 이해에 실패하였습니다."));
+                }
+
+                item_manager::instance().remove_item(item);
+            }
+            break;
+
+        case 70102:
+        case 70103:
+            {
+                if (alignment() >= 0)
+                    return false;
+
+                int delta = std::min(-alignment(), item->value(0));
+
+                metin2::log::info("{}: alignment item, delta {:d}", name(), delta);
+
+                update_alignment(delta);
+                item->set_count(item->count() - 1);
+
+                if (delta / 10 > 0) {
+                    chat_packet(CHAT_TYPE_TALKING, lc_text("마음이 맑아지는군. 가슴을 짓누르던 무언가가 좀 가벼워진 느낌이야."));
+                    chat_packet(CHAT_TYPE_INFO, lc_text("선악치가 %d 증가하였습니다."), delta / 10);
+                }
+            }
+            break;
+
+        case 71107:
+            {
+                int val = item->value(0);
+                int interval = item->value(1);
+                quest::pc *pPC = quest::quest_manager::instance().get_pc(player_id());
+                int last_use_time = pPC->flag("mythical_peach.last_use_time");
+
+                if (get_global_time() - last_use_time < interval * 60 * 60) {
+                    if (metin2::config::test_server() == false) {
+                        chat_packet(CHAT_TYPE_INFO, lc_text("아직 사용할 수 없습니다."));
+                        return false;
+                    } else {
+                        chat_packet(CHAT_TYPE_INFO, lc_text("테스트 서버 시간제한 통과"));
+                    }
+                }
+
+                if (alignment() == 200000) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("선악치를 더 이상 올릴 수 없습니다."));
+                    return false;
+                }
+
+                if (200000 - alignment() < val * 10) {
+                    val = (200000 - alignment()) / 10;
+                }
+
+                int old_alignment = alignment() / 10;
+
+                update_alignment(val * 10);
+
+                item->set_count(item->count() - 1);
+                pPC->set_flag("mythical_peach.last_use_time", get_global_time());
+
+                chat_packet(CHAT_TYPE_TALKING, lc_text("마음이 맑아지는군. 가슴을 짓누르던 무언가가 좀 가벼워진 느낌이야."));
+                chat_packet(CHAT_TYPE_INFO, lc_text("선악치가 %d 증가하였습니다."), val);
+
+                const std::string buf = std::format("{} {}", old_alignment, alignment() / 10);
+                log_manager::instance().char_log(this, val, "MYTHICAL_PEACH", buf.c_str());
+            }
+            break;
+
+        case 71109:
+        case 72719:
+            {
+                game::items::item *item2;
+
+                if (!is_valid_item_position(dest_cell) || !(item2 = get_item(dest_cell)))
+                    return false;
+
+                if (item2->is_exchanging() == true)
+                    return false;
+
+                if (item2->socket_count() == 0)
+                    return false;
+
+                switch (item2->type()) {
+                case ITEM_WEAPON:
+                    break;
+                case ITEM_ARMOR:
+                    switch (item2->sub_type()) {
+                    case ARMOR_EAR:
+                    case ARMOR_WRIST:
+                    case ARMOR_NECK:
+                        chat_packet(CHAT_TYPE_INFO, lc_text("빼낼 영석이 없습니다"));
+                        return false;
+                    }
+                    break;
+
+                default:
+                    return false;
+                }
+
+                std::stack<int32_t> socket;
+
+                for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
+                    socket.push(item2->get_socket(i));
+
+                int idx = ITEM_SOCKET_MAX_NUM - 1;
+
+                while (socket.size() > 0) {
+                    if (socket.top() > 2 && socket.top() != ITEM_BROKEN_METIN_VNUM)
+                        break;
+
+                    idx--;
+                    socket.pop();
+                }
+
+                if (socket.size() == 0) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("빼낼 영석이 없습니다"));
+                    return false;
+                }
+
+                game::items::item *pItemReward = auto_give_item(socket.top());
+
+                if (pItemReward != nullptr) {
+                    item2->set_socket(idx, 1);
+
+                    const std::string buf = std::format("{}({}) {}({})",
+                        item2->name(), item2->id(), pItemReward->name(), pItemReward->id());
+                    log_manager::instance().item_log(this, item, "USE_DETACHMENT_ONE", buf.c_str());
+
+                    item->set_count(item->count() - 1);
+                }
+            }
+            break;
+
+        case 70201:
+        case 70202:
+        case 70203:
+        case 70204:
+        case 70205:
+        case 70206:
+            {
+                if (part(PART_HAIR) >= 1001) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("현재 헤어스타일에서는 염색과 탈색이 불가능합니다."));
+                } else {
+                    quest::quest_manager &q = quest::quest_manager::instance();
+                    quest::pc *pPC = q.get_pc(player_id());
+
+                    if (pPC) {
+                        int last_dye_level = pPC->flag("dyeing_hair.last_dye_level");
+
+                        if (last_dye_level == 0 ||
+                            last_dye_level + 3 <= level() ||
+                            item->vnum() == 70201) {
+                            set_part(PART_HAIR, item->vnum() - 70201);
+
+                            if (item->vnum() == 70201)
+                                pPC->set_flag("dyeing_hair.last_dye_level", 0);
+                            else
+                                pPC->set_flag("dyeing_hair.last_dye_level", level());
+
+                            item->set_count(item->count() - 1);
+                            update_packet();
+                        } else {
+                            chat_packet(CHAT_TYPE_INFO, lc_text("%d 레벨이 되어야 다시 염색하실 수 있습니다."), last_dye_level + 3);
+                        }
+                    }
+                }
+            }
+            break;
+
+        case ITEM_NEW_YEAR_GREETING_VNUM:
+            {
+                uint32_t dwBoxVnum = ITEM_NEW_YEAR_GREETING_VNUM;
+                std::vector<uint32_t> dwVnums;
+                std::vector<uint32_t> dwCounts;
+                std::vector<game::items::item *> item_gets;
+                int count = 0;
+
+                if (give_item_from_special_item_group(dwBoxVnum, dwVnums, dwCounts, item_gets, count)) {
+                    for (int i = 0; i < count; i++) {
+                        if (dwVnums[i] == special_item_group::GOLD)
+                            chat_packet(CHAT_TYPE_INFO, lc_text("돈 %d 냥을 획득했습니다."), dwCounts[i]);
+                    }
+
+                    item->set_count(item->count() - 1);
+                }
+            }
+            break;
+
+        case ITEM_VALENTINE_ROSE:
+        case ITEM_VALENTINE_CHOCOLATE:
+            {
+                uint32_t dwBoxVnum = item->vnum();
+                std::vector<uint32_t> dwVnums;
+                std::vector<uint32_t> dwCounts;
+                std::vector<game::items::item *> item_gets;
+                int count = 0;
+
+                if ((item->vnum() == ITEM_VALENTINE_ROSE && SEX_MALE == get_sex(this)) ||
+                    (item->vnum() == ITEM_VALENTINE_CHOCOLATE && SEX_FEMALE == get_sex(this))) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("성별이 맞지않아 이 아이템을 열 수 없습니다."));
+                    return false;
+                }
+
+                if (give_item_from_special_item_group(dwBoxVnum, dwVnums, dwCounts, item_gets, count))
+                    item->set_count(item->count() - 1);
+            }
+            break;
+
+        case ITEM_WHITEDAY_CANDY:
+        case ITEM_WHITEDAY_ROSE:
+            {
+                uint32_t dwBoxVnum = item->vnum();
+                std::vector<uint32_t> dwVnums;
+                std::vector<uint32_t> dwCounts;
+                std::vector<game::items::item *> item_gets;
+                int count = 0;
+
+                if ((item->vnum() == ITEM_WHITEDAY_CANDY && SEX_MALE == get_sex(this)) ||
+                    (item->vnum() == ITEM_WHITEDAY_ROSE && SEX_FEMALE == get_sex(this))) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("성별이 맞지않아 이 아이템을 열 수 없습니다."));
+                    return false;
+                }
+
+                if (give_item_from_special_item_group(dwBoxVnum, dwVnums, dwCounts, item_gets, count))
+                    item->set_count(item->count() - 1);
+            }
+            break;
+
+        case 50011:
+            {
+                uint32_t dwBoxVnum = 50011;
+                std::vector<uint32_t> dwVnums;
+                std::vector<uint32_t> dwCounts;
+                std::vector<game::items::item *> item_gets;
+                int count = 0;
+
+                if (give_item_from_special_item_group(dwBoxVnum, dwVnums, dwCounts, item_gets, count)) {
+                    for (int i = 0; i < count; i++) {
+                        const std::string buf = std::format("{} {}", dwVnums[i], dwCounts[i]);
+                        log_manager::instance().item_log(this, item, "MOONLIGHT_GET", buf.c_str());
+
+                        item->set_count(item->count() - 1);
+
+                        notify_box_reward(dwVnums[i], dwCounts[i], item_gets[i]);
+                    }
+                } else {
+                    chat_packet(CHAT_TYPE_TALKING, lc_text("아무것도 얻을 수 없었습니다."));
+                    return false;
+                }
+            }
+            break;
+
+        case ITEM_GIVE_STAT_RESET_COUNT_VNUM:
+            {
+                point_change(POINT_STAT_RESET_COUNT, 1);
+                item->set_count(item->count() - 1);
+            }
+            break;
+
+        case 50107:
+            {
+                effect_packet(SE_CHINA_FIREWORK);
+                add_affect(AFFECT_CHINA_FIREWORK, POINT_STUN_PCT, 30, AFF_CHINA_FIREWORK, 5 * 60, 0, true);
+                item->set_count(item->count() - 1);
+            }
+            break;
+
+        case 50108:
+            {
+                if (arena_manager::instance().is_arena_map(map_index()) == true) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
+                    return false;
+                }
+
+                effect_packet(SE_SPIN_TOP);
+                add_affect(AFFECT_CHINA_FIREWORK, POINT_STUN_PCT, 30, AFF_CHINA_FIREWORK, 5 * 60, 0, true);
+                item->set_count(item->count() - 1);
+            }
+            break;
+
+        case ITEM_WONSO_BEAN_VNUM:
+            point_change(POINT_HP, max_hp() - hp());
+            item->set_count(item->count() - 1);
+            break;
+
+        case ITEM_WONSO_SUGAR_VNUM:
+            point_change(POINT_SP, max_sp() - sp());
+            item->set_count(item->count() - 1);
+            break;
+
+        case ITEM_WONSO_FRUIT_VNUM:
+            point_change(POINT_STAMINA, max_stamina() - stamina());
+            item->set_count(item->count() - 1);
+            break;
+
+        case ITEM_ELK_VNUM:
+            {
+                int iGold = item->get_socket(0);
+                item_manager::instance().remove_item(item);
+                chat_packet(CHAT_TYPE_INFO, lc_text("돈 %d 냥을 획득했습니다."), iGold);
+                point_change(POINT_GOLD, iGold);
+            }
+            break;
+
+        case 70021:
+            {
+                int HealPrice = quest::quest_manager::instance().event_flag("MonarchHealGold");
+                if (HealPrice == 0)
+                    HealPrice = 2000000;
+
+                if (monarch::instance().heal_my_empire(this, HealPrice)) {
+                    char szNotice[256];
+                    snprintf(szNotice, sizeof(szNotice), lc_text("군주의 축복으로 이지역 %s 유저는 HP,SP가 모두 채워집니다."), empire_name(empire()));
+                    send_notice_map(szNotice, map_index(), false);
+
+                    chat_packet(CHAT_TYPE_INFO, lc_text("군주의 축복을 사용하였습니다."));
+                }
+            }
+            break;
+
+        case 27995:
+            {
+            }
+            break;
+
+        case 71092:
+            {
+                if (chr_target_ != nullptr) {
+                    if (chr_target_->is_polymorphed()) {
+                        chr_target_->set_polymorph(0);
+                        chr_target_->remove_affect(AFFECT_POLYMORPH);
+                    }
+                } else {
+                    if (is_polymorphed()) {
+                        set_polymorph(0);
+                        remove_affect(AFFECT_POLYMORPH);
+                    }
+                }
+            }
+            break;
+
+        case 71051:
+            {
+
+                game::items::item *item2;
+
+                if (!is_valid_item_position(dest_cell) || !(item2 = inventory_item(dest_cell.cell)))
+                    return false;
+
+                if (item2->is_exchanging() == true)
+                    return false;
+
+                if (item2->is_equipped() == true)
+                    return false;
+
+                if (item2->type() == ITEM_COSTUME)
+                    return false;
+
+                if (item2->attribute_set_index() == -1) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("속성을 변경할 수 없는 아이템입니다."));
+                    return false;
+                }
+
+                if (item2->add_rare_attribute() == true) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("성공적으로 속성이 추가 되었습니다"));
+
+                    int iAddedIdx = item2->rare_attr_count() + 4;
+                    const std::string buf = std::to_string(item2->id());
+
+                    log_manager::instance().item_log(
+                        player_id(),
+                        item2->attribute_type(iAddedIdx),
+                        item2->attribute_value(iAddedIdx),
+                        item->id(),
+                        "ADD_RARE_ATTR",
+                        buf.c_str(),
+                        get_desc()->host_name(),
+                        item->original_vnum());
+
+                    item->set_count(item->count() - 1);
+                } else {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("더 이상 이 아이템으로 속성을 추가할 수 없습니다"));
+                }
+            }
+            break;
+
+        case 71052:
+            {
+
+                game::items::item *item2;
+
+                if (!is_valid_item_position(dest_cell) || !(item2 = get_item(dest_cell)))
+                    return false;
+
+                if (item2->is_exchanging() == true)
+                    return false;
+
+                if (item2->is_equipped() == true)
+                    return false;
+
+                if (item2->type() == ITEM_COSTUME)
+                    return false;
+
+                if (item2->attribute_set_index() == -1) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("속성을 변경할 수 없는 아이템입니다."));
+                    return false;
+                }
+
+                if (item2->change_rare_attribute() == true) {
+                    const std::string buf = std::to_string(item2->id());
+                    log_manager::instance().item_log(this, item, "CHANGE_RARE_ATTR", buf.c_str());
+
+                    item->set_count(item->count() - 1);
+                } else {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("변경 시킬 속성이 없습니다"));
+                }
+            }
+            break;
+
+        case ITEM_AUTO_HP_RECOVERY_S:
+        case ITEM_AUTO_HP_RECOVERY_M:
+        case ITEM_AUTO_HP_RECOVERY_L:
+        case ITEM_AUTO_HP_RECOVERY_X:
+        case ITEM_AUTO_SP_RECOVERY_S:
+        case ITEM_AUTO_SP_RECOVERY_M:
+        case ITEM_AUTO_SP_RECOVERY_L:
+        case ITEM_AUTO_SP_RECOVERY_X:
+        case REWARD_BOX_ITEM_AUTO_SP_RECOVERY_XS:
+        case REWARD_BOX_ITEM_AUTO_SP_RECOVERY_S:
+        case REWARD_BOX_ITEM_AUTO_HP_RECOVERY_XS:
+        case REWARD_BOX_ITEM_AUTO_HP_RECOVERY_S:
+        case FUCKING_BRAZIL_ITEM_AUTO_SP_RECOVERY_S:
+        case FUCKING_BRAZIL_ITEM_AUTO_HP_RECOVERY_S:
+            return use_item_auto_recovery(item);
+        }
+
+        return true;
+    }
+
+    auto character::use_item_lucky_bag(item *item) -> bool {
+        const int MAX_BAG_INFO = 26;
+        static struct lucky_bag_info {
+            uint32_t count;
+            int prob;
+            uint32_t vnum;
+        } b1[MAX_BAG_INFO] =
+            {
+                {1000, 302, 1    },
+                {10,   150, 27002},
+                {10,   75,  27003},
+                {10,   100, 27005},
+                {10,   50,  27006},
+                {10,   80,  27001},
+                {10,   50,  27002},
+                {10,   80,  27004},
+                {10,   50,  27005},
+                {1,    10,  50300},
+                {1,    6,   92   },
+                {1,    2,   132  },
+                {1,    6,   1052 },
+                {1,    2,   1092 },
+                {1,    6,   2082 },
+                {1,    2,   2122 },
+                {1,    6,   3082 },
+                {1,    2,   3122 },
+                {1,    6,   5052 },
+                {1,    2,   5082 },
+                {1,    6,   7082 },
+                {1,    2,   7122 },
+                {1,    1,   11282},
+                {1,    1,   11482},
+                {1,    1,   11682},
+                {1,    1,   11882},
+        };
+
+        lucky_bag_info *bi = nullptr;
+        bi = b1;
+
+        int pct = number(1, 1000);
+
+        int i;
+        for (i = 0; i < MAX_BAG_INFO; i++) {
+            if (pct <= bi[i].prob)
+                break;
+            pct -= bi[i].prob;
+        }
+        if (i >= MAX_BAG_INFO)
+            return false;
+
+        if (bi[i].vnum == 50300) {
+            give_random_skill_book();
+        } else if (bi[i].vnum == 1) {
+            point_change(POINT_GOLD, 1000, true);
+        } else {
+            auto_give_item(bi[i].vnum, bi[i].count);
+        }
+        item_manager::instance().remove_item(item);
+
+        return true;
+    }
+
+    auto character::use_item_event_stone_detector(item *item) -> bool {
+        if (item->get_socket(0)) {
+            item->set_socket(0, item->get_socket(0) + 1);
+        } else {
+            int iMapIndex = map_index();
+
+            pixel_position pos;
+
+            if (sectree_manager::instance().random_location(iMapIndex, pos, 700)) {
+                item->set_socket(0, 1);
+                item->set_socket(1, pos.x);
+                item->set_socket(2, pos.y);
+            } else {
+                chat_packet(CHAT_TYPE_INFO, lc_text("이 곳에선 이벤트용 감지기가 동작하지 않는것 같습니다."));
+                return false;
+            }
+        }
+
+        int dist = 0;
+        float distance = (distance_sqrt(x() - item->get_socket(1), y() - item->get_socket(2)));
+
+        if (distance < 1000.0f) {
+            chat_packet(CHAT_TYPE_INFO, lc_text("이벤트용 감지기가 신비로운 빛을 내며 사라집니다."));
+
+            struct event_stone_info {
+                uint32_t vnum;
+                int count;
+                int prob;
+            };
+            const int EVENT_STONE_MAX_INFO = 15;
+            event_stone_info info_10[EVENT_STONE_MAX_INFO] =
+                {
+                    {27001, 10, 8 },
+                    {27004, 10, 6 },
+                    {27002, 10, 12},
+                    {27005, 10, 12},
+                    {27100, 1,  9 },
+                    {27103, 1,  9 },
+                    {27101, 1,  10},
+                    {27104, 1,  10},
+                    {27999, 1,  12},
+
+                    {25040, 1,  4 },
+
+                    {27410, 1,  0 },
+                    {27600, 1,  0 },
+                    {25100, 1,  0 },
+
+                    {50001, 1,  0 },
+                    {50003, 1,  1 },
+            };
+            event_stone_info info_7[EVENT_STONE_MAX_INFO] =
+                {
+                    {27001, 10, 1 },
+                    {27004, 10, 1 },
+                    {27004, 10, 9 },
+                    {27005, 10, 9 },
+                    {27100, 1,  5 },
+                    {27103, 1,  5 },
+                    {27101, 1,  10},
+                    {27104, 1,  10},
+                    {27999, 1,  14},
+
+                    {25040, 1,  5 },
+
+                    {27410, 1,  5 },
+                    {27600, 1,  5 },
+                    {25100, 1,  5 },
+
+                    {50001, 1,  0 },
+                    {50003, 1,  5 },
+            };
+            event_stone_info info_4[EVENT_STONE_MAX_INFO] =
+                {
+                    {27001, 10, 0 },
+                    {27004, 10, 0 },
+                    {27002, 10, 0 },
+                    {27005, 10, 0 },
+                    {27100, 1,  0 },
+                    {27103, 1,  0 },
+                    {27101, 1,  0 },
+                    {27104, 1,  0 },
+                    {27999, 1,  25},
+
+                    {25040, 1,  0 },
+
+                    {27410, 1,  0 },
+                    {27600, 1,  0 },
+                    {25100, 1,  15},
+
+                    {50001, 1,  10},
+                    {50003, 1,  50},
+            };
+
+            {
+                event_stone_info *info;
+                if (item->get_socket(0) <= 4)
+                    info = info_4;
+                else if (item->get_socket(0) <= 7)
+                    info = info_7;
+                else
+                    info = info_10;
+
+                int prob = number(1, 100);
+
+                for (int i = 0; i < EVENT_STONE_MAX_INFO; ++i) {
+                    if (!info[i].prob)
+                        continue;
+
+                    if (prob <= info[i].prob) {
+                        if (info[i].vnum == 50001) {
+                            db_manager::instance().func_query([pid = player_id(), vnum = info[i].vnum, count = info[i].count](sql_msg &msg) { give_lotto_ticket_result(msg, pid, vnum, count, 0); },
+                                sql::format("INSERT INTO lotto_list VALUES(0, 'server{}', {}, NOW())", sql::raw(get_table_postfix()), player_id()));
+                        } else
+                            auto_give_item(info[i].vnum, info[i].count);
+
+                        break;
+                    }
+                    prob -= info[i].prob;
+                }
+            }
+
+            const std::string chatbuf = std::format("StoneDetect {} 0 0", (uint32_t)get_vid());
+            int len = static_cast<int>(chatbuf.size()) + 1;
+
+            packet_gc_chat pack_chat;
+            pack_chat.header = HEADER_GC_CHAT;
+            pack_chat.size = sizeof(packet_gc_chat) + len;
+            pack_chat.type = CHAT_TYPE_COMMAND;
+            pack_chat.id = 0;
+            pack_chat.empire = get_desc()->empire();
+
+            temp_buffer buf;
+            buf.write(&pack_chat, sizeof(packet_gc_chat));
+            buf.write(chatbuf.c_str(), len);
+
+            packet_around(buf.read_peek(), buf.size());
+
+            item_manager::instance().remove_item(item, "REMOVE (DETECT_EVENT_STONE) 1");
+            return true;
+        } else if (distance < 20000)
+            dist = 1;
+        else if (distance < 70000)
+            dist = 2;
+        else
+            dist = 3;
+
+        const int STONE_DETECT_MAX_TRY = 10;
+        if (item->get_socket(0) >= STONE_DETECT_MAX_TRY) {
+            chat_packet(CHAT_TYPE_INFO, lc_text("이벤트용 감지기가 흔적도 없이 사라집니다."));
+            item_manager::instance().remove_item(item, "REMOVE (DETECT_EVENT_STONE) 0");
+            auto_give_item(27002);
+            return true;
+        }
+
+        if (dist) {
+            const std::string chatbuf = std::format("StoneDetect {} {} {}",
+                (uint32_t)get_vid(), dist, (int)get_degree_from_position_xy(x(), item->get_socket(2), item->get_socket(1), y()));
+            int len = static_cast<int>(chatbuf.size()) + 1;
+
+            packet_gc_chat pack_chat;
+            pack_chat.header = HEADER_GC_CHAT;
+            pack_chat.size = sizeof(packet_gc_chat) + len;
+            pack_chat.type = CHAT_TYPE_COMMAND;
+            pack_chat.id = 0;
+            pack_chat.empire = get_desc()->empire();
+
+            temp_buffer buf;
+            buf.write(&pack_chat, sizeof(packet_gc_chat));
+            buf.write(chatbuf.c_str(), len);
+
+            packet_around(buf.read_peek(), buf.size());
+        }
+
+        return true;
+    }
+
+    auto character::use_item_stone_detector(item *item) -> bool {
+        sectree_map *pMap = sectree_manager::instance().map(map_index());
+
+        if (pMap != nullptr) {
+            item->set_socket(0, item->get_socket(0) + 1);
+
+            std::vector<character *> stones;
+
+            pMap->for_each([&](entity *ent) {
+                if (ent->is_type(ENTITY_CHARACTER) == true) {
+                    character *pChar = (character *)ent;
+
+                    if (pChar->is_stone() == true)
+                        stones.push_back(pChar);
+                }
+            });
+
+            if (!stones.empty()) {
+                auto stone_key = [&](character *stone) {
+                    uint32_t dist = (uint32_t)distance_sqrt(x() - stone->x(), y() - stone->y());
+                    return std::pair(dist != 0 ? dist : UINT_MAX, (uint32_t)stone->get_vid());
+                };
+
+                character *pTarget = *std::ranges::min_element(stones, {}, stone_key);
+                uint32_t max = stone_key(pTarget).first;
+                int val = 3;
+
+                if (max < 10000)
+                    val = 2;
+                else if (max < 70000)
+                    val = 1;
+
+                chat_packet(CHAT_TYPE_COMMAND, "StoneDetect %u %d %d", (uint32_t)get_vid(), val,
+                    (int)get_degree_from_position_xy(x(), pTarget->y(), pTarget->x(), y()));
+            } else {
+                chat_packet(CHAT_TYPE_INFO, lc_text("감지기를 작용하였으나 감지되는 영석이 없습니다."));
+            }
+
+            if (item->get_socket(0) >= 6) {
+                chat_packet(CHAT_TYPE_COMMAND, "StoneDetect %u 0 0", (uint32_t)get_vid());
+                item_manager::instance().remove_item(item);
+            }
+        }
+
+        return true;
+    }
+
+    auto character::use_item_auto_recovery(item *item) -> bool {
+        if (arena_manager::instance().is_arena_map(map_index()) == true) {
+            chat_packet(CHAT_TYPE_INFO, lc_text("대련장에서 사용하실 수 없습니다."));
+            return false;
+        }
+
+        affect_types type = AFFECT_NONE;
+        bool isSpecialPotion = false;
+
+        switch (item->vnum()) {
+        case ITEM_AUTO_HP_RECOVERY_X:
+            isSpecialPotion = true;
+            [[fallthrough]];
+
+        case ITEM_AUTO_HP_RECOVERY_S:
+        case ITEM_AUTO_HP_RECOVERY_M:
+        case ITEM_AUTO_HP_RECOVERY_L:
+        case REWARD_BOX_ITEM_AUTO_HP_RECOVERY_XS:
+        case REWARD_BOX_ITEM_AUTO_HP_RECOVERY_S:
+        case FUCKING_BRAZIL_ITEM_AUTO_HP_RECOVERY_S:
+            type = AFFECT_AUTO_HP_RECOVERY;
+            break;
+
+        case ITEM_AUTO_SP_RECOVERY_X:
+            isSpecialPotion = true;
+            [[fallthrough]];
+
+        case ITEM_AUTO_SP_RECOVERY_S:
+        case ITEM_AUTO_SP_RECOVERY_M:
+        case ITEM_AUTO_SP_RECOVERY_L:
+        case REWARD_BOX_ITEM_AUTO_SP_RECOVERY_XS:
+        case REWARD_BOX_ITEM_AUTO_SP_RECOVERY_S:
+        case FUCKING_BRAZIL_ITEM_AUTO_SP_RECOVERY_S:
+            type = AFFECT_AUTO_SP_RECOVERY;
+            break;
+        }
+
+        if (AFFECT_NONE == type)
+            return true;
+
+        if (item->count() > 1) {
+            int pos = empty_inventory(item->size());
+
+            if (-1 == pos) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("소지품에 빈 공간이 없습니다."));
+                return true;
+            }
+
+            item->set_count(item->count() - 1);
+
+            game::items::item *item2 = item_manager::instance().create_item(item->vnum(), 1);
+            item2->add_to_character(this, item_pos(INVENTORY, pos));
+
+            if (item->get_socket(1) != 0) {
+                item2->set_socket(1, item->get_socket(1));
+            }
+
+            item = item2;
+        }
+
+        affect *pAffect = find_affect(type);
+
+        if (nullptr == pAffect) {
+            point_types bonus = POINT_NONE;
+
+            if (true == isSpecialPotion) {
+                if (type == AFFECT_AUTO_HP_RECOVERY) {
+                    bonus = POINT_MAX_HP_PCT;
+                } else if (type == AFFECT_AUTO_SP_RECOVERY) {
+                    bonus = POINT_MAX_SP_PCT;
+                }
+            }
+
+            add_affect(type, bonus, 4, item->id(), INFINITE_AFFECT_DURATION, 0, true, false);
+
+            item->lock(true);
+            item->set_socket(0, true);
+
+            auto_recovery_item_process(type);
+        } else {
+            if (item->id() == pAffect->flag) {
+                remove_affect(pAffect);
+
+                item->lock(false);
+                item->set_socket(0, false);
+            } else {
+                game::items::item *old = find_item_by_id(pAffect->flag);
+
+                if (nullptr != old) {
+                    old->lock(false);
+                    old->set_socket(0, false);
+                }
+
+                remove_affect(pAffect);
+
+                point_types bonus = POINT_NONE;
+
+                if (true == isSpecialPotion) {
+                    if (type == AFFECT_AUTO_HP_RECOVERY) {
+                        bonus = POINT_MAX_HP_PCT;
+                    } else if (type == AFFECT_AUTO_SP_RECOVERY) {
+                        bonus = POINT_MAX_SP_PCT;
+                    }
+                }
+
+                add_affect(type, bonus, 4, item->id(), INFINITE_AFFECT_DURATION, 0, true, false);
+
+                item->lock(true);
+                item->set_socket(0, true);
+
+                auto_recovery_item_process(type);
+            }
+        }
+
+        return true;
+    }
+
+    auto character::use_item_use_invisibility(item *item) -> bool {
+        if (item->vnum() == 70026) {
+            quest::quest_manager &q = quest::quest_manager::instance();
+            quest::pc *pPC = q.get_pc(player_id());
+
+            if (pPC != nullptr) {
+                int last_use_time = pPC->flag("mirror_of_disapper.last_use_time");
+
+                if (get_global_time() - last_use_time < 10 * 60) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("아직 사용할 수 없습니다."));
+                    return false;
+                }
+
+                pPC->set_flag("mirror_of_disapper.last_use_time", get_global_time());
+            }
+        }
+
+        add_affect(AFFECT_INVISIBILITY, POINT_NONE, 0, AFF_INVISIBILITY, 300, 0, true);
+        item->set_count(item->count() - 1);
+
+        return true;
+    }
+
+    auto character::use_item_use_potion_nodelay(item *item) -> bool {
+        if (arena_manager::instance().is_arena_map(map_index()) == true) {
+            if (quest::quest_manager::instance().event_flag("arena_potion_limit") > 0) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("대련장에서 사용하실 수 없습니다."));
+                return false;
+            }
+
+            switch (item->vnum()) {
+            case 70020:
+            case 71018:
+            case 71019:
+            case 71020:
+                if (quest::quest_manager::instance().event_flag("arena_potion_limit_count") < 10000) {
+                    if (potion_limit_ <= 0) {
+                        chat_packet(CHAT_TYPE_INFO, lc_text("사용 제한량을 초과하였습니다."));
+                        return false;
+                    }
+                }
+                break;
+
+            default:
+                chat_packet(CHAT_TYPE_INFO, lc_text("대련장에서 사용하실 수 없습니다."));
+                return false;
+            }
+        }
+
+        bool used = false;
+
+        if (item->value(0) != 0) {
+            if (hp() < max_hp()) {
+                point_change(POINT_HP, item->value(0) * (100 + point(POINT_POTION_BONUS)) / 100);
+                effect_packet(SE_HPUP_RED);
+                used = true;
+            }
+        }
+
+        if (item->value(1) != 0) {
+            if (sp() < max_sp()) {
+                point_change(POINT_SP, item->value(1) * (100 + point(POINT_POTION_BONUS)) / 100);
+                effect_packet(SE_SPUP_BLUE);
+                used = true;
+            }
+        }
+
+        if (item->value(3) != 0) {
+            if (hp() < max_hp()) {
+                point_change(POINT_HP, item->value(3) * max_hp() / 100);
+                effect_packet(SE_HPUP_RED);
+                used = true;
+            }
+        }
+
+        if (item->value(4) != 0) {
+            if (sp() < max_sp()) {
+                point_change(POINT_SP, item->value(4) * max_sp() / 100);
+                effect_packet(SE_SPUP_BLUE);
+                used = true;
+            }
+        }
+
+        if (used) {
+            if (item->vnum() == 50085 || item->vnum() == 50086) {
+                if (metin2::config::test_server())
+                    chat_packet(CHAT_TYPE_INFO, lc_text("월병 또는 종자 를 사용하였습니다"));
+            }
+            consume_potion(item);
+
+            potion_limit_--;
+        }
+
+        return true;
+    }
+
+    auto character::use_item_use_potion(item *item) -> bool {
+        if (arena_manager::instance().is_arena_map(map_index()) == true) {
+            if (quest::quest_manager::instance().event_flag("arena_potion_limit") > 0) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("대련장에서 사용하실 수 없습니다."));
+                return false;
+            }
+
+            switch (item->vnum()) {
+            case 27001:
+            case 27002:
+            case 27003:
+            case 27004:
+            case 27005:
+            case 27006:
+                if (quest::quest_manager::instance().event_flag("arena_potion_limit_count") < 10000) {
+                    if (potion_limit_ <= 0) {
+                        chat_packet(CHAT_TYPE_INFO, lc_text("사용 제한량을 초과하였습니다."));
+                        return false;
+                    }
+                }
+                break;
+
+            default:
+                chat_packet(CHAT_TYPE_INFO, lc_text("대련장에서 사용하실 수 없습니다."));
+                return false;
+            }
+        }
+
+        if (item->value(1) != 0) {
+            if (point(POINT_SP_RECOVERY) + sp() >= max_sp()) {
+                return false;
+            }
+
+            point_change(POINT_SP_RECOVERY, item->value(1) * std::min(200, (100 + point(POINT_POTION_BONUS))) / 100);
+            start_affect_event();
+            effect_packet(SE_SPUP_BLUE);
+        }
+
+        if (item->value(0) != 0) {
+            if (point(POINT_HP_RECOVERY) + hp() >= max_hp()) {
+                return false;
+            }
+
+            point_change(POINT_HP_RECOVERY, item->value(0) * std::min(200, (100 + point(POINT_POTION_BONUS))) / 100);
+            start_affect_event();
+            effect_packet(SE_HPUP_RED);
+        }
+
+        consume_potion(item);
+        potion_limit_--;
+
+        return true;
+    }
+
+    auto character::use_item_use_potion_continue(item *item) -> bool {
+        if (item->value(0) != 0) {
+            add_affect(AFFECT_HP_RECOVER_CONTINUE, POINT_HP_RECOVER_CONTINUE, item->value(0), 0, item->value(2), 0, true);
+        } else if (item->value(1) != 0) {
+            add_affect(AFFECT_SP_RECOVER_CONTINUE, POINT_SP_RECOVER_CONTINUE, item->value(1), 0, item->value(2), 0, true);
+        } else
+            return false;
+
+        consume_potion(item);
+
+        return true;
+    }
+
+    auto character::use_item_use_talisman(item *item) -> bool {
+        const int TOWN_PORTAL = 1;
+        const int MEMORY_PORTAL = 2;
+
+        if (map_index() == 200 || map_index() == 113) {
+            chat_packet(CHAT_TYPE_INFO, lc_text("현재 위치에서 사용할 수 없습니다."));
+            return false;
+        }
+
+        if (arena_manager::instance().is_arena_map(map_index()) == true) {
+            chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
+            return false;
+        }
+
+        if (warp_event) {
+            chat_packet(CHAT_TYPE_INFO, lc_text("이동할 준비가 되어있음으로 귀환부를 사용할수 없습니다"));
+            return false;
+        }
+
+        int consumeLife = calculate_consume(this);
+
+        if (consumeLife < 0)
+            return false;
+
+        if (item->value(0) == TOWN_PORTAL) {
+            if (item->get_socket(0) == 0) {
+                if (!get_dungeon())
+                    if (!give_recall_item(item))
+                        return false;
+
+                pixel_position posWarp;
+
+                if (sectree_manager::instance().recall_position_by_empire(map_index(), empire(), posWarp)) {
+                    point_change(POINT_HP, -consumeLife, false);
+
+                    warp_set(posWarp.x, posWarp.y);
+                } else {
+                    metin2::log::error("Cannot find spawn position for {} near {:d} x {:d}", name(), x(), y());
+                }
+            } else {
+                if (metin2::config::test_server())
+                    chat_packet(CHAT_TYPE_INFO, lc_text("원래 위치로 복귀"));
+
+                process_recall_item(item);
+            }
+        } else if (item->value(0) == MEMORY_PORTAL) {
+            if (item->get_socket(0) == 0) {
+                if (get_dungeon()) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("던전 안에서는 %s%s 사용할 수 없습니다."),
+                        item->name(),
+                        "");
+                    return false;
+                }
+
+                if (!give_recall_item(item))
+                    return false;
+            } else {
+                point_change(POINT_HP, -consumeLife, false);
+
+                process_recall_item(item);
+            }
+        }
+
+        return true;
+    }
+
+    auto character::use_item_use_tuning(item *item, item_pos dest_cell) -> bool {
+        game::items::item *item2;
+
+        if (!is_valid_item_position(dest_cell) || !(item2 = get_item(dest_cell)))
+            return false;
+
+        if (item2->is_exchanging())
+            return false;
+
+        if (item2->is_equipped())
+            return false;
+
+        if (item2->vnum() >= 28330 && item2->vnum() <= 28343) {
+            chat_packet(CHAT_TYPE_INFO, lc_text("+3 영석은 이 아이템으로 개량할 수 없습니다"));
+            return false;
+        }
+
+        if (item2->vnum() >= 28430 && item2->vnum() <= 28443) {
+            if (item->vnum() == 71056) {
+                refine_item(item, item2);
+            } else {
+                chat_packet(CHAT_TYPE_INFO, lc_text("영석은 이 아이템으로 개량할 수 없습니다"));
+            }
+        } else {
+            refine_item(item, item2);
+        }
+
+        return true;
+    }
+
+    auto character::use_item_use_socket_or_attribute(item *item, item_pos dest_cell) -> bool {
+        game::items::item *item2;
+        if (!is_valid_item_position(dest_cell) || !(item2 = get_item(dest_cell)))
+            return false;
+
+        if (item2->is_equipped()) {
+            buff_on_attr_remove_buffs_from_item(item2);
+        }
+
+        if (ITEM_COSTUME == item2->type()) {
+            chat_packet(CHAT_TYPE_INFO, lc_text("속성을 변경할 수 없는 아이템입니다."));
+            return false;
+        }
+
+        if (item2->is_exchanging())
+            return false;
+
+        if (item2->is_equipped())
+            return false;
+
+        switch (item->sub_type()) {
+        case USE_CLEAN_SOCKET:
+            {
+                int i;
+                for (i = 0; i < ITEM_SOCKET_MAX_NUM; ++i) {
+                    if (item2->get_socket(i) == ITEM_BROKEN_METIN_VNUM)
+                        break;
+                }
+
+                if (i == ITEM_SOCKET_MAX_NUM) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("청소할 석이 박혀있지 않습니다."));
+                    return false;
+                }
+
+                int j = 0;
+
+                for (i = 0; i < ITEM_SOCKET_MAX_NUM; ++i) {
+                    if (item2->get_socket(i) != ITEM_BROKEN_METIN_VNUM && item2->get_socket(i) != 0)
+                        item2->set_socket(j++, item2->get_socket(i));
+                }
+
+                for (; j < ITEM_SOCKET_MAX_NUM; ++j) {
+                    if (item2->get_socket(j) > 0)
+                        item2->set_socket(j, 1);
+                }
+
+                {
+                    const std::string buf = std::to_string(item2->id());
+                    log_manager::instance().item_log(this, item, "CLEAN_SOCKET", buf.c_str());
+                }
+
+                item->set_count(item->count() - 1);
+            }
+            break;
+
+        case USE_CHANGE_ATTRIBUTE:
+            if (item2->attribute_set_index() == -1) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("속성을 변경할 수 없는 아이템입니다."));
+                return false;
+            }
+
+            if (item2->attribute_count() == 0) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("변경할 속성이 없습니다."));
+                return false;
+            }
+
+            if (GM_PLAYER == gm_level() && false == metin2::config::test_server()) {
+
+                uint32_t dwChangeItemAttrCycle = quest::quest_manager::instance().event_flag(change_item_attr_cycle_flag_);
+                if (dwChangeItemAttrCycle < default_change_item_attr_cycle_)
+                    dwChangeItemAttrCycle = default_change_item_attr_cycle_;
+
+                quest::pc *pPC = quest::quest_manager::instance().get_pc(player_id());
+
+                if (pPC) {
+                    uint32_t dwNowMin = get_global_time() / 60;
+
+                    pPC->set_flag(last_change_item_attr_flag_, dwNowMin);
+                }
+            }
+
+            if (item->sub_type() == USE_CHANGE_ATTRIBUTE2) {
+                int aiChangeProb[ITEM_ATTRIBUTE_MAX_LEVEL] =
+                    {
+                        0, 0, 30, 40, 3};
+
+                item2->change_attribute(aiChangeProb);
+            } else if (item->vnum() == 76014) {
+                int aiChangeProb[ITEM_ATTRIBUTE_MAX_LEVEL] =
+                    {
+                        0, 10, 50, 39, 1};
+
+                item2->change_attribute(aiChangeProb);
+            }
+
+            else {
+                if (item->vnum() == 71151 || item->vnum() == 76023) {
+                    if ((item2->type() == ITEM_WEAPON) || (item2->type() == ITEM_ARMOR && item2->sub_type() == ARMOR_BODY)) {
+                        bool bCanUse = true;
+                        for (int i = 0; i < ITEM_LIMIT_MAX_NUM; ++i) {
+                            if (item2->limit_type(i) == LIMIT_LEVEL && item2->limit_value(i) > 40) {
+                                bCanUse = false;
+                                break;
+                            }
+                        }
+                        if (false == bCanUse) {
+                            chat_packet(CHAT_TYPE_INFO, lc_text("적용 레벨보다 높아 사용이 불가능합니다."));
+                            break;
+                        }
+                    } else {
+                        chat_packet(CHAT_TYPE_INFO, lc_text("무기와 갑옷에만 사용 가능합니다."));
+                        break;
+                    }
+                }
+                item2->change_attribute();
+            }
+
+            chat_packet(CHAT_TYPE_INFO, lc_text("속성을 변경하였습니다."));
+            {
+                const std::string buf = std::to_string(item2->id());
+                log_manager::instance().item_log(this, item, "CHANGE_ATTRIBUTE", buf.c_str());
+            }
+
+            item->set_count(item->count() - 1);
+            break;
+
+        case USE_ADD_ATTRIBUTE:
+            if (item2->attribute_set_index() == -1) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("속성을 변경할 수 없는 아이템입니다."));
+                return false;
+            }
+
+            if (item2->attribute_count() < 4) {
+                if (item->vnum() == 71152 || item->vnum() == 76024) {
+                    if ((item2->type() == ITEM_WEAPON) || (item2->type() == ITEM_ARMOR && item2->sub_type() == ARMOR_BODY)) {
+                        bool bCanUse = true;
+                        for (int i = 0; i < ITEM_LIMIT_MAX_NUM; ++i) {
+                            if (item2->limit_type(i) == LIMIT_LEVEL && item2->limit_value(i) > 40) {
+                                bCanUse = false;
+                                break;
+                            }
+                        }
+                        if (false == bCanUse) {
+                            chat_packet(CHAT_TYPE_INFO, lc_text("적용 레벨보다 높아 사용이 불가능합니다."));
+                            break;
+                        }
+                    } else {
+                        chat_packet(CHAT_TYPE_INFO, lc_text("무기와 갑옷에만 사용 가능합니다."));
+                        break;
+                    }
+                }
+                const std::string buf = std::to_string(item2->id());
+
+                if (prob(item_attribute_add_percent[item2->attribute_count()])) {
+                    item2->add_attribute();
+                    chat_packet(CHAT_TYPE_INFO, lc_text("속성 추가에 성공하였습니다."));
+
+                    int iAddedIdx = item2->attribute_count() - 1;
+                    log_manager::instance().item_log(
+                        player_id(),
+                        item2->attribute_type(iAddedIdx),
+                        item2->attribute_value(iAddedIdx),
+                        item->id(),
+                        "ADD_ATTRIBUTE_SUCCESS",
+                        buf.c_str(),
+                        get_desc()->host_name(),
+                        item->original_vnum());
+                } else {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("속성 추가에 실패하였습니다."));
+                    log_manager::instance().item_log(this, item, "ADD_ATTRIBUTE_FAIL", buf.c_str());
+                }
+
+                item->set_count(item->count() - 1);
+            } else {
+                chat_packet(CHAT_TYPE_INFO, lc_text("더이상 이 아이템을 이용하여 속성을 추가할 수 없습니다."));
+            }
+            break;
+
+        case USE_ADD_ATTRIBUTE2:
+            if (item2->attribute_set_index() == -1) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("속성을 변경할 수 없는 아이템입니다."));
+                return false;
+            }
+
+            if (item2->attribute_count() == 4) {
+                const std::string buf = std::to_string(item2->id());
+
+                if (prob(item_attribute_add_percent[item2->attribute_count()])) {
+                    item2->add_attribute();
+                    chat_packet(CHAT_TYPE_INFO, lc_text("속성 추가에 성공하였습니다."));
+
+                    int iAddedIdx = item2->attribute_count() - 1;
+                    log_manager::instance().item_log(
+                        player_id(),
+                        item2->attribute_type(iAddedIdx),
+                        item2->attribute_value(iAddedIdx),
+                        item->id(),
+                        "ADD_ATTRIBUTE2_SUCCESS",
+                        buf.c_str(),
+                        get_desc()->host_name(),
+                        item->original_vnum());
+                } else {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("속성 추가에 실패하였습니다."));
+                    log_manager::instance().item_log(this, item, "ADD_ATTRIBUTE2_FAIL", buf.c_str());
+                }
+
+                item->set_count(item->count() - 1);
+            } else if (item2->attribute_count() == 5) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("더 이상 이 아이템을 이용하여 속성을 추가할 수 없습니다."));
+            } else if (item2->attribute_count() < 4) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("먼저 재가비서를 이용하여 속성을 추가시켜 주세요."));
+            } else {
+                metin2::log::error("Item has invalid attribute count {:d}", item2->attribute_count());
+            }
+            break;
+
+        case USE_ADD_ACCESSORY_SOCKET:
+            {
+                const std::string buf = std::to_string(item2->id());
+
+                if (item2->is_accessory_for_socket()) {
+                    if (item2->accessory_socket_max_grade() < ITEM_ACCESSORY_SOCKET_MAX_NUM) {
+                        if (prob(50)) {
+                            item2->set_accessory_socket_max_grade(item2->accessory_socket_max_grade() + 1);
+                            chat_packet(CHAT_TYPE_INFO, lc_text("소켓이 성공적으로 추가되었습니다."));
+                            log_manager::instance().item_log(this, item, "ADD_SOCKET_SUCCESS", buf.c_str());
+                        } else {
+                            chat_packet(CHAT_TYPE_INFO, lc_text("소켓 추가에 실패하였습니다."));
+                            log_manager::instance().item_log(this, item, "ADD_SOCKET_FAIL", buf.c_str());
+                        }
+
+                        item->set_count(item->count() - 1);
+                    } else {
+                        chat_packet(CHAT_TYPE_INFO, lc_text("이 액세서리에는 더이상 소켓을 추가할 공간이 없습니다."));
+                    }
+                } else {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("이 아이템으로 소켓을 추가할 수 없는 아이템입니다."));
+                }
+            }
+            break;
+
+        case USE_PUT_INTO_BELT_SOCKET:
+        case USE_PUT_INTO_ACCESSORY_SOCKET:
+            if (item2->is_accessory_for_socket() && item->can_put_into(item2)) {
+                const std::string buf = std::to_string(item2->id());
+
+                if (item2->accessory_socket_grade() < item2->accessory_socket_max_grade()) {
+                    if (prob(accessory_socket_put_pct[item2->accessory_socket_grade()])) {
+                        item2->set_accessory_socket_grade(item2->accessory_socket_grade() + 1);
+                        chat_packet(CHAT_TYPE_INFO, lc_text("장착에 성공하였습니다."));
+                        log_manager::instance().item_log(this, item, "PUT_SOCKET_SUCCESS", buf.c_str());
+                    } else {
+                        chat_packet(CHAT_TYPE_INFO, lc_text("장착에 실패하였습니다."));
+                        log_manager::instance().item_log(this, item, "PUT_SOCKET_FAIL", buf.c_str());
+                    }
+
+                    item->set_count(item->count() - 1);
+                } else {
+                    if (item2->accessory_socket_max_grade() == 0)
+                        chat_packet(CHAT_TYPE_INFO, lc_text("먼저 다이아몬드로 악세서리에 소켓을 추가해야합니다."));
+                    else if (item2->accessory_socket_max_grade() < ITEM_ACCESSORY_SOCKET_MAX_NUM) {
+                        chat_packet(CHAT_TYPE_INFO, lc_text("이 액세서리에는 더이상 장착할 소켓이 없습니다."));
+                        chat_packet(CHAT_TYPE_INFO, lc_text("다이아몬드로 소켓을 추가해야합니다."));
+                    } else
+                        chat_packet(CHAT_TYPE_INFO, lc_text("이 액세서리에는 더이상 보석을 장착할 수 없습니다."));
+                }
+            } else {
+                chat_packet(CHAT_TYPE_INFO, lc_text("이 아이템을 장착할 수 없습니다."));
+            }
+            break;
+        }
+        if (item2->is_equipped()) {
+            buff_on_attr_add_buffs_from_item(item2);
+        }
+
+        return true;
+    }
+
+    auto character::use_item_use_bait(item *item) -> bool {
+        if (fishing_event) {
+            chat_packet(CHAT_TYPE_INFO, lc_text("낚시 중에 미끼를 갈아끼울 수 없습니다."));
+            return false;
+        }
+
+        game::items::item *weapon = wear(WEAR_WEAPON);
+
+        if (!weapon || weapon->type() != ITEM_ROD)
+            return false;
+
+        if (weapon->get_socket(2)) {
+            chat_packet(CHAT_TYPE_INFO, lc_text("이미 꽂혀있던 미끼를 빼고 %s를 끼웁니다."), item->name());
+        } else {
+            chat_packet(CHAT_TYPE_INFO, lc_text("낚시대에 %s를 미끼로 끼웁니다."), item->name());
+        }
+
+        weapon->set_socket(2, item->value(0));
+        item->set_count(item->count() - 1);
+
+        return true;
+    }
+
+    auto character::use_item_use_recipe(item *item) -> bool {
+        game::items::item *pSource1 = find_specify_item(item->value(1));
+        uint32_t dwSourceCount1 = item->value(2);
+
+        game::items::item *pSource2 = find_specify_item(item->value(3));
+        uint32_t dwSourceCount2 = item->value(4);
+
+        if (dwSourceCount1 != 0) {
+            if (pSource1 == nullptr) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("물약 조합을 위한 재료가 부족합니다."));
+                return false;
+            }
+        }
+
+        if (dwSourceCount2 != 0) {
+            if (pSource2 == nullptr) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("물약 조합을 위한 재료가 부족합니다."));
+                return false;
+            }
+        }
+
+        if (pSource1 != nullptr) {
+            if (pSource1->count() < dwSourceCount1) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("재료(%s)가 부족합니다."), pSource1->name());
+                return false;
+            }
+
+            pSource1->set_count(pSource1->count() - dwSourceCount1);
+        }
+
+        if (pSource2 != nullptr) {
+            if (pSource2->count() < dwSourceCount2) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("재료(%s)가 부족합니다."), pSource2->name());
+                return false;
+            }
+
+            pSource2->set_count(pSource2->count() - dwSourceCount2);
+        }
+
+        game::items::item *pBottle = find_specify_item(50901);
+
+        if (!pBottle || pBottle->count() < 1) {
+            chat_packet(CHAT_TYPE_INFO, lc_text("빈 병이 모자릅니다."));
+            return false;
+        }
+
+        pBottle->set_count(pBottle->count() - 1);
+
+        if (number(1, 100) > item->value(5)) {
+            chat_packet(CHAT_TYPE_INFO, lc_text("물약 제조에 실패했습니다."));
+            return false;
+        }
+
+        auto_give_item(item->value(0));
+
+        return true;
+    }
+
+    auto character::use_item_metin(item *item, item_pos dest_cell) -> bool {
+        game::items::item *item2;
+
+        if (!is_valid_item_position(dest_cell) || !(item2 = get_item(dest_cell)))
+            return false;
+
+        if (item2->is_exchanging())
+            return false;
+
+        if (item2->is_equipped())
+            return false;
+
+        if (item2->type() == ITEM_PICK) return false;
+        if (item2->type() == ITEM_ROD) return false;
+
+        int i;
+
+        for (i = 0; i < ITEM_SOCKET_MAX_NUM; ++i) {
+            uint32_t dwVnum;
+
+            if ((dwVnum = item2->get_socket(i)) <= 2)
+                continue;
+
+            item_table *p = item_manager::instance().table(dwVnum);
+
+            if (!p)
+                continue;
+
+            if (item->value(5) == p->values[5]) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("같은 종류의 메틴석은 여러개 부착할 수 없습니다."));
+                return false;
+            }
+        }
+
+        if (item2->type() == ITEM_ARMOR) {
+            if (!is_set(item->wear_flag(), WEARABLE_BODY) || !is_set(item2->wear_flag(), WEARABLE_BODY)) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("이 메틴석은 장비에 부착할 수 없습니다."));
+                return false;
+            }
+        } else if (item2->type() == ITEM_WEAPON) {
+            if (!is_set(item->wear_flag(), WEARABLE_WEAPON)) {
+                chat_packet(CHAT_TYPE_INFO, lc_text("이 메틴석은 무기에 부착할 수 없습니다."));
+                return false;
+            }
+        } else {
+            chat_packet(CHAT_TYPE_INFO, lc_text("부착할 수 있는 슬롯이 없습니다."));
+            return false;
+        }
+
+        for (i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
+            if (item2->get_socket(i) >= 1 && item2->get_socket(i) <= 2 && item2->get_socket(i) >= item->value(2)) {
+                if (prob(30)) {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("메틴석 부착에 성공하였습니다."));
+                    item2->set_socket(i, item->vnum());
+                } else {
+                    chat_packet(CHAT_TYPE_INFO, lc_text("메틴석 부착에 실패하였습니다."));
+                    item2->set_socket(i, ITEM_BROKEN_METIN_VNUM);
+                }
+
+                log_manager::instance().item_log(this, item2, "SOCKET", item->name());
+                item_manager::instance().remove_item(item, "REMOVE (METIN)");
+                break;
+            }
+
+        if (i == ITEM_SOCKET_MAX_NUM)
+            chat_packet(CHAT_TYPE_INFO, lc_text("부착할 수 있는 슬롯이 없습니다."));
+
+        return true;
+    }
+
+    auto character::use_item_blend(item *item) -> bool {
+        if (blend_item_find(item->vnum())) {
+            int affect_type = AFFECT_BLEND;
+            if (item->get_socket(0) >= static_cast<int32_t>(std::size(a_apply_info))) {
+                metin2::log::error("Invalid blend item (id {:d}, vnum {:d}): apply type {:d}", item->id(), item->vnum(), item->get_socket(0));
+                return false;
+            }
+            int apply_type = a_apply_info[item->get_socket(0)].point_type;
+            int apply_value = item->get_socket(1);
+            int apply_duration = item->get_socket(2);
+
+            if (find_affect(affect_type, apply_type)) {
+                notify_already_affected();
+            } else {
+                if (find_affect(AFFECT_EXP_BONUS_EURO_FREE, POINT_RESIST_MAGIC)) {
+                    notify_already_affected();
+                } else {
+                    add_affect(affect_type, apply_type, apply_value, 0, apply_duration, 0, false);
+                    item->set_count(item->count() - 1);
+                }
+            }
+        }
+
+        return true;
+    }
+
+    auto character::use_item_extract(item *item, item_pos dest_cell) -> bool {
+        game::items::item *pDestItem = get_item(dest_cell);
+        if (nullptr == pDestItem) {
+            return false;
+        }
+        switch (item->sub_type()) {
+        case EXTRACT_DRAGON_SOUL:
+            if (pDestItem->is_dragon_soul()) {
+                return ds_manager::instance().pull_out(this, NPOS, pDestItem, item);
+            }
+            return false;
+        case EXTRACT_DRAGON_HEART:
+            if (pDestItem->is_dragon_soul()) {
+                return ds_manager::instance().extract_dragon_heart(this, pDestItem, item);
+            }
+            return false;
+        default:
+            return false;
+        }
+    }
+
+    auto character::use_affect_item(item *item, uint32_t affect_type, bool is_cube) -> bool {
+        if (find_affect(affect_type, a_apply_info[item->value(1)].point_type)) {
+            notify_already_affected();
+            return true;
+        }
+
+        if (item->is_pc_bang_item() == true) {
+            chat_packet(CHAT_TYPE_INFO, lc_text("이 아이템은 PC방에서만 사용할 수 있습니다."));
+            return false;
+        }
+
+        add_affect(affect_type, a_apply_info[item->value(1)].point_type, item->value(2), 0, item->value(3), 0, false, is_cube);
+        item->set_count(item->count() - 1);
+
+        return true;
+    }
+
+    void character::add_ability_affect(uint32_t affect_type, int32_t apply, int32_t value, int32_t duration, bool is_cube) {
+        uint32_t flag = AFF_NONE;
+
+        switch (apply) {
+        case APPLY_MOV_SPEED:
+            flag = AFF_MOV_SPEED_POTION;
+            break;
+
+        case APPLY_ATT_SPEED:
+            flag = AFF_ATT_SPEED_POTION;
+            break;
+
+        case APPLY_STR:
+        case APPLY_DEX:
+        case APPLY_CON:
+        case APPLY_INT:
+        case APPLY_CAST_SPEED:
+        case APPLY_RESIST_MAGIC:
+        case APPLY_ATT_GRADE_BONUS:
+        case APPLY_DEF_GRADE_BONUS:
+            break;
+
+        default:
+            return;
+        }
+
+        add_affect(affect_type, a_apply_info[apply].point_type, value, flag, duration, 0, true, is_cube);
+    }
+
+    void character::consume_potion(item *item) {
+        if (get_dungeon())
+            get_dungeon()->use_potion(this);
+
+        if (get_war_map())
+            get_war_map()->use_potion(this, item);
+
+        item->set_count(item->count() - 1);
+    }
+
+    void character::notify_already_affected() {
+        chat_packet(CHAT_TYPE_INFO, lc_text("이미 효과가 걸려 있습니다."));
+    }
+
+    void character::notify_box_reward(uint32_t vnum, uint32_t count, item *reward) {
+        switch (vnum) {
+        case special_item_group::GOLD:
+            chat_packet(CHAT_TYPE_INFO, lc_text("돈 %d 냥을 획득했습니다."), count);
+            break;
+        case special_item_group::EXP:
+            chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 부터 신비한 빛이 나옵니다."));
+            chat_packet(CHAT_TYPE_INFO, lc_text("%d의 경험치를 획득했습니다."), count);
+            break;
+        case special_item_group::MOB:
+            chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 몬스터가 나타났습니다!"));
+            break;
+        case special_item_group::SLOW:
+            chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 나온 빨간 연기를 들이마시자 움직이는 속도가 느려졌습니다!"));
+            break;
+        case special_item_group::DRAIN_HP:
+            chat_packet(CHAT_TYPE_INFO, lc_text("상자가 갑자기 폭발하였습니다! 생명력이 감소했습니다."));
+            break;
+        case special_item_group::POISON:
+            chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 나온 녹색 연기를 들이마시자 독이 온몸으로 퍼집니다!"));
+            break;
+        case special_item_group::MOB_GROUP:
+            chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 몬스터가 나타났습니다!"));
+            break;
+        default:
+            if (reward) {
+                if (count > 1)
+                    chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 %s 가 %d 개 나왔습니다."), reward->name(), count);
+                else
+                    chat_packet(CHAT_TYPE_INFO, lc_text("상자에서 %s 가 나왔습니다."), reward->name());
+            }
+        }
     }
 
     int portal_limit_time = 10;
@@ -4826,13 +4596,13 @@ namespace metin2::game::inline characters {
 
             const uint32_t &dwVnum = item->vnum();
 
-            if (true == item_vnum_helper::is_ramadan_moon_ring(dwVnum)) {
+            if (item_vnum::is_ramadan_moon_ring(dwVnum)) {
                 this->effect_packet(SE_EQUIP_RAMADAN_RING);
-            } else if (true == item_vnum_helper::is_halloween_candy(dwVnum)) {
+            } else if (item_vnum::is_halloween_candy(dwVnum)) {
                 this->effect_packet(SE_EQUIP_HALLOWEEN_CANDY);
-            } else if (true == item_vnum_helper::is_happiness_ring(dwVnum)) {
+            } else if (item_vnum::is_happiness_ring(dwVnum)) {
                 this->effect_packet(SE_EQUIP_HAPPINESS_RING);
-            } else if (true == item_vnum_helper::is_love_pendant(dwVnum)) {
+            } else if (item_vnum::is_love_pendant(dwVnum)) {
                 this->effect_packet(SE_EQUIP_LOVE_PENDANT);
             } else if (ITEM_UNIQUE == item->type() && 0 != item->sig_vnum()) {
                 const special_item_group *pGroup = item_manager::instance().get_special_item_group(item->sig_vnum());

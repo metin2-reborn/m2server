@@ -530,7 +530,7 @@ namespace metin2::game::inline items {
                 owner_->apply_point(proto_->applies[i].type, add ? value : -value);
             }
         }
-        if (true == item_vnum_helper::is_ramadan_moon_ring(vnum()) || true == item_vnum_helper::is_halloween_candy(vnum()) || true == item_vnum_helper::is_happiness_ring(vnum()) || true == item_vnum_helper::is_love_pendant(vnum())) {
+        if (item_vnum::is_ramadan_moon_ring(vnum()) || item_vnum::is_halloween_candy(vnum()) || item_vnum::is_happiness_ring(vnum()) || item_vnum::is_love_pendant(vnum())) {
         } else {
             for (int i = 0; i < ITEM_ATTRIBUTE_MAX_NUM; ++i) {
                 if (attribute_type(i)) {

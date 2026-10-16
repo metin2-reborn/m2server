@@ -10,24 +10,20 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+#include <stop_token>
 #include <string>
+#include <string_view>
 #include <thread>
 #include <vector>
 
 namespace metin2::sql {
 
+    struct mysql_res_deleter {
+        void operator()(MYSQL_RES *res) const { mysql_free_result(res); }
+    };
+
     struct sql_result {
-        sql_result() = default;
-        sql_result(const sql_result &) = delete;
-        auto operator=(const sql_result &) -> sql_result & = delete;
-
-        ~sql_result() {
-            if (res) {
-                mysql_free_result(res);
-            }
-        }
-
-        MYSQL_RES *res{nullptr};
+        std::unique_ptr<MYSQL_RES, mysql_res_deleter> res;
         uint32_t num_rows{0};
         uint32_t affected_rows{0};
         uint32_t insert_id{0};
@@ -50,6 +46,13 @@ namespace metin2::sql {
         unsigned int sql_errno{0};
     };
 
+    struct sql_stats {
+        std::size_t queued{0};
+        std::size_t results{0};
+        int finished{0};
+        int copied{0};
+    };
+
     class async_sql {
       public:
         async_sql() = default;
@@ -57,7 +60,7 @@ namespace metin2::sql {
         auto operator=(const async_sql &) -> async_sql & = delete;
         ~async_sql();
 
-        auto setup(const char *host, const char *user, const char *password, const char *db, const char *locale, bool no_thread = false, int port = 0) -> bool;
+        auto setup(std::string_view host, std::string_view user, std::string_view password, std::string_view db, std::string_view locale, bool no_thread = false, int port = 0) -> bool;
         void quit();
 
         auto query_locale_set() -> bool;
@@ -68,17 +71,12 @@ namespace metin2::sql {
         auto direct_query(const char *query_value) -> std::unique_ptr<sql_msg>;
         auto pop_result() -> std::unique_ptr<sql_msg>;
 
-        auto count_query() -> uint32_t;
-        auto count_result() -> uint32_t;
-        auto count_query_finished() -> int;
-        void reset_query_finished();
-        auto copied_query_count() -> int;
-        void reset_copied_query_count();
-
+        auto stats() -> sql_stats;
+        void reset_stats();
 
       private:
         auto connect() -> bool;
-        void child_loop();
+        void child_loop(std::stop_token stop);
         auto new_message(const char *query_value) -> std::unique_ptr<sql_msg>;
         void push_query(std::unique_ptr<sql_msg> msg);
         void check_reconnected();
@@ -99,23 +97,23 @@ namespace metin2::sql {
         unsigned long thread_id_{0};
 
         std::mutex mtx_query_;
-        std::condition_variable cv_query_;
+        std::condition_variable_any cv_query_;
         std::deque<std::unique_ptr<sql_msg>> queue_query_;
 
         std::mutex mtx_result_;
         std::deque<std::unique_ptr<sql_msg>> queue_result_;
 
-        std::thread thread_;
-        std::atomic<bool> end_{false};
-
         std::atomic<int> query_finished_{0};
         std::atomic<int> copied_query_{0};
+
+        std::jthread thread_;
     };
 }
 
 namespace metin2 {
     using sql::async_sql;
+    using sql::sql_callback;
     using sql::sql_msg;
     using sql::sql_result;
-    using sql::sql_callback;
+    using sql::sql_stats;
 }

@@ -466,8 +466,8 @@ namespace metin2::game::inline characters {
       public:
         auto find_character_in_view(const char *name_value, bool find_pc_only) -> character *;
         void update_packet();
-        int analyze_protect;
-        int analyze_protect_count;
+        int analyze_protect = 0;
+        int analyze_protect_count = 0;
 
       protected:
         state_template<character> state_move_;
@@ -511,7 +511,7 @@ namespace metin2::game::inline characters {
         void restart_at_same_pos();
 
       protected:
-        uint32_t state_duration_;
+        uint32_t state_duration_ = 1;
 
       public:
         character();
@@ -522,10 +522,6 @@ namespace metin2::game::inline characters {
 
         void disconnect(const char *reason);
 
-      protected:
-        void initialize();
-
-      public:
         auto player_id() const -> uint32_t { return player_id_; }
 
         void set_player_proto(const player_table *t);
@@ -702,22 +698,22 @@ namespace metin2::game::inline characters {
         auto chat_counter() const -> uint8_t;
 
       protected:
-        uint32_t polymorph_race_;
+        uint32_t polymorph_race_ = 0;
         bool poly_maintain_stat_;
-        uint32_t player_id_;
+        uint32_t player_id_ = 0;
         vid vid_;
         std::string name_;
-        uint8_t char_type_;
+        uint8_t char_type_ = CHAR_TYPE_MONSTER;
 
-        character_point points_;
-        character_point_instant points_instant_;
+        character_point points_{};
+        character_point_instant points_instant_{};
 
         uint32_t play_start_time_;
-        uint8_t add_chr_state_;
-        bool skip_save_;
+        uint8_t add_chr_state_ = 0;
+        bool skip_save_ = false;
         std::string mobile_;
         std::string mobile_auth_;
-        uint8_t chat_counter_;
+        uint8_t chat_counter_ = 0;
 
       public:
         auto is_walking() const -> bool { return now_walking_ || stamina() <= 0; }
@@ -769,28 +765,28 @@ namespace metin2::game::inline characters {
         void clear_sync();
 
         float sync_time_;
-        character *chr_sync_owner_;
+        character *chr_sync_owner_ = nullptr;
         character_list lst_chr_sync_owned_;
 
-        pixel_position pos_dest_;
-        pixel_position pos_start_;
-        pixel_position pos_warp_;
-        int32_t warp_map_index_;
+        pixel_position pos_dest_{};
+        pixel_position pos_start_{};
+        pixel_position pos_warp_{};
+        int32_t warp_map_index_ = 0;
 
-        pixel_position pos_exit_;
-        int32_t exit_map_index_;
+        pixel_position pos_exit_{};
+        int32_t exit_map_index_ = 0;
 
-        uint32_t move_start_time_;
-        uint32_t move_duration_;
+        uint32_t move_start_time_ = 0;
+        uint32_t move_duration_ = 0;
 
         uint32_t last_move_time_;
         uint32_t last_attack_time_;
         uint32_t walk_start_time_;
         uint32_t stop_time_;
 
-        bool walking_;
-        bool now_walking_;
-        bool stamina_consume_;
+        bool walking_ = false;
+        bool now_walking_ = false;
+        bool stamina_consume_ = false;
 
       public:
         void sync_quickslot(uint8_t type_value, uint8_t old_pos, uint8_t new_pos);
@@ -874,7 +870,7 @@ namespace metin2::game::inline characters {
 
         static auto is_party_joinable_mutable_condition(character *const pch_leader, character *const pch_guest) -> party_join_err_code;
 
-        party *party_;
+        party *party_ = nullptr;
         uint32_t last_dead_time_;
         event_ptr party_request_event_;
 
@@ -887,8 +883,8 @@ namespace metin2::game::inline characters {
         auto dungeon_force() const -> dungeon *;
 
       protected:
-        dungeon *dungeon_;
-        int event_attr_;
+        dungeon *dungeon_ = nullptr;
+        int event_attr_ = 0;
 
       public:
         void set_guild(guild *guild_value);
@@ -898,9 +894,9 @@ namespace metin2::game::inline characters {
         auto get_war_map() const -> war_map * { return war_map_; }
 
       protected:
-        guild *guild_;
+        guild *guild_ = nullptr;
         uint32_t under_guild_war_info_message_time_;
-        war_map *war_map_;
+        war_map *war_map_ = nullptr;
 
       public:
         auto can_handle_item(bool skip_check_refine = false, bool skip_observer = false) -> bool;
@@ -924,6 +920,44 @@ namespace metin2::game::inline characters {
         auto use_item_ex(item *item, item_pos dest_cell) -> bool;
         auto use_item(item_pos cell_value, item_pos dest_cell = NPOS) -> bool;
 
+      private:
+        auto use_item_quest(item *item) -> bool;
+        auto use_item_campfire(item *item) -> bool;
+        auto use_item_unique(item *item) -> bool;
+        auto use_item_treasure_key(item *item, item_pos dest_cell) -> bool;
+        auto use_item_giftbox(item *item) -> bool;
+        auto use_item_skill_forget(item *item) -> bool;
+        auto use_item_skillbook(item *item) -> bool;
+        auto use_item_use(item *item, item_pos dest_cell) -> bool;
+        auto use_item_euro_free(item *item) -> bool;
+        auto use_item_use_time_charge_per(item *item, item_pos dest_cell) -> bool;
+        auto use_item_use_time_charge_fix(item *item, item_pos dest_cell) -> bool;
+        auto use_item_use_special(item *item, item_pos dest_cell) -> bool;
+        auto use_item_lucky_bag(item *item) -> bool;
+        auto use_item_event_stone_detector(item *item) -> bool;
+        auto use_item_stone_detector(item *item) -> bool;
+        auto use_item_auto_recovery(item *item) -> bool;
+        auto use_item_use_invisibility(item *item) -> bool;
+        auto use_item_use_potion_nodelay(item *item) -> bool;
+        auto use_item_use_potion(item *item) -> bool;
+        auto use_item_use_potion_continue(item *item) -> bool;
+        auto use_item_use_talisman(item *item) -> bool;
+        auto use_item_use_tuning(item *item, item_pos dest_cell) -> bool;
+        auto use_item_use_socket_or_attribute(item *item, item_pos dest_cell) -> bool;
+        auto use_item_use_bait(item *item) -> bool;
+        auto use_item_use_recipe(item *item) -> bool;
+        auto use_item_metin(item *item, item_pos dest_cell) -> bool;
+        auto use_item_blend(item *item) -> bool;
+        auto use_item_extract(item *item, item_pos dest_cell) -> bool;
+        auto use_affect_item(item *item, uint32_t affect_type, bool is_cube) -> bool;
+        void add_ability_affect(uint32_t affect_type, int32_t apply, int32_t value, int32_t duration, bool is_cube);
+        void consume_potion(item *item);
+        void notify_already_affected();
+        void notify_box_reward(uint32_t vnum, uint32_t count, item *reward);
+        auto is_refine_paused_after_update() const -> bool;
+        auto replace_refined_item(item *item, uint32_t new_vnum, int cost, bool refine_succeeded, const char *way) -> bool;
+
+      public:
         auto is_refine_through_guild() const -> bool;
         auto refine_guild() const -> guild *;
         auto compute_refine_fee(int cost, int multiply = 5) const -> int;
@@ -988,12 +1022,12 @@ namespace metin2::game::inline characters {
       protected:
         void send_my_shop_price_list_cmd(uint32_t item_vnum, uint32_t item_price);
 
-        bool no_opened_shop_;
+        bool no_opened_shop_ = true;
 
-        bool item_loaded_;
+        bool item_loaded_ = false;
         int refine_additional_cell_;
-        bool under_refine_;
-        uint32_t refine_npcvid_;
+        bool under_refine_ = false;
+        uint32_t refine_npcvid_ = 0;
 
       public:
         auto gold() const -> int32_t { return points_.gold; }
@@ -1013,10 +1047,10 @@ namespace metin2::game::inline characters {
         void close_my_shop();
 
       protected:
-        shop *shop_;
-        shop *my_shop_;
+        shop *shop_ = nullptr;
+        shop *my_shop_ = nullptr;
         std::string shop_sign_;
-        character *chr_shop_owner_;
+        character *chr_shop_owner_ = nullptr;
 
       public:
         auto exchange_start(character *victim) -> bool;
@@ -1024,7 +1058,7 @@ namespace metin2::game::inline characters {
         auto get_exchange() const -> exchange * { return exchange_; }
 
       protected:
-        exchange *exchange_;
+        exchange *exchange_ = nullptr;
 
       public:
         struct battle_info {
@@ -1110,29 +1144,29 @@ namespace metin2::game::inline characters {
         auto get_skip_combo_attack_by_time() const -> uint32_t;
 
       protected:
-        uint8_t combo_sequence_;
-        uint32_t last_combo_time_;
+        uint8_t combo_sequence_ = 0;
+        uint32_t last_combo_time_ = 0;
         int valid_combo_interval_;
-        uint8_t combo_index_;
-        int combo_hack_count_;
-        uint32_t skip_combo_attack_by_time_;
+        uint8_t combo_index_ = 0;
+        int combo_hack_count_ = 0;
+        uint32_t skip_combo_attack_by_time_ = 0;
 
       protected:
         void update_aggr_point_ex(character *attacker, damage_type type, int dam, battle_info &info);
         void change_victim_by_aggro(int new_aggro, character *new_victim);
 
-        uint32_t fly_target_id_;
+        uint32_t fly_target_id_ = 0;
         std::vector<uint32_t> vec_fly_targets_;
         damage_map map_damage_;
-        uint32_t killer_pid_;
+        uint32_t killer_pid_ = 0;
 
-        int alignment_;
-        int real_alignment_;
-        int killer_mode_pulse_;
-        uint8_t pk_mode_;
+        int alignment_ = 0;
+        int real_alignment_ = 0;
+        int killer_mode_pulse_ = 0;
+        uint8_t pk_mode_ = PK_MODE_PEACE;
 
         uint32_t last_victim_set_time_;
-        int max_aggro_;
+        int max_aggro_ = -100;
 
       public:
         void set_stone(character *chr_stone);
@@ -1142,7 +1176,7 @@ namespace metin2::game::inline characters {
         auto drop_metin_stone_pct() const -> uint8_t { return drop_metin_stone_pct_; }
 
       protected:
-        character *chr_stone_;
+        character *chr_stone_ = nullptr;
         character_set set_chr_spawned_by_;
         uint32_t drop_metin_stone_;
         uint8_t drop_metin_stone_pct_;
@@ -1193,7 +1227,7 @@ namespace metin2::game::inline characters {
         auto learn_grand_master_skill(uint32_t skill_vnum) -> bool;
 
       private:
-        bool disable_cooltime_;
+        bool disable_cooltime_ = false;
         uint32_t last_skill_time_;
 
       public:
@@ -1205,7 +1239,7 @@ namespace metin2::game::inline characters {
         void reset_mob_skill_cooltime();
 
       protected:
-        uint32_t mob_skill_cooltime_[MOB_SKILL_MAX_NUM];
+        uint32_t mob_skill_cooltime_[MOB_SKILL_MAX_NUM]{};
 
       public:
         void start_muyeong_event();
@@ -1265,7 +1299,7 @@ namespace metin2::game::inline characters {
         trigger trigger_on_click_;
 
       protected:
-        character *chr_target_;
+        character *chr_target_ = nullptr;
         character_set set_chr_targeted_by_;
 
       public:
@@ -1301,14 +1335,14 @@ namespace metin2::game::inline characters {
 
       protected:
         std::unique_ptr<safebox> safebox_;
-        int safebox_size_;
-        int safebox_load_time_;
-        bool opening_safebox_;
+        int safebox_size_ = -1;
+        int safebox_load_time_ = 0;
+        bool opening_safebox_ = false;
 
         std::unique_ptr<safebox> mall_;
-        int mall_load_time_;
+        int mall_load_time_ = 0;
 
-        pixel_position pos_safebox_open_;
+        pixel_position pos_safebox_open_{-1000, -1000, 0};
 
       public:
         void mount_vnum(uint32_t vnum);
@@ -1346,15 +1380,15 @@ namespace metin2::game::inline characters {
 
       public:
       protected:
-        character *ch_horse_;
-        character *ch_rider_;
+        character *ch_horse_ = nullptr;
+        character *ch_rider_ = nullptr;
 
-        uint32_t mount_vnum_;
-        uint32_t mount_time_;
+        uint32_t mount_vnum_ = 0;
+        uint32_t mount_time_ = 0;
 
-        uint8_t send_horse_level_;
-        uint8_t send_horse_health_grade_;
-        uint8_t send_horse_stamina_grade_;
+        uint8_t send_horse_level_ = 0;
+        uint8_t send_horse_health_grade_ = 0;
+        uint8_t send_horse_stamina_grade_ = 0;
 
       public:
         void detail_log() { detail_log_ = !detail_log_; }
@@ -1362,8 +1396,8 @@ namespace metin2::game::inline characters {
         void monster_log(const char *format, ...);
 
       private:
-        bool detail_log_;
-        bool monster_log_;
+        bool detail_log_ = false;
+        bool monster_log_ = false;
 
       public:
         void set_empire(uint8_t empire);
@@ -1376,9 +1410,9 @@ namespace metin2::game::inline characters {
         void set_regen(regen *regen_value);
 
       protected:
-        pixel_position pos_regen_;
-        regen *regen_;
-        size_t regen_id_;
+        pixel_position pos_regen_{};
+        regen *regen_ = nullptr;
+        size_t regen_id_ = 0;
 
       public:
         auto cannot_move_by_affect() const -> bool;
@@ -1406,9 +1440,9 @@ namespace metin2::game::inline characters {
         void confirm_with_msg(const char *msg_value, int timeout_value, uint32_t request_pid_value);
 
       private:
-        uint32_t quest_npcvid_;
-        uint32_t quest_by_vnum_;
-        item *quest_item_;
+        uint32_t quest_npcvid_ = 0;
+        uint32_t quest_by_vnum_ = 0;
+        item *quest_item_ = nullptr;
 
       public:
         auto start_state_machine(int next_pulse = 1) -> bool;
@@ -1419,7 +1453,7 @@ namespace metin2::game::inline characters {
         void update_character(uint32_t pulse);
 
       protected:
-        uint32_t next_state_pulse_;
+        uint32_t next_state_pulse_ = 0;
 
       public:
         auto marry_partner() const -> character *;
@@ -1429,8 +1463,8 @@ namespace metin2::game::inline characters {
         void set_wedding_map(marriage::wedding_map *map);
 
       private:
-        marriage::wedding_map *wedding_map_;
-        character *chr_married_;
+        marriage::wedding_map *wedding_map_ = nullptr;
+        character *chr_married_ = nullptr;
 
       public:
         void start_warp_npc_event();
@@ -1460,9 +1494,9 @@ namespace metin2::game::inline characters {
 
         auto is_warping() const -> bool { return warp_event ? true : false; }
 
-        bool has_poisoned;
+        bool has_poisoned = false;
 
-        const mob *mob_data;
+        const mob *mob_data = nullptr;
         std::unique_ptr<mob_instance> mob_inst;
 
         std::map<int, event_ptr> mob_skill_event;
@@ -1492,7 +1526,7 @@ namespace metin2::game::inline characters {
         void send_damage_packet(character *attacker, int damage_value, uint8_t damage_flag);
 
       private:
-        arena *arena_;
+        arena *arena_ = nullptr;
         bool arena_observer_;
         int potion_limit_;
 
@@ -1514,20 +1548,20 @@ namespace metin2::game::inline characters {
         void set_safebox_load_time() { safebox_load_time_ = thecore_pulse(); }
 
       private:
-        bool is_open_safebox_;
+        bool is_open_safebox_ = false;
 
       public:
         auto skill_power_by_level(int level, bool mob = false) const -> int;
 
         auto get_refine_time() const -> int { return refine_time; }
         void set_refine_time() { refine_time = thecore_pulse(); }
-        int refine_time;
+        int refine_time = 0;
 
         auto get_exchange_time() const -> int { return exchange_time; }
         void set_exchange_time() { exchange_time = thecore_pulse(); }
-        int exchange_time;
+        int exchange_time = 0;
 
-        int my_shop_time;
+        int my_shop_time = 0;
         auto get_my_shop_time() const -> int { return my_shop_time; }
         void set_my_shop_time() { my_shop_time = thecore_pulse(); }
 
@@ -1572,7 +1606,7 @@ namespace metin2::game::inline characters {
 
       public:
       private:
-        int deposit_pulse_;
+        int deposit_pulse_ = 0;
 
       public:
         void update_deposit_pulse();
@@ -1590,9 +1624,9 @@ namespace metin2::game::inline characters {
             }
         };
 
-        attack_log_entry attack_log;
+        attack_log_entry attack_log{};
         attacked_log_entry attacked_log;
-        int speed_hack_count;
+        int speed_hack_count = 0;
 
       private:
         std::string new_name_;
@@ -1612,7 +1646,7 @@ namespace metin2::game::inline characters {
         void send_guild_name(uint32_t guild_id);
 
       private:
-        uint32_t log_off_interval_;
+        uint32_t log_off_interval_ = 0;
 
       public:
         auto log_off_interval() const -> uint32_t { return log_off_interval_; }
@@ -1623,7 +1657,7 @@ namespace metin2::game::inline characters {
         auto can_warp() const -> bool;
 
       private:
-        uint32_t last_gold_drop_time_;
+        uint32_t last_gold_drop_time_ = 0;
 
       public:
         void auto_recovery_item_process(const affect_types);
@@ -1644,18 +1678,18 @@ namespace metin2::game::inline characters {
         void reset_armada() { cannot_dead_ = false; }
 
       private:
-        bool cannot_dead_;
+        bool cannot_dead_ = false;
 
       private:
-        bool is_pet_;
+        bool is_pet_ = false;
 
       public:
         void set_pet() { is_pet_ = true; }
         auto is_pet() -> bool { return is_pet_; }
 
       private:
-        float att_mul_;
-        float dam_mul_;
+        float att_mul_ = 1.0f;
+        float dam_mul_ = 1.0f;
 
       public:
         auto att_mul() -> float { return this->att_mul_; }
@@ -1672,7 +1706,7 @@ namespace metin2::game::inline characters {
         auto guild_creation_key() const -> uint32_t { return guild_creation_key_; }
 
       private:
-        uint32_t guild_creation_key_;
+        uint32_t guild_creation_key_ = 0;
 
       private:
         unsigned int item_award_vnum_;
@@ -1707,8 +1741,8 @@ namespace metin2::game::inline characters {
         auto dragon_soul_refine_window_can_refine() -> bool;
 
       private:
-        timeval tv_last_sync_time_;
-        int sync_hack_count_;
+        timeval tv_last_sync_time_{};
+        int sync_hack_count_ = 0;
 
       public:
         void set_last_sync_time(const timeval &tv) { memcpy(&tv_last_sync_time_, &tv, sizeof(timeval)); }
@@ -1717,8 +1751,8 @@ namespace metin2::game::inline characters {
         auto sync_hack_count() -> int { return sync_hack_count_; }
 
       public:
-        int last_drop_time;
-        int count_drops;
+        int last_drop_time = 0;
+        int count_drops = 0;
         void clear_pm_counter(void) { pm_counter_ = 0; }
         void increase_pm_counter(void) { pm_counter_++; }
         void set_last_pm_pulse(void);
@@ -1726,8 +1760,8 @@ namespace metin2::game::inline characters {
         auto last_pm_pulse(void) const -> int { return last_pm_pulse_; }
 
       protected:
-        int last_pm_pulse_;
-        int pm_counter_;
+        int last_pm_pulse_ = 0;
+        int pm_counter_ = 0;
     };
 
     auto get_sex(character *ch) -> sex;

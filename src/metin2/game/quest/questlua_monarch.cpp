@@ -246,10 +246,8 @@ namespace metin2::game {
         }
 
         auto spawn_mob(lua_State *lua) -> int {
-            if (!lua_isnumber(lua, 1)) {
-                quest::error("Invalid arguments");
+            if (!require_number(lua, 1))
                 return 0;
-            }
 
             uint32_t mob_vnum = (uint32_t)lua_tonumber(lua, 1);
 
@@ -346,10 +344,8 @@ namespace metin2::game {
         }
 
         auto monarch_warp(lua_State *lua) -> int {
-            if (!lua_isstring(lua, 1)) {
-                quest::error("Invalid arguments");
+            if (!require_string(lua, 1))
                 return 0;
-            }
 
             std::string name = lua_tostring(lua, 1);
 
@@ -469,10 +465,8 @@ namespace metin2::game {
         }
 
         auto monarch_transfer(lua_State *lua) -> int {
-            if (!lua_isstring(lua, 1)) {
-                quest::error("Invalid arguments");
+            if (!require_string(lua, 1))
                 return 0;
-            }
 
             std::string name = lua_tostring(lua, 1);
 

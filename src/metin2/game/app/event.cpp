@@ -25,7 +25,7 @@ namespace metin2::game::inline app {
 
         new_event->func = func;
         new_event->info = info;
-        new_event->q_el = cxx_q.enqueue(new_event, when, thecore_heart->pulse);
+        new_event->q_el = cxx_q.enqueue(new_event, when, thecore_pulse());
         new_event->is_processing = false;
         new_event->is_force_to_end = false;
 
@@ -73,7 +73,7 @@ namespace metin2::game::inline app {
             if (event->q_el)
                 event->q_el->cancel = true;
 
-            event->q_el = cxx_q.enqueue(event, when, thecore_heart->pulse);
+            event->q_el = cxx_q.enqueue(event, when, thecore_pulse());
         }
     }
 
@@ -125,7 +125,7 @@ namespace metin2::game::inline app {
             return 0;
 
         start_time = event->q_el->start_time;
-        return (thecore_heart->pulse - start_time);
+        return (thecore_pulse() - start_time);
     }
 
     auto event_time(event_ptr event) -> int32_t {
@@ -135,7 +135,7 @@ namespace metin2::game::inline app {
             return 0;
 
         when = event->q_el->key;
-        return (when - thecore_heart->pulse);
+        return (when - thecore_pulse());
     }
 
     void event_destroy(void) {

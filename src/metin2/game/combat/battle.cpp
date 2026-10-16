@@ -23,6 +23,7 @@
 #include <metin2/proto/length.h>
 
 #include <algorithm>
+#include <array>
 #include <cstdint>
 #include <cstdio>
 #include <format>
@@ -181,6 +182,11 @@ namespace metin2::game::inline combat {
         return fAR - fER;
     }
 
+    namespace {
+        constexpr std::array<uint8_t, JOB_MAX_NUM> attbonus_by_job{POINT_ATTBONUS_WARRIOR, POINT_ATTBONUS_ASSASSIN, POINT_ATTBONUS_SURA, POINT_ATTBONUS_SHAMAN};
+        constexpr std::array<uint8_t, JOB_MAX_NUM> resist_by_job{POINT_RESIST_WARRIOR, POINT_RESIST_ASSASSIN, POINT_RESIST_SURA, POINT_RESIST_SHAMAN};
+    }
+
     auto calc_att_bonus(character *attacker, character *victim, int atk) -> int {
         if (!victim->is_pc())
             atk += attacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_ATTACK_BONUS);
@@ -222,44 +228,12 @@ namespace metin2::game::inline combat {
         } else if (victim->is_pc()) {
             atk += (atk * attacker->point(POINT_ATTBONUS_HUMAN)) / 100;
 
-            switch (victim->job()) {
-            case JOB_WARRIOR:
-                atk += (atk * attacker->point(POINT_ATTBONUS_WARRIOR)) / 100;
-                break;
-
-            case JOB_ASSASSIN:
-                atk += (atk * attacker->point(POINT_ATTBONUS_ASSASSIN)) / 100;
-                break;
-
-            case JOB_SURA:
-                atk += (atk * attacker->point(POINT_ATTBONUS_SURA)) / 100;
-                break;
-
-            case JOB_SHAMAN:
-                atk += (atk * attacker->point(POINT_ATTBONUS_SHAMAN)) / 100;
-                break;
-            }
+            if (victim->job() < JOB_MAX_NUM)
+                atk += (atk * attacker->point(attbonus_by_job[victim->job()])) / 100;
         }
 
-        if (attacker->is_pc() == true) {
-            switch (attacker->job()) {
-            case JOB_WARRIOR:
-                atk -= (atk * victim->point(POINT_RESIST_WARRIOR)) / 100;
-                break;
-
-            case JOB_ASSASSIN:
-                atk -= (atk * victim->point(POINT_RESIST_ASSASSIN)) / 100;
-                break;
-
-            case JOB_SURA:
-                atk -= (atk * victim->point(POINT_RESIST_SURA)) / 100;
-                break;
-
-            case JOB_SHAMAN:
-                atk -= (atk * victim->point(POINT_RESIST_SHAMAN)) / 100;
-                break;
-            }
-        }
+        if (attacker->is_pc() && attacker->job() < JOB_MAX_NUM)
+            atk -= (atk * victim->point(resist_by_job[attacker->job()])) / 100;
 
         if (attacker->is_npc() && victim->is_pc()) {
             if (attacker->is_race_flag(RACE_FLAG_ATT_ELEC))

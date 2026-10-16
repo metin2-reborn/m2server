@@ -27,16 +27,13 @@ namespace metin2::db::inline items {
     item_award_manager::item_award_manager() {
     }
 
-    item_award_manager::~item_award_manager() {
-    }
-
     void item_award_manager::request_load() {
         const std::string query = sql::format("SELECT id,login,vnum,count,socket0,socket1,socket2,mall,why FROM item_award WHERE taken_time IS NULL and id > {}", last_cached_item_award_id);
         db_manager::instance().return_query(query, [this](sql_msg &msg) { load(msg); });
     }
 
     void item_award_manager::load(sql_msg &msg) {
-        MYSQL_RES *pRes = msg.get()->res;
+        MYSQL_RES *pRes = msg.get()->res.get();
 
         for (uint i = 0; i < msg.get()->num_rows; ++i) {
             MYSQL_ROW row = mysql_fetch_row(pRes);
@@ -52,7 +49,7 @@ namespace metin2::db::inline items {
             item_award *kData = owned.get();
 
             kData->id = dwID;
-            trim_and_lower(row[col++], kData->login, sizeof(kData->login));
+            trim_and_lower(row[col++], kData->login);
             str_to_number(kData->vnum, row[col++]);
             str_to_number(kData->count, row[col++]);
             str_to_number(kData->socket0, row[col++]);

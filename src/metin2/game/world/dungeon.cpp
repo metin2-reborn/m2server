@@ -367,30 +367,35 @@ namespace metin2::game::inline world {
     dungeon_manager::~dungeon_manager() {
     }
 
-    void dungeon::unique_set_max_hp(const std::string &key, int max_hp) {
-        unique_mob_map::iterator it = map_unique_mob_.find(key);
+    auto dungeon::find_unique(const std::string &key, bool may_be_dead) -> unique_mob_map::iterator {
+        auto it = map_unique_mob_.find(key);
         if (it == map_unique_mob_.end()) {
-            metin2::log::error("Dungeon has no unique mob with key {}", key);
-            return;
+            if (may_be_dead)
+                metin2::log::error("Dungeon unique mob {} not found or dead", key);
+            else
+                metin2::log::error("Dungeon has no unique mob with key {}", key);
         }
+        return it;
+    }
+
+    void dungeon::unique_set_max_hp(const std::string &key, int max_hp) {
+        auto it = find_unique(key, false);
+        if (it == map_unique_mob_.end())
+            return;
         it->second->set_max_hp(max_hp);
     }
 
     void dungeon::unique_set_hp(const std::string &key, int hp) {
-        unique_mob_map::iterator it = map_unique_mob_.find(key);
-        if (it == map_unique_mob_.end()) {
-            metin2::log::error("Dungeon has no unique mob with key {}", key);
+        auto it = find_unique(key, false);
+        if (it == map_unique_mob_.end())
             return;
-        }
         it->second->set_hp(hp);
     }
 
     void dungeon::unique_set_def_grade(const std::string &key, int grade) {
-        unique_mob_map::iterator it = map_unique_mob_.find(key);
-        if (it == map_unique_mob_.end()) {
-            metin2::log::error("Dungeon has no unique mob with key {}", key);
+        auto it = find_unique(key, false);
+        if (it == map_unique_mob_.end())
             return;
-        }
         it->second->point_change(POINT_DEF_GRADE, grade - it->second->point(POINT_DEF_GRADE));
     }
 
@@ -493,67 +498,49 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::purge_unique(const std::string &key) {
-        unique_mob_map::iterator it = map_unique_mob_.find(key);
-        if (it == map_unique_mob_.end()) {
-            metin2::log::error("Dungeon unique mob {} not found or dead", key);
+        auto it = find_unique(key, true);
+        if (it == map_unique_mob_.end())
             return;
-        }
         character *ch = it->second;
         map_unique_mob_.erase(it);
         character_manager::instance().destroy_character(ch);
     }
 
     void dungeon::kill_unique(const std::string &key) {
-        unique_mob_map::iterator it = map_unique_mob_.find(key);
-        if (it == map_unique_mob_.end()) {
-            metin2::log::error("Dungeon unique mob {} not found or dead", key);
+        auto it = find_unique(key, true);
+        if (it == map_unique_mob_.end())
             return;
-        }
         character *ch = it->second;
         map_unique_mob_.erase(it);
         ch->dead();
     }
 
     auto dungeon::unique_vid(const std::string &key) -> uint32_t {
-        unique_mob_map::iterator it = map_unique_mob_.find(key);
-        if (it == map_unique_mob_.end()) {
-            metin2::log::error("Dungeon unique mob {} not found or dead", key);
+        auto it = find_unique(key, true);
+        if (it == map_unique_mob_.end())
             return 0;
-        }
         character *ch = it->second;
         return ch->get_vid();
     }
 
     auto dungeon::unique_hp_perc(const std::string &key) -> float {
-        unique_mob_map::iterator it = map_unique_mob_.find(key);
-        if (it == map_unique_mob_.end()) {
-            metin2::log::error("Dungeon has no unique mob with key {}", key);
+        auto it = find_unique(key, false);
+        if (it == map_unique_mob_.end())
             return false;
-        }
         return (100.f * it->second->hp()) / it->second->max_hp();
     }
 
     void dungeon::dead_character(character *ch) {
         if (!ch->is_pc()) {
-            unique_mob_map::iterator it = map_unique_mob_.begin();
-            while (it != map_unique_mob_.end()) {
-                if (it->second == ch) {
-                    map_unique_mob_.erase(it);
-                    break;
-                }
-                ++it;
-            }
+            if (auto it = std::ranges::find(map_unique_mob_, ch, &unique_mob_map::value_type::second); it != map_unique_mob_.end())
+                map_unique_mob_.erase(it);
         }
     }
 
     auto dungeon::is_unique_dead(const std::string &key) -> bool {
-        unique_mob_map::iterator it = map_unique_mob_.find(key);
-
-        if (it == map_unique_mob_.end()) {
-            metin2::log::error("Dungeon unique mob {} not found or dead", key);
+        auto it = find_unique(key, true);
+        if (it == map_unique_mob_.end())
             return true;
-        }
-
         return it->second->is_dead();
     }
 

@@ -21,12 +21,8 @@ namespace metin2::db::inline storage {
         std::unique_ptr<async_sql> direct_sql_[SQL_MAX_NUM];
         std::unique_ptr<async_sql> async_sql_[SQL_MAX_NUM];
 
-      protected:
-        void initialize();
-        void destroy();
-
       public:
-        db_manager();
+        db_manager() = default;
 
         ~db_manager() override;
 
@@ -41,27 +37,17 @@ namespace metin2::db::inline storage {
 
         auto pop_result() -> std::unique_ptr<sql_msg>;
 
-
-        auto count_return_query(int i) -> uint32_t { return main_sql_[i] ? main_sql_[i]->count_query() : 0; }
-        auto count_return_result(int i) -> uint32_t { return main_sql_[i] ? main_sql_[i]->count_result() : 0; }
-        auto count_return_query_finished(int i) -> uint32_t { return main_sql_[i] ? main_sql_[i]->count_query_finished() : 0; }
-        auto count_return_copied_query(int i) -> uint32_t { return main_sql_[i] ? main_sql_[i]->copied_query_count() : 0; }
-
-        auto count_async_query(int i) -> uint32_t { return async_sql_[i] ? async_sql_[i]->count_query() : 0; }
-        auto count_async_result(int i) -> uint32_t { return async_sql_[i] ? async_sql_[i]->count_result() : 0; }
-        auto count_async_query_finished(int i) -> uint32_t { return async_sql_[i] ? async_sql_[i]->count_query_finished() : 0; }
-        auto count_async_copied_query(int i) -> uint32_t { return async_sql_[i] ? async_sql_[i]->copied_query_count() : 0; }
+        auto return_stats(int i) -> sql_stats { return main_sql_[i] ? main_sql_[i]->stats() : sql_stats{}; }
+        auto async_stats(int i) -> sql_stats { return async_sql_[i] ? async_sql_[i]->stats() : sql_stats{}; }
 
         void reset_counter() {
             for (int i = 0; i < SQL_MAX_NUM; ++i) {
                 if (main_sql_[i]) {
-                    main_sql_[i]->reset_query_finished();
-                    main_sql_[i]->reset_copied_query_count();
+                    main_sql_[i]->reset_stats();
                 }
 
                 if (async_sql_[i]) {
-                    async_sql_[i]->reset_query_finished();
-                    async_sql_[i]->reset_copied_query_count();
+                    async_sql_[i]->reset_stats();
                 }
             }
         }

@@ -88,6 +88,8 @@ namespace metin2::game::inline guilds {
         void change_master(uint32_t gid);
 
       private:
+        auto sorted_by_rank() -> std::vector<guild *>;
+
         typedef std::map<uint32_t, guild *> guild_map;
         std::map<uint32_t, std::unique_ptr<guild>> guild_;
 

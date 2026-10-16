@@ -457,7 +457,7 @@ namespace metin2::game::inline guilds {
         member_.clear();
 
         for (uint i = 0; i < msg.get()->num_rows; ++i) {
-            MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
+            MYSQL_ROW row = mysql_fetch_row(msg.get()->res.get());
 
             uint32_t pid = strtoul(row[0], (char **)nullptr, 10);
             uint8_t grade = (uint8_t)strtoul(row[1], (char **)nullptr, 10);
@@ -481,7 +481,7 @@ namespace metin2::game::inline guilds {
 
     void guild::load_guild_grade_data(sql_msg &msg) {
         for (uint i = 0; i < msg.get()->num_rows; ++i) {
-            MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
+            MYSQL_ROW row = mysql_fetch_row(msg.get()->res.get());
             uint8_t grade = 0;
             str_to_number(grade, row[0]);
             char *name = row[1];
@@ -499,7 +499,7 @@ namespace metin2::game::inline guilds {
             return;
         }
 
-        MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
+        MYSQL_ROW row = mysql_fetch_row(msg.get()->res.get());
         data_.master_pid = strtoul(row[0], (char **)nullptr, 10);
         data_.level = (uint8_t)strtoul(row[1], (char **)nullptr, 10);
         data_.exp = strtoul(row[2], (char **)nullptr, 10);
@@ -591,7 +591,7 @@ namespace metin2::game::inline guilds {
 
     void guild::p2p_update_grade(sql_msg &msg) {
         if (msg.get()->num_rows) {
-            MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
+            MYSQL_ROW row = mysql_fetch_row(msg.get()->res.get());
 
             int grade = 0;
             const char *name = row[1];
@@ -887,8 +887,7 @@ namespace metin2::game::inline guilds {
             if (guild *g = guild_manager::instance().find_guild(guild_id))
                 g->refresh_comment_force(pid);
         },
-            sql::format("INSERT INTO guild_comment{}(guild_id, name, notice, content, time) VALUES({}, {}, {}, {}, NOW())",
-                sql::raw(get_table_postfix()), data_.guild_id, ch->name(), (str[0] == '!') ? 1 : 0, str));
+            sql::format("INSERT INTO guild_comment{}(guild_id, name, notice, content, time) VALUES({}, {}, {}, {}, NOW())", sql::raw(get_table_postfix()), data_.guild_id, ch->name(), (str[0] == '!') ? 1 : 0, str));
     }
 
     void guild::delete_comment(character *ch, uint32_t comment_id) {
@@ -938,7 +937,7 @@ namespace metin2::game::inline guilds {
         memset(szContent, 0, sizeof(szContent));
 
         for (uint i = 0; i < pmsg->get()->num_rows; i++) {
-            MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
+            MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res.get());
             uint32_t id = strtoul(row[0], nullptr, 10);
 
             strlcpy(szName, row[1], sizeof(szName));

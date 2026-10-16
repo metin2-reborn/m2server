@@ -1,54 +1,40 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
-#include <map>
-#include <string>
 
 namespace metin2::game::inline protocol {
 
-    struct packet_element {
-        int size;
-        std::string name;
-        int called;
-        uint32_t load;
-        bool sequence_packet;
+    struct packet_spec {
+        int size = 0;
+        const char *name = nullptr;
+        bool sequence = false;
     };
 
-    class packet_info {
+    // Indexed by header; entries without a name are unknown headers. A sequenced packet's size includes
+    // its trailing sequence byte.
+    class packet_table {
       public:
-        packet_info();
-        virtual ~packet_info();
+        auto find(uint8_t header) const -> const packet_spec * {
+            const packet_spec &spec = specs_[header];
+            return spec.name ? &spec : nullptr;
+        }
 
-        void set(int header, int size_value, const char *name_value, bool seq = false);
-        auto get(int header, int *size, const char **ppsz_name) -> bool;
+        auto is_sequence(uint8_t header) const -> bool {
+            const packet_spec *spec = find(header);
+            return spec && spec->sequence;
+        }
 
-        void start();
-        void end();
-
-        void log(const char *file_name);
-
-        auto is_sequence(int header) -> bool;
-        void set_sequence(int header, bool seq);
+        void set(uint8_t header, int size, const char *name, bool sequence);
+        void set_sequence(uint8_t header, bool sequence);
 
       private:
-        auto element(int header) -> packet_element *;
-
-      protected:
-        std::map<int, packet_element> packet_map_;
-        packet_element *current_packet_;
-        uint32_t start_time_;
+        std::array<packet_spec, 256> specs_{};
     };
 
-    class packet_info_cg : public packet_info {
-      public:
-        packet_info_cg();
-        ~packet_info_cg() override;
-    };
-
-    class packet_info_gg : public packet_info {
-      public:
-        packet_info_gg();
-        ~packet_info_gg() override;
-    };
+    auto client_packet_table() -> const packet_table &;
+    // The client table as seen before login: the handshake's PONG carries no sequence byte.
+    auto handshake_packet_table() -> const packet_table &;
+    auto p2p_packet_table() -> const packet_table &;
 
 }

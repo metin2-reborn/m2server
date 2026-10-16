@@ -34,7 +34,7 @@ namespace metin2::db::inline clients {
         if (pmsg->get()->num_rows == 0) {
             memset(packet.horse_name, 0, sizeof(packet.horse_name));
         } else {
-            MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
+            MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res.get());
             strlcpy(packet.horse_name, row[0], sizeof(packet.horse_name));
         }
 

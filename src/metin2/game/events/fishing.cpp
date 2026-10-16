@@ -24,6 +24,7 @@
 #include <metin2/proto/tables.h>
 
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <cstdint>
 #include <cstdio>
@@ -96,6 +97,31 @@ namespace metin2::game::inline events {
         int prob_accumulate[MAX_PROB][MAX_FISH];
 
         fish_info_data fish_info[MAX_FISH] = {};
+        using column_setter = void (*)(fish_info_data &, const char *);
+
+        constexpr std::array<column_setter, 13> fish_columns = {
+            [](fish_info_data &f, const char *v) { strlcpy(f.name, v, sizeof(f.name)); },
+            [](fish_info_data &f, const char *v) { str_to_number(f.vnum, v); },
+            [](fish_info_data &f, const char *v) { str_to_number(f.dead_vnum, v); },
+            [](fish_info_data &f, const char *v) { str_to_number(f.grill_vnum, v); },
+            [](fish_info_data &f, const char *v) { str_to_number(f.prob[0], v); },
+            [](fish_info_data &f, const char *v) { str_to_number(f.prob[1], v); },
+            [](fish_info_data &f, const char *v) { str_to_number(f.prob[2], v); },
+            [](fish_info_data &f, const char *v) { str_to_number(f.prob[3], v); },
+            [](fish_info_data &f, const char *v) { str_to_number(f.difficulty, v); },
+            [](fish_info_data &f, const char *v) { str_to_number(f.time_type, v); },
+            [](fish_info_data &f, const char *v) { str_to_number(f.length_range[0], v); },
+            [](fish_info_data &f, const char *v) { str_to_number(f.length_range[1], v); },
+            [](fish_info_data &f, const char *v) { str_to_number(f.length_range[2], v); },
+        };
+
+        void set_column(fish_info_data &fish, std::size_t column, const char *value) {
+            if (column < fish_columns.size())
+                fish_columns[column](fish, value);
+            else if (column - fish_columns.size() < NUM_USE_RESULT_COUNT)
+                str_to_number(fish.used_table[column - fish_columns.size()], value);
+        }
+
         void initialize() {
             fish_info_data fish_info_bak[MAX_FISH];
             std::memcpy(fish_info_bak, fish_info, sizeof(fish_info));
@@ -150,39 +176,11 @@ namespace metin2::game::inline events {
                     strlcpy(szCol2, start, std::min<int>(sizeof(szCol2), (tab - start) + 1));
                     szCol2[tab - start] = '\0';
 
-                    trim_and_lower(szCol2, szCol, sizeof(szCol));
+                    trim_and_lower(szCol2, szCol);
 
-                    if (!*szCol || *szCol == '\t')
-                        iColCount++;
-                    else {
-                        switch (iColCount++) {
-                        case 0:  strlcpy(fish_info[idx].name, szCol, sizeof(fish_info[idx].name)); break;
-                        case 1:  str_to_number(fish_info[idx].vnum, szCol); break;
-                        case 2:  str_to_number(fish_info[idx].dead_vnum, szCol); break;
-                        case 3:  str_to_number(fish_info[idx].grill_vnum, szCol); break;
-                        case 4:  str_to_number(fish_info[idx].prob[0], szCol); break;
-                        case 5:  str_to_number(fish_info[idx].prob[1], szCol); break;
-                        case 6:  str_to_number(fish_info[idx].prob[2], szCol); break;
-                        case 7:  str_to_number(fish_info[idx].prob[3], szCol); break;
-                        case 8:  str_to_number(fish_info[idx].difficulty, szCol); break;
-                        case 9:  str_to_number(fish_info[idx].time_type, szCol); break;
-                        case 10: str_to_number(fish_info[idx].length_range[0], szCol); break;
-                        case 11: str_to_number(fish_info[idx].length_range[1], szCol); break;
-                        case 12: str_to_number(fish_info[idx].length_range[2], szCol); break;
-                        case 13:
-                        case 14:
-                        case 15:
-                        case 16:
-                        case 17:
-                        case 18:
-                        case 19:
-                        case 20:
-                        case 21:
-                        case 22:
-                            str_to_number(fish_info[idx].used_table[iColCount - 1 - 12], szCol);
-                            break;
-                        }
-                    }
+                    if (*szCol && *szCol != '\t')
+                        set_column(fish_info[idx], iColCount, szCol);
+                    ++iColCount;
 
                     start = tab + 1;
                     tab = strchr(start, '\t');

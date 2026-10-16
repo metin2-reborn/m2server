@@ -11,7 +11,6 @@ namespace metin2::db::inline logs {
     class money_log : public singleton<money_log> {
       public:
         money_log();
-        ~money_log() override;
 
         void save();
         void add_log(uint8_t type, uint32_t vnum, int gold);

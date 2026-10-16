@@ -46,14 +46,11 @@ namespace metin2::game::inline app {
 
     extern auto str_lower(const char *src, char *dest, size_t dest_size) -> size_t;
 
-    extern void skip_spaces(char **string);
-
     extern auto one_argument(const char *argument, char *first_arg, size_t first_size) -> const char *;
     extern auto two_arguments(const char *argument, char *first_arg, size_t first_size, char *second_arg, size_t second_size) -> const char *;
     extern auto first_cmd(const char *argument, char *first_arg, size_t first_arg_size, size_t *first_arg_len_result) -> const char *;
 
     extern auto calculate_duration(int spd, int dur) -> int;
-
 
     extern auto parse_time_str(const char *str) -> int;
 

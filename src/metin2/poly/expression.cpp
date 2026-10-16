@@ -2,11 +2,15 @@
 
 #include <metin2/core/utils.h>
 
+#include <algorithm>
 #include <cctype>
+#include <charconv>
 #include <cmath>
-#include <random>
 #include <numbers>
+#include <random>
 #include <string>
+#include <string_view>
+#include <system_error>
 #include <vector>
 
 namespace metin2::poly {
@@ -212,11 +216,12 @@ namespace metin2::poly {
             case FRAND:
                 a = frandom(a, b);
                 break;
+            // b first so ties and NaNs pick the same operand as before
             case MINF:
-                a = a < b ? a : b;
+                a = std::min(b, a);
                 break;
             case MAXF:
-                a = a > b ? a : b;
+                a = std::max(b, a);
                 break;
             default:
                 return 0;
@@ -226,10 +231,8 @@ namespace metin2::poly {
         return stack.back();
     }
 
-    auto expression::analyze(const char *str) -> bool {
-        if (str) {
-            data_ = str;
-        }
+    auto expression::analyze(std::string_view str) -> bool {
+        data_ = str;
 
         token_base_.clear();
         num_base_.clear();
@@ -295,30 +298,22 @@ namespace metin2::poly {
             }
 
             if (std::isdigit(c)) {
-                int t = 0;
-                for (; ui_look_pos_ < data_.size() && std::isdigit(static_cast<unsigned char>(data_[ui_look_pos_])); ui_look_pos_++) {
-                    t = t * 10 + data_[ui_look_pos_] - '0';
+                const char *begin = data_.data() + ui_look_pos_;
+                const auto [end, ec] = std::from_chars(begin, data_.data() + data_.size(), num_token_, std::chars_format::fixed);
+                if (ec == std::errc::result_out_of_range) {
+                    num_token_ = HUGE_VAL;
                 }
 
-                token_ = t;
-                num_token_ = 0;
-                if (ui_look_pos_ < data_.size() && data_[ui_look_pos_] == '.') {
-                    ui_look_pos_++;
-                    for (double scale = 0.1; ui_look_pos_ < data_.size() && std::isdigit(static_cast<unsigned char>(data_[ui_look_pos_])); ui_look_pos_++, scale *= 0.1) {
-                        num_token_ += scale * (data_[ui_look_pos_] - '0');
-                    }
-                }
-
-                num_token_ += token_;
+                ui_look_pos_ += end - begin;
+                token_ = 0;
                 return NUM;
             }
 
             if (std::isalpha(c)) {
-                std::string name;
-                while (ui_look_pos_ < data_.size() &&
-                       std::isalpha(static_cast<unsigned char>(data_[ui_look_pos_]))) {
-                    name += data_[ui_look_pos_++];
-                }
+                const auto is_alpha = [](char ch) { return std::isalpha(static_cast<unsigned char>(ch)) != 0; };
+                const auto name_end = std::find_if_not(data_.begin() + ui_look_pos_, data_.end(), is_alpha);
+                const std::string name = data_.substr(ui_look_pos_, name_end - data_.begin() - ui_look_pos_);
+                ui_look_pos_ += name.size();
 
                 token_ = find(name);
                 if (token_ == -1) {

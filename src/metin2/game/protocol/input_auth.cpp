@@ -67,7 +67,7 @@ namespace metin2::game::inline protocol {
             return;
         }
 
-        MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
+        MYSQL_ROW row = mysql_fetch_row(msg.get()->res.get());
         int col = 0;
 
         char szEncrytPassword[45 + 1];
@@ -164,7 +164,7 @@ namespace metin2::game::inline protocol {
             account_table &r = d->get_account_table();
 
             r.id = dwID;
-            trim_and_lower(info.login, r.login, sizeof(r.login));
+            trim_and_lower(info.login, r.login);
             strlcpy(r.passwd, info.passwd, sizeof(r.passwd));
             strlcpy(r.social_id, szSocialID, sizeof(r.social_id));
             desc_manager::instance().connect_account(r.login, d);
@@ -200,7 +200,7 @@ namespace metin2::game::inline protocol {
         copy_packet_string(szLogin, pinfo->login);
 
         char login[LOGIN_MAX_LEN + 1];
-        trim_and_lower(szLogin, login, sizeof(login));
+        trim_and_lower(szLogin, login);
 
         char passwd[PASSWD_MAX_LEN + 1];
         copy_packet_string(passwd, pinfo->passwd);
@@ -245,28 +245,28 @@ namespace metin2::game::inline protocol {
             metin2::log::debug("Auth login: account {} uses channel service", login);
 
             db_manager::instance().func_query(std::move(on_result), sql::format("SELECT {},password,social_id,id,status,availDt - NOW() > 0,"
-                                                                                      "UNIX_TIMESTAMP(silver_expire),"
-                                                                                      "UNIX_TIMESTAMP(gold_expire),"
-                                                                                      "UNIX_TIMESTAMP(safebox_expire),"
-                                                                                      "UNIX_TIMESTAMP(autoloot_expire),"
-                                                                                      "UNIX_TIMESTAMP(fish_mind_expire),"
-                                                                                      "UNIX_TIMESTAMP(marriage_fast_expire),"
-                                                                                      "UNIX_TIMESTAMP(money_drop_rate_expire),"
-                                                                                      "UNIX_TIMESTAMP(create_time)"
-                                                                                      " FROM account WHERE login={}",
-                                                                              passwd, login));
+                                                                                "UNIX_TIMESTAMP(silver_expire),"
+                                                                                "UNIX_TIMESTAMP(gold_expire),"
+                                                                                "UNIX_TIMESTAMP(safebox_expire),"
+                                                                                "UNIX_TIMESTAMP(autoloot_expire),"
+                                                                                "UNIX_TIMESTAMP(fish_mind_expire),"
+                                                                                "UNIX_TIMESTAMP(marriage_fast_expire),"
+                                                                                "UNIX_TIMESTAMP(money_drop_rate_expire),"
+                                                                                "UNIX_TIMESTAMP(create_time)"
+                                                                                " FROM account WHERE login={}",
+                                                                        passwd, login));
         } else {
             db_manager::instance().func_query(std::move(on_result), sql::format("SELECT PASSWORD({}),password,social_id,id,status,availDt - NOW() > 0,"
-                                                                                      "UNIX_TIMESTAMP(silver_expire),"
-                                                                                      "UNIX_TIMESTAMP(gold_expire),"
-                                                                                      "UNIX_TIMESTAMP(safebox_expire),"
-                                                                                      "UNIX_TIMESTAMP(autoloot_expire),"
-                                                                                      "UNIX_TIMESTAMP(fish_mind_expire),"
-                                                                                      "UNIX_TIMESTAMP(marriage_fast_expire),"
-                                                                                      "UNIX_TIMESTAMP(money_drop_rate_expire),"
-                                                                                      "UNIX_TIMESTAMP(create_time)"
-                                                                                      " FROM account WHERE login={}",
-                                                                              passwd, login));
+                                                                                "UNIX_TIMESTAMP(silver_expire),"
+                                                                                "UNIX_TIMESTAMP(gold_expire),"
+                                                                                "UNIX_TIMESTAMP(safebox_expire),"
+                                                                                "UNIX_TIMESTAMP(autoloot_expire),"
+                                                                                "UNIX_TIMESTAMP(fish_mind_expire),"
+                                                                                "UNIX_TIMESTAMP(marriage_fast_expire),"
+                                                                                "UNIX_TIMESTAMP(money_drop_rate_expire),"
+                                                                                "UNIX_TIMESTAMP(create_time)"
+                                                                                " FROM account WHERE login={}",
+                                                                        passwd, login));
         }
     }
 

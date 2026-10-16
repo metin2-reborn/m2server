@@ -258,5 +258,7 @@ namespace metin2::game {
         void error(metin2::log::format_string<Args...> format, const Args &...args) {
             report_error(format.location, metin2::log::format(format, args...));
         }
+
+        auto list_directory(const std::string &dir) -> std::vector<std::string>;
     }
 }

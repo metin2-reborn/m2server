@@ -4,8 +4,8 @@
 
 #include <cstddef>
 #include <cstdint>
-#include <cstdio>
 #include <cstring>
+#include <fstream>
 
 namespace metin2::game::inline empire {
 
@@ -13,37 +13,28 @@ namespace metin2::game::inline empire {
         struct text_convert_table {
             char ac_upper[26];
             char ac_lower[26];
-            uint8_t aac_han[5000][2];
-            uint8_t aac_jaum[50][2];
-            uint8_t aac_moum[50][2];
         } text_conv_table[3];
 
         bool text_conv_table_loaded[3];
+
+        // The file continues with CP949 hangul and jamo tables, which UTF-8 text never uses.
+        constexpr std::streamsize cp949_tables_size = (0xC8 - 0xB0 + 1) * (0xFE - 0xA1 + 1) * 2 + 60 + 42;
     }
 
     auto load_empire_text_convert_table(uint32_t empire_id, const char *file_name) -> bool {
         if (empire_id < 1 || empire_id > 3)
             return false;
 
-        FILE *fp = fopen(file_name, "rb");
+        std::ifstream file(file_name, std::ios::binary);
 
-        if (!fp)
+        if (!file)
             return false;
-
-        uint32_t dwEngCount = 26;
-        uint32_t dwHanCount = (0xC8 - 0xB0 + 1) * (0xFE - 0xA1 + 1);
-        uint32_t dwHanSize = dwHanCount * 2;
 
         text_convert_table &rkTextConvTable = text_conv_table[empire_id - 1];
 
-        bool ok = fread(rkTextConvTable.ac_upper, 1, dwEngCount, fp) == dwEngCount;
-        ok = fread(rkTextConvTable.ac_lower, 1, dwEngCount, fp) == dwEngCount && ok;
-        ok = fread(rkTextConvTable.aac_han, 1, dwHanSize, fp) == dwHanSize && ok;
-
-        ok = fread(rkTextConvTable.aac_jaum, 1, 60, fp) == 60 && ok;
-        ok = fread(rkTextConvTable.aac_moum, 1, 42, fp) == 42 && ok;
-
-        fclose(fp);
+        const bool ok = file.read(rkTextConvTable.ac_upper, sizeof(rkTextConvTable.ac_upper)) &&
+                        file.read(rkTextConvTable.ac_lower, sizeof(rkTextConvTable.ac_lower)) &&
+                        file.ignore(cp949_tables_size).gcount() == cp949_tables_size;
 
         text_conv_table_loaded[empire_id - 1] = ok;
         return ok;

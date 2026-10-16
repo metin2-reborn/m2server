@@ -2,19 +2,21 @@
 
 #include <array>
 #include <atomic>
+#include <chrono>
 #include <cstdlib>
-#include <ctime>
 #include <format>
 #include <fstream>
 #include <iostream>
 #include <mutex>
 #include <optional>
+#include <print>
 #include <string>
 #include <system_error>
 
 namespace metin2::log {
     namespace {
         namespace fs = std::filesystem;
+        namespace chrono = std::chrono;
 
         struct sink {
             fs::path path;
@@ -35,7 +37,7 @@ namespace metin2::log {
             unsigned int keep_days = 3;
             std::optional<sink> all;
             std::optional<sink> errors;
-            int day = -1;
+            chrono::local_days day{};
         };
 
         auto shared() -> state & {
@@ -45,24 +47,24 @@ namespace metin2::log {
 
         std::atomic<level> threshold{level::info};
 
-        auto local_now() -> std::tm {
-            const std::time_t now = std::time(nullptr);
-            std::tm result{};
-            localtime_r(&now, &result);
-            return result;
+        auto local_now() -> chrono::local_seconds {
+            return chrono::floor<chrono::seconds>(chrono::current_zone()->to_local(chrono::system_clock::now()));
         }
 
-        auto day_name(std::tm t, int days_offset) -> std::string {
-            t.tm_mday += days_offset;
-            t.tm_isdst = -1;
-            std::mktime(&t);
-            return std::format("{:04}{:02}{:02}", t.tm_year + 1900, t.tm_mon + 1, t.tm_mday);
+        auto day_of(chrono::local_seconds t) -> chrono::local_days {
+            return chrono::floor<chrono::days>(t);
+        }
+
+        auto hour_of(chrono::local_seconds t) -> int {
+            return static_cast<int>((t - day_of(t)) / chrono::hours(1));
+        }
+
+        auto day_name(chrono::local_days day) -> std::string {
+            return std::format("{:%Y%m%d}", day);
         }
 
         auto timestamp() -> std::string {
-            const std::tm t = local_now();
-            return std::format("{:04}-{:02}-{:02} {:02}:{:02}:{:02}", t.tm_year + 1900, t.tm_mon + 1, t.tm_mday, t.tm_hour,
-                t.tm_min, t.tm_sec);
+            return std::format("{:%Y-%m-%d %H:%M:%S}", local_now());
         }
 
         constexpr std::array<std::string_view, 4> names{"debug", "info", "warn", "error"};
@@ -77,12 +79,12 @@ namespace metin2::log {
             return slash == std::string_view::npos ? text : text.substr(slash + 1);
         }
 
-        void remove_old(state &s, const std::tm &now) {
+        void remove_old(state &s, chrono::local_seconds now) {
             std::error_code error;
             if (!fs::is_directory(s.directory / "log", error))
                 return;
 
-            const std::string oldest_kept = day_name(now, -static_cast<int>(s.keep_days));
+            const std::string oldest_kept = day_name(day_of(now) - chrono::days(s.keep_days));
             for (const auto &entry : fs::directory_iterator(s.directory / "log", error)) {
                 const std::string name = entry.path().filename().string();
                 if (name.size() == 8 && name.find_first_not_of("0123456789") == std::string::npos && name <= oldest_kept)
@@ -90,19 +92,20 @@ namespace metin2::log {
             }
         }
 
-        void rotate_sink(state &s, sink &file, const std::tm &now) {
-            if (file.hour == now.tm_hour)
+        void rotate_sink(state &s, sink &file, chrono::local_seconds now) {
+            const int hour = hour_of(now);
+            if (file.hour == hour)
                 return;
 
             if (file.hour >= 0) {
-                const fs::path folder = s.directory / "log" / day_name(now, now.tm_hour < file.hour ? -1 : 0);
+                const fs::path folder = s.directory / "log" / day_name(day_of(now) - chrono::days(hour < file.hour ? 1 : 0));
                 std::error_code error;
                 fs::create_directories(folder, error);
                 file.stream.close();
                 fs::rename(file.path, folder / std::format("{}.{:02}", file.path.filename().string(), file.hour), error);
                 file.open();
             }
-            file.hour = now.tm_hour;
+            file.hour = hour;
         }
     }
 
@@ -123,15 +126,15 @@ namespace metin2::log {
         s.errors->path = directory / "syserr";
 
         if (!s.all->open() || !s.errors->open()) {
-            std::cerr << std::format("cannot open log files in {}\n", directory.string());
+            std::println(std::cerr, "cannot open log files in {}", directory.string());
             s.all.reset();
             s.errors.reset();
             return false;
         }
 
-        const std::tm now = local_now();
-        s.all->hour = s.errors->hour = now.tm_hour;
-        s.day = now.tm_mday;
+        const chrono::local_seconds now = local_now();
+        s.all->hour = s.errors->hour = hour_of(now);
+        s.day = day_of(now);
         remove_old(s, now);
         return true;
     }
@@ -157,12 +160,12 @@ namespace metin2::log {
         if (!s.all)
             return;
 
-        const std::tm now = local_now();
+        const chrono::local_seconds now = local_now();
         rotate_sink(s, *s.all, now);
         rotate_sink(s, *s.errors, now);
 
-        if (now.tm_mday != s.day) {
-            s.day = now.tm_mday;
+        if (day_of(now) != s.day) {
+            s.day = day_of(now);
             remove_old(s, now);
         }
     }
@@ -173,7 +176,7 @@ namespace metin2::log {
         const std::scoped_lock lock(s.mutex);
 
         if (!s.all) {
-            std::cerr << std::format("{} [{}] {}\n", stamp, name_of(severity), message);
+            std::println(std::cerr, "{} [{}] {}", stamp, name_of(severity), message);
             return;
         }
 
@@ -183,10 +186,13 @@ namespace metin2::log {
             s.errors->stream << line << std::flush;
             s.all->stream << line << std::flush;
         } else {
-            s.all->stream << std::format("{} [{}] {}\n", stamp, name_of(severity), message) << std::flush;
+            std::println(s.all->stream, "{} [{}] {}", stamp, name_of(severity), message);
+            s.all->stream.flush();
         }
 
-        if (threshold.load(std::memory_order_relaxed) == level::debug)
-            std::cout << std::format("[{}] {}\n", name_of(severity), message) << std::flush;
+        if (threshold.load(std::memory_order_relaxed) == level::debug) {
+            std::println(std::cout, "[{}] {}", name_of(severity), message);
+            std::cout.flush();
+        }
     }
 }

@@ -69,10 +69,8 @@ namespace metin2::game {
         }
 
         auto guild_is_war(lua_State *lua) -> int {
-            if (!lua_isnumber(lua, 1)) {
-                quest::error("Invalid arguments");
+            if (!require_number(lua, 1))
                 return 0;
-            }
 
             character *ch = quest_manager::instance().current_character_ptr();
 
@@ -85,10 +83,8 @@ namespace metin2::game {
         }
 
         auto guild_name(lua_State *lua) -> int {
-            if (!lua_isnumber(lua, 1)) {
-                quest::error("Invalid arguments");
+            if (!require_number(lua, 1))
                 return 0;
-            }
 
             guild *pkGuild = guild_manager::instance().find_guild((uint32_t)lua_tonumber(lua, 1));
 
@@ -114,10 +110,8 @@ namespace metin2::game {
         }
 
         auto guild_war_enter(lua_State *lua) -> int {
-            if (!lua_isnumber(lua, 1)) {
-                quest::error("Invalid arguments");
+            if (!require_number(lua, 1))
                 return 0;
-            }
 
             quest_manager &q = quest_manager::instance();
             character *ch = q.current_character_ptr();
@@ -178,8 +172,7 @@ namespace metin2::game {
         }
 
         auto guild_is_bet(lua_State *lua) -> int {
-            if (!lua_isnumber(lua, 1)) {
-                quest::error("Invalid arguments");
+            if (!require_number(lua, 1)) {
                 lua_pushboolean(lua, true);
                 return 1;
             }

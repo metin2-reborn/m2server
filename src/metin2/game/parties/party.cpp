@@ -32,6 +32,25 @@
 
 namespace metin2::game::inline parties {
 
+    namespace {
+        template <class P>
+        void send_to_online(party::member_map &members, const P &p) {
+            for (auto &[pid, m] : members)
+                if (m.character && m.character->get_desc())
+                    m.character->get_desc()->packet(&p, sizeof(p));
+        }
+
+        auto offline_update_packet(uint32_t pid, uint8_t role) -> packet_gc_party_update {
+            packet_gc_party_update p;
+            memset(&p, 0, sizeof(p));
+            p.header = HEADER_GC_PARTY_UPDATE;
+            p.pid = pid;
+            p.percent_hp = 255;
+            p.role = role;
+            return p;
+        }
+    }
+
     party_manager::party_manager() {
         initialize();
     }
@@ -557,16 +576,11 @@ namespace metin2::game::inline parties {
     }
 
     void party::send_party_remove_one_to_all(uint32_t pid) {
-        member_map::iterator it;
-
         packet_gc_party_remove p;
         p.header = HEADER_GC_PARTY_REMOVE;
         p.pid = pid;
 
-        for (it = member_map_.begin(); it != member_map_.end(); ++it) {
-            if (it->second.character && it->second.character->get_desc())
-                it->second.character->get_desc()->packet(&p, sizeof(p));
-        }
+        send_to_online(member_map_, p);
     }
 
     void party::send_party_join_one_to_all(uint32_t pid) {
@@ -581,10 +595,7 @@ namespace metin2::game::inline parties {
         p.pid = pid;
         strlcpy(p.name, r.name.c_str(), sizeof(p.name));
 
-        for (member_map::iterator it = member_map_.begin(); it != member_map_.end(); ++it) {
-            if (it->second.character && it->second.character->get_desc())
-                it->second.character->get_desc()->packet(&p, sizeof(p));
-        }
+        send_to_online(member_map_, p);
     }
 
     void party::send_party_join_all_to_one(character *ch) {
@@ -607,36 +618,24 @@ namespace metin2::game::inline parties {
         if (!ch->get_desc())
             return;
 
-        member_map::iterator it;
-
         packet_gc_party_link p;
         p.header = HEADER_GC_PARTY_UNLINK;
         p.pid = ch->player_id();
         p.vid = (uint32_t)ch->get_vid();
 
-        for (it = member_map_.begin(); it != member_map_.end(); ++it) {
-            if (it->second.character && it->second.character->get_desc()) {
-                it->second.character->get_desc()->packet(&p, sizeof(p));
-            }
-        }
+        send_to_online(member_map_, p);
     }
 
     void party::send_party_link_one_to_all(character *ch) {
         if (!ch->get_desc())
             return;
 
-        member_map::iterator it;
-
         packet_gc_party_link p;
         p.header = HEADER_GC_PARTY_LINK;
         p.vid = ch->get_vid();
         p.pid = ch->player_id();
 
-        for (it = member_map_.begin(); it != member_map_.end(); ++it) {
-            if (it->second.character && it->second.character->get_desc()) {
-                it->second.character->get_desc()->packet(&p, sizeof(p));
-            }
-        }
+        send_to_online(member_map_, p);
     }
 
     void party::send_party_link_all_to_one(character *ch) {
@@ -668,18 +667,7 @@ namespace metin2::game::inline parties {
             return;
         }
 
-        packet_gc_party_update p;
-        memset(&p, 0, sizeof(p));
-        p.header = HEADER_GC_PARTY_UPDATE;
-        p.pid = pid;
-        p.percent_hp = 255;
-        p.role = it->second.role;
-
-        for (it = member_map_.begin(); it != member_map_.end(); ++it) {
-            if ((it->second.character) && (it->second.character->get_desc())) {
-                it->second.character->get_desc()->packet(&p, sizeof(p));
-            }
-        }
+        send_to_online(member_map_, offline_update_packet(pid, it->second.role));
     }
 
     void party::send_party_info_one_to_all(character *ch) {
@@ -709,12 +697,7 @@ namespace metin2::game::inline parties {
 
         for (it = member_map_.begin(); it != member_map_.end(); ++it) {
             if (!it->second.character) {
-                uint32_t pid = it->first;
-                memset(&p, 0, sizeof(p));
-                p.header = HEADER_GC_PARTY_UPDATE;
-                p.pid = pid;
-                p.percent_hp = 255;
-                p.role = it->second.role;
+                p = offline_update_packet(it->first, it->second.role);
                 ch->get_desc()->packet(&p, sizeof(p));
                 continue;
             }
@@ -731,35 +714,36 @@ namespace metin2::game::inline parties {
             return;
         }
 
+        auto for_each_other_member = [&](auto &&f) {
+            member_map::iterator it = member_map_.begin();
+
+            while (it != member_map_.end()) {
+                character *pkChr = it->second.character;
+                ++it;
+
+                if (pkChr && ch != pkChr)
+                    f(pkChr);
+            }
+        };
+
         switch (msg) {
         case PM_ATTACK:
             break;
 
         case PM_RETURN:
-            {
-                member_map::iterator it = member_map_.begin();
+            for_each_other_member([&](character *pkChr) {
+                uint32_t x = arg1 + number(-500, 500);
+                uint32_t y = arg2 + number(-500, 500);
 
-                while (it != member_map_.end()) {
-                    member &rMember = it->second;
-                    ++it;
+                pkChr->set_victim(nullptr);
+                pkChr->set_rotation_to_xy(x, y);
 
-                    character *pkChr;
-
-                    if ((pkChr = rMember.character) && ch != pkChr) {
-                        uint32_t x = arg1 + number(-500, 500);
-                        uint32_t y = arg2 + number(-500, 500);
-
-                        pkChr->set_victim(nullptr);
-                        pkChr->set_rotation_to_xy(x, y);
-
-                        if (pkChr->go_to(x, y)) {
-                            character *victim = pkChr->victim();
-                            metin2::log::debug("Party: member {} ({}) returns to the leader, victim {}", pkChr->name(), static_cast<const void *>(pkChr), static_cast<const void *>(victim));
-                            pkChr->send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
-                        }
-                    }
+                if (pkChr->go_to(x, y)) {
+                    character *victim = pkChr->victim();
+                    metin2::log::debug("Party: member {} ({}) returns to the leader, victim {}", pkChr->name(), static_cast<const void *>(pkChr), static_cast<const void *>(victim));
+                    pkChr->send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
                 }
-            }
+            });
             break;
 
         case PM_ATTACKED_BY:
@@ -769,19 +753,10 @@ namespace metin2::game::inline parties {
                 if (!pkChrVictim)
                     return;
 
-                member_map::iterator it = member_map_.begin();
-
-                while (it != member_map_.end()) {
-                    member &rMember = it->second;
-                    ++it;
-
-                    character *pkChr;
-
-                    if ((pkChr = rMember.character) && ch != pkChr) {
-                        if (pkChr->can_begin_fight())
-                            pkChr->begin_fight(pkChrVictim);
-                    }
-                }
+                for_each_other_member([&](character *pkChr) {
+                    if (pkChr->can_begin_fight())
+                        pkChr->begin_fight(pkChrVictim);
+                });
             }
             break;
 
@@ -792,18 +767,7 @@ namespace metin2::game::inline parties {
                 if (!victim)
                     return;
 
-                member_map::iterator it = member_map_.begin();
-
-                while (it != member_map_.end()) {
-                    member &rMember = it->second;
-                    ++it;
-
-                    character *pkChr;
-
-                    if ((pkChr = rMember.character) && ch != pkChr) {
-                        pkChr->update_aggr_point(victim, DAMAGE_TYPE_SPECIAL, arg1);
-                    }
-                }
+                for_each_other_member([&](character *pkChr) { pkChr->update_aggr_point(victim, DAMAGE_TYPE_SPECIAL, arg1); });
             }
             break;
         }
@@ -1218,10 +1182,7 @@ namespace metin2::game::inline parties {
         r.name = name;
         strlcpy(p.name, name, sizeof(p.name));
 
-        for (member_map::iterator it = member_map_.begin(); it != member_map_.end(); ++it) {
-            if (it->second.character && it->second.character->get_desc())
-                it->second.character->get_desc()->packet(&p, sizeof(p));
-        }
+        send_to_online(member_map_, p);
     }
     void party::update_offline_state(uint32_t pid_value) {
 
@@ -1230,10 +1191,7 @@ namespace metin2::game::inline parties {
         p.pid = pid_value;
         memset(p.name, 0, CHARACTER_NAME_MAX_LEN + 1);
 
-        for (member_map::iterator it = member_map_.begin(); it != member_map_.end(); ++it) {
-            if (it->second.character && it->second.character->get_desc())
-                it->second.character->get_desc()->packet(&p, sizeof(p));
-        }
+        send_to_online(member_map_, p);
     }
 
     auto party::flag(const std::string &name) -> int {

@@ -32,7 +32,6 @@
 
 namespace metin2::db::inline clients {
 
-    // The column order matches every SELECT on the item table; change them together.
     auto create_item_table_from_res(MYSQL_RES *res, std::vector<player_item> *vec, uint32_t pid) -> bool {
         if (!res) {
             vec->clear();
@@ -54,7 +53,6 @@ namespace metin2::db::inline clients {
 
             int cur = 0;
 
-            // The column order matches every SELECT on the item table; change them together.
             str_to_number(item.id, row[cur++]);
             str_to_number(item.window, row[cur++]);
             str_to_number(item.pos, row[cur++]);
@@ -73,6 +71,25 @@ namespace metin2::db::inline clients {
         }
 
         return true;
+    }
+
+    auto create_item_save_query(const player_item &item) -> std::string {
+        return sql::format(
+            "REPLACE INTO item{} (id, owner_id, window, pos, count, vnum, socket0, socket1, socket2, "
+            "attrtype0, attrvalue0, attrtype1, attrvalue1, attrtype2, attrvalue2, attrtype3, attrvalue3, "
+            "attrtype4, attrvalue4, attrtype5, attrvalue5, attrtype6, attrvalue6) "
+            "VALUES({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
+            sql::raw(get_table_postfix()),
+            item.id, item.owner, item.window, item.pos, item.count, item.vnum,
+            // Unsigned columns: keep the bit pattern of negative sockets.
+            static_cast<uint32_t>(item.sockets[0]), static_cast<uint32_t>(item.sockets[1]), static_cast<uint32_t>(item.sockets[2]),
+            item.attr[0].type, item.attr[0].s_value,
+            item.attr[1].type, item.attr[1].s_value,
+            item.attr[2].type, item.attr[2].s_value,
+            item.attr[3].type, item.attr[3].s_value,
+            item.attr[4].type, item.attr[4].s_value,
+            item.attr[5].type, item.attr[5].s_value,
+            item.attr[6].type, item.attr[6].s_value);
     }
 
     auto create_player_save_query(const player_table *tab) -> std::string {
@@ -173,7 +190,7 @@ namespace metin2::db::inline clients {
             return nullptr;
 
         player_table *pTable = it->second->get(false);
-        pTable->logoff_interval = current_time() - it->second->last_update_time();
+        pTable->logoff_interval = it->second->seconds_since_update();
         return it->second.get();
     }
 
@@ -242,8 +259,7 @@ namespace metin2::db::inline clients {
             metin2::log::info("Player {} (pid {:d}) loaded from cache, gold {:d}", pTab->name, pTab->id, pTab->gold);
 
             if (pSet) {
-                static std::vector<player_item> s_items;
-                s_items.resize(pSet->size());
+                std::vector<player_item> s_items(pSet->size());
 
                 uint32_t dwCount = 0;
                 item_cache_set::iterator it = pSet->begin();
@@ -263,7 +279,7 @@ namespace metin2::db::inline clients {
                 peer->encode_dword(dwCount);
 
                 if (dwCount)
-                    peer->encode(&s_items[0], sizeof(player_item) * dwCount);
+                    peer->encode(s_items.data(), sizeof(player_item) * dwCount);
 
                 query = sql::format("SELECT dwPID,szName,szState,lValue FROM quest{} WHERE dwPID={} AND lValue<>0",
                     sql::raw(get_table_postfix()), pTab->id);
@@ -274,9 +290,8 @@ namespace metin2::db::inline clients {
                     sql::raw(get_table_postfix()), pTab->id);
                 return_composite_query(query, QID_AFFECT, std::make_unique<client_handle_info>(handle_value));
             } else {
-                query = sql::format("SELECT id,window+0,pos,count,vnum,socket0,socket1,socket2,attrtype0,attrvalue0,attrtype1,attrvalue1,attrtype2,attrvalue2,attrtype3,attrvalue3,attrtype4,attrvalue4,attrtype5,attrvalue5,attrtype6,attrvalue6 "
-                    "FROM item{} WHERE owner_id={} AND (window < {} or window = {})",
-                    sql::raw(get_table_postfix()), pTab->id, SAFEBOX, DRAGON_SOUL_INVENTORY);
+                query = sql::format("SELECT {} FROM item{} WHERE owner_id={} AND (window < {} or window = {})",
+                    sql::raw(item_select_columns), sql::raw(get_table_postfix()), pTab->id, SAFEBOX, DRAGON_SOUL_INVENTORY);
 
                 return_composite_query(query, QID_ITEM, std::make_unique<client_handle_info>(handle_value, pTab->id));
                 query = sql::format("SELECT dwPID, szName, szState, lValue FROM quest{} WHERE dwPID={}",
@@ -292,20 +307,19 @@ namespace metin2::db::inline clients {
             metin2::log::info("Loading player pid {:d} from the database", packet->player_id);
 
             std::string query = sql::format("SELECT "
-                "id,name,job,voice,dir,x,y,z,map_index,exit_x,exit_y,exit_map_index,hp,mp,stamina,random_hp,random_sp,playtime,"
-                "gold,level,level_step,st,ht,dx,iq,exp,"
-                "stat_point,skill_point,sub_skill_point,stat_reset_count,part_base,part_hair,"
-                "skill_level,quickslot,skill_group,alignment,mobile,horse_level,horse_riding,horse_hp,horse_hp_droptime,horse_stamina,"
-                "UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(last_play),horse_skill_point FROM player{} WHERE id={}",
+                                            "id,name,job,voice,dir,x,y,z,map_index,exit_x,exit_y,exit_map_index,hp,mp,stamina,random_hp,random_sp,playtime,"
+                                            "gold,level,level_step,st,ht,dx,iq,exp,"
+                                            "stat_point,skill_point,sub_skill_point,stat_reset_count,part_base,part_hair,"
+                                            "skill_level,quickslot,skill_group,alignment,mobile,horse_level,horse_riding,horse_hp,horse_hp_droptime,horse_stamina,"
+                                            "UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(last_play),horse_skill_point FROM player{} WHERE id={}",
                 sql::raw(get_table_postfix()), packet->player_id);
 
             auto pkInfo = std::make_unique<client_handle_info>(handle_value, packet->player_id);
             pkInfo->account_id = packet->account_id;
             return_composite_query(query, QID_PLAYER, std::move(pkInfo));
 
-            query = sql::format("SELECT id,window+0,pos,count,vnum,socket0,socket1,socket2,attrtype0,attrvalue0,attrtype1,attrvalue1,attrtype2,attrvalue2,attrtype3,attrvalue3,attrtype4,attrvalue4,attrtype5,attrvalue5,attrtype6,attrvalue6 "
-                "FROM item{} WHERE owner_id={} AND (window < {} or window = {})",
-                sql::raw(get_table_postfix()), packet->player_id, SAFEBOX, DRAGON_SOUL_INVENTORY);
+            query = sql::format("SELECT {} FROM item{} WHERE owner_id={} AND (window < {} or window = {})",
+                sql::raw(item_select_columns), sql::raw(get_table_postfix()), packet->player_id, SAFEBOX, DRAGON_SOUL_INVENTORY);
             return_composite_query(query, QID_ITEM, std::make_unique<client_handle_info>(handle_value, packet->player_id));
 
             query = sql::format("SELECT dwPID,szName,szState,lValue FROM quest{} WHERE dwPID={}",
@@ -321,11 +335,8 @@ namespace metin2::db::inline clients {
         std::set<db::items::item_award *> *pSet = item_award_manager::instance().by_login(login_t.c_str());
         if (pSet == nullptr)
             return;
-        __typeof(pSet->begin()) it = pSet->begin();
-        while (it != pSet->end()) {
-            db::items::item_award *pItemAward = *(it++);
-            inform_gift_award(pItemAward->login, pItemAward->why, pItemAward->vnum);
-        }
+        for (const db::items::item_award *award : *pSet)
+            inform_gift_award(award->login, award->why, award->vnum);
     }
 
     void client_manager::inform_gift_award(const char *login, const char *why, uint32_t vnum) {
@@ -435,7 +446,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::result_composite_player(peer *peer, sql_msg &msg, uint32_t qid, client_handle_info &info) {
-        MYSQL_RES *pSQLResult = msg.get()->res;
+        MYSQL_RES *pSQLResult = msg.get()->res.get();
         if (!pSQLResult) {
             metin2::log::error("Query {:d} returned no result set", qid);
             return;
@@ -506,7 +517,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::result_item_load(peer *peer, MYSQL_RES *res, uint32_t handle, uint32_t pid) {
-        static std::vector<player_item> s_items;
+        std::vector<player_item> s_items;
         create_item_table_from_res(res, &s_items, pid);
         uint32_t dwCount = s_items.size();
 
@@ -518,7 +529,7 @@ namespace metin2::db::inline clients {
         metin2::log::debug("Loaded {:d} items for pid {:d}", dwCount, pid);
 
         if (dwCount) {
-            peer->encode(&s_items[0], sizeof(player_item) * dwCount);
+            peer->encode(s_items.data(), sizeof(player_item) * dwCount);
 
             for (uint32_t i = 0; i < dwCount; ++i)
                 put_item_cache(&s_items[i], true);
@@ -531,8 +542,7 @@ namespace metin2::db::inline clients {
         if ((iNumRows = mysql_num_rows(res)) == 0)
             return;
 
-        static std::vector<packet_affect_element> s_elements;
-        s_elements.resize(iNumRows);
+        std::vector<packet_affect_element> s_elements(iNumRows);
 
         uint32_t dwPID = 0;
 
@@ -560,7 +570,7 @@ namespace metin2::db::inline clients {
         peer->encode_header(HEADER_DG_AFFECT_LOAD, handle, sizeof(uint32_t) + sizeof(uint32_t) + sizeof(packet_affect_element) * dwCount);
         peer->encode(&dwPID, sizeof(uint32_t));
         peer->encode(&dwCount, sizeof(uint32_t));
-        peer->encode(&s_elements[0], sizeof(packet_affect_element) * dwCount);
+        peer->encode(s_elements.data(), sizeof(packet_affect_element) * dwCount);
     }
 
     void client_manager::result_quest_load(peer *peer, MYSQL_RES *res, uint32_t handle, uint32_t pid) {
@@ -573,8 +583,7 @@ namespace metin2::db::inline clients {
             return;
         }
 
-        static std::vector<quest_table> s_table;
-        s_table.resize(iNumRows);
+        std::vector<quest_table> s_table(iNumRows);
 
         MYSQL_ROW row;
 
@@ -595,7 +604,7 @@ namespace metin2::db::inline clients {
 
         peer->encode_header(HEADER_DG_QUEST_LOAD, handle, sizeof(uint32_t) + sizeof(quest_table) * dwCount);
         peer->encode(&dwCount, sizeof(uint32_t));
-        peer->encode(&s_table[0], sizeof(quest_table) * dwCount);
+        peer->encode(s_table.data(), sizeof(quest_table) * dwCount);
     }
 
     void client_manager::query_player_save(peer *peer, uint32_t handle, player_table *tab) {
@@ -630,12 +639,12 @@ namespace metin2::db::inline clients {
         auto pMsg0 = db_manager::instance().direct_query(query);
 
         if (pMsg0->get()->num_rows != 0) {
-            if (!pMsg0->get()->res) {
+            if (!pMsg0->get()->res.get()) {
                 peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, handle, 0);
                 return;
             }
 
-            MYSQL_ROW row = mysql_fetch_row(pMsg0->get()->res);
+            MYSQL_ROW row = mysql_fetch_row(pMsg0->get()->res.get());
 
             uint32_t dwPID = 0;
             str_to_number(dwPID, row[0]);
@@ -655,12 +664,12 @@ namespace metin2::db::inline clients {
         auto pMsg1 = db_manager::instance().direct_query(query);
 
         if (pMsg1->get()->num_rows) {
-            if (!pMsg1->get()->res) {
+            if (!pMsg1->get()->res.get()) {
                 peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, handle, 0);
                 return;
             }
 
-            MYSQL_ROW row = mysql_fetch_row(pMsg1->get()->res);
+            MYSQL_ROW row = mysql_fetch_row(pMsg1->get()->res.get());
 
             if (*row[0] != '0') {
                 metin2::log::info("Player create: name {} is already taken (count {}, query: {})", packet->player_table.name, row[0], query);
@@ -805,7 +814,7 @@ namespace metin2::db::inline clients {
 
     void client_manager::result_player_delete(peer *peer, sql_msg &msg, client_handle_info &pi) {
         if (msg.get() && msg.get()->num_rows) {
-            MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
+            MYSQL_ROW row = mysql_fetch_row(msg.get()->res.get());
 
             uint32_t dwPID = 0;
             str_to_number(dwPID, row[0]);
@@ -965,10 +974,10 @@ namespace metin2::db::inline clients {
             const std::string query = sql::format("INSERT INTO highscore{} VALUES({}, {}, {})", sql::raw(get_table_postfix()), szBoard, pi.player_id, value);
             db_manager::instance().async_query(query);
         } else {
-            if (!res->res)
+            if (!res->res.get())
                 return;
 
-            MYSQL_ROW row = mysql_fetch_row(res->res);
+            MYSQL_ROW row = mysql_fetch_row(res->res.get());
             if (row && row[0]) {
                 int current_value = 0;
                 str_to_number(current_value, row[0]);

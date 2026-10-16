@@ -300,7 +300,7 @@ namespace metin2::game::inline characters {
                 if (get_mount_vnum() >= 20209 && get_mount_vnum() <= 20212)
                     return true;
 
-                if (mob_vnum_helper::is_ramadan_black_horse(get_mount_vnum()))
+                if (mob_vnum::is_ramadan_black_horse(get_mount_vnum()))
                     return true;
             } else
                 return false;

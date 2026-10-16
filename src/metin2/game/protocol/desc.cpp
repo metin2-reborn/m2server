@@ -69,8 +69,6 @@ namespace metin2::game::inline protocol {
         character_ = nullptr;
         memset(&account_table_, 0, sizeof(account_table_));
 
-        log_file_ = nullptr;
-
         p2p_port_ = 0;
 
         admin_mode_ = false;
@@ -83,10 +81,6 @@ namespace metin2::game::inline protocol {
 
         m_pk_login_key_ = nullptr;
         login_key_ = 0;
-
-        crc_magic_cube_idx_ = 0;
-        proc_crc_ = 0;
-        file_crc_ = 0;
 
         disconnect_event = nullptr;
 
@@ -104,11 +98,6 @@ namespace metin2::game::inline protocol {
 
         if (get_account_table().id)
             desc_manager::instance().disconnect_account(get_account_table().login);
-
-        if (log_file_) {
-            fclose(log_file_);
-            log_file_ = nullptr;
-        }
 
         if (character_) {
             character_->disconnect("connection closed");
@@ -583,65 +572,11 @@ namespace metin2::game::inline protocol {
         return login_key_;
     }
 
-    void desc::assemble_crc_magic_cube(uint8_t proc_piece, uint8_t file_piece) {
-        static uint8_t abXORTable[32] =
-            {
-                102,
-                30,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                188,
-                44,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                39,
-                201,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-                43,
-                5,
-                0,
-                0,
-                0,
-                0,
-                0,
-                0,
-        };
-
-        proc_piece = (proc_piece ^ abXORTable[crc_magic_cube_idx_]);
-        file_piece = (file_piece ^ abXORTable[crc_magic_cube_idx_ + 1]);
-
-        proc_crc_ |= static_cast<uint32_t>(proc_piece) << crc_magic_cube_idx_;
-        file_crc_ |= static_cast<uint32_t>(file_piece) << crc_magic_cube_idx_;
-
-        crc_magic_cube_idx_ += 8;
-
-        if (!(crc_magic_cube_idx_ & 31)) {
-            proc_crc_ = 0;
-            file_crc_ = 0;
-            crc_magic_cube_idx_ = 0;
-        }
-    }
-
     void desc::push_seq(uint8_t hdr, uint8_t seq) {
-        if (seq_vector.size() >= 20) {
-            seq_vector.erase(seq_vector.begin());
-        }
+        if (seq_vector.size() >= 20)
+            seq_vector.pop_front();
 
-        seq_t info = {hdr, seq};
-        seq_vector.push_back(info);
+        seq_vector.push_back({hdr, seq});
     }
 
     auto desc::empire() -> uint8_t {
@@ -660,7 +595,7 @@ namespace metin2::game::inline protocol {
             return;
 
         if (len >= (int)sizeof(chatbuf)) {
-            len = (int)utf8_truncated_size(chatbuf, sizeof(chatbuf) - 1, sizeof(chatbuf) - 1);
+            len = (int)utf8_truncated_size({chatbuf, sizeof(chatbuf) - 1}, sizeof(chatbuf) - 1);
             chatbuf[len] = '\0';
         }
 

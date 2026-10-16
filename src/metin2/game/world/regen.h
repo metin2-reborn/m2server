@@ -19,40 +19,18 @@ namespace metin2::game::inline world {
     };
 
     struct regen {
-        regen *prev;
-        regen *next;
-        int32_t map_index;
-        int type;
-        int sx, sy, ex, ey;
-        uint8_t z_section;
-
-        uint8_t direction;
-
-        uint32_t time;
-
-        int max_count;
-        int count;
-        int vnum;
-
-        bool is_aggressive;
-
-        event_ptr event;
-
-        size_t id;
-
-        regen() : prev(nullptr), next(nullptr),
-                  map_index(0),
-                  type(0),
-                  sx(0), sy(0), ex(0), ey(0),
-                  z_section(0),
-                  direction(0),
-                  time(0),
-                  max_count(0),
-                  count(0),
-                  vnum(0),
-                  is_aggressive(0),
-                  event(nullptr),
-                  id(0) {}
+        int32_t map_index = 0;
+        int type = 0;
+        int sx = 0, sy = 0, ex = 0, ey = 0;
+        uint8_t z_section = 0;
+        uint8_t direction = 0;
+        uint32_t time = 0;
+        int max_count = 0;
+        int count = 0;
+        int vnum = 0;
+        bool is_aggressive = false;
+        event_ptr event = nullptr;
+        size_t id = 0;
     };
 
     EVENTINFO(regen_event_info) {
@@ -61,14 +39,6 @@ namespace metin2::game::inline world {
         regen_event_info()
             : regen(nullptr) {
         }
-    };
-
-    struct regen_exception {
-        regen_exception *prev;
-        regen_exception *next;
-
-        int sx, sy, ex, ey;
-        uint8_t z_section;
     };
 
     class dungeon;

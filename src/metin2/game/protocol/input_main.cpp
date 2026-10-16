@@ -535,16 +535,16 @@ namespace metin2::game::inline protocol {
                 return (iExtraLen);
             }
 
-            if (thecore_heart->pulse - (int)ch->last_shout_pulse() < metin2::config::server().passes_per_sec * 15)
+            if (thecore_pulse() - (int)ch->last_shout_pulse() < metin2::config::server().passes_per_sec * 15)
                 return (iExtraLen);
 
-            ch->set_last_shout_pulse(thecore_heart->pulse);
+            ch->set_last_shout_pulse(thecore_pulse());
 
             packet_gg_shout p;
 
             p.header = HEADER_GG_SHOUT;
             p.empire = ch->empire();
-            utf8_strlcpy(p.text, chat.c_str(), sizeof(p.text));
+            utf8_strlcpy(p.text, chat.c_str());
 
             p2p_manager::instance().send(&p, sizeof(packet_gg_shout));
 
@@ -588,7 +588,7 @@ namespace metin2::game::inline protocol {
                         d->get_character()->is_equip_unique_group(UNIQUE_GROUP_RING_OF_LANGUAGE)) {
                         d->packet(chat.data(), len);
                     } else {
-                        utf8_strlcpy(converted_msg, chat.c_str(), sizeof(converted_msg));
+                        utf8_strlcpy(converted_msg, chat.c_str());
                         size_t converted_len = strlen(converted_msg);
 
                         convert_empire_text(empire, converted_msg + namelen, converted_len - namelen, 10 + 2 * d->get_character()->skill_power(SKILL_LANGUAGE1 + empire - 1));
@@ -1271,8 +1271,6 @@ namespace metin2::game::inline protocol {
                     return;
 
                 const packet_cg_attack *const packMelee = reinterpret_cast<const packet_cg_attack *>(data);
-
-                ch->get_desc()->assemble_crc_magic_cube(packMelee->crc_magic_cube_proc_piece, packMelee->crc_magic_cube_file_piece);
 
                 character *victim = character_manager::instance().find(packMelee->vid);
 
@@ -2329,6 +2327,29 @@ namespace metin2::game::inline protocol {
         ch->clear_refine_mode();
     }
 
+    namespace {
+
+        auto is_blocked_for_observer(uint8_t header) -> bool {
+            switch (header) {
+            case HEADER_CG_ITEM_USE:
+            case HEADER_CG_ITEM_DROP:
+            case HEADER_CG_ITEM_DROP2:
+            case HEADER_CG_ITEM_MOVE:
+            case HEADER_CG_ITEM_PICKUP:
+            case HEADER_CG_ITEM_USE_TO_ITEM:
+            case HEADER_CG_ITEM_GIVE:
+            case HEADER_CG_EXCHANGE:
+            case HEADER_CG_ATTACK:
+            case HEADER_CG_SHOOT:
+            case HEADER_CG_USE_SKILL:
+                return true;
+            default:
+                return false;
+            }
+        }
+
+    }
+
     auto input_main::analyze(desc *d, uint8_t header, const char *data) -> int {
         character *ch;
 
@@ -2360,6 +2381,9 @@ namespace metin2::game::inline protocol {
 
         if (metin2::config::test_server() && header != HEADER_CG_MOVE)
             metin2::log::debug("Game packet header {:d}", header);
+
+        if (ch->is_observer_mode() && is_blocked_for_observer(header))
+            return 0;
 
         switch (header) {
         case HEADER_CG_PONG:
@@ -2405,56 +2429,44 @@ namespace metin2::game::inline protocol {
             break;
 
         case HEADER_CG_ITEM_USE:
-            if (!ch->is_observer_mode())
-                item_use(ch, data);
+            item_use(ch, data);
             break;
 
         case HEADER_CG_ITEM_DROP:
-            if (!ch->is_observer_mode()) {
-                item_drop(ch, data);
-            }
+            item_drop(ch, data);
             break;
 
         case HEADER_CG_ITEM_DROP2:
-            if (!ch->is_observer_mode())
-                item_drop2(ch, data);
+            item_drop2(ch, data);
             break;
 
         case HEADER_CG_ITEM_MOVE:
-            if (!ch->is_observer_mode())
-                item_move(ch, data);
+            item_move(ch, data);
             break;
 
         case HEADER_CG_ITEM_PICKUP:
-            if (!ch->is_observer_mode())
-                item_pickup(ch, data);
+            item_pickup(ch, data);
             break;
 
         case HEADER_CG_ITEM_USE_TO_ITEM:
-            if (!ch->is_observer_mode())
-                item_to_item(ch, data);
+            item_to_item(ch, data);
             break;
 
         case HEADER_CG_ITEM_GIVE:
-            if (!ch->is_observer_mode())
-                item_give(ch, data);
+            item_give(ch, data);
             break;
 
         case HEADER_CG_EXCHANGE:
-            if (!ch->is_observer_mode())
-                exchange(ch, data);
+            exchange(ch, data);
             break;
 
         case HEADER_CG_ATTACK:
         case HEADER_CG_SHOOT:
-            if (!ch->is_observer_mode()) {
-                attack(ch, header, data);
-            }
+            attack(ch, header, data);
             break;
 
         case HEADER_CG_USE_SKILL:
-            if (!ch->is_observer_mode())
-                use_skill(ch, data);
+            use_skill(ch, data);
             break;
 
         case HEADER_CG_QUICKSLOT_ADD:

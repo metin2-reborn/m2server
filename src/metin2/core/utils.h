@@ -6,6 +6,9 @@
 #include <ctime>
 #include <random>
 #include <source_location>
+#include <span>
+#include <string>
+#include <string_view>
 
 namespace metin2::inline core {
 
@@ -19,13 +22,17 @@ namespace metin2::inline core {
         return std::isspace(static_cast<unsigned char>(ch)) != 0;
     }
 
-    void parse_token(char *src, char *token, char *value);
-    void trim_and_lower(const char *src, char *dest, size_t dest_size);
+    constexpr auto ascii_lower(char ch) -> char {
+        return ch >= 'A' && ch <= 'Z' ? static_cast<char>(ch - 'A' + 'a') : ch;
+    }
+
+    void trim_and_lower(std::string_view src, std::span<char> dest);
+    void trim_and_lower(const char *src, std::span<char> dest);
 
     auto utf8_sequence_length(unsigned char c) -> size_t;
-    auto utf8_truncated_size(const char *s, size_t len, size_t max) -> size_t;
-    auto utf8_strlcpy(char *dst, const char *src, size_t size) -> size_t;
-    auto utf8_strnlcpy(char *dst, size_t dst_size, const char *src, size_t src_max) -> size_t;
+    auto utf8_truncated_size(std::string_view s, size_t max) -> size_t;
+    auto utf8_strlcpy(std::span<char> dst, std::string_view src) -> size_t;
+    auto utf8_strnlcpy(std::span<char> dst, std::span<const char> src) -> size_t;
 
     auto random_engine() -> std::mt19937 &;
     auto number(int from, int to, std::source_location where = std::source_location::current()) -> int;
@@ -36,5 +43,5 @@ namespace metin2::inline core {
 
     auto get_float_time() -> float;
     auto get_dword_time() -> uint32_t;
-    auto time_str(time_t ct) -> char *;
+    auto time_str(time_t ct) -> std::string;
 }

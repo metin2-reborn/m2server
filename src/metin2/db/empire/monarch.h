@@ -17,7 +17,6 @@ namespace metin2::db::inline empire {
         typedef std::vector<monarch_candidacy> vec_monarchcandidacy;
 
         monarch();
-        ~monarch() override;
 
         auto vote_monarch(uint32_t pid, uint32_t selectdpid) -> bool;
         void elect_monarch();

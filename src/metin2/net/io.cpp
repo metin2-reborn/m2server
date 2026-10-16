@@ -111,22 +111,4 @@ namespace metin2::net {
         }
         return !error;
     }
-
-    auto read_some(tcp::socket &socket, std::span<std::uint8_t> buffer, std::chrono::milliseconds timeout) -> std::size_t {
-        const auto deadline = std::chrono::steady_clock::now() + timeout;
-        std::error_code error;
-        socket.non_blocking(true, error);
-
-        while (!error) {
-            const std::size_t size = socket.read_some(asio::buffer(buffer.data(), buffer.size()), error);
-            if (error != asio::error::would_block) {
-                return error ? 0 : size;
-            }
-            error.clear();
-            if (!wait(socket, POLLIN, deadline)) {
-                return 0;
-            }
-        }
-        return 0;
-    }
 }

@@ -10,9 +10,12 @@
 #include <metin2/log/log.h>
 #include <metin2/proto/length.h>
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
+#include <iterator>
+#include <span>
 
 #include <strings.h>
 
@@ -510,19 +513,14 @@ namespace metin2::game::inline admin {
             {"dragon_soul",             do_dragon_soul,             0,                 POS_DEAD,     GM_PLAYER     },
             {"ds_list",                 do_ds_list,                 0,                 POS_DEAD,     GM_PLAYER     },
             {"do_clear_affect",         do_clear_affect,            0,                 POS_DEAD,     GM_LOW_WIZARD },
-
-            {"\n",                      nullptr,                    0,                 POS_DEAD,     GM_IMPLEMENTOR}  // Must stay last.
     };
 
     void interpreter_set_privilege(const char *cmd, int lvl) {
-        int i;
+        auto it = std::ranges::find_if(cmd_info, [cmd](const command_info &info) { return !strcasecmp(cmd, info.command); });
 
-        for (i = 0; *cmd_info[i].command != '\n'; ++i) {
-            if (!strcasecmp(cmd, cmd_info[i].command)) {
-                cmd_info[i].gm_level = lvl;
-                metin2::log::info("Command {} now requires gm level {:d}", cmd, lvl);
-                break;
-            }
+        if (it != std::ranges::end(cmd_info)) {
+            it->gm_level = lvl;
+            metin2::log::info("Command {} now requires gm level {:d}", cmd, lvl);
         }
     }
 
@@ -561,7 +559,6 @@ namespace metin2::game::inline admin {
         char cmd[128 + 1];
         char new_line[256 + 1];
         const char *line;
-        int icmd;
 
         if (len == 0 || !*argument)
             return;
@@ -574,13 +571,20 @@ namespace metin2::game::inline admin {
         if (cmdlen == 0)
             return;
 
-        for (icmd = 1; *cmd_info[icmd].command != '\n'; ++icmd) {
-            if (cmd_info[icmd].command_pointer == do_cmd) {
-                if (!strcmp(cmd_info[icmd].command, cmd))
-                    break;
-            } else if (!strncmp(cmd_info[icmd].command, cmd, cmdlen))
-                break;
+        // Index 0 is reserved: handlers receive the index into cmd_info.
+        const auto commands = std::span(cmd_info).subspan(1);
+        const auto found = std::ranges::find_if(commands, [&](const command_info &info) {
+            if (info.command_pointer == do_cmd)
+                return !strcmp(info.command, cmd);
+            return !strncmp(info.command, cmd, cmdlen);
+        });
+
+        if (found == commands.end()) {
+            ch->chat_packet(CHAT_TYPE_INFO, lc_text("그런 명령어는 없습니다"));
+            return;
         }
+
+        const int icmd = static_cast<int>(std::distance(commands.begin(), found)) + 1;
 
         if (ch->get_position() < cmd_info[icmd].minimum_position) {
             switch (ch->get_position()) {
@@ -605,11 +609,6 @@ namespace metin2::game::inline admin {
                 break;
             }
 
-            return;
-        }
-
-        if (*cmd_info[icmd].command == '\n') {
-            ch->chat_packet(CHAT_TYPE_INFO, lc_text("그런 명령어는 없습니다"));
             return;
         }
 

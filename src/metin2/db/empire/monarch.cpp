@@ -25,9 +25,6 @@ namespace metin2::db::inline empire {
         memset(&monarch_info_, 0, sizeof(monarch_info));
     }
 
-    monarch::~monarch() {
-    }
-
     auto monarch::vote_monarch(uint32_t pid, uint32_t selectdpid) -> bool {
         map_monarchelection::iterator it = map_monarch_election_.find(pid);
 
@@ -179,7 +176,7 @@ namespace metin2::db::inline empire {
         }
 
         MYSQL_ROW row;
-        while ((row = mysql_fetch_row(pMsg->get()->res)) != nullptr) {
+        while ((row = mysql_fetch_row(pMsg->get()->res.get())) != nullptr) {
             int idx = 0;
             int Empire = 0;
             str_to_number(Empire, row[idx++]);
@@ -210,7 +207,7 @@ namespace metin2::db::inline empire {
 
         MYSQL_ROW row;
         int Empire = 0;
-        while ((row = mysql_fetch_row(pMsg->get()->res)) != nullptr) {
+        while ((row = mysql_fetch_row(pMsg->get()->res.get())) != nullptr) {
             int idx = 0;
             str_to_number(Empire, row[idx++]);
 

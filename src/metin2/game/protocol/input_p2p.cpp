@@ -32,7 +32,7 @@
 namespace metin2::game::inline protocol {
 
     input_p2p::input_p2p() {
-        bind_packet_info(&packet_info_gg_);
+        bind_packet_table(p2p_packet_table());
     }
 
     void input_p2p::login(desc *d, const char *data) {

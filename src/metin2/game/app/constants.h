@@ -86,17 +86,12 @@ namespace metin2::game::inline app {
     extern const int mob_enchant_apply_idx[MOB_ENCHANTS_MAX_NUM];
     extern const int mob_resists_apply_idx[MOB_RESISTS_MAX_NUM];
 
-    extern const int skill_attack_affect_prob_by_rank[MOB_RANK_MAX_NUM];
-
     extern const int item_magic_attribute_percent_high[ITEM_ATTRIBUTE_MAX_LEVEL];
     extern const int item_magic_attribute_percent_low[ITEM_ATTRIBUTE_MAX_LEVEL];
 
     extern const int item_attribute_add_percent[ITEM_ATTRIBUTE_MAX_NUM];
 
     extern const int exp_loss_percents[PLAYER_EXP_TABLE_MAX + 1];
-
-    extern const int *skill_power_by_level;
-    extern const int skill_power_by_level_euckr[SKILL_MAX_LEVEL + 1];
 
     extern const int polymorph_power_by_level[SKILL_MAX_LEVEL + 1];
 

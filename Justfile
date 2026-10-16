@@ -21,7 +21,8 @@ test: build
 
 # Format the sources with clang-format.
 format:
-    git ls-files 'src/*.h' 'src/*.cpp' 'src/*.hpp' 'tests/*.h' 'tests/*.cpp' | xargs clang-format -i
+    git ls-files --cached --others --exclude-standard 'src/*.h' 'src/*.cpp' 'src/*.hpp' 'tests/*.h' 'tests/*.cpp' \
+        | while read -r f; do [ -f "$f" ] && echo "$f"; done | xargs clang-format -i
 
 # Build the image and (re)start the compose stack; volumes and the database are kept.
 deploy:

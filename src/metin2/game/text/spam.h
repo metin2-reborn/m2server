@@ -3,10 +3,9 @@
 #include <metin2/game/app/utils.h>
 
 #include <metin2/common/singleton.h>
+#include <metin2/core/utils.h>
 #include <metin2/log/log.h>
 
-#include <algorithm>
-#include <cctype>
 #include <cstring>
 #include <string>
 #include <utility>
@@ -21,7 +20,7 @@ namespace metin2::game::inline text {
             score = 0;
 
             std::string strOrig(src);
-            strOrig.erase(remove_if(strOrig.begin(), strOrig.end(), isspace), strOrig.end());
+            std::erase_if(strOrig, is_space);
 
             for (size_t i = 0; i < vec_word_.size(); ++i) {
                 std::pair<std::string, unsigned int> &r = vec_word_[i];
