@@ -48,8 +48,7 @@
 
 namespace metin2::game::inline guilds {
 
-    guild_manager::guild_manager() {
-    }
+    guild_manager::guild_manager() = default;
 
     guild_manager::~guild_manager() {
         guild_.clear();

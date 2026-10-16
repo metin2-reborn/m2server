@@ -52,7 +52,7 @@ namespace metin2::game::inline combat {
     };
 
     class pvp_manager : public singleton<pvp_manager> {
-        typedef std::map<uint32_t, std::unordered_set<pvp *>> pvp_set_map;
+        using pvp_set_map = std::map<uint32_t, std::unordered_set<pvp *>>;
 
       public:
         pvp_manager();

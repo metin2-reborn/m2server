@@ -71,9 +71,9 @@ namespace metin2::db::inline empire {
 
         void send_change_char_priv(uint32_t pid, uint8_t type, int value);
 
-        typedef std::pair<time_t, std::shared_ptr<priv_char_data>> st_pair_char;
-        typedef std::pair<time_t, std::shared_ptr<priv_guild_data>> st_pair_guild;
-        typedef std::pair<time_t, std::shared_ptr<priv_empire_data>> st_pair_empire;
+        using st_pair_char = std::pair<time_t, std::shared_ptr<priv_char_data>>;
+        using st_pair_guild = std::pair<time_t, std::shared_ptr<priv_guild_data>>;
+        using st_pair_empire = std::pair<time_t, std::shared_ptr<priv_empire_data>>;
 
         std::priority_queue<st_pair_char, std::vector<st_pair_char>, std::greater<st_pair_char>>
             pq_priv_char_;

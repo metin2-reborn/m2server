@@ -305,13 +305,13 @@ namespace metin2::game::inline guilds {
 
         int member_count_bonus_;
 
-        typedef std::map<uint32_t, guild_member> guild_member_container;
+        using guild_member_container = std::map<uint32_t, guild_member>;
         guild_member_container member_;
 
-        typedef character_set guild_member_online_container;
+        using guild_member_online_container = character_set;
         guild_member_online_container member_online_;
 
-        typedef std::set<uint32_t> guild_member_p2p_online_container;
+        using guild_member_p2p_online_container = std::set<uint32_t>;
         guild_member_p2p_online_container member_p2p_online_;
 
         void load_guild_data(sql_msg &msg);
@@ -320,7 +320,7 @@ namespace metin2::game::inline guilds {
 
         void p2p_update_grade(sql_msg &msg);
 
-        typedef std::map<uint32_t, guild_war> enemy_guild_container;
+        using enemy_guild_container = std::map<uint32_t, guild_war>;
         enemy_guild_container enemy_guild_;
 
         std::map<uint32_t, uint32_t> guild_war_end_time_;
@@ -340,7 +340,7 @@ namespace metin2::game::inline guilds {
 
         auto verify_guild_joinable_condition(character *const pch_invitee) -> guild_join_err_code;
 
-        typedef std::map<uint32_t, event_ptr> event_map;
+        using event_map = std::map<uint32_t, event_ptr>;
         event_map guild_invite_event_map_;
     };
 

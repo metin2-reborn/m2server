@@ -521,8 +521,7 @@ namespace metin2::game::inline guilds {
         metin2::log::info("Building: requested update of land {:d}, guild {:d}", a[0], a[1]);
     }
 
-    manager::manager() {
-    }
+    manager::manager() = default;
 
     manager::~manager() {
         destroy();

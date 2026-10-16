@@ -13,8 +13,8 @@ namespace metin2::db::inline empire {
 
     class monarch : public singleton<monarch> {
       public:
-        typedef std::map<uint32_t, std::unique_ptr<monarch_election_info>> map_monarchelection;
-        typedef std::vector<monarch_candidacy> vec_monarchcandidacy;
+        using map_monarchelection = std::map<uint32_t, std::unique_ptr<monarch_election_info>>;
+        using vec_monarchcandidacy = std::vector<monarch_candidacy>;
 
         monarch();
 

@@ -31,7 +31,7 @@ namespace metin2::game::inline characters {
         uint8_t buff_value_;
         std::vector<uint8_t> *p_vec_buff_wear_targets_;
 
-        typedef std::map<uint8_t, int> map_attr;
+        using map_attr = std::map<uint8_t, int>;
         map_attr map_additional_attrs_;
     };
 }

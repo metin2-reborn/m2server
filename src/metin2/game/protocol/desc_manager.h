@@ -19,12 +19,12 @@ namespace metin2::game::inline protocol {
 
     class desc_manager : public singleton<desc_manager> {
       public:
-        typedef std::unordered_set<desc *> desc_set;
-        typedef std::unordered_set<client_desc *> client_desc_set;
-        typedef std::map<int, desc *> desc_handle_map;
-        typedef std::map<uint32_t, desc *> desc_handshake_map;
-        typedef std::unordered_map<std::string, desc *> desc_loginname_map;
-        typedef std::map<uint32_t, uint32_t> desc_handle_random_key_map;
+        using desc_set = std::unordered_set<desc *>;
+        using client_desc_set = std::unordered_set<client_desc *>;
+        using desc_handle_map = std::map<int, desc *>;
+        using desc_handshake_map = std::map<uint32_t, desc *>;
+        using desc_loginname_map = std::unordered_map<std::string, desc *>;
+        using desc_handle_random_key_map = std::map<uint32_t, uint32_t>;
 
       public:
         desc_manager();

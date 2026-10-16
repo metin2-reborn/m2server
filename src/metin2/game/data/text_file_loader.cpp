@@ -33,8 +33,7 @@ namespace metin2::game::inline data {
         global_node_.parent_node = nullptr;
     }
 
-    text_file_loader::~text_file_loader() {
-    }
+    text_file_loader::~text_file_loader() = default;
 
     auto text_file_loader::load(const char *file_name) -> bool {
         file_name_ = file_name;

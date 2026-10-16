@@ -23,11 +23,11 @@ namespace metin2::game::inline parties {
 namespace metin2::game::inline world {
 
     class dungeon {
-        typedef std::unordered_map<party *, int> party_map;
-        typedef std::map<std::string, character *> unique_mob_map;
+        using party_map = std::unordered_map<party *, int>;
+        using unique_mob_map = std::map<std::string, character *>;
 
       public:
-        typedef uint32_t id_type;
+        using id_type = uint32_t;
 
         ~dungeon();
 
@@ -118,7 +118,7 @@ namespace metin2::game::inline world {
         void set_flag(std::string name, int value);
         void set_warp_location(int32_t map_index, int x, int y);
 
-        typedef std::vector<std::pair<uint32_t, int>> item_group;
+        using item_group = std::vector<std::pair<uint32_t, int>>;
         void create_item_group(std::string &group_name, item_group &item_group);
         auto get_item_group(std::string &group_name) -> const item_group *;
 
@@ -138,7 +138,7 @@ namespace metin2::game::inline world {
 
         character_set set_character_;
         std::map<std::string, int> map_flag_;
-        typedef std::map<std::string, item_group> item_group_map;
+        using item_group_map = std::map<std::string, item_group>;
         item_group_map map_item_group_;
         party_map map_party_;
         area_map &map_area_;
@@ -181,8 +181,8 @@ namespace metin2::game::inline world {
     };
 
     class dungeon_manager : public singleton<dungeon_manager> {
-        typedef std::map<dungeon::id_type, std::unique_ptr<dungeon>> dungeon_map;
-        typedef std::map<int32_t, dungeon *> map_dungeon;
+        using dungeon_map = std::map<dungeon::id_type, std::unique_ptr<dungeon>>;
+        using map_dungeon = std::map<int32_t, dungeon *>;
 
       public:
         dungeon_manager();

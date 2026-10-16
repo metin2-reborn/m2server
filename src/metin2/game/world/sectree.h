@@ -22,10 +22,10 @@ namespace metin2::game::inline world {
         unsigned y : 16;
     };
 
-    typedef union sectreeid {
+    union sectreeid {
         uint32_t package;
         sectree_coord coord;
-    } sectreeid;
+    };
 
     enum {
         ATTR_BLOCK = (1 << 0),

@@ -111,7 +111,7 @@ namespace metin2::game::inline characters {
 
     class mob_manager : public singleton<mob_manager> {
       public:
-        typedef std::map<uint32_t, std::unique_ptr<mob>>::iterator iterator;
+        using iterator = std::map<uint32_t, std::unique_ptr<mob>>::iterator;
 
         mob_manager();
         ~mob_manager() override;

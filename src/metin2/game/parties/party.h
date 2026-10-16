@@ -47,8 +47,8 @@ namespace metin2::game::inline parties {
 
     class party_manager : public singleton<party_manager> {
       public:
-        typedef std::map<uint32_t, party *> party_map;
-        typedef std::set<party *> pc_party_set;
+        using party_map = std::map<uint32_t, party *>;
+        using pc_party_set = std::set<party *>;
 
       public:
         party_manager();
@@ -106,9 +106,9 @@ namespace metin2::game::inline parties {
             std::string name;
         };
 
-        typedef std::map<uint32_t, member> member_map;
+        using member_map = std::map<uint32_t, member>;
 
-        typedef std::map<std::string, int> flag_map;
+        using flag_map = std::map<std::string, int>;
 
       public:
         party();

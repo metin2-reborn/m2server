@@ -16,11 +16,9 @@
 
 namespace metin2::game::inline text {
 
-    banword_manager::banword_manager() {
-    }
+    banword_manager::banword_manager() = default;
 
-    banword_manager::~banword_manager() {
-    }
+    banword_manager::~banword_manager() = default;
 
     auto banword_manager::initialize(banword_table *p, uint16_t size_value) -> bool {
         hashmap_words_.clear();

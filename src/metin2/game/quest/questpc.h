@@ -44,8 +44,8 @@ namespace metin2::game {
                 QUEST_SEND_ICON_FILE = (1 << 6),
             };
 
-            typedef std::map<unsigned int, quest_state> quest_info;
-            typedef quest_info::iterator quest_info_iterator;
+            using quest_info = std::map<unsigned int, quest_state>;
+            using quest_info_iterator = quest_info::iterator;
 
             pc();
             ~pc();
@@ -167,12 +167,12 @@ namespace metin2::game {
             quest_state *running_quest_state_;
             std::string cur_quest_;
 
-            typedef std::map<std::string, int> flag_map;
+            using flag_map = std::map<std::string, int>;
             flag_map flag_map_;
 
             flag_map flag_save_map_;
 
-            typedef std::map<std::string, event_ptr> timer_map;
+            using timer_map = std::map<std::string, event_ptr>;
             timer_map timer_map_;
 
             int send_to_client_;

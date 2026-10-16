@@ -21,7 +21,7 @@ namespace metin2::game::inline text {
         void convert_string(char *string_value, size_t len_value);
 
       protected:
-        typedef std::unordered_map<std::string, bool> banword_hashmap;
+        using banword_hashmap = std::unordered_map<std::string, bool>;
         banword_hashmap hashmap_words_;
     };
 }

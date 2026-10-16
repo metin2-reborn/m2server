@@ -33,8 +33,7 @@ namespace metin2::db::inline social {
             return lhs.time > rhs.time;
         }
 
-        manager::manager() {
-        }
+        manager::manager() = default;
 
         auto manager::initialize() -> bool {
             const std::string query = sql::format(

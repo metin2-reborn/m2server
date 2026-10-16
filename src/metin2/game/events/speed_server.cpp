@@ -89,17 +89,13 @@ namespace metin2::game::inline events {
         }
     }
 
-    speed_server_manager::speed_server_manager() {
-    }
+    speed_server_manager::speed_server_manager() = default;
 
-    speed_server_manager::~speed_server_manager() {
-    }
+    speed_server_manager::~speed_server_manager() = default;
 
-    speed_server_empire_exp::speed_server_empire_exp() {
-    }
+    speed_server_empire_exp::speed_server_empire_exp() = default;
 
-    speed_server_empire_exp::~speed_server_empire_exp() {
-    }
+    speed_server_empire_exp::~speed_server_empire_exp() = default;
 
     auto speed_server_manager::initialize() -> bool {
         for (int i = 1; i < EMPIRE_MAX_NUM; i++) {

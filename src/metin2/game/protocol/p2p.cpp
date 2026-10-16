@@ -32,8 +32,7 @@ namespace metin2::game::inline protocol {
         memset(empire_user_count_, 0, sizeof(empire_user_count_));
     }
 
-    p2p_manager::~p2p_manager() {
-    }
+    p2p_manager::~p2p_manager() = default;
 
     void p2p_manager::boot(desc *d) {
         character_manager::name_map &map = character_manager::instance().pc_map();

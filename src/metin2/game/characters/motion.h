@@ -89,9 +89,9 @@ namespace metin2::game::inline characters {
 
     class motion_set {
       public:
-        typedef std::map<uint32_t, std::unique_ptr<motion>> container;
-        typedef container::iterator iterator;
-        typedef container::const_iterator const_iterator;
+        using container = std::map<uint32_t, std::unique_ptr<motion>>;
+        using iterator = container::iterator;
+        using const_iterator = container::const_iterator;
 
       public:
         motion_set();
@@ -108,8 +108,8 @@ namespace metin2::game::inline characters {
 
     class motion_manager : public singleton<motion_manager> {
       public:
-        typedef std::map<uint32_t, std::unique_ptr<motion_set>> container;
-        typedef container::iterator iterator;
+        using container = std::map<uint32_t, std::unique_ptr<motion_set>>;
+        using iterator = container::iterator;
 
         motion_manager();
         ~motion_manager() override;

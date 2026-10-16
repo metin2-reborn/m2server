@@ -42,7 +42,7 @@ namespace metin2::game::inline world {
             : type(type_value), name(name), x(x), y(y) {}
     };
 
-    typedef std::map<std::string, area_info> area_map;
+    using area_map = std::map<std::string, area_info>;
 
     struct map_setting {
         int index;
@@ -57,7 +57,7 @@ namespace metin2::game::inline world {
 
     class sectree_map {
       public:
-        typedef std::map<uint32_t, std::unique_ptr<sectree>> map_type;
+        using map_type = std::map<uint32_t, std::unique_ptr<sectree>>;
 
         sectree_map();
         sectree_map(sectree_map &r);
@@ -167,7 +167,7 @@ namespace metin2::game::inline world {
         std::vector<map_region> vec_map_region_;
         std::map<uint32_t, std::vector<npc_info>> npc_position_;
 
-        typedef std::unordered_map<int32_t, int> private_index_map_type;
+        using private_index_map_type = std::unordered_map<int32_t, int>;
         private_index_map_type next_private_index_map_;
     };
 }

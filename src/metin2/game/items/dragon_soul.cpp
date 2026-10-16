@@ -36,7 +36,7 @@
 
 namespace metin2::game::inline items {
 
-    typedef std::vector<std::string> token_vector;
+    using token_vector = std::vector<std::string>;
     auto gamble(std::vector<float> &vec_probs) -> int {
         if (std::ranges::none_of(vec_probs, [](float p) { return p > 0.f; }))
             return -1;
@@ -804,9 +804,7 @@ namespace metin2::game::inline items {
         ch->dragon_soul_deactivate_all();
     }
 
-    ds_manager::ds_manager() {
-    }
+    ds_manager::ds_manager() = default;
 
-    ds_manager::~ds_manager() {
-    }
+    ds_manager::~ds_manager() = default;
 }

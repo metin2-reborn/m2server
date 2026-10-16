@@ -6,7 +6,7 @@
 
 namespace metin2::game::inline data {
 
-    typedef std::vector<std::string> token_vector;
+    using token_vector = std::vector<std::string>;
 
     class memory_text_file_loader {
       public:

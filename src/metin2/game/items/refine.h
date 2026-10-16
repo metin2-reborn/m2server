@@ -24,7 +24,7 @@ namespace metin2::game::inline items {
     };
 
     class refine_manager : public singleton<refine_manager> {
-        typedef std::map<uint32_t, refine_table> refine_recipe_map;
+        using refine_recipe_map = std::map<uint32_t, refine_table>;
 
       public:
         refine_manager();

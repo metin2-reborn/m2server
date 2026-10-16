@@ -110,7 +110,7 @@ namespace metin2::game::inline protocol {
         }
     };
 
-    typedef std::unordered_map<std::string, std::pair<unsigned int, event_ptr>> spam_score_of_ip_t;
+    using spam_score_of_ip_t = std::unordered_map<std::string, std::pair<unsigned int, event_ptr>>;
     spam_score_of_ip_t spam_score_of_ip;
 
     EVENTFUNC(block_chat_by_ip_event) {

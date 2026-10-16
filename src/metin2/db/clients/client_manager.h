@@ -46,15 +46,15 @@ namespace metin2::db::inline clients {
 
     class client_manager : public singleton<client_manager> {
       public:
-        typedef std::list<peer *> peer_list;
-        typedef std::unordered_map<uint32_t, std::unique_ptr<player_table_cache>> player_table_cache_map;
-        typedef std::unordered_map<uint32_t, std::unique_ptr<item_cache>> item_cache_map;
-        typedef std::unordered_set<item_cache *, std::hash<item_cache *>> item_cache_set;
-        typedef std::unordered_map<uint32_t, std::unique_ptr<item_cache_set>> item_cache_set_ptr_map;
-        typedef std::unordered_map<uint32_t, std::unique_ptr<item_price_list_table_cache>> item_price_list_cache_map;
-        typedef std::unordered_map<short, uint8_t> channel_status_map;
+        using peer_list = std::list<peer *>;
+        using player_table_cache_map = std::unordered_map<uint32_t, std::unique_ptr<player_table_cache>>;
+        using item_cache_map = std::unordered_map<uint32_t, std::unique_ptr<item_cache>>;
+        using item_cache_set = std::unordered_set<item_cache *, std::hash<item_cache *>>;
+        using item_cache_set_ptr_map = std::unordered_map<uint32_t, std::unique_ptr<item_cache_set>>;
+        using item_price_list_cache_map = std::unordered_map<uint32_t, std::unique_ptr<item_price_list_table_cache>>;
+        using channel_status_map = std::unordered_map<short, uint8_t>;
 
-        typedef std::pair<uint32_t, uint32_t> item_pricelist_req_info;
+        using item_pricelist_req_info = std::pair<uint32_t, uint32_t>;
 
         class client_handle_info {
           public:
@@ -294,16 +294,16 @@ namespace metin2::db::inline clients {
 
         peer *auth_peer_;
 
-        typedef std::unordered_map<uint32_t, login_data *> login_data_by_login_key;
+        using login_data_by_login_key = std::unordered_map<uint32_t, login_data *>;
         login_data_by_login_key map_login_data_;
 
-        typedef std::unordered_map<std::string, login_data *> login_data_by_login;
+        using login_data_by_login = std::unordered_map<std::string, login_data *>;
         login_data_by_login map_login_data_by_login_;
 
-        typedef std::unordered_map<uint32_t, login_data *> login_data_by_aid;
+        using login_data_by_aid = std::unordered_map<uint32_t, login_data *>;
         login_data_by_aid map_login_data_by_aid_;
 
-        typedef std::unordered_map<std::string, login_data *> logon_account_map;
+        using logon_account_map = std::unordered_map<std::string, login_data *>;
         logon_account_map map_logon_account_;
 
         int player_id_start_;
@@ -348,12 +348,12 @@ namespace metin2::db::inline clients {
             }
         };
 
-        typedef std::map<uint32_t, party_info> party_member;
-        typedef std::map<uint32_t, party_member> party_map;
-        typedef std::map<uint8_t, party_map> party_channel_map;
+        using party_member = std::map<uint32_t, party_info>;
+        using party_map = std::map<uint32_t, party_member>;
+        using party_channel_map = std::map<uint8_t, party_map>;
         party_channel_map map_channel_party_;
 
-        typedef std::map<std::string, int32_t> event_flag_map;
+        using event_flag_map = std::map<std::string, int32_t>;
         event_flag_map map_event_flag_;
 
         int cache_flush_count_;
@@ -383,7 +383,7 @@ namespace metin2::db::inline clients {
             time_t time;
         };
 
-        typedef std::unordered_map<uint32_t, std::unique_ptr<logout_player>> logout_player_map;
+        using logout_player_map = std::unordered_map<uint32_t, std::unique_ptr<logout_player>>;
         logout_player_map map_logout_;
 
         void insert_logout_player(uint32_t pid);

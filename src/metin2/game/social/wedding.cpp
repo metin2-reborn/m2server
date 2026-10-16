@@ -214,11 +214,9 @@ namespace metin2::game::inline social {
             return std::format("PlayMusic {} {}", set, music_file_name);
         }
 
-        wedding_manager::wedding_manager() {
-        }
+        wedding_manager::wedding_manager() = default;
 
-        wedding_manager::~wedding_manager() {
-        }
+        wedding_manager::~wedding_manager() = default;
 
         auto wedding_manager::is_wedding_map(uint32_t map_index) -> bool {
             return (map_index == WEDDING_MAP_INDEX || map_index / 10000 == WEDDING_MAP_INDEX);

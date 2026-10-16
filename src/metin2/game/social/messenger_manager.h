@@ -14,8 +14,8 @@ namespace metin2::game::inline social {
 
     class messenger_manager : public singleton<messenger_manager> {
       public:
-        typedef std::string key_t;
-        typedef const std::string &key_a;
+        using key_t = std::string;
+        using key_a = const std::string &;
 
         messenger_manager();
         ~messenger_manager() override;

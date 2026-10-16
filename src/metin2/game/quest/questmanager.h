@@ -42,8 +42,8 @@ namespace metin2::game {
                 QUEST_SKIN_COUNT
             };
 
-            typedef std::map<std::string, int> event_name_map;
-            typedef std::map<unsigned int, pc> pc_map;
+            using event_name_map = std::map<std::string, int>;
+            using pc_map = std::map<unsigned int, pc>;
 
           public:
             quest_manager();
@@ -226,8 +226,8 @@ namespace metin2::game {
                 }
             };
 
-            typedef std::unordered_map<std::string, int, stringhash> hash_map_quest_name;
-            typedef std::unordered_map<unsigned int, std::vector<char>> hash_map_quest_start_script;
+            using hash_map_quest_name = std::unordered_map<std::string, int, stringhash>;
+            using hash_map_quest_start_script = std::unordered_map<unsigned int, std::vector<char>>;
 
             hash_map_quest_name hm_quest_name_;
             hash_map_quest_start_script hm_quest_start_script_;

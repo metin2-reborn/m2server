@@ -82,8 +82,7 @@ namespace metin2::db::inline guilds {
         }
     }
 
-    guild_manager::guild_manager() {
-    }
+    guild_manager::guild_manager() = default;
 
     guild_manager::~guild_manager() = default;
 

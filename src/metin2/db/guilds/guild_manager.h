@@ -113,8 +113,7 @@ namespace metin2::db::inline guilds {
         std::shared_ptr<guild_war_pq_element> element;
         guild_war_reservation *reserve;
 
-        guild_war_info() {
-        }
+        guild_war_info() = default;
     };
 
     class guild_war_reservation {
@@ -219,9 +218,9 @@ namespace metin2::db::inline guilds {
         std::set<guild_declare_info> declare_map_;
         std::map<war_key, guild_war_info> war_map_;
 
-        typedef std::pair<time_t, std::shared_ptr<guild_war_pq_element>> st_pair_guild_war;
-        typedef std::pair<time_t, guild_skill_used> st_pair_skill_used;
-        typedef std::pair<time_t, guild_wait_start_info> st_pair_wait_start;
+        using st_pair_guild_war = std::pair<time_t, std::shared_ptr<guild_war_pq_element>>;
+        using st_pair_skill_used = std::pair<time_t, guild_skill_used>;
+        using st_pair_wait_start = std::pair<time_t, guild_wait_start_info>;
 
         std::priority_queue<st_pair_guild_war, std::vector<st_pair_guild_war>, std::greater<st_pair_guild_war>>
             pq_on_war_;

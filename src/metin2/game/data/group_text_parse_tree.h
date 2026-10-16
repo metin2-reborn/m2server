@@ -12,8 +12,8 @@
 
 namespace metin2::game::inline data {
 
-    typedef std::map<std::string, token_vector> token_vector_map;
-    typedef std::map<std::string, int> map_name_to_index;
+    using token_vector_map = std::map<std::string, token_vector>;
+    using map_name_to_index = std::map<std::string, int>;
 
     class group_node {
       public:
@@ -65,8 +65,8 @@ namespace metin2::game::inline data {
         auto column_index_from_name(const std::string &name) const -> int;
 
       private:
-        typedef std::map<std::string, std::unique_ptr<group_node>> map_group;
-        typedef std::map<std::string, group_node::group_node_row> map_row;
+        using map_group = std::map<std::string, std::unique_ptr<group_node>>;
+        using map_row = std::map<std::string, group_node::group_node_row>;
         map_group child_nodes_;
         std::string group_name_;
 

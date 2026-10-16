@@ -57,8 +57,7 @@ namespace metin2::game::inline combat {
         set_last_fight_time();
     }
 
-    pvp::~pvp() {
-    }
+    pvp::~pvp() = default;
 
     void pvp::packet(bool removing) {
         if (!players_[0].vid || !players_[1].vid) {
@@ -145,11 +144,9 @@ namespace metin2::game::inline combat {
         return last_fight_time_;
     }
 
-    pvp_manager::pvp_manager() {
-    }
+    pvp_manager::pvp_manager() = default;
 
-    pvp_manager::~pvp_manager() {
-    }
+    pvp_manager::~pvp_manager() = default;
 
     void pvp_manager::insert(character *chr, character *victim) {
         if (chr->is_dead() || victim->is_dead())

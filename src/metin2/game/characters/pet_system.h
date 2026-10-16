@@ -74,7 +74,7 @@ namespace metin2::game::inline characters {
 
     class pet_system {
       public:
-        typedef std::unordered_map<uint32_t, std::unique_ptr<pet_actor>> pet_actor_map;
+        using pet_actor_map = std::unordered_map<uint32_t, std::unique_ptr<pet_actor>>;
 
       public:
         pet_system(character *owner);

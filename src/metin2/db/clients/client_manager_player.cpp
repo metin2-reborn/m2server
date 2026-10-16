@@ -617,7 +617,7 @@ namespace metin2::db::inline clients {
         put_player_cache(tab);
     }
 
-    typedef std::map<uint32_t, time_t> time_by_id_map_t;
+    using time_by_id_map_t = std::map<uint32_t, time_t>;
     static time_by_id_map_t create_time_by_account_id;
 
     void client_manager::query_player_create(peer *peer, uint32_t handle, player_create_packet *packet) {

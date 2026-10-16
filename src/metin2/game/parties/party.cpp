@@ -57,8 +57,7 @@ namespace metin2::game::inline parties {
         initialize();
     }
 
-    party_manager::~party_manager() {
-    }
+    party_manager::~party_manager() = default;
 
     void party_manager::initialize() {
         enable_pc_party_ = false;

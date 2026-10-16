@@ -49,8 +49,7 @@ namespace metin2::game::inline protocol {
         t_last_channel_status_update_time_ = 0;
     }
 
-    client_desc::~client_desc() {
-    }
+    client_desc::~client_desc() = default;
 
     void client_desc::destroy() {
         if (!connection_) {

@@ -26,8 +26,7 @@ namespace metin2::game::inline empire {
         initialize();
     }
 
-    monarch::~monarch() {
-    }
+    monarch::~monarch() = default;
 
     auto monarch::initialize() -> bool {
         memset(power_up_, 0, sizeof(power_up_));

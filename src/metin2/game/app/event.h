@@ -13,7 +13,7 @@ namespace metin2::game::inline app {
     struct scheduled_event;
     using event_ptr = std::shared_ptr<scheduled_event>;
 
-    typedef int32_t (*event_func)(event_ptr event, int32_t processing_time);
+    using event_func = int32_t (*)(event_ptr event, int32_t processing_time);
 
 #define EVENTFUNC(name) auto(name)(event_ptr event, int32_t processing_time)->int32_t
 #define EVENTINFO(name) struct name : public event_info_data

@@ -44,8 +44,7 @@ namespace metin2::game::inline protocol {
         initialize();
     }
 
-    desc::~desc() {
-    }
+    desc::~desc() = default;
 
     void desc::initialize() {
         destroyed_ = false;

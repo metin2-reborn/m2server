@@ -13,11 +13,9 @@
 
 namespace metin2::game::inline items {
 
-    item_addon_manager::item_addon_manager() {
-    }
+    item_addon_manager::item_addon_manager() = default;
 
-    item_addon_manager::~item_addon_manager() {
-    }
+    item_addon_manager::~item_addon_manager() = default;
 
     void item_addon_manager::apply_addon_to(int addon_type, item *item_value) {
         if (!item_value) {

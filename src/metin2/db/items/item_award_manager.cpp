@@ -23,8 +23,7 @@
 namespace metin2::db::inline items {
 
     uint32_t last_cached_item_award_id = 0;
-    item_award_manager::item_award_manager() {
-    }
+    item_award_manager::item_award_manager() = default;
 
     void item_award_manager::request_load() {
         const std::string query = sql::format("SELECT id,login,vnum,count,socket0,socket1,socket2,mall,why FROM item_award WHERE taken_time IS NULL and id > {}", last_cached_item_award_id);

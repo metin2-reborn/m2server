@@ -13,7 +13,7 @@ namespace metin2::game::inline items {
 
     class belt_inventory_helper {
       public:
-        typedef uint8_t grade_unit;
+        using grade_unit = uint8_t;
 
         static auto available_rule_table_by_grade() -> const grade_unit * {
 

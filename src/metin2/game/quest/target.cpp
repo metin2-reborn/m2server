@@ -52,8 +52,7 @@ namespace metin2::game {
     target_manager::target_manager() : id_(0) {
     }
 
-    target_manager::~target_manager() {
-    }
+    target_manager::~target_manager() = default;
 
     EVENTFUNC(target_event) {
         target_info *info = dynamic_cast<target_info *>(event->info.get());

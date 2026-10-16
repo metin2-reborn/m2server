@@ -24,8 +24,7 @@ namespace metin2::game::inline guilds {
             free_mark_id_.insert(i);
     }
 
-    guild_mark_manager::~guild_mark_manager() {
-    }
+    guild_mark_manager::~guild_mark_manager() = default;
 
     auto guild_mark_manager::mark_image_filename(uint32_t img_idx, std::string &path) const -> bool {
         if (img_idx >= MAX_IMAGE_COUNT)

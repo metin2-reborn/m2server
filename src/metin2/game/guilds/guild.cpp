@@ -128,8 +128,7 @@ namespace metin2::game::inline guilds {
         member_count_bonus_ = 0;
     }
 
-    guild::~guild() {
-    }
+    guild::~guild() = default;
 
     void guild::request_add_member(character *ch, int grade) {
         if (ch->get_guild())

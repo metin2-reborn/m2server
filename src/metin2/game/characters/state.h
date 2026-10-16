@@ -6,8 +6,7 @@ namespace metin2::game::inline characters {
 
     class state {
       public:
-        virtual ~state() {
-        }
+        virtual ~state() = default;
 
         virtual void execute_begin_state() = 0;
         virtual void execute_state() = 0;
@@ -17,7 +16,7 @@ namespace metin2::game::inline characters {
     template <class T>
     class state_template : public state {
       public:
-        typedef void (T::*pfnstate)(void);
+        using pfnstate = void (T::*)();
 
       protected:
         T *instance_;

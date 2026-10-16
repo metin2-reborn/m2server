@@ -13,7 +13,7 @@
 
 namespace metin2::game::inline text {
 
-    typedef std::map<std::string, std::string> locale_string_map_type;
+    using locale_string_map_type = std::map<std::string, std::string>;
 
     locale_string_map_type locale_string;
 

@@ -30,7 +30,7 @@ namespace metin2::game::inline items {
         int apply_duration[MAX_BLEND_ITEM_VALUE];
     };
 
-    typedef std::vector<blend_item_info> t_blend_item_info;
+    using t_blend_item_info = std::vector<blend_item_info>;
     t_blend_item_info blend_info;
 
     auto blend_item_init() -> bool {

@@ -33,11 +33,11 @@ namespace metin2::game::inline world {
 
 namespace metin2::game::inline app {
 
-    typedef std::vector<character *> character_vector;
-    typedef std::list<character *> character_list;
-    typedef std::unordered_set<character *> character_set;
+    using character_vector = std::vector<character *>;
+    using character_list = std::list<character *>;
+    using character_set = std::unordered_set<character *>;
 
-    typedef std::unordered_set<entity *> entity_set;
+    using entity_set = std::unordered_set<entity *>;
 
     using sectree_list = std::list<sectree *>;
 

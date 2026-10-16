@@ -23,7 +23,7 @@ namespace metin2::game::inline characters {
 
     class character_manager : public singleton<character_manager> {
       public:
-        typedef std::unordered_map<std::string, character *> name_map;
+        using name_map = std::unordered_map<std::string, character *>;
 
         character_manager();
         ~character_manager() override;

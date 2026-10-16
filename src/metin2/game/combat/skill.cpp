@@ -38,11 +38,9 @@ namespace metin2::game::inline combat {
         grand_master_add_sp_cost_poly.set_var(name, var);
     }
 
-    skill_manager::skill_manager() {
-    }
+    skill_manager::skill_manager() = default;
 
-    skill_manager::~skill_manager() {
-    }
+    skill_manager::~skill_manager() = default;
 
     namespace {
         auto iequals(std::string_view a, std::string_view b) -> bool {

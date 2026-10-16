@@ -7,11 +7,9 @@
 
 namespace metin2::game::inline data {
 
-    memory_text_file_loader::memory_text_file_loader() {
-    }
+    memory_text_file_loader::memory_text_file_loader() = default;
 
-    memory_text_file_loader::~memory_text_file_loader() {
-    }
+    memory_text_file_loader::~memory_text_file_loader() = default;
 
     auto memory_text_file_loader::split_line(uint32_t line, std::vector<std::string> *pst_token_vector, const char *delimeter) -> bool {
         pst_token_vector->clear();

@@ -423,11 +423,9 @@ namespace metin2::game::inline social {
             manager::instance().request_end_wedding(pid1, pid2);
         }
 
-        manager::manager() {
-        }
+        manager::manager() = default;
 
-        manager::~manager() {
-        }
+        manager::~manager() = default;
 
         auto manager::is_marriage_unique_item(uint32_t item_vnum) -> bool {
             for (int i = 0; i < MAX_MARRIAGE_UNIQUE_ITEM; i++) {

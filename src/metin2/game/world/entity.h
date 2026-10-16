@@ -11,7 +11,7 @@ namespace metin2::game::inline world {
 
     class entity {
       public:
-        typedef std::unordered_map<entity *, int> entity_map;
+        using entity_map = std::unordered_map<entity *, int>;
 
       public:
         entity();

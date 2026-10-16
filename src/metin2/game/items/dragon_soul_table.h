@@ -26,8 +26,8 @@ namespace metin2::game::inline items {
       public:
         dragon_soul_table();
         ~dragon_soul_table();
-        typedef std::vector<apply> vec_applys;
-        typedef std::map<uint8_t, vec_applys> map_apply_group;
+        using vec_applys = std::vector<apply>;
+        using map_apply_group = std::map<uint8_t, vec_applys>;
 
         auto read_dragon_soul_table_file(const char *file_name) -> bool;
         auto dragon_soul_group_name(uint8_t type, std::string &group_name) const -> bool;
@@ -55,8 +55,8 @@ namespace metin2::game::inline items {
         group_node *dragon_heart_ext_table_node_;
         group_node *dragon_soul_ext_table_node_;
 
-        typedef std::map<std::string, uint8_t> map_name_to_type;
-        typedef std::map<uint8_t, std::string> map_type_to_name;
+        using map_name_to_type = std::map<std::string, uint8_t>;
+        using map_type_to_name = std::map<uint8_t, std::string>;
         std::vector<std::string> dragon_soul_names_;
         std::vector<uint8_t> dragon_soul_types_;
 

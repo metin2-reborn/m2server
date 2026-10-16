@@ -320,7 +320,7 @@ namespace metin2::game::inline items {
         void create_quest_drop_item(character *chr, character *killer, std::vector<item *> &vec_item, int delta_percent, int rand_range);
 
       protected:
-        typedef std::map<uint32_t, item *> item_vid_map;
+        using item_vid_map = std::map<uint32_t, item *>;
 
         std::vector<item_table> vec_prototype_;
         std::vector<item_table *> vec_item_vnum_range_info_;
@@ -346,7 +346,7 @@ namespace metin2::game::inline items {
         std::map<uint32_t, int> item_to_special_group_;
 
       private:
-        typedef std::map<uint32_t, uint32_t> map_dw2_dw;
+        using map_dw2_dw = std::map<uint32_t, uint32_t>;
         map_dw2_dw map_new_to_ori_;
 
       public:

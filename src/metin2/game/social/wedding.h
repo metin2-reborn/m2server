@@ -15,7 +15,7 @@ namespace metin2::game::inline social {
 
     namespace marriage {
         const uint32_t WEDDING_MAP_INDEX = 81;
-        typedef character_set charset_t;
+        using charset_t = character_set;
 
         class wedding_map {
           public:

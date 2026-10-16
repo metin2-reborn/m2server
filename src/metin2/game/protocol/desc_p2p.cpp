@@ -16,8 +16,7 @@
 
 namespace metin2::game::inline protocol {
 
-    desc_p2p::~desc_p2p() {
-    }
+    desc_p2p::~desc_p2p() = default;
 
     void desc_p2p::destroy() {
         if (!connection_) {

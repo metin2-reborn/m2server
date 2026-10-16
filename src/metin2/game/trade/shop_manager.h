@@ -15,8 +15,8 @@ namespace metin2::game::inline trade {
 
     class shop_manager : public singleton<shop_manager> {
       public:
-        typedef std::map<uint32_t, shop *> shop_map;
-        typedef std::map<uint32_t, std::unique_ptr<shop>> owned_shop_map;
+        using shop_map = std::map<uint32_t, shop *>;
+        using owned_shop_map = std::map<uint32_t, std::unique_ptr<shop>>;
 
       public:
         shop_manager();

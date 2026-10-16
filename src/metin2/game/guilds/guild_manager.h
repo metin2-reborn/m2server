@@ -90,13 +90,13 @@ namespace metin2::game::inline guilds {
       private:
         auto sorted_by_rank() -> std::vector<guild *>;
 
-        typedef std::map<uint32_t, guild *> guild_map;
+        using guild_map = std::map<uint32_t, guild *>;
         std::map<uint32_t, std::unique_ptr<guild>> guild_;
 
-        typedef std::set<std::pair<uint32_t, uint32_t>> guild_war_container;
+        using guild_war_container = std::set<std::pair<uint32_t, uint32_t>>;
         guild_war_container guild_war_;
 
-        typedef std::map<std::pair<uint32_t, uint32_t>, uint32_t> guild_war_end_time_container;
+        using guild_war_end_time_container = std::map<std::pair<uint32_t, uint32_t>, uint32_t>;
         guild_war_end_time_container guild_war_end_time_;
 
         guild_map map_guild_by_pid_;

@@ -793,11 +793,9 @@ namespace metin2::game::inline guilds {
         set_reset_flag_event(event_create(war_reset_flag_event, info, passes_per_sec(10)));
     }
 
-    war_map_manager::war_map_manager() {
-    }
+    war_map_manager::war_map_manager() = default;
 
-    war_map_manager::~war_map_manager() {
-    }
+    war_map_manager::~war_map_manager() = default;
 
     auto war_map_manager::load_war_map_info(const char *file_name) -> bool {
         auto k = std::make_unique<war_map_info>();

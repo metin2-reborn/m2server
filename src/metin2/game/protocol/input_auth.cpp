@@ -175,8 +175,7 @@ namespace metin2::game::inline protocol {
         }
     }
 
-    input_auth::input_auth() {
-    }
+    input_auth::input_auth() = default;
 
     void input_auth::login(desc *d, const char *data) {
 

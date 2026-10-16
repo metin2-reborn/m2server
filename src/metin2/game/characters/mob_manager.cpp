@@ -56,8 +56,7 @@ namespace metin2::game::inline characters {
         memset(&pos_last_attacked, 0, sizeof(pos_last_attacked));
     }
 
-    mob_manager::mob_manager() {
-    }
+    mob_manager::mob_manager() = default;
 
     mob_manager::~mob_manager() = default;
 

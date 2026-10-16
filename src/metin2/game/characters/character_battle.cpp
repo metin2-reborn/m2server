@@ -1976,7 +1976,7 @@ namespace metin2::game::inline characters {
         character *pkChrMostAttacked = nullptr;
         int iMostDam = 0;
 
-        typedef std::vector<damage_info> damage_info_list;
+        using damage_info_list = std::vector<damage_info>;
         damage_info_list damage_info_table;
         std::map<party *, damage_info> map_party_damage;
 

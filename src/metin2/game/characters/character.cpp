@@ -1001,7 +1001,7 @@ namespace metin2::game::inline characters {
         float vol;
     };
 
-    typedef std::map<unsigned, bgm_info> bgm_info_map;
+    using bgm_info_map = std::map<unsigned, bgm_info>;
 
     static bgm_info_map gs_bgm_info_map;
     static bool bgm_vol_enable = false;

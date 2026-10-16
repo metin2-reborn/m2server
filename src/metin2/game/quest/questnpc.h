@@ -23,11 +23,11 @@ namespace metin2::game {
 
         class npc {
           public:
-            typedef std::map<int, a_state_script_type> a_quest_script_type;
-            typedef std::map<unsigned int, a_quest_script_type> quest_map_type;
+            using a_quest_script_type = std::map<int, a_state_script_type>;
+            using quest_map_type = std::map<unsigned int, a_quest_script_type>;
 
-            typedef std::map<int, std::vector<a_arg_script>> a_arg_quest_script_type;
-            typedef std::map<unsigned int, a_arg_quest_script_type> arg_quest_map_type;
+            using a_arg_quest_script_type = std::map<int, std::vector<a_arg_script>>;
+            using arg_quest_map_type = std::map<unsigned int, a_arg_quest_script_type>;
 
             npc();
             ~npc();

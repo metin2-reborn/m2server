@@ -36,7 +36,7 @@ namespace metin2::game::inline protocol {
     class input_processor {
       public:
         input_processor();
-        virtual ~input_processor() {};
+        virtual ~input_processor() = default;
 
         virtual auto process(desc *desc_value, const void *orig, int bytes, int &bytes_processed) -> bool;
         virtual auto type() -> uint8_t = 0;

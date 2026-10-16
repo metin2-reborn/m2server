@@ -877,7 +877,7 @@ namespace metin2::game::inline characters {
         uint32_t last_dead_time_;
         event_ptr party_request_event_;
 
-        typedef std::map<uint32_t, event_ptr> event_map;
+        using event_map = std::map<uint32_t, event_ptr>;
         event_map party_invite_event_map_;
 
       public:
@@ -1071,7 +1071,7 @@ namespace metin2::game::inline characters {
             battle_info(int tot, int aggr)
                 : total_damage(tot), aggro(aggr) {}
         };
-        typedef std::map<vid, battle_info> damage_map;
+        using damage_map = std::map<vid, battle_info>;
 
         struct attack_log_entry {
             uint32_t vid;
@@ -1673,7 +1673,7 @@ namespace metin2::game::inline characters {
         void buff_on_attr_value_change(uint8_t type, uint8_t old_value, uint8_t new_value);
         void buff_on_attr_clear_all();
 
-        typedef std::map<uint8_t, std::unique_ptr<buff_on_attributes>> map_buff_on_attrs;
+        using map_buff_on_attrs = std::map<uint8_t, std::unique_ptr<buff_on_attributes>>;
         map_buff_on_attrs map_buff_on_attrs_;
 
       public:

@@ -85,8 +85,7 @@ namespace metin2::game::inline events {
         start_time_ = get_global_time();
     }
 
-    dragon_lair::~dragon_lair() {
-    }
+    dragon_lair::~dragon_lair() = default;
 
     auto dragon_lair::estimated_time() const -> uint32_t {
         return get_global_time() - start_time_;
@@ -98,8 +97,7 @@ namespace metin2::game::inline events {
         log_manager::instance().dragon_slay_log(guild_id_, dragon->get_mob_table().vnum, start_time_, get_global_time());
     }
 
-    dragon_lair_manager::dragon_lair_manager() {
-    }
+    dragon_lair_manager::dragon_lair_manager() = default;
 
     dragon_lair_manager::~dragon_lair_manager() = default;
 

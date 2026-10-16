@@ -137,8 +137,7 @@ namespace metin2::game::inline trade {
         grid_ = std::make_unique<grid>(4, 3);
     }
 
-    exchange::~exchange() {
-    }
+    exchange::~exchange() = default;
 
     auto exchange::add_item(item_pos item_pos, uint8_t display_pos) -> bool {
         assert(owner_ != nullptr && company());

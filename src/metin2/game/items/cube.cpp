@@ -44,7 +44,7 @@ namespace metin2::game::inline items {
         CUBE_CATEGORY_ARMOR,
     };
 
-    typedef std::vector<cube_value> cube_value_vector;
+    using cube_value_vector = std::vector<cube_value>;
 
     struct cube_material_info {
         cube_material_info() {
@@ -68,9 +68,9 @@ namespace metin2::game::inline items {
         int level;
     };
 
-    typedef std::vector<cube_material_info> cube_result_list;
-    typedef std::unordered_map<uint32_t, cube_result_list> cube_map_by_npc;
-    typedef std::unordered_map<uint32_t, std::string> cube_result_info_text_by_npc;
+    using cube_result_list = std::vector<cube_material_info>;
+    using cube_map_by_npc = std::unordered_map<uint32_t, cube_result_list>;
+    using cube_result_info_text_by_npc = std::unordered_map<uint32_t, std::string>;
 
     cube_map_by_npc cube_info_map;
     cube_result_info_text_by_npc cube_result_info_map_by_npc;

@@ -61,8 +61,7 @@ namespace metin2::game {
             vnum_ = 0;
         }
 
-        npc::~npc() {
-        }
+        npc::~npc() = default;
 
         void npc::set(unsigned int vnum, const std::string &script_name) {
             vnum_ = vnum;

@@ -11,7 +11,7 @@
 
 namespace metin2::game::inline data {
 
-    typedef std::map<std::string, token_vector> token_vector_map;
+    using token_vector_map = std::map<std::string, token_vector>;
 
     class text_file_loader {
       public:

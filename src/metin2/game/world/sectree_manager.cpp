@@ -128,11 +128,9 @@ namespace metin2::game::inline world {
         }
     }
 
-    sectree_manager::sectree_manager() {
-    }
+    sectree_manager::sectree_manager() = default;
 
-    sectree_manager::~sectree_manager() {
-    }
+    sectree_manager::~sectree_manager() = default;
 
     auto sectree_manager::map(int32_t map_index) -> sectree_map * {
         auto it = map_sectree_.find(map_index);

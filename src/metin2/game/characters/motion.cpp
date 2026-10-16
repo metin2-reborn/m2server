@@ -183,11 +183,9 @@ namespace metin2::game::inline characters {
         }
     }
 
-    motion_manager::motion_manager() {
-    }
+    motion_manager::motion_manager() = default;
 
-    motion_manager::~motion_manager() {
-    }
+    motion_manager::~motion_manager() = default;
 
     auto motion_manager::get_motion_set(uint32_t vnum) -> const motion_set * {
         iterator it = map_motion_set_.find(vnum);
@@ -307,11 +305,9 @@ namespace metin2::game::inline characters {
         return true;
     }
 
-    motion_set::motion_set() {
-    }
+    motion_set::motion_set() = default;
 
-    motion_set::~motion_set() {
-    }
+    motion_set::~motion_set() = default;
 
     auto motion_set::get_motion(uint32_t key) const -> const motion * {
         const_iterator it = map_motion_.find(key);
@@ -343,8 +339,7 @@ namespace metin2::game::inline characters {
         vec3_accumulation_.z = 0.0f;
     }
 
-    motion::~motion() {
-    }
+    motion::~motion() = default;
 
     auto motion::load_mob_skill_from_file(const char *file_name, mob *mob_value, int skill_index) -> bool {
         text_file_loader rkTextFileLoader;

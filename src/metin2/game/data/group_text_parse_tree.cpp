@@ -20,8 +20,7 @@ namespace metin2::game::inline data {
         : dwcur_line_index_(0) {
     }
 
-    group_text_parse_tree_loader::~group_text_parse_tree_loader() {
-    }
+    group_text_parse_tree_loader::~group_text_parse_tree_loader() = default;
 
     auto group_text_parse_tree_loader::load(const char *file_name) -> bool {
         file_name_ = file_name;
@@ -116,8 +115,7 @@ namespace metin2::game::inline data {
         return root_group_node_->child_node(group_name);
     }
 
-    group_node::group_node() {
-    }
+    group_node::group_node() = default;
 
     group_node::~group_node() = default;
 
@@ -203,8 +201,7 @@ namespace metin2::game::inline data {
         std::copy(vec_values.begin(), vec_values.end(), std::back_inserter(vec_values_));
     }
 
-    group_node::group_node_row::~group_node_row() {
-    }
+    group_node::group_node_row::~group_node_row() = default;
 
     auto group_node::group_node_row::size() const -> int {
         return vec_values_.size();

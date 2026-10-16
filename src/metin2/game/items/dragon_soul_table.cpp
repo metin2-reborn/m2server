@@ -733,8 +733,6 @@ namespace metin2::game::inline items {
         return true;
     }
 
-    dragon_soul_table::dragon_soul_table() {
-    }
-    dragon_soul_table::~dragon_soul_table() {
-    }
+    dragon_soul_table::dragon_soul_table() = default;
+    dragon_soul_table::~dragon_soul_table() = default;
 }

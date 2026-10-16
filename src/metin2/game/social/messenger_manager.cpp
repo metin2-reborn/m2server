@@ -35,11 +35,9 @@
 
 namespace metin2::game::inline social {
 
-    messenger_manager::messenger_manager() {
-    }
+    messenger_manager::messenger_manager() = default;
 
-    messenger_manager::~messenger_manager() {
-    }
+    messenger_manager::~messenger_manager() = default;
 
     void messenger_manager::initialize() {
     }

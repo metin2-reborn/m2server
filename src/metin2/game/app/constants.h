@@ -107,7 +107,7 @@ namespace metin2::game::inline app {
     extern const int grand_master_skill_book_max_count[10];
     extern const int chn_ai_party_bonus_exp_percent_by_member_count[9];
 
-    typedef std::map<uint32_t, item_attr_table> item_attr_map;
+    using item_attr_map = std::map<uint32_t, item_attr_table>;
     extern item_attr_map map_item_attr;
     extern item_attr_map map_item_rare;
 

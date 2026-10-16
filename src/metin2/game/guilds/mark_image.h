@@ -8,7 +8,7 @@
 
 namespace metin2::game::inline guilds {
 
-    typedef uint32_t pixel;
+    using pixel = uint32_t;
 
     struct guild_mark {
         enum {

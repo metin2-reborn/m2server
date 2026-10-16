@@ -13,7 +13,7 @@ namespace metin2::game::inline characters {
       public:
         fsm();
 
-        virtual ~fsm() {}
+        virtual ~fsm() = default;
 
         virtual void update();
 

@@ -60,8 +60,8 @@ namespace metin2::game::inline protocol {
 
         int handle_count_;
 
-        typedef std::unordered_map<std::string, std::unique_ptr<cci>> cci_map;
-        typedef std::unordered_map<uint32_t, cci *> pidcci_map;
+        using cci_map = std::unordered_map<std::string, std::unique_ptr<cci>>;
+        using pidcci_map = std::unordered_map<uint32_t, cci *>;
         std::unordered_set<desc *> set_peers_;
         cci_map map_cci_;
         pidcci_map map_pid_pk_cci_;

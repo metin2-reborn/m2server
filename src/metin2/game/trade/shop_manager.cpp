@@ -43,8 +43,7 @@
 
 namespace metin2::game::inline trade {
 
-    shop_manager::shop_manager() {
-    }
+    shop_manager::shop_manager() = default;
 
     shop_manager::~shop_manager() {
         destroy();
@@ -415,7 +414,7 @@ namespace metin2::game::inline trade {
             return false;
         }
 
-        typedef std::multimap<uint32_t, shop_table_ex> map_np_cshop;
+        using map_np_cshop = std::multimap<uint32_t, shop_table_ex>;
         map_np_cshop map_npcShop;
         for (int i = 0; i < pShopNPCGroup->row_count(); i++) {
             uint32_t npcVnum;

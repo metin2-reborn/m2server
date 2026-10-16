@@ -364,8 +364,7 @@ namespace metin2::game::inline world {
         : next_id_(0) {
     }
 
-    dungeon_manager::~dungeon_manager() {
-    }
+    dungeon_manager::~dungeon_manager() = default;
 
     auto dungeon::find_unique(const std::string &key, bool may_be_dead) -> unique_mob_map::iterator {
         auto it = map_unique_mob_.find(key);
