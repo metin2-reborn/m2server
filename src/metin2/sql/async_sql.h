@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <deque>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <string>
@@ -32,6 +33,9 @@ namespace metin2::sql {
         uint32_t insert_id{0};
     };
 
+    struct sql_msg;
+    using sql_callback = std::move_only_function<void(sql_msg &)>;
+
     struct sql_msg {
         void store(MYSQL *sql);
 
@@ -42,8 +46,7 @@ namespace metin2::sql {
         int id{0};
         std::string query;
         std::vector<std::unique_ptr<sql_result>> results;
-        void *user_data{nullptr};
-        bool returns_result{false};
+        sql_callback on_result;
         unsigned int sql_errno{0};
     };
 
@@ -61,7 +64,7 @@ namespace metin2::sql {
         void set_locale(const std::string &locale);
 
         void async_query(const char *query);
-        void return_query(const char *query, void *user_data);
+        void return_query(const char *query, sql_callback on_result);
         auto direct_query(const char *query_value) -> std::unique_ptr<sql_msg>;
         auto pop_result() -> std::unique_ptr<sql_msg>;
 
@@ -114,4 +117,5 @@ namespace metin2 {
     using sql::async_sql;
     using sql::sql_msg;
     using sql::sql_result;
+    using sql::sql_callback;
 }

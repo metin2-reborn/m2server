@@ -1310,13 +1310,8 @@ namespace metin2::game {
 
             metin2::log::debug("Quest: giving lotto ticket to pid {:d}", ch->player_id());
 
-            uint32_t *pdw = new uint32_t[3];
-
-            pdw[0] = 50001;
-            pdw[1] = 1;
-            pdw[2] = q.event_flag("lotto_round");
-
-            db_manager::instance().return_query(QID_LOTTO, ch->player_id(), pdw, sql::format("INSERT INTO lotto_list VALUES(0, 'server{}', {}, NOW())", sql::raw(get_table_postfix()), ch->player_id()));
+            db_manager::instance().func_query([pid = ch->player_id(), round = static_cast<uint32_t>(q.event_flag("lotto_round"))](sql_msg &msg) { give_lotto_ticket_result(msg, pid, 50001, 1, round); },
+                sql::format("INSERT INTO lotto_list VALUES(0, 'server{}', {}, NOW())", sql::raw(get_table_postfix()), ch->player_id()));
 
             return 0;
         }

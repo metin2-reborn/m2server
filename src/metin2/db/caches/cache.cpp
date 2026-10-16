@@ -3,7 +3,6 @@
 
 #include <metin2/db/app/main.h>
 #include <metin2/db/clients/client_manager.h>
-#include <metin2/db/clients/qid.h>
 #include <metin2/db/storage/db_manager.h>
 
 #include <metin2/config/config.h>
@@ -50,7 +49,7 @@ namespace metin2::db::inline caches {
         if (data_.vnum == 0) {
             char szQuery[QUERY_MAX_LEN];
             snprintf(szQuery, sizeof(szQuery), "DELETE FROM item%s WHERE id=%u", get_table_postfix(), data_.id);
-            db_manager::instance().return_query(szQuery, QID_ITEM_DESTROY, 0, nullptr);
+            db_manager::instance().return_query(szQuery, [](sql_msg &) {});
 
             if (metin2::config::test_server()) {
                 metin2::log::debug("Item cache: deleting item {:d}: {}", data_.id, szQuery);
@@ -128,7 +127,7 @@ namespace metin2::db::inline caches {
             if (metin2::config::test_server())
                 metin2::log::debug("Item cache: saving item: {}", szItemQuery);
 
-            db_manager::instance().return_query(szItemQuery, QID_ITEM_SAVE, 0, nullptr);
+            db_manager::instance().return_query(szItemQuery, [](sql_msg &) {});
 
             ++item_count;
         }
@@ -148,7 +147,7 @@ namespace metin2::db::inline caches {
             metin2::log::debug("Player cache: saving player {}", data_.name);
 
         const std::string query = create_player_save_query(&data_);
-        db_manager::instance().return_query(query.c_str(), QID_PLAYER_SAVE, 0, nullptr);
+        db_manager::instance().return_query(query.c_str(), [](sql_msg &) {});
     }
 
     const int item_price_list_table_cache::min_flush_sec_ = 1800;
@@ -207,13 +206,13 @@ namespace metin2::db::inline caches {
         char szQuery[QUERY_MAX_LEN];
 
         snprintf(szQuery, sizeof(szQuery), "DELETE FROM myshop_pricelist%s WHERE owner_id = %u", get_table_postfix(), data_.owner_id);
-        db_manager::instance().return_query(szQuery, QID_ITEMPRICE_DESTROY, 0, nullptr);
+        db_manager::instance().return_query(szQuery, [](sql_msg &) {});
 
         for (int idx = 0; idx < data_.count; ++idx) {
             snprintf(szQuery, sizeof(szQuery),
                 "REPLACE myshop_pricelist%s (owner_id, item_vnum, price) VALUES(%u, %u, %u)",
                 get_table_postfix(), data_.owner_id, data_.price_info[idx].vnum, data_.price_info[idx].price);
-            db_manager::instance().return_query(szQuery, QID_ITEMPRICE_SAVE, 0, nullptr);
+            db_manager::instance().return_query(szQuery, [](sql_msg &) {});
         }
 
         metin2::log::debug("Price list: saving {1:d} items for owner pid {0:d}", data_.owner_id, data_.count);

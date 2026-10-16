@@ -64,11 +64,15 @@
 #include <metin2/game/world/vector.h>
 #include <metin2/game/world/vid.h>
 
+#include <metin2/common/utils.h>
 #include <metin2/core/main.h>
 #include <metin2/core/utils.h>
 #include <metin2/log/log.h>
 #include <metin2/proto/length.h>
 #include <metin2/proto/tables.h>
+#include <metin2/sql/query.h>
+
+#include <mysql.h>
 
 #include <algorithm>
 #include <cassert>
@@ -4730,12 +4734,19 @@ namespace metin2::game::inline characters {
 
     void character::query_safebox_size() {
         if (safebox_size_ == -1) {
-            db_manager::instance().return_query(QID_SAFEBOX_SIZE,
-                player_id(),
-                nullptr,
-                "SELECT size FROM safebox%s WHERE account_id = %u",
-                get_table_postfix(),
-                get_desc()->get_account_table().id);
+            db_manager::instance().func_query([pid = player_id()](sql_msg &msg) {
+                character *ch = character_manager::instance().find_by_pid(pid);
+
+                if (ch) {
+                    if (msg.get()->num_rows > 0) {
+                        MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
+                        int size = 0;
+                        str_to_number(size, row[0]);
+                        ch->set_safebox_size(SAFEBOX_PAGE_SIZE * size);
+                    }
+                }
+            },
+                sql::format("SELECT size FROM safebox{} WHERE account_id = {}", sql::raw(get_table_postfix()), get_desc()->get_account_table().id));
         }
     }
 

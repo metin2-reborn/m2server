@@ -102,16 +102,9 @@ namespace metin2::db::inline storage {
         return direct_sql_[slot]->direct_query(query);
     }
 
-    void db_manager::return_query(const char *query, int type_value, uint32_t ident_value, void *udata, int slot) {
+    void db_manager::return_query(std::string_view query, sql_callback on_result, int slot) {
         assert(slot < SQL_MAX_NUM);
-        query_info *p = new query_info;
-
-        p->type = type_value;
-        p->ident = ident_value;
-        p->pv_data = udata;
-
-        main_sql_[slot]->return_query(query, p);
-
+        main_sql_[slot]->return_query(std::string(query).c_str(), std::move(on_result));
         ++query_count[0];
     }
 

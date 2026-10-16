@@ -23,6 +23,7 @@
 #include <metin2/log/log.h>
 #include <metin2/proto/length.h>
 #include <metin2/proto/tables.h>
+#include <metin2/sql/query.h>
 
 #include <algorithm>
 #include <cstdint>
@@ -769,15 +770,8 @@ namespace metin2::game::inline items {
         }
 
         if (get_drop_per_kill_pct(100, 1000, iDeltaPercent, "lotto_drop") >= number(1, iRandRange)) {
-            uint32_t *pdw = new uint32_t[3];
-
-            pdw[0] = 50001;
-            pdw[1] = 1;
-            pdw[2] = quest::quest_manager::instance().event_flag("lotto_round");
-
-            db_manager::instance().return_query(QID_LOTTO, killer->player_id(), pdw,
-                "INSERT INTO lotto_list VALUES(0, 'server%s', %u, NOW())",
-                get_table_postfix(), killer->player_id());
+            db_manager::instance().func_query([pid = killer->player_id(), round = static_cast<uint32_t>(quest::quest_manager::instance().event_flag("lotto_round"))](sql_msg &msg) { give_lotto_ticket_result(msg, pid, 50001, 1, round); },
+                sql::format("INSERT INTO lotto_list VALUES(0, 'server{}', {}, NOW())", sql::raw(get_table_postfix()), killer->player_id()));
         }
 
         create_quest_drop_item(chr, killer, vec_item, iDeltaPercent, iRandRange);

@@ -7,15 +7,22 @@
 #include <metin2/game/protocol/input.h>
 #include <metin2/game/protocol/packet.h>
 
+#include <metin2/common/utils.h>
 #include <metin2/core/utils.h>
 #include <metin2/log/log.h>
 #include <metin2/proto/length.h>
+#include <metin2/sql/async_sql.h>
 #include <metin2/sql/query.h>
+
+#include <mysql.h>
 
 #include <cctype>
 #include <cstdint>
 #include <cstring>
+#include <ctime>
+#include <memory>
 #include <string>
+#include <utility>
 
 namespace metin2::game::inline protocol {
 
@@ -42,6 +49,129 @@ namespace metin2::game::inline protocol {
         if (login[0] == '[')
             return true;
         return false;
+    }
+
+    static void auth_login_result(sql_msg &msg, uint32_t login_key, packet_cg_login3 &info) {
+        desc *d = desc_manager::instance().find_by_login_key(login_key);
+
+        if (!d)
+            return;
+
+        d->set_login(info.login);
+
+        metin2::log::debug("Auth login query result: key {:d}, connection {}", login_key, static_cast<const void *>(d));
+
+        if (msg.get()->num_rows == 0) {
+            metin2::log::info("Auth login refused: account {} not found", info.login);
+            login_failure(d, "NOID");
+            return;
+        }
+
+        MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
+        int col = 0;
+
+        char szEncrytPassword[45 + 1];
+        char szPassword[45 + 1];
+        char szSocialID[SOCIAL_ID_MAX_LEN + 1];
+        char szStatus[ACCOUNT_STATUS_MAX_LEN + 1];
+        uint32_t dwID = 0;
+
+        if (!row[col]) {
+            metin2::log::error("Auth login: column {:d} is null for account {}", col, info.login);
+            return;
+        }
+
+        strlcpy(szEncrytPassword, row[col++], sizeof(szEncrytPassword));
+
+        if (!row[col]) {
+            metin2::log::error("Auth login: column {:d} is null for account {}", col, info.login);
+            return;
+        }
+
+        strlcpy(szPassword, row[col++], sizeof(szPassword));
+
+        if (!row[col]) {
+            metin2::log::error("Auth login: column {:d} is null for account {}", col, info.login);
+            return;
+        }
+
+        strlcpy(szSocialID, row[col++], sizeof(szSocialID));
+
+        if (!row[col]) {
+            metin2::log::error("Auth login: column {:d} is null for account {}", col, info.login);
+            return;
+        }
+
+        str_to_number(dwID, row[col++]);
+
+        if (!row[col]) {
+            metin2::log::error("Auth login: column {:d} is null for account {}", col, info.login);
+            return;
+        }
+
+        strlcpy(szStatus, row[col++], sizeof(szStatus));
+
+        uint8_t bNotAvail = 0;
+        str_to_number(bNotAvail, row[col++]);
+
+        int aiPremiumTimes[PREMIUM_MAX_NUM];
+        memset(&aiPremiumTimes, 0, sizeof(aiPremiumTimes));
+
+        char szCreateDate[256] = "00000000";
+
+        str_to_number(aiPremiumTimes[PREMIUM_EXP], row[col++]);
+        str_to_number(aiPremiumTimes[PREMIUM_ITEM], row[col++]);
+        str_to_number(aiPremiumTimes[PREMIUM_SAFEBOX], row[col++]);
+        str_to_number(aiPremiumTimes[PREMIUM_AUTOLOOT], row[col++]);
+        str_to_number(aiPremiumTimes[PREMIUM_FISH_MIND], row[col++]);
+        str_to_number(aiPremiumTimes[PREMIUM_MARRIAGE_FAST], row[col++]);
+        str_to_number(aiPremiumTimes[PREMIUM_GOLD], row[col++]);
+
+        int32_t retValue = 0;
+        str_to_number(retValue, row[col]);
+
+        time_t create_time = retValue;
+        struct tm *tm1;
+        tm1 = localtime(&create_time);
+        strftime(szCreateDate, 255, "%Y%m%d", tm1);
+
+        metin2::log::debug("Auth login: account created at {:d} ({})", retValue, szCreateDate);
+        metin2::log::debug("Auth login: creation date vs block date: {:d}", strncmp(szCreateDate, metin2::config::auth().block_login_date.c_str(), 8));
+
+        int nPasswordDiff = strcmp(szEncrytPassword, szPassword);
+
+        if (nPasswordDiff) {
+            login_failure(d, "WRONGPWD");
+            metin2::log::info("Auth login refused: wrong password for account {}", info.login);
+        } else if (bNotAvail) {
+            login_failure(d, "NOTAVAIL");
+            metin2::log::info("Auth login refused: account {} not available", info.login);
+        } else if (desc_manager::instance().find_by_login_name(info.login)) {
+            login_failure(d, "ALREADY");
+            metin2::log::info("Auth login refused: account {} already logged in", info.login);
+        } else if (strcmp(szStatus, "OK")) {
+            login_failure(d, szStatus);
+            metin2::log::info("Auth login refused: account {} has status {}", info.login, szStatus);
+        } else {
+            if (strncmp(szCreateDate, metin2::config::auth().block_login_date.c_str(), 8) >= 0) {
+                login_failure(d, "BLKLOGIN");
+                metin2::log::info("Auth login refused: account {} created after the login block date", info.login);
+                return;
+            }
+
+            auto update = db_manager::instance().direct_query(sql::format("UPDATE account SET last_play=NOW() WHERE id={}", dwID));
+
+            account_table &r = d->get_account_table();
+
+            r.id = dwID;
+            trim_and_lower(info.login, r.login, sizeof(r.login));
+            strlcpy(r.passwd, info.passwd, sizeof(r.passwd));
+            strlcpy(r.social_id, szSocialID, sizeof(r.social_id));
+            desc_manager::instance().connect_account(r.login, d);
+
+            db_manager::instance().login_prepare(d, info.client_key, aiPremiumTimes);
+            metin2::log::info("Auth login: account {} accepted", info.login);
+        }
     }
 
     input_auth::input_auth() {
@@ -103,16 +233,18 @@ namespace metin2::game::inline protocol {
         uint32_t dwKey = desc_manager::instance().create_login_key(d);
         metin2::log::info("Auth login: key {:d} for account {}", dwKey, login);
 
-        packet_cg_login3 *p = new packet_cg_login3;
-        std::memcpy(p, pinfo, sizeof(packet_cg_login3));
+        auto p = std::make_unique<packet_cg_login3>();
+        std::memcpy(p.get(), pinfo, sizeof(packet_cg_login3));
 
         p->login[sizeof(p->login) - 1] = '\0';
         p->passwd[sizeof(p->passwd) - 1] = '\0';
 
+        auto on_result = [dwKey, p = std::move(p)](sql_msg &msg) { auth_login_result(msg, dwKey, *p); };
+
         if (login_is_in_channel_service(login)) {
             metin2::log::debug("Auth login: account {} uses channel service", login);
 
-            db_manager::instance().return_query(QID_AUTH_LOGIN, dwKey, p, sql::format("SELECT {},password,social_id,id,status,availDt - NOW() > 0,"
+            db_manager::instance().func_query(std::move(on_result), sql::format("SELECT {},password,social_id,id,status,availDt - NOW() > 0,"
                                                                                       "UNIX_TIMESTAMP(silver_expire),"
                                                                                       "UNIX_TIMESTAMP(gold_expire),"
                                                                                       "UNIX_TIMESTAMP(safebox_expire),"
@@ -124,7 +256,7 @@ namespace metin2::game::inline protocol {
                                                                                       " FROM account WHERE login={}",
                                                                               passwd, login));
         } else {
-            db_manager::instance().return_query(QID_AUTH_LOGIN, dwKey, p, sql::format("SELECT PASSWORD({}),password,social_id,id,status,availDt - NOW() > 0,"
+            db_manager::instance().func_query(std::move(on_result), sql::format("SELECT PASSWORD({}),password,social_id,id,status,availDt - NOW() > 0,"
                                                                                       "UNIX_TIMESTAMP(silver_expire),"
                                                                                       "UNIX_TIMESTAMP(gold_expire),"
                                                                                       "UNIX_TIMESTAMP(safebox_expire),"

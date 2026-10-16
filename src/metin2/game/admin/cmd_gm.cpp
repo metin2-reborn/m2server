@@ -51,6 +51,9 @@
 #include <metin2/proto/building.h>
 #include <metin2/proto/length.h>
 #include <metin2/proto/tables.h>
+#include <metin2/sql/query.h>
+
+#include <mysql.h>
 
 #include <algorithm>
 #include <cctype>
@@ -2141,9 +2144,22 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        db_manager::instance().return_query(QID_BLOCK_CHAT_LIST, ch->player_id(), nullptr,
-            "SELECT p.name, a.lDuration FROM affect%s as a, player%s as p WHERE a.bType = %d AND a.dwPID = p.id",
-            get_table_postfix(), get_table_postfix(), AFFECT_BLOCK_CHAT);
+        db_manager::instance().func_query([pid = ch->player_id()](sql_msg &msg) {
+            character *ch = character_manager::instance().find_by_pid(pid);
+
+            if (ch == nullptr)
+                return;
+            if (msg.get()->num_rows) {
+                MYSQL_ROW row;
+                while ((row = mysql_fetch_row(msg.get()->res))) {
+                    ch->chat_packet(CHAT_TYPE_INFO, "%s %s sec", row[0], row[1]);
+                }
+            } else {
+                ch->chat_packet(CHAT_TYPE_INFO, "No one currently blocked.");
+            }
+        },
+            sql::format("SELECT p.name, a.lDuration FROM affect{} as a, player{} as p WHERE a.bType = {} AND a.dwPID = p.id",
+                sql::raw(get_table_postfix()), sql::raw(get_table_postfix()), AFFECT_BLOCK_CHAT));
     }
 
     ACMD(do_vote_block_chat) {

@@ -1,7 +1,6 @@
 #include <metin2/db/items/item_award_manager.h>
 
 #include <metin2/db/clients/client_manager.h>
-#include <metin2/db/clients/qid.h>
 #include <metin2/db/storage/db_manager.h>
 
 #include <metin2/common/utils.h>
@@ -34,13 +33,13 @@ namespace metin2::db::inline items {
     void item_award_manager::request_load() {
         char szQuery[QUERY_MAX_LEN];
         snprintf(szQuery, sizeof(szQuery), "SELECT id,login,vnum,count,socket0,socket1,socket2,mall,why FROM item_award WHERE taken_time IS NULL and id > %d", last_cached_item_award_id);
-        db_manager::instance().return_query(szQuery, QID_ITEM_AWARD_LOAD, 0, nullptr);
+        db_manager::instance().return_query(szQuery, [this](sql_msg &msg) { load(msg); });
     }
 
-    void item_award_manager::load(sql_msg *msg) {
-        MYSQL_RES *pRes = msg->get()->res;
+    void item_award_manager::load(sql_msg &msg) {
+        MYSQL_RES *pRes = msg.get()->res;
 
-        for (uint i = 0; i < msg->get()->num_rows; ++i) {
+        for (uint i = 0; i < msg.get()->num_rows; ++i) {
             MYSQL_ROW row = mysql_fetch_row(pRes);
             int col = 0;
 
@@ -104,7 +103,7 @@ namespace metin2::db::inline items {
             "UPDATE item_award SET taken_time=NOW(),item_id=%u WHERE id=%u AND taken_time IS NULL",
             item_id, award_id);
 
-        db_manager::instance().return_query(szQuery, QID_ITEM_AWARD_TAKEN, 0, nullptr);
+        db_manager::instance().return_query(szQuery, [](sql_msg &) {});
     }
 
     auto item_award_manager::remove(uint32_t award_id) -> bool {

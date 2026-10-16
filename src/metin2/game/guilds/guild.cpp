@@ -454,16 +454,16 @@ namespace metin2::game::inline guilds {
         ch->get_desc()->packet(buf.read_peek(), buf.size());
     }
 
-    void guild::load_guild_member_data(sql_msg *pmsg) {
-        if (pmsg->get()->num_rows == 0)
+    void guild::load_guild_member_data(sql_msg &msg) {
+        if (msg.get()->num_rows == 0)
             return;
 
         general_count_ = 0;
 
         member_.clear();
 
-        for (uint i = 0; i < pmsg->get()->num_rows; ++i) {
-            MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
+        for (uint i = 0; i < msg.get()->num_rows; ++i) {
+            MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
 
             uint32_t pid = strtoul(row[0], (char **)nullptr, 10);
             uint8_t grade = (uint8_t)strtoul(row[1], (char **)nullptr, 10);
@@ -485,9 +485,9 @@ namespace metin2::game::inline guilds {
         }
     }
 
-    void guild::load_guild_grade_data(sql_msg *pmsg) {
-        for (uint i = 0; i < pmsg->get()->num_rows; ++i) {
-            MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
+    void guild::load_guild_grade_data(sql_msg &msg) {
+        for (uint i = 0; i < msg.get()->num_rows; ++i) {
+            MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
             uint8_t grade = 0;
             str_to_number(grade, row[0]);
             char *name = row[1];
@@ -499,13 +499,13 @@ namespace metin2::game::inline guilds {
             }
         }
     }
-    void guild::load_guild_data(sql_msg *pmsg) {
-        if (pmsg->get()->num_rows == 0) {
-            metin2::log::error("Guild data not found, query: {}", pmsg->query.c_str());
+    void guild::load_guild_data(sql_msg &msg) {
+        if (msg.get()->num_rows == 0) {
+            metin2::log::error("Guild data not found, query: {}", msg.query.c_str());
             return;
         }
 
-        MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
+        MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
         data_.master_pid = strtoul(row[0], (char **)nullptr, 10);
         data_.level = (uint8_t)strtoul(row[1], (char **)nullptr, 10);
         data_.exp = strtoul(row[2], (char **)nullptr, 10);
@@ -537,16 +537,25 @@ namespace metin2::game::inline guilds {
 
         data_.guild_id = guild_id;
 
-        db_manager::instance().func_query([this](sql_msg *msg) { load_guild_data(msg); },
-            "SELECT master, level, exp, name, skill_point, skill, sp, ladder_point, win, draw, loss, gold FROM guild%s WHERE id = %u", get_table_postfix(), data_.guild_id);
+        db_manager::instance().func_query([guild_id](sql_msg &msg) {
+            if (guild *g = guild_manager::instance().find_guild(guild_id))
+                g->load_guild_data(msg);
+        },
+            sql::format("SELECT master, level, exp, name, skill_point, skill, sp, ladder_point, win, draw, loss, gold FROM guild{} WHERE id = {}", sql::raw(get_table_postfix()), data_.guild_id));
 
         metin2::log::info("Guild: loading guild {} (id {:d})", data_.name, guild_id);
 
-        db_manager::instance().func_query([this](sql_msg *msg) { load_guild_grade_data(msg); },
-            "SELECT grade, name, auth+0 FROM guild_grade%s WHERE guild_id = %u", get_table_postfix(), data_.guild_id);
+        db_manager::instance().func_query([guild_id](sql_msg &msg) {
+            if (guild *g = guild_manager::instance().find_guild(guild_id))
+                g->load_guild_grade_data(msg);
+        },
+            sql::format("SELECT grade, name, auth+0 FROM guild_grade{} WHERE guild_id = {}", sql::raw(get_table_postfix()), data_.guild_id));
 
-        db_manager::instance().func_query([this](sql_msg *msg) { load_guild_member_data(msg); },
-            "SELECT pid, grade, is_general, offer, level, job, name FROM guild_member%s, player%s WHERE guild_id = %u and pid = id", get_table_postfix(), get_table_postfix(), guild_id);
+        db_manager::instance().func_query([guild_id](sql_msg &msg) {
+            if (guild *g = guild_manager::instance().find_guild(guild_id))
+                g->load_guild_member_data(msg);
+        },
+            sql::format("SELECT pid, grade, is_general, offer, level, job, name FROM guild_member{}, player{} WHERE guild_id = {} and pid = id", sql::raw(get_table_postfix()), sql::raw(get_table_postfix()), guild_id));
     }
 
     void guild::save_level() {
@@ -586,9 +595,9 @@ namespace metin2::game::inline guilds {
         return 0;
     }
 
-    void guild::p2p_update_grade(sql_msg *pmsg) {
-        if (pmsg->get()->num_rows) {
-            MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
+    void guild::p2p_update_grade(sql_msg &msg) {
+        if (msg.get()->num_rows) {
+            MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
 
             int grade = 0;
             const char *name = row[1];
@@ -658,8 +667,11 @@ namespace metin2::game::inline guilds {
     }
 
     void guild::p2p_change_grade(uint8_t grade) {
-        db_manager::instance().func_query([this](sql_msg *msg) { p2p_update_grade(msg); },
-            "SELECT grade, name, auth+0 FROM guild_grade%s WHERE guild_id = %u and grade = %d", get_table_postfix(), data_.guild_id, grade);
+        db_manager::instance().func_query([guild_id = data_.guild_id](sql_msg &msg) {
+            if (guild *g = guild_manager::instance().find_guild(guild_id))
+                g->p2p_update_grade(msg);
+        },
+            sql::format("SELECT grade, name, auth+0 FROM guild_grade{} WHERE guild_id = {} and grade = {}", sql::raw(get_table_postfix()), data_.guild_id, grade));
     }
 
     namespace {
@@ -729,7 +741,7 @@ namespace metin2::game::inline guilds {
             return;
         }
 
-        db_manager::instance().func_after_query(f_send_change_grade(id(), grade), "UPDATE guild_grade%s SET auth = %d where guild_id = %u and grade = %d", get_table_postfix(), auth, data_.guild_id, grade);
+        db_manager::instance().func_after_query(f_send_change_grade(id(), grade), sql::format("UPDATE guild_grade{} SET auth = {} where guild_id = {} and grade = {}", sql::raw(get_table_postfix()), auth, data_.guild_id, grade));
 
         grade--;
 
@@ -884,7 +896,10 @@ namespace metin2::game::inline guilds {
             return;
         }
 
-        db_manager::instance().func_after_query([this, pid = ch->player_id()] { refresh_comment_force(pid); },
+        db_manager::instance().func_after_query([guild_id = data_.guild_id, pid = ch->player_id()] {
+            if (guild *g = guild_manager::instance().find_guild(guild_id))
+                g->refresh_comment_force(pid);
+        },
             sql::format("INSERT INTO guild_comment{}(guild_id, name, notice, content, time) VALUES({}, {}, {}, {}, NOW())",
                 sql::raw(get_table_postfix()), data_.guild_id, ch->name(), (str[0] == '!') ? 1 : 0, str));
     }
@@ -1703,7 +1718,7 @@ namespace metin2::game::inline guilds {
         return true;
     }
 
-    void guild::send_guild_data_update_to_all_member(sql_msg *pmsg) {
+    void guild::send_guild_data_update_to_all_member(sql_msg &msg) {
         guild_member_online_container::iterator iter = member_online_.begin();
 
         for (; iter != member_online_.end(); iter++) {

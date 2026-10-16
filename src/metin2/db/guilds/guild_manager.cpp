@@ -4,7 +4,6 @@
 #include <metin2/db/app/main.h>
 #include <metin2/db/clients/client_manager.h>
 #include <metin2/db/clients/peer.h>
-#include <metin2/db/clients/qid.h>
 #include <metin2/db/storage/db_manager.h>
 
 #include <metin2/common/utils.h>
@@ -164,7 +163,7 @@ namespace metin2::db::inline guilds {
         char szQuery[256];
         snprintf(szQuery, sizeof(szQuery), "SELECT id,name,ladder_point FROM guild%s ORDER BY ladder_point DESC LIMIT 20", get_table_postfix());
 
-        db_manager::instance().return_query(szQuery, QID_GUILD_RANKING, 0, nullptr);
+        db_manager::instance().return_query(szQuery, [this](sql_msg &msg) { result_ranking(msg.get()->res); });
     }
 
     auto guild_manager::ranking(uint32_t gid) -> int {

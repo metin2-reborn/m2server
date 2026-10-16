@@ -151,8 +151,6 @@ namespace metin2::db::inline clients {
         void remove_peer(peer *peer_value);
         auto get_peer(uint32_t ident) -> peer *;
 
-        auto analyze_query_result(sql_msg *msg) -> int;
-
         auto process() -> int;
 
         auto get_login_data(uint32_t key) -> login_data *;
@@ -188,26 +186,26 @@ namespace metin2::db::inline clients {
 
         void query_logout(peer *peer, uint32_t handle_value, const char *);
 
-        void result_login(peer *peer, sql_msg *msg);
+        void result_login(peer *peer, sql_msg &msg, std::unique_ptr<client_handle_info> info);
 
         void query_player_load(peer *peer, uint32_t handle_value, player_load_packet *);
-        void result_composite_player(peer *peer, sql_msg *msg, uint32_t qid);
+        void result_composite_player(peer *peer, sql_msg &msg, uint32_t qid, client_handle_info &info);
         void result_player_load(peer *peer, MYSQL_RES *res, client_handle_info *info_value);
         void result_item_load(peer *peer, MYSQL_RES *res, uint32_t handle, uint32_t pid);
         void result_quest_load(peer *peer, MYSQL_RES *res, uint32_t handle, uint32_t pid);
         void result_affect_load(peer *peer, MYSQL_RES *res, uint32_t handle);
 
-        void result_player_index_create(peer *peer_value, sql_msg *msg);
+        void result_player_index_create(peer *peer_value, sql_msg &msg, std::unique_ptr<client_handle_info> info);
 
-        void result_pricelist_load(peer *peer, sql_msg *msg);
+        void result_pricelist_load(peer *peer, sql_msg &msg, const item_pricelist_req_info &req_info);
 
-        void result_pricelist_load_for_update(sql_msg *msg);
+        void result_pricelist_load_for_update(sql_msg &msg, item_price_list_table &update_table);
 
         void query_player_save(peer *peer, uint32_t handle, player_table *);
 
         void query_player_create(peer *peer, uint32_t handle, player_create_packet *);
         void query_player_delete(peer *peer, uint32_t handle_value, player_delete_packet *);
-        void result_player_delete(peer *peer, sql_msg *msg);
+        void result_player_delete(peer *peer, sql_msg &msg, client_handle_info &pi);
 
         void query_player_count(peer *peer_value, player_count_packet *);
 
@@ -224,10 +222,10 @@ namespace metin2::db::inline clients {
         void query_safebox_change_size(peer *peer_value, uint32_t handle_value, safebox_change_size_packet *p);
         void query_safebox_change_password(peer *peer_value, uint32_t handle_value, safebox_change_password_packet *p);
 
-        void result_safebox_load(peer *peer_value, sql_msg *msg);
-        void result_safebox_change_size(peer *peer_value, sql_msg *msg);
-        void result_safebox_change_password(peer *peer_value, sql_msg *msg);
-        void result_safebox_change_password_second(peer *peer_value, sql_msg *msg);
+        void result_safebox_load(peer *peer_value, sql_msg &msg, std::unique_ptr<client_handle_info> pi);
+        void result_safebox_change_size(peer *peer_value, sql_msg &msg, client_handle_info &p);
+        void result_safebox_change_password(peer *peer_value, sql_msg &msg, std::unique_ptr<client_handle_info> p);
+        void result_safebox_change_password_second(peer *peer_value, sql_msg &msg, client_handle_info &p);
 
         void query_empire_select(peer *peer_value, uint32_t handle, empire_select_packet *p);
         void query_setup(peer *peer, uint32_t handle_value, const char *data);
@@ -235,7 +233,7 @@ namespace metin2::db::inline clients {
         void send_party_on_setup(peer *peer_value);
 
         void query_highscore_register(peer *peer, packet_gd_highscore *data);
-        void result_highscore_register(peer *peer_value, sql_msg *msg);
+        void result_highscore_register(peer *peer_value, sql_msg &msg, client_handle_info &pi);
 
         void query_flush_cache(peer *peer_value, const char *data);
 
@@ -261,7 +259,7 @@ namespace metin2::db::inline clients {
         void query_auth_login(peer *peer_value, uint32_t handle, packet_gd_auth_login *p);
 
         void query_login_by_key(peer *peer_value, uint32_t handle_value, packet_gd_login_by_key *p);
-        void result_login_by_key(peer *peer, sql_msg *msg);
+        void result_login_by_key(peer *peer, sql_msg &msg, std::unique_ptr<client_handle_info> info);
 
         void charge_cash(const request_charge_cash *packet);
 

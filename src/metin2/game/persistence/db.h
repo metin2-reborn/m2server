@@ -19,48 +19,6 @@ namespace metin2::game::inline protocol {
 
 namespace metin2::game::inline persistence {
 
-    enum {
-        QUERY_TYPE_RETURN = 1,
-        QUERY_TYPE_FUNCTION = 2,
-        QUERY_TYPE_AFTER_FUNCTION = 3,
-    };
-
-    enum {
-        QID_SAFEBOX_SIZE,
-        QID_DB_STRING,
-        QID_AUTH_LOGIN,
-        QID_LOTTO,
-        QID_HIGHSCORE_REGISTER,
-        QID_HIGHSCORE_SHOW,
-
-        QID_BLOCK_CHAT_LIST,
-
-        QID_PROTECT_CHILD,
-
-    };
-
-    class query_info {
-      public:
-        int query_type;
-    };
-
-    class return_query_info : public query_info {
-      public:
-        int type;
-        uint32_t ident;
-        void *pv_data;
-    };
-
-    class func_query_info : public query_info {
-      public:
-        std::function<void(sql_msg *)> f;
-    };
-
-    class func_after_query_info : public query_info {
-      public:
-        std::function<void()> f;
-    };
-
     class db_manager : public singleton<db_manager> {
       public:
         db_manager();
@@ -74,11 +32,7 @@ namespace metin2::game::inline persistence {
 
         auto direct_query(const std::string &query) -> std::unique_ptr<sql_msg>;
         __attribute__((format(printf, 2, 3))) auto direct_query(const char *format, ...) -> std::unique_ptr<sql_msg>;
-        void return_query(int type_value, uint32_t ident_value, void *data, const std::string &query);
-        void return_query(int type, uint32_t ident, void *data, const char *format, ...) __attribute__((format(printf, 5, 6)));
-
         void process();
-        void analyze_return_query(sql_msg *msg_value);
 
         void send_money_log(uint8_t type, uint32_t vnum, int gold);
 
@@ -94,11 +48,8 @@ namespace metin2::game::inline persistence {
         void load_db_string();
         auto greet_message() -> const std::vector<std::string> &;
 
-        void func_query(std::function<void(sql_msg *)> f, const std::string &query);
-        void func_query(std::function<void(sql_msg *)> f, const char *format, ...) __attribute__((format(printf, 3, 4)));
-        void func_after_query(std::function<void()> f, const std::string &query);
-        void func_after_query(std::function<void()> f, const char *format, ...) __attribute__((format(printf, 3, 4)));
-
+        void func_query(sql_callback f, const std::string &query);
+        void func_after_query(std::move_only_function<void()> f, const std::string &query);
 
       private:
         auto pop_result() -> std::unique_ptr<sql_msg>;
@@ -112,13 +63,6 @@ namespace metin2::game::inline persistence {
         std::map<uint32_t, std::unique_ptr<login_data>> map_login_data_;
     };
 
-    struct highscore_register_query_info {
-        char board[20 + 1];
-        uint32_t pid;
-        int value;
-        bool order;
-    };
-
     class account_db : public singleton<account_db> {
       public:
         account_db();
@@ -129,8 +73,7 @@ namespace metin2::game::inline persistence {
 
         auto direct_query(const char *query) -> std::unique_ptr<sql_msg>;
         auto direct_query(const std::string &query) -> std::unique_ptr<sql_msg> { return direct_query(query.c_str()); }
-        void return_query(int type_value, uint32_t ident_value, void *data, const std::string &query);
-        void return_query(int type, uint32_t ident, void *data, const char *format, ...) __attribute__((format(printf, 5, 6)));
+        void func_query(sql_callback f, const std::string &query);
 
         void set_locale(const std::string &locale);
 
@@ -138,7 +81,6 @@ namespace metin2::game::inline persistence {
 
       private:
         auto pop_result() -> std::unique_ptr<sql_msg>;
-        void analyze_return_query(sql_msg *msg);
 
         async_sql sql_direct_;
         async_sql sql_;
@@ -147,4 +89,5 @@ namespace metin2::game::inline persistence {
 
     extern void cancel_reload_spam_event();
     extern void load_spam_db();
+    extern void give_lotto_ticket_result(sql_msg &msg, uint32_t pid, uint32_t vnum, uint32_t count, uint32_t round);
 }

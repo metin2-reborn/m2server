@@ -192,10 +192,9 @@ namespace metin2::sql {
         push_query(new_message(query));
     }
 
-    void async_sql::return_query(const char *query, void *user_data) {
+    void async_sql::return_query(const char *query, sql_callback on_result) {
         auto msg = new_message(query);
-        msg->returns_result = true;
-        msg->user_data = user_data;
+        msg->on_result = std::move(on_result);
         push_query(std::move(msg));
     }
 
@@ -242,7 +241,7 @@ namespace metin2::sql {
     }
 
     void async_sql::finish(std::unique_ptr<sql_msg> msg) {
-        if (msg->returns_result) {
+        if (msg->on_result) {
             msg->store(&db_);
             std::lock_guard lock(mtx_result_);
             queue_result_.push_back(std::move(msg));

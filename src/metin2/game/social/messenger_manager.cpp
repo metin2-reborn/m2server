@@ -54,26 +54,23 @@ namespace metin2::game::inline social {
         if (set_login_account_.find(account) != set_login_account_.end())
             return;
 
-        db_manager::instance().func_query([this](sql_msg *msg) { load_list(msg); },
+        db_manager::instance().func_query([this](sql_msg &msg) { load_list(msg); },
             sql::format("SELECT account, companion FROM messenger_list{} WHERE account={}", sql::raw(get_table_postfix()), account));
 
         set_login_account_.insert(account);
     }
 
-    void messenger_manager::load_list(sql_msg *msg) {
-        if (nullptr == msg)
+    void messenger_manager::load_list(sql_msg &msg) {
+        if (nullptr == msg.get())
             return;
 
-        if (nullptr == msg->get())
-            return;
-
-        if (msg->get()->num_rows == 0)
+        if (msg.get()->num_rows == 0)
             return;
 
         std::string account;
 
-        for (uint i = 0; i < msg->get()->num_rows; ++i) {
-            MYSQL_ROW row = mysql_fetch_row(msg->get()->res);
+        for (uint i = 0; i < msg.get()->num_rows; ++i) {
+            MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
 
             if (row[0] && row[1]) {
                 if (account.length() == 0)

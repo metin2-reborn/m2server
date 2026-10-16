@@ -3,7 +3,6 @@
 #include <metin2/db/caches/cache.h>
 #include <metin2/db/clients/client_manager.h>
 #include <metin2/db/clients/peer.h>
-#include <metin2/db/clients/qid.h>
 #include <metin2/db/login/login_data.h>
 #include <metin2/db/storage/db_manager.h>
 
@@ -135,29 +134,28 @@ namespace metin2::db::inline clients {
         strlcpy(pkTab->social_id, r.social_id, sizeof(pkTab->social_id));
         strlcpy(pkTab->status, "OK", sizeof(pkTab->status));
 
-        client_handle_info *info = new client_handle_info(handle_value);
+        auto info = std::make_unique<client_handle_info>(handle_value);
         info->account_table = std::move(pkTab);
         strlcpy(info->ip, p->ip, sizeof(info->ip));
 
         metin2::log::info("Login: account {} logged in with key {:d} from {}", r.login, p->login_key, info->ip);
         char szQuery[QUERY_MAX_LEN];
         snprintf(szQuery, sizeof(szQuery), "SELECT pid1, pid2, pid3, pid4, empire FROM player_index%s WHERE id=%u", get_table_postfix(), r.id);
-        db_manager::instance().return_query(szQuery, QID_LOGIN_BY_KEY, peer_value->handle(), info);
+        db_manager::instance().return_query(szQuery, [this, handle = peer_value->handle(), info = std::move(info)](sql_msg &msg) mutable {
+            if (auto *peer_value = get_peer(handle))
+                result_login_by_key(peer_value, msg, std::move(info));
+        });
     }
 
-    void client_manager::result_login_by_key(peer *peer, sql_msg *msg) {
-        query_info *qi = (query_info *)msg->user_data;
-        client_handle_info *info = (client_handle_info *)qi->pv_data;
-
-        if (msg->sql_errno != 0) {
+    void client_manager::result_login_by_key(peer *peer, sql_msg &msg, std::unique_ptr<client_handle_info> info) {
+        if (msg.sql_errno != 0) {
             peer->encode_return(HEADER_DG_LOGIN_NOT_EXIST, info->handle);
-            delete info;
             return;
         }
 
         char szQuery[QUERY_MAX_LEN];
 
-        if (msg->get()->num_rows == 0) {
+        if (msg.get()->num_rows == 0) {
             uint32_t account_id = info->account_table->id;
             char szQuery[QUERY_MAX_LEN];
             snprintf(szQuery, sizeof(szQuery), "SELECT pid1, pid2, pid3, pid4, empire FROM player_index%s WHERE id=%u", get_table_postfix(), account_id);
@@ -169,12 +167,15 @@ namespace metin2::db::inline clients {
                 metin2::log::info("Login: no player_index row for account {:d}, creating one", account_id);
 
                 snprintf(szQuery, sizeof(szQuery), "INSERT INTO player_index%s (id) VALUES(%u)", get_table_postfix(), info->account_table->id);
-                db_manager::instance().return_query(szQuery, QID_PLAYER_INDEX_CREATE, peer->handle(), info);
+                db_manager::instance().return_query(szQuery, [this, handle = peer->handle(), info = std::move(info)](sql_msg &msg) mutable {
+                    if (auto *peer_value = get_peer(handle))
+                        result_player_index_create(peer_value, msg, std::move(info));
+                });
             }
             return;
         }
 
-        MYSQL_ROW row = mysql_fetch_row(msg->get()->res);
+        MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
 
         int col = 0;
 
@@ -188,17 +189,20 @@ namespace metin2::db::inline clients {
             "SELECT id, name, job, level, playtime, st, ht, dx, iq, part_main, part_hair, x, y, skill_group, change_name FROM player%s WHERE account_id=%u",
             get_table_postfix(), info->account_table->id);
 
-        db_manager::instance().return_query(szQuery, QID_LOGIN, peer->handle(), info);
+        db_manager::instance().return_query(szQuery, [this, handle = peer->handle(), info = std::move(info)](sql_msg &msg) mutable {
+            if (auto *peer_value = get_peer(handle))
+                result_login(peer_value, msg, std::move(info));
+        });
     }
 
-    void client_manager::result_player_index_create(peer *peer_value, sql_msg *msg) {
-        query_info *qi = (query_info *)msg->user_data;
-        client_handle_info *info = (client_handle_info *)qi->pv_data;
-
+    void client_manager::result_player_index_create(peer *peer_value, sql_msg &msg, std::unique_ptr<client_handle_info> info) {
         char szQuery[QUERY_MAX_LEN];
         snprintf(szQuery, sizeof(szQuery), "SELECT pid1, pid2, pid3, pid4, empire FROM player_index%s WHERE id=%u", get_table_postfix(),
             info->account_table->id);
-        db_manager::instance().return_query(szQuery, QID_LOGIN_BY_KEY, peer_value->handle(), info);
+        db_manager::instance().return_query(szQuery, [this, handle = peer_value->handle(), info = std::move(info)](sql_msg &msg) mutable {
+            if (auto *peer_value = get_peer(handle))
+                result_login_by_key(peer_value, msg, std::move(info));
+        });
     }
 
     auto create_account_table_from_res(MYSQL_RES *res) -> std::unique_ptr<account_table> {
@@ -311,24 +315,19 @@ namespace metin2::db::inline clients {
         }
     }
 
-    void client_manager::result_login(peer *peer, sql_msg *msg) {
-        query_info *qi = (query_info *)msg->user_data;
-        client_handle_info *info = (client_handle_info *)qi->pv_data;
-
+    void client_manager::result_login(peer *peer, sql_msg &msg, std::unique_ptr<client_handle_info> info) {
         if (info->account_index == 0) {
-            if (msg->get()->num_rows == 0) {
+            if (msg.get()->num_rows == 0) {
                 metin2::log::info("Login: account not found");
                 peer->encode_header(HEADER_DG_LOGIN_NOT_EXIST, info->handle, 0);
-                delete info;
                 return;
             }
 
-            info->account_table = create_account_table_from_res(msg->get()->res);
+            info->account_table = create_account_table_from_res(msg.get()->res);
 
             if (!info->account_table) {
                 metin2::log::info("Login: wrong password");
                 peer->encode_return(HEADER_DG_LOGIN_WRONG_PASSWD, info->handle);
-                delete info;
             } else {
                 ++info->account_index;
 
@@ -337,13 +336,15 @@ namespace metin2::db::inline clients {
                     "SELECT id, name, job, level, playtime, st, ht, dx, iq, part_main, part_hair, x, y, skill_group, change_name FROM player%s WHERE account_id=%u",
                     get_table_postfix(), info->account_table->id);
 
-                db_manager::instance().return_query(queryStr, QID_LOGIN, peer->handle(), info);
+                db_manager::instance().return_query(queryStr, [this, handle = peer->handle(), info = std::move(info)](sql_msg &msg) mutable {
+                    if (auto *peer_value = get_peer(handle))
+                        result_login(peer_value, msg, std::move(info));
+                });
             }
             return;
         } else {
             if (!info->account_table) {
                 peer->encode_return(HEADER_DG_LOGIN_WRONG_PASSWD, info->handle);
-                delete info;
                 return;
             }
 
@@ -356,10 +357,10 @@ namespace metin2::db::inline clients {
                 peer->encode_header(HEADER_DG_LOGIN_ALREADY, info->handle, sizeof(packet_dg_login_already));
                 peer->encode(&p, sizeof(p));
             } else {
-                metin2::log::info("Login: account {} logged in ({:d} players)", info->account_table->login, msg->get()->num_rows);
+                metin2::log::info("Login: account {} logged in ({:d} players)", info->account_table->login, msg.get()->num_rows);
 
-                if (msg->get()->num_rows > 0)
-                    create_account_player_data_from_res(msg->get()->res, info->account_table.get());
+                if (msg.get()->num_rows > 0)
+                    create_account_player_data_from_res(msg.get()->res, info->account_table.get());
 
                 login_data *p = get_login_data_by_login(info->account_table->login);
                 memcpy(&p->account_ref(), info->account_table.get(), sizeof(account_table));
@@ -367,8 +368,6 @@ namespace metin2::db::inline clients {
                 peer->encode_header(HEADER_DG_LOGIN_SUCCESS, info->handle, sizeof(account_table));
                 peer->encode(info->account_table.get(), sizeof(account_table));
             }
-
-            delete info;
         }
     }
 

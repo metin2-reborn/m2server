@@ -4,7 +4,6 @@
 #include <metin2/db/app/main.h>
 #include <metin2/db/caches/cache.h>
 #include <metin2/db/clients/peer.h>
-#include <metin2/db/clients/qid.h>
 #include <metin2/db/empire/monarch.h>
 #include <metin2/db/empire/priv_manager.h>
 #include <metin2/db/guilds/guild_manager.h>
@@ -140,8 +139,9 @@ namespace metin2::db::inline clients {
 
     void client_manager::main_loop() {
         while (!shutdowned_) {
-            while (auto tmp = db_manager::instance().pop_result()) {
-                analyze_query_result(tmp.get());
+            while (auto msg = db_manager::instance().pop_result()) {
+                if (msg->on_result)
+                    msg->on_result(*msg);
             }
 
             if (!process())
@@ -366,12 +366,12 @@ namespace metin2::db::inline clients {
                     sql::raw(get_table_postfix()), table->pid, table->name, table->state, table->value);
             }
 
-            db_manager::instance().return_query(query.c_str(), QID_QUEST_SAVE, peer_value->handle(), nullptr);
+            db_manager::instance().return_query(query.c_str(), [](sql_msg &) {});
         }
     }
 
     void client_manager::query_safebox_load(peer *peer_value, uint32_t handle_value, safebox_load_packet *packet, bool mall) {
-        client_handle_info *pi = new client_handle_info(handle_value);
+        auto pi = std::make_unique<client_handle_info>(handle_value);
         strlcpy(pi->safebox_password, packet->password, sizeof(pi->safebox_password));
         pi->account_id = packet->id;
         pi->account_index = 0;
@@ -386,12 +386,15 @@ namespace metin2::db::inline clients {
         if (metin2::config::db().login_log)
             metin2::log::debug("Safebox: load request, handle {:d}, account {:d}, mall {:d}", handle_value, packet->id, mall ? 1 : 0);
 
-        db_manager::instance().return_query(szQuery, QID_SAFEBOX_LOAD, peer_value->handle(), pi);
+        db_manager::instance().return_query(szQuery, [this, handle = peer_value->handle(), pi = std::move(pi)](sql_msg &msg) mutable {
+            if (auto *peer_value = get_peer(handle))
+                result_safebox_load(peer_value, msg, std::move(pi));
+        });
     }
 
-    void client_manager::result_safebox_load(peer *peer_value, sql_msg *msg) {
-        query_info *qi = (query_info *)msg->user_data;
-        client_handle_info *pi = (client_handle_info *)qi->pv_data;
+    void client_manager::result_safebox_load(peer *peer_value, sql_msg &msg, std::unique_ptr<client_handle_info> pi) {
+        metin2::log::debug("Safebox load query finished");
+
         uint32_t dwHandle = pi->handle;
 
         // account_index carries the query stage here: 0 checks the password, 1 loads the items.
@@ -402,12 +405,11 @@ namespace metin2::db::inline clients {
             auto pSafebox = std::make_unique<safebox_table>();
             memset(pSafebox.get(), 0, sizeof(safebox_table));
 
-            sql_result *res = msg->get();
+            sql_result *res = msg.get();
 
             if (res->num_rows == 0) {
                 if (strSafeboxPassword != "000000") {
                     peer_value->encode_header(HEADER_DG_SAFEBOX_WRONG_PASSWORD, dwHandle, 0);
-                    delete pi;
                     return;
                 }
             } else {
@@ -416,7 +418,6 @@ namespace metin2::db::inline clients {
                 if (((!row[2] || !*row[2]) && strSafeboxPassword != "000000") ||
                     ((row[2] && *row[2]) && strSafeboxPassword != row[2])) {
                     peer_value->encode_header(HEADER_DG_SAFEBOX_WRONG_PASSWORD, dwHandle, 0);
-                    delete pi;
                     return;
                 }
 
@@ -455,24 +456,25 @@ namespace metin2::db::inline clients {
 
             pi->account_index = 1;
 
-            db_manager::instance().return_query(query.c_str(), QID_SAFEBOX_LOAD, peer_value->handle(), pi);
+            db_manager::instance().return_query(query.c_str(), [this, handle = peer_value->handle(), pi = std::move(pi)](sql_msg &msg) mutable {
+                if (auto *peer_value = get_peer(handle))
+                    result_safebox_load(peer_value, msg, std::move(pi));
+            });
         } else {
 
             if (!pi->safebox) {
                 metin2::log::error("Safebox: load result has no safebox");
-                delete pi;
                 return;
             }
 
             // On a query error the safebox stays closed; answering would show it empty.
-            if (!msg->get()->res) {
+            if (!msg.get()->res) {
                 metin2::log::error("Safebox: item query failed, safebox not opened");
-                delete pi;
                 return;
             }
 
             static std::vector<player_item> s_items;
-            create_item_table_from_res(msg->get()->res, &s_items, pi->account_id);
+            create_item_table_from_res(msg.get()->res, &s_items, pi->account_id);
 
             std::set<db::items::item_award *> *pSet = item_award_manager::instance().by_login(pi->login);
 
@@ -661,13 +663,11 @@ namespace metin2::db::inline clients {
 
             if (!s_items.empty())
                 peer_value->encode(&s_items[0], sizeof(player_item) * s_items.size());
-
-            delete pi;
         }
     }
 
     void client_manager::query_safebox_change_size(peer *peer_value, uint32_t handle_value, safebox_change_size_packet *p) {
-        client_handle_info *pi = new client_handle_info(handle_value);
+        auto pi = std::make_unique<client_handle_info>(handle_value);
         pi->account_index = p->size; // account_index carries the safebox size here.
 
         char szQuery[QUERY_MAX_LEN];
@@ -677,25 +677,26 @@ namespace metin2::db::inline clients {
         else
             snprintf(szQuery, sizeof(szQuery), "UPDATE safebox%s SET size=%u WHERE account_id=%u", get_table_postfix(), p->size, p->id);
 
-        db_manager::instance().return_query(szQuery, QID_SAFEBOX_CHANGE_SIZE, peer_value->handle(), pi);
+        db_manager::instance().return_query(szQuery, [this, handle = peer_value->handle(), pi = std::move(pi)](sql_msg &msg) {
+            if (auto *peer_value = get_peer(handle))
+                result_safebox_change_size(peer_value, msg, *pi);
+        });
     }
 
-    void client_manager::result_safebox_change_size(peer *peer_value, sql_msg *msg) {
-        query_info *qi = (query_info *)msg->user_data;
-        client_handle_info *p = (client_handle_info *)qi->pv_data;
-        uint32_t dwHandle = p->handle;
-        uint8_t bSize = p->account_index;
+    void client_manager::result_safebox_change_size(peer *peer_value, sql_msg &msg, client_handle_info &p) {
+        metin2::log::debug("Safebox resize query finished");
 
-        delete p;
+        uint32_t dwHandle = p.handle;
+        uint8_t bSize = p.account_index;
 
-        if (msg->get()->num_rows > 0) {
+        if (msg.get()->num_rows > 0) {
             peer_value->encode_header(HEADER_DG_SAFEBOX_CHANGE_SIZE, dwHandle, sizeof(uint8_t));
             peer_value->encode_byte(bSize);
         }
     }
 
     void client_manager::query_safebox_change_password(peer *peer_value, uint32_t handle_value, safebox_change_password_packet *p) {
-        client_handle_info *pi = new client_handle_info(handle_value);
+        auto pi = std::make_unique<client_handle_info>(handle_value);
         strlcpy(pi->safebox_password, p->new_password, sizeof(pi->safebox_password));
         strlcpy(pi->login, p->old_password, sizeof(pi->login));
         pi->account_id = p->id;
@@ -703,51 +704,52 @@ namespace metin2::db::inline clients {
         char szQuery[QUERY_MAX_LEN];
         snprintf(szQuery, sizeof(szQuery), "SELECT password FROM safebox%s WHERE account_id=%u", get_table_postfix(), p->id);
 
-        db_manager::instance().return_query(szQuery, QID_SAFEBOX_CHANGE_PASSWORD, peer_value->handle(), pi);
+        db_manager::instance().return_query(szQuery, [this, handle = peer_value->handle(), pi = std::move(pi)](sql_msg &msg) mutable {
+            if (auto *peer_value = get_peer(handle))
+                result_safebox_change_password(peer_value, msg, std::move(pi));
+        });
     }
 
-    void client_manager::result_safebox_change_password(peer *peer_value, sql_msg *msg) {
-        query_info *qi = (query_info *)msg->user_data;
-        client_handle_info *p = (client_handle_info *)qi->pv_data;
+    void client_manager::result_safebox_change_password(peer *peer_value, sql_msg &msg, std::unique_ptr<client_handle_info> p) {
+        metin2::log::debug("Safebox password change query finished");
+
         uint32_t dwHandle = p->handle;
 
-        if (msg->get()->num_rows > 0) {
-            MYSQL_ROW row = mysql_fetch_row(msg->get()->res);
+        if (msg.get()->num_rows > 0) {
+            MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
 
             if ((row[0] && *row[0] && !strcasecmp(row[0], p->login)) || ((!row[0] || !*row[0]) && !strcmp("000000", p->login))) {
                 const std::string query = sql::format("UPDATE safebox{} SET password={} WHERE account_id={}", sql::raw(get_table_postfix()), p->safebox_password, p->account_id);
 
-                db_manager::instance().return_query(query.c_str(), QID_SAFEBOX_CHANGE_PASSWORD_SECOND, peer_value->handle(), p);
+                db_manager::instance().return_query(query.c_str(), [this, handle = peer_value->handle(), p = std::move(p)](sql_msg &msg) {
+                    if (auto *peer_value = get_peer(handle))
+                        result_safebox_change_password_second(peer_value, msg, *p);
+                });
                 return;
             }
         }
-
-        delete p;
 
         peer_value->encode_header(HEADER_DG_SAFEBOX_CHANGE_PASSWORD_ANSWER, dwHandle, sizeof(uint8_t));
         peer_value->encode_byte(0);
     }
 
-    void client_manager::result_safebox_change_password_second(peer *peer_value, sql_msg *msg) {
-        query_info *qi = (query_info *)msg->user_data;
-        client_handle_info *p = (client_handle_info *)qi->pv_data;
-        uint32_t dwHandle = p->handle;
-        delete p;
+    void client_manager::result_safebox_change_password_second(peer *peer_value, sql_msg &msg, client_handle_info &p) {
+        metin2::log::debug("Safebox password change query (second step) finished");
+
+        uint32_t dwHandle = p.handle;
 
         peer_value->encode_header(HEADER_DG_SAFEBOX_CHANGE_PASSWORD_ANSWER, dwHandle, sizeof(uint8_t));
         peer_value->encode_byte(1);
     }
 
-    void client_manager::result_pricelist_load(peer *peer, sql_msg *msg) {
-        item_pricelist_req_info *pReqInfo = (item_pricelist_req_info *)static_cast<query_info *>(msg->user_data)->pv_data;
-
+    void client_manager::result_pricelist_load(peer *peer, sql_msg &msg, const item_pricelist_req_info &req_info) {
         item_price_list_table table;
-        table.owner_id = pReqInfo->second;
+        table.owner_id = req_info.second;
         table.count = 0;
 
         MYSQL_ROW row;
 
-        while (table.count < SHOP_PRICELIST_MAX_NUM && (row = mysql_fetch_row(msg->get()->res))) {
+        while (table.count < SHOP_PRICELIST_MAX_NUM && (row = mysql_fetch_row(msg.get()->res))) {
             str_to_number(table.price_info[table.count].vnum, row[0]);
             str_to_number(table.price_info[table.count].price, row[1]);
             table.count++;
@@ -757,30 +759,26 @@ namespace metin2::db::inline clients {
 
         packet_myshop_pricelist_header header;
 
-        header.owner_id = pReqInfo->second;
+        header.owner_id = req_info.second;
         header.count = table.count;
 
         size_t sizePriceListSize = sizeof(item_price_info) * header.count;
 
-        peer->encode_header(HEADER_DG_MYSHOP_PRICELIST_RES, pReqInfo->first, sizeof(header) + sizePriceListSize);
+        peer->encode_header(HEADER_DG_MYSHOP_PRICELIST_RES, req_info.first, sizeof(header) + sizePriceListSize);
         peer->encode(&header, sizeof(header));
         peer->encode(table.price_info, sizePriceListSize);
 
-        metin2::log::debug("Price list: loaded for handle {:d}, pid {:d}, {:d} items", pReqInfo->first, pReqInfo->second, header.count);
-
-        delete pReqInfo;
+        metin2::log::debug("Price list: loaded for handle {:d}, pid {:d}, {:d} items", req_info.first, req_info.second, header.count);
     }
 
-    void client_manager::result_pricelist_load_for_update(sql_msg *msg) {
-        item_price_list_table *pUpdateTable = (item_price_list_table *)static_cast<query_info *>(msg->user_data)->pv_data;
-
+    void client_manager::result_pricelist_load_for_update(sql_msg &msg, item_price_list_table &update_table) {
         item_price_list_table table;
-        table.owner_id = pUpdateTable->owner_id;
+        table.owner_id = update_table.owner_id;
         table.count = 0;
 
         MYSQL_ROW row;
 
-        while (table.count < SHOP_PRICELIST_MAX_NUM && (row = mysql_fetch_row(msg->get()->res))) {
+        while (table.count < SHOP_PRICELIST_MAX_NUM && (row = mysql_fetch_row(msg.get()->res))) {
             str_to_number(table.price_info[table.count].vnum, row[0]);
             str_to_number(table.price_info[table.count].price, row[1]);
             table.count++;
@@ -788,9 +786,7 @@ namespace metin2::db::inline clients {
 
         put_item_price_list_cache(&table);
 
-        item_price_list_cache(pUpdateTable->owner_id)->update_list(pUpdateTable);
-
-        delete pUpdateTable;
+        item_price_list_cache(update_table.owner_id)->update_list(&update_table);
     }
 
     void client_manager::query_safebox_save(peer *peer_value, safebox_table *table) {
@@ -800,7 +796,7 @@ namespace metin2::db::inline clients {
             "UPDATE safebox%s SET gold='%u' WHERE account_id=%u",
             get_table_postfix(), table->gold, table->id);
 
-        db_manager::instance().return_query(szQuery, QID_SAFEBOX_SAVE, peer_value->handle(), nullptr);
+        db_manager::instance().return_query(szQuery, [](sql_msg &) {});
     }
 
     void client_manager::query_empire_select(peer *peer_value, uint32_t handle, empire_select_packet *p) {
@@ -1092,7 +1088,7 @@ namespace metin2::db::inline clients {
                 p->attr[5].type, p->attr[5].s_value,
                 p->attr[6].type, p->attr[6].s_value);
 
-            db_manager::instance().return_query(szQuery, QID_ITEM_SAVE, peer_value->handle(), nullptr);
+            db_manager::instance().return_query(szQuery, [](sql_msg &) {});
         } else {
             if (metin2::config::test_server())
                 metin2::log::debug("Item cache: caching item {1:d} (vnum {2:d}) of owner {0:d}", p->owner, p->id, p->vnum);
@@ -1302,7 +1298,7 @@ namespace metin2::db::inline clients {
             if (dwPID == 0)
                 db_manager::instance().async_query(szQuery);
             else
-                db_manager::instance().return_query(szQuery, QID_ITEM_DESTROY, peer_value->handle(), nullptr);
+                db_manager::instance().return_query(szQuery, [](sql_msg &) {});
         }
     }
 
@@ -1639,7 +1635,7 @@ namespace metin2::db::inline clients {
 
             pCache->update_list(&table);
         } else {
-            item_price_list_table *pUpdateTable = new item_price_list_table;
+            auto pUpdateTable = std::make_unique<item_price_list_table>();
 
             pUpdateTable->owner_id = packet->owner_id;
             pUpdateTable->count = packet->count;
@@ -1648,7 +1644,9 @@ namespace metin2::db::inline clients {
 
             char szQuery[QUERY_MAX_LEN];
             snprintf(szQuery, sizeof(szQuery), "SELECT item_vnum, price FROM myshop_pricelist%s WHERE owner_id=%u", get_table_postfix(), packet->owner_id);
-            db_manager::instance().return_query(szQuery, QID_ITEMPRICE_LOAD_FOR_UPDATE, 0, pUpdateTable);
+            db_manager::instance().return_query(szQuery, [this, update_table = std::move(pUpdateTable)](sql_msg &msg) {
+                result_pricelist_load_for_update(msg, *update_table);
+            });
         }
     }
 
@@ -1674,7 +1672,10 @@ namespace metin2::db::inline clients {
 
             char szQuery[QUERY_MAX_LEN];
             snprintf(szQuery, sizeof(szQuery), "SELECT item_vnum, price FROM myshop_pricelist%s WHERE owner_id=%u", get_table_postfix(), player_id);
-            db_manager::instance().return_query(szQuery, QID_ITEMPRICE_LOAD, peer->handle(), new item_pricelist_req_info(handle_value, player_id));
+            db_manager::instance().return_query(szQuery, [this, handle = peer->handle(), req_info = item_pricelist_req_info(handle_value, player_id)](sql_msg &msg) {
+                if (auto *peer_value = get_peer(handle))
+                    result_pricelist_load(peer_value, msg, req_info);
+            });
         }
     }
 
@@ -2123,100 +2124,6 @@ namespace metin2::db::inline clients {
             return nullptr;
 
         return peer_list_.front();
-    }
-
-    auto client_manager::analyze_query_result(sql_msg *msg) -> int {
-        query_info *qi = (query_info *)msg->user_data;
-        peer *peer = get_peer(qi->ident);
-
-        switch (qi->type) {
-        case QID_ITEM_AWARD_LOAD:
-            item_award_manager::instance().load(msg);
-            delete qi;
-            return true;
-
-        case QID_GUILD_RANKING:
-            guild_manager::instance().result_ranking(msg->get()->res);
-            break;
-
-        case QID_ITEMPRICE_LOAD_FOR_UPDATE:
-            result_pricelist_load_for_update(msg);
-            break;
-        }
-
-        if (!peer) {
-            delete qi;
-            return true;
-        }
-
-        switch (qi->type) {
-        case QID_PLAYER:
-        case QID_ITEM:
-        case QID_QUEST:
-        case QID_AFFECT:
-            result_composite_player(peer, msg, qi->type);
-            break;
-
-        case QID_LOGIN:
-            result_login(peer, msg);
-            break;
-
-        case QID_SAFEBOX_LOAD:
-            metin2::log::debug("Safebox load query finished");
-            result_safebox_load(peer, msg);
-            break;
-
-        case QID_SAFEBOX_CHANGE_SIZE:
-            metin2::log::debug("Safebox resize query finished");
-            result_safebox_change_size(peer, msg);
-            break;
-
-        case QID_SAFEBOX_CHANGE_PASSWORD:
-            metin2::log::debug("Safebox password change query finished");
-            result_safebox_change_password(peer, msg);
-            break;
-
-        case QID_SAFEBOX_CHANGE_PASSWORD_SECOND:
-            metin2::log::debug("Safebox password change query (second step) finished");
-            result_safebox_change_password_second(peer, msg);
-            break;
-
-        case QID_HIGHSCORE_REGISTER:
-            metin2::log::debug("Highscore register query finished");
-            result_highscore_register(peer, msg);
-            break;
-
-        case QID_SAFEBOX_SAVE:
-        case QID_ITEM_SAVE:
-        case QID_ITEM_DESTROY:
-        case QID_QUEST_SAVE:
-        case QID_PLAYER_SAVE:
-        case QID_ITEM_AWARD_TAKEN:
-            break;
-
-        case QID_PLAYER_INDEX_CREATE:
-            result_player_index_create(peer, msg);
-            break;
-
-        case QID_PLAYER_DELETE:
-            result_player_delete(peer, msg);
-            break;
-
-        case QID_LOGIN_BY_KEY:
-            result_login_by_key(peer, msg);
-            break;
-
-        case QID_ITEMPRICE_LOAD:
-            result_pricelist_load(peer, msg);
-            break;
-
-        default:
-            metin2::log::error("Unknown query result type {:d}: {}", qi->type, msg->query.c_str());
-            break;
-        }
-
-        delete qi;
-        return true;
     }
 
     void usage_log() {

@@ -8,13 +8,6 @@
 
 namespace metin2::db::inline storage {
 
-    class query_info {
-      public:
-        int type;
-        uint32_t ident;
-        void *pv_data;
-    };
-
     enum e_sql_slot {
         SQL_PLAYER,
         SQL_ACCOUNT,
@@ -41,7 +34,7 @@ namespace metin2::db::inline storage {
 
         auto connect(int slot, const char *db_address, int db_port, const char *db_name, const char *user, const char *pwd) -> int;
 
-        void return_query(const char *query, int type_value, uint32_t ident_value, void *udata, int slot = SQL_PLAYER);
+        void return_query(std::string_view query, sql_callback on_result, int slot = SQL_PLAYER);
         void async_query(const char *query, int slot = SQL_PLAYER);
         auto direct_query(const char *query, int slot = SQL_PLAYER) -> std::unique_ptr<sql_msg>;
 

@@ -20,10 +20,13 @@
 #include <metin2/game/text/locale_service.h>
 #include <metin2/game/world/sectree_manager.h>
 
+#include <metin2/common/utils.h>
 #include <metin2/core/utils.h>
 #include <metin2/log/log.h>
 #include <metin2/proto/length.h>
 #include <metin2/sql/query.h>
+
+#include <mysql.h>
 
 #include <cmath>
 #include <cstdint>
@@ -185,26 +188,43 @@ namespace metin2::game {
         }
 
         auto highscore_show(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
             const char *pszBoardName = lua_isstring(lua, 1) ? lua_tostring(lua, 1) : "";
-            uint32_t mypid = q.current_character_ptr()->player_id();
             bool bOrder = (int)lua_tonumber(lua, 2) != 0 ? true : false;
 
-            db_manager::instance().return_query(QID_HIGHSCORE_SHOW, mypid, nullptr, sql::format("SELECT h.pid, p.name, h.value FROM highscore{} as h, player{} as p WHERE h.board = {} AND h.pid = p.id ORDER BY h.value {} LIMIT 10", sql::raw(get_table_postfix()), sql::raw(get_table_postfix()), pszBoardName, sql::raw(bOrder ? "DESC" : "")));
+            db_manager::instance().func_query([](sql_msg &) {}, sql::format("SELECT h.pid, p.name, h.value FROM highscore{} as h, player{} as p WHERE h.board = {} AND h.pid = p.id ORDER BY h.value {} LIMIT 10", sql::raw(get_table_postfix()), sql::raw(get_table_postfix()), pszBoardName, sql::raw(bOrder ? "DESC" : "")));
             return 0;
         }
 
         auto highscore_register(lua_State *lua) -> int {
             quest_manager &q = quest_manager::instance();
 
-            highscore_register_query_info *qi = new highscore_register_query_info;
+            char board[20 + 1];
+            strlcpy(board, lua_tostring(lua, 1), sizeof(board));
+            uint32_t pid = q.current_character_ptr()->player_id();
+            int value = (int)lua_tonumber(lua, 2);
+            bool order = (int)lua_tonumber(lua, 3);
 
-            strlcpy(qi->board, lua_tostring(lua, 1), sizeof(qi->board));
-            qi->pid = q.current_character_ptr()->player_id();
-            qi->value = (int)lua_tonumber(lua, 2);
-            qi->order = (int)lua_tonumber(lua, 3);
+            db_manager::instance().func_query([board = std::string(board), pid, value, order](sql_msg &msg) {
+                bool bQuery = true;
 
-            db_manager::instance().return_query(QID_HIGHSCORE_REGISTER, qi->pid, qi, sql::format("SELECT value FROM highscore{} WHERE board={} AND pid={}", sql::raw(get_table_postfix()), qi->board, qi->pid));
+                if (msg.get()->num_rows) {
+                    MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
+
+                    if (row && row[0]) {
+                        int iCur = 0;
+                        str_to_number(iCur, row[0]);
+
+                        if ((order && iCur >= value) ||
+                            (!order && iCur <= value))
+                            bQuery = false;
+                    }
+                }
+
+                if (bQuery)
+                    db_manager::instance().query(sql::format("REPLACE INTO highscore{} VALUES({}, {}, {})",
+                        sql::raw(get_table_postfix()), board, pid, value));
+            },
+                sql::format("SELECT value FROM highscore{} WHERE board={} AND pid={}", sql::raw(get_table_postfix()), board, pid));
             return 0;
         }
 

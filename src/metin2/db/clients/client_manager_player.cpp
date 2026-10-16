@@ -191,6 +191,13 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::query_player_load(peer *peer, uint32_t handle_value, player_load_packet *packet) {
+        auto return_composite_query = [this, peer_handle = peer->handle()](const char *query, uint32_t qid, std::unique_ptr<client_handle_info> info) {
+            db_manager::instance().return_query(query, [this, peer_handle, qid, info = std::move(info)](sql_msg &msg) {
+                if (auto *peer_value = get_peer(peer_handle))
+                    result_composite_player(peer_value, msg, qid, *info);
+            });
+        };
+
         player_table_cache *c;
         player_table *pTab;
 
@@ -265,38 +272,29 @@ namespace metin2::db::inline clients {
                     "SELECT dwPID,szName,szState,lValue FROM quest%s WHERE dwPID=%d AND lValue<>0",
                     get_table_postfix(), pTab->id);
 
-                db_manager::instance().return_query(szQuery, QID_QUEST, peer->handle(), new client_handle_info(handle_value, 0, packet->account_id));
+                return_composite_query(szQuery, QID_QUEST, std::make_unique<client_handle_info>(handle_value, 0, packet->account_id));
 
                 snprintf(szQuery, sizeof(szQuery),
                     "SELECT dwPID,bType,bApplyOn,lApplyValue,dwFlag,lDuration,lSPCost FROM affect%s WHERE dwPID=%d",
                     get_table_postfix(), pTab->id);
-                db_manager::instance().return_query(szQuery, QID_AFFECT, peer->handle(), new client_handle_info(handle_value));
+                return_composite_query(szQuery, QID_AFFECT, std::make_unique<client_handle_info>(handle_value));
             } else {
                 snprintf(szQuery, sizeof(szQuery),
                     "SELECT id,window+0,pos,count,vnum,socket0,socket1,socket2,attrtype0,attrvalue0,attrtype1,attrvalue1,attrtype2,attrvalue2,attrtype3,attrvalue3,attrtype4,attrvalue4,attrtype5,attrvalue5,attrtype6,attrvalue6 "
                     "FROM item%s WHERE owner_id=%d AND (window < %d or window = %d)",
                     get_table_postfix(), pTab->id, SAFEBOX, DRAGON_SOUL_INVENTORY);
 
-                db_manager::instance().return_query(szQuery,
-                    QID_ITEM,
-                    peer->handle(),
-                    new client_handle_info(handle_value, pTab->id));
+                return_composite_query(szQuery, QID_ITEM, std::make_unique<client_handle_info>(handle_value, pTab->id));
                 snprintf(szQuery, sizeof(szQuery),
                     "SELECT dwPID, szName, szState, lValue FROM quest%s WHERE dwPID=%d",
                     get_table_postfix(), pTab->id);
 
-                db_manager::instance().return_query(szQuery,
-                    QID_QUEST,
-                    peer->handle(),
-                    new client_handle_info(handle_value, pTab->id));
+                return_composite_query(szQuery, QID_QUEST, std::make_unique<client_handle_info>(handle_value, pTab->id));
                 snprintf(szQuery, sizeof(szQuery),
                     "SELECT dwPID, bType, bApplyOn, lApplyValue, dwFlag, lDuration, lSPCost FROM affect%s WHERE dwPID=%d",
                     get_table_postfix(), pTab->id);
 
-                db_manager::instance().return_query(szQuery,
-                    QID_AFFECT,
-                    peer->handle(),
-                    new client_handle_info(handle_value, pTab->id));
+                return_composite_query(szQuery, QID_AFFECT, std::make_unique<client_handle_info>(handle_value, pTab->id));
             }
         } else {
             metin2::log::info("Loading player pid {:d} from the database", packet->player_id);
@@ -312,24 +310,24 @@ namespace metin2::db::inline clients {
                 "UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(last_play),horse_skill_point FROM player%s WHERE id=%d",
                 get_table_postfix(), packet->player_id);
 
-            client_handle_info *pkInfo = new client_handle_info(handle_value, packet->player_id);
+            auto pkInfo = std::make_unique<client_handle_info>(handle_value, packet->player_id);
             pkInfo->account_id = packet->account_id;
-            db_manager::instance().return_query(queryStr, QID_PLAYER, peer->handle(), pkInfo);
+            return_composite_query(queryStr, QID_PLAYER, std::move(pkInfo));
 
             snprintf(queryStr, sizeof(queryStr),
                 "SELECT id,window+0,pos,count,vnum,socket0,socket1,socket2,attrtype0,attrvalue0,attrtype1,attrvalue1,attrtype2,attrvalue2,attrtype3,attrvalue3,attrtype4,attrvalue4,attrtype5,attrvalue5,attrtype6,attrvalue6 "
                 "FROM item%s WHERE owner_id=%d AND (window < %d or window = %d)",
                 get_table_postfix(), packet->player_id, SAFEBOX, DRAGON_SOUL_INVENTORY);
-            db_manager::instance().return_query(queryStr, QID_ITEM, peer->handle(), new client_handle_info(handle_value, packet->player_id));
+            return_composite_query(queryStr, QID_ITEM, std::make_unique<client_handle_info>(handle_value, packet->player_id));
 
             snprintf(queryStr, sizeof(queryStr),
                 "SELECT dwPID,szName,szState,lValue FROM quest%s WHERE dwPID=%d",
                 get_table_postfix(), packet->player_id);
-            db_manager::instance().return_query(queryStr, QID_QUEST, peer->handle(), new client_handle_info(handle_value, packet->player_id, packet->account_id));
+            return_composite_query(queryStr, QID_QUEST, std::make_unique<client_handle_info>(handle_value, packet->player_id, packet->account_id));
             snprintf(queryStr, sizeof(queryStr),
                 "SELECT dwPID,bType,bApplyOn,lApplyValue,dwFlag,lDuration,lSPCost FROM affect%s WHERE dwPID=%d",
                 get_table_postfix(), packet->player_id);
-            db_manager::instance().return_query(queryStr, QID_AFFECT, peer->handle(), new client_handle_info(handle_value, packet->player_id));
+            return_composite_query(queryStr, QID_AFFECT, std::make_unique<client_handle_info>(handle_value, packet->player_id));
         }
     }
     void client_manager::item_award(peer *peer, char *login) {
@@ -450,11 +448,8 @@ namespace metin2::db::inline clients {
         return true;
     }
 
-    void client_manager::result_composite_player(peer *peer, sql_msg *msg, uint32_t qid) {
-        query_info *qi = (query_info *)msg->user_data;
-        std::unique_ptr<client_handle_info> info((client_handle_info *)qi->pv_data);
-
-        MYSQL_RES *pSQLResult = msg->get()->res;
+    void client_manager::result_composite_player(peer *peer, sql_msg &msg, uint32_t qid, client_handle_info &info) {
+        MYSQL_RES *pSQLResult = msg.get()->res;
         if (!pSQLResult) {
             metin2::log::error("Query {:d} returned no result set", qid);
             return;
@@ -462,25 +457,22 @@ namespace metin2::db::inline clients {
 
         switch (qid) {
         case QID_PLAYER:
-            metin2::log::debug("Player query result for handle {:d}, pid {:d}", info->handle, info->player_id);
-            result_player_load(peer, pSQLResult, info.get());
+            metin2::log::debug("Player query result for handle {:d}, pid {:d}", info.handle, info.player_id);
+            result_player_load(peer, pSQLResult, &info);
 
             break;
 
         case QID_ITEM:
-            metin2::log::debug("Item query result for handle {:d}", info->handle);
-            result_item_load(peer, pSQLResult, info->handle, info->player_id);
+            metin2::log::debug("Item query result for handle {:d}", info.handle);
+            result_item_load(peer, pSQLResult, info.handle, info.player_id);
             break;
 
         case QID_QUEST:
             {
-                metin2::log::debug("Quest query result for handle {:d}", info->handle);
-                result_quest_load(peer, pSQLResult, info->handle, info->player_id);
-                client_handle_info *temp1 = info.get();
-                if (temp1 == nullptr)
-                    break;
+                metin2::log::debug("Quest query result for handle {:d}", info.handle);
+                result_quest_load(peer, pSQLResult, info.handle, info.player_id);
 
-                login_data *pLoginData1 = get_login_data_by_aid(temp1->account_id);
+                login_data *pLoginData1 = get_login_data_by_aid(info.account_id);
                 if (pLoginData1 == nullptr)
                     break;
                 item_award(peer, pLoginData1->account_ref().login);
@@ -488,8 +480,8 @@ namespace metin2::db::inline clients {
             break;
 
         case QID_AFFECT:
-            metin2::log::debug("Affect query result for handle {:d}", info->handle);
-            result_affect_load(peer, pSQLResult, info->handle);
+            metin2::log::debug("Affect query result for handle {:d}", info.handle);
+            result_affect_load(peer, pSQLResult, info.handle);
             break;
         }
     }
@@ -816,19 +808,19 @@ namespace metin2::db::inline clients {
         snprintf(szQuery, sizeof(szQuery), "SELECT p.id, p.level, p.name FROM player_index%s AS i, player%s AS p WHERE pid%u=%u AND pid%u=p.id",
             get_table_postfix(), get_table_postfix(), packet->account_index + 1, packet->player_id, packet->account_index + 1);
 
-        client_handle_info *pi = new client_handle_info(handle_value, packet->player_id);
+        auto pi = std::make_unique<client_handle_info>(handle_value, packet->player_id);
         pi->account_index = packet->account_index;
 
         metin2::log::info("Player delete: account {} requested deletion of pid {:d} (slot {:d})", packet->login, packet->player_id, packet->account_index + 1);
-        db_manager::instance().return_query(szQuery, QID_PLAYER_DELETE, peer->handle(), pi);
+        db_manager::instance().return_query(szQuery, [this, handle = peer->handle(), pi = std::move(pi)](sql_msg &msg) {
+            if (auto *peer_value = get_peer(handle))
+                result_player_delete(peer_value, msg, *pi);
+        });
     }
 
-    void client_manager::result_player_delete(peer *peer, sql_msg *msg) {
-        query_info *qi = (query_info *)msg->user_data;
-        std::unique_ptr<client_handle_info> pi(static_cast<client_handle_info *>(qi->pv_data));
-
-        if (msg->get() && msg->get()->num_rows) {
-            MYSQL_ROW row = mysql_fetch_row(msg->get()->res);
+    void client_manager::result_player_delete(peer *peer, sql_msg &msg, client_handle_info &pi) {
+        if (msg.get() && msg.get()->num_rows) {
+            MYSQL_ROW row = mysql_fetch_row(msg.get()->res);
 
             uint32_t dwPID = 0;
             str_to_number(dwPID, row[0]);
@@ -840,29 +832,29 @@ namespace metin2::db::inline clients {
 
             if (deletedLevelLimit >= player_delete_level_limit_) {
                 metin2::log::info("Player delete: pid {:d} level {:d} is at or above the limit {:d}", dwPID, deletedLevelLimit, player_delete_level_limit_);
-                peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, pi->handle, 1);
-                peer->encode_byte(pi->account_index);
+                peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, pi.handle, 1);
+                peer->encode_byte(pi.account_index);
                 return;
             }
 
             if (deletedLevelLimit < player_delete_level_limit_lower_) {
                 metin2::log::info("Player delete: pid {:d} level {:d} is below the minimum {:d}", dwPID, deletedLevelLimit, player_delete_level_limit_lower_);
-                peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, pi->handle, 1);
-                peer->encode_byte(pi->account_index);
+                peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, pi.handle, 1);
+                peer->encode_byte(pi.account_index);
                 return;
             }
 
             const auto postfix = sql::raw(get_table_postfix());
 
             std::string query = sql::format("INSERT INTO player{}_deleted SELECT * FROM player{} WHERE id={}",
-                postfix, postfix, pi->player_id);
+                postfix, postfix, pi.player_id);
             auto pIns = db_manager::instance().direct_query(query.c_str());
 
             if (pIns->get()->affected_rows == 0 || pIns->get()->affected_rows == (uint32_t)-1) {
                 metin2::log::error("Player delete: cannot copy pid {:d} into player{}_deleted", dwPID, get_table_postfix());
 
-                peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, pi->handle, 1);
-                peer->encode_byte(pi->account_index);
+                peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, pi.handle, 1);
+                peer->encode_byte(pi.account_index);
                 return;
             }
 
@@ -870,15 +862,15 @@ namespace metin2::db::inline clients {
 
             char account_index_string[16];
 
-            snprintf(account_index_string, sizeof(account_index_string), "player_id%d", player_id_start_ + pi->account_index);
+            snprintf(account_index_string, sizeof(account_index_string), "player_id%d", player_id_start_ + pi.account_index);
 
-            player_table_cache *pkPlayerCache = player_cache(pi->player_id);
+            player_table_cache *pkPlayerCache = player_cache(pi.player_id);
 
             if (pkPlayerCache) {
-                map_player_cache_.erase(pi->player_id);
+                map_player_cache_.erase(pi.player_id);
             }
 
-            item_cache_set *pSet = get_item_cache_set(pi->player_id);
+            item_cache_set *pSet = get_item_cache_set(pi.player_id);
 
             if (pSet) {
                 item_cache_set::iterator it = pSet->begin();
@@ -890,51 +882,51 @@ namespace metin2::db::inline clients {
 
                 pSet->clear();
 
-                map_item_cache_set_ptr_.erase(pi->player_id);
+                map_item_cache_set_ptr_.erase(pi.player_id);
             }
 
             query = sql::format("UPDATE player_index{} SET pid{}=0 WHERE pid{}={}",
                 postfix,
-                pi->account_index + 1,
-                pi->account_index + 1,
-                pi->player_id);
+                pi.account_index + 1,
+                pi.account_index + 1,
+                pi.player_id);
 
             auto pMsg = db_manager::instance().direct_query(query.c_str());
 
             if (pMsg->get()->affected_rows == 0 || pMsg->get()->affected_rows == (uint32_t)-1) {
-                metin2::log::error("Player delete: cannot clear pid {:d} from player_index", pi->player_id);
-                peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, pi->handle, 1);
-                peer->encode_byte(pi->account_index);
+                metin2::log::error("Player delete: cannot clear pid {:d} from player_index", pi.player_id);
+                peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, pi.handle, 1);
+                peer->encode_byte(pi.account_index);
                 return;
             }
 
-            query = sql::format("DELETE FROM player{} WHERE id={}", postfix, pi->player_id);
+            query = sql::format("DELETE FROM player{} WHERE id={}", postfix, pi.player_id);
             db_manager::instance().direct_query(query.c_str());
 
-            query = sql::format("DELETE FROM item{} WHERE owner_id={} AND (window < {} or window = {})", postfix, pi->player_id, SAFEBOX, DRAGON_SOUL_INVENTORY);
+            query = sql::format("DELETE FROM item{} WHERE owner_id={} AND (window < {} or window = {})", postfix, pi.player_id, SAFEBOX, DRAGON_SOUL_INVENTORY);
             db_manager::instance().direct_query(query.c_str());
 
-            query = sql::format("DELETE FROM quest{} WHERE dwPID={}", postfix, pi->player_id);
+            query = sql::format("DELETE FROM quest{} WHERE dwPID={}", postfix, pi.player_id);
             db_manager::instance().async_query(query.c_str());
 
-            query = sql::format("DELETE FROM affect{} WHERE dwPID={}", postfix, pi->player_id);
+            query = sql::format("DELETE FROM affect{} WHERE dwPID={}", postfix, pi.player_id);
             db_manager::instance().async_query(query.c_str());
 
-            query = sql::format("DELETE FROM guild_member{} WHERE pid={}", postfix, pi->player_id);
+            query = sql::format("DELETE FROM guild_member{} WHERE pid={}", postfix, pi.player_id);
             db_manager::instance().async_query(query.c_str());
 
-            query = sql::format("DELETE FROM myshop_pricelist{} WHERE owner_id={}", postfix, pi->player_id);
+            query = sql::format("DELETE FROM myshop_pricelist{} WHERE owner_id={}", postfix, pi.player_id);
             db_manager::instance().async_query(query.c_str());
 
             query = sql::format("DELETE FROM messenger_list{} WHERE account={} OR companion={}", postfix, strName, strName);
             db_manager::instance().async_query(query.c_str());
 
-            peer->encode_header(HEADER_DG_PLAYER_DELETE_SUCCESS, pi->handle, 1);
-            peer->encode_byte(pi->account_index);
+            peer->encode_header(HEADER_DG_PLAYER_DELETE_SUCCESS, pi.handle, 1);
+            peer->encode_byte(pi.account_index);
         } else {
-            metin2::log::warn("Player delete: pid {:d} not found in player_index", pi->player_id);
-            peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, pi->handle, 1);
-            peer->encode_byte(pi->account_index);
+            metin2::log::warn("Player delete: pid {:d} not found in player_index", pi.player_id);
+            peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, pi.handle, 1);
+            peer->encode_byte(pi.account_index);
         }
     }
 
@@ -970,50 +962,49 @@ namespace metin2::db::inline clients {
 
         metin2::log::debug("Highscore: register for pid {:d}", data->pid);
 
-        client_handle_info *pi = new client_handle_info(0);
+        auto pi = std::make_unique<client_handle_info>(0);
         strlcpy(pi->login, data->board, sizeof(pi->login));
         pi->account_id = (uint32_t)data->value;
         pi->player_id = data->pid;
         pi->account_index = (data->c_dir > 0);
 
-        db_manager::instance().return_query(query.c_str(), QID_HIGHSCORE_REGISTER, peer->handle(), pi);
+        db_manager::instance().return_query(query.c_str(), [this, handle = peer->handle(), pi = std::move(pi)](sql_msg &msg) {
+            if (auto *peer_value = get_peer(handle))
+                result_highscore_register(peer_value, msg, *pi);
+        });
     }
 
-    void client_manager::result_highscore_register(peer *peer_value, sql_msg *msg) {
-        query_info *qi = (query_info *)msg->user_data;
-        client_handle_info *pi = (client_handle_info *)qi->pv_data;
+    void client_manager::result_highscore_register(peer *peer_value, sql_msg &msg, client_handle_info &pi) {
+        metin2::log::debug("Highscore register query finished");
 
         char szBoard[21];
-        strlcpy(szBoard, pi->login, sizeof(szBoard));
-        int value = (int)pi->account_id;
+        strlcpy(szBoard, pi.login, sizeof(szBoard));
+        int value = (int)pi.account_id;
 
-        sql_result *res = msg->get();
+        sql_result *res = msg.get();
 
         if (res->num_rows == 0) {
-            const std::string query = sql::format("INSERT INTO highscore{} VALUES({}, {}, {})", sql::raw(get_table_postfix()), szBoard, pi->player_id, value);
+            const std::string query = sql::format("INSERT INTO highscore{} VALUES({}, {}, {})", sql::raw(get_table_postfix()), szBoard, pi.player_id, value);
             db_manager::instance().async_query(query.c_str());
         } else {
-            if (!res->res) {
-                delete pi;
+            if (!res->res)
                 return;
-            }
 
             MYSQL_ROW row = mysql_fetch_row(res->res);
             if (row && row[0]) {
                 int current_value = 0;
                 str_to_number(current_value, row[0]);
-                if ((pi->account_index && current_value >= value) || (!pi->account_index && current_value <= value)) {
+                if ((pi.account_index && current_value >= value) || (!pi.account_index && current_value <= value)) {
                     value = current_value;
                 } else {
-                    const std::string query = sql::format("REPLACE INTO highscore{} VALUES({}, {}, {})", sql::raw(get_table_postfix()), szBoard, pi->player_id, value);
+                    const std::string query = sql::format("REPLACE INTO highscore{} VALUES({}, {}, {})", sql::raw(get_table_postfix()), szBoard, pi.player_id, value);
                     db_manager::instance().async_query(query.c_str());
                 }
             } else {
-                const std::string query = sql::format("INSERT INTO highscore{} VALUES({}, {}, {})", sql::raw(get_table_postfix()), szBoard, pi->player_id, value);
+                const std::string query = sql::format("INSERT INTO highscore{} VALUES({}, {}, {})", sql::raw(get_table_postfix()), szBoard, pi.player_id, value);
                 db_manager::instance().async_query(query.c_str());
             }
         }
-        delete pi;
     }
 
     void client_manager::insert_logout_player(uint32_t pid) {

@@ -30,7 +30,7 @@ namespace metin2::db::inline items {
         ~item_award_manager() override;
 
         void request_load();
-        void load(sql_msg *msg);
+        void load(sql_msg &msg);
         auto by_login(const char *login) -> std::set<item_award *> *;
 
         void taken(uint32_t award_id, uint32_t item_id);

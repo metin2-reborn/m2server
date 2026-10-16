@@ -47,7 +47,7 @@ namespace metin2::game::inline social {
         void send_login(key_a account, key_a companion);
         void send_logout(key_a account, key_a companion);
 
-        void load_list(sql_msg *msg);
+        void load_list(sql_msg &msg);
 
         void destroy();
 

@@ -192,7 +192,7 @@ namespace metin2::game::inline guilds {
         void send_login_packet(character *ch, uint32_t pid);
         void send_logout_packet(character *ch, uint32_t pid);
         void send_guild_info_packet(character *ch);
-        void send_guild_data_update_to_all_member(sql_msg *pmsg);
+        void send_guild_data_update_to_all_member(sql_msg &msg);
 
         void load(uint32_t guild_id);
         void save_level();
@@ -313,11 +313,11 @@ namespace metin2::game::inline guilds {
         typedef std::set<uint32_t> guild_member_p2p_online_container;
         guild_member_p2p_online_container member_p2p_online_;
 
-        void load_guild_data(sql_msg *pmsg);
-        void load_guild_grade_data(sql_msg *pmsg);
-        void load_guild_member_data(sql_msg *pmsg);
+        void load_guild_data(sql_msg &msg);
+        void load_guild_grade_data(sql_msg &msg);
+        void load_guild_member_data(sql_msg &msg);
 
-        void p2p_update_grade(sql_msg *pmsg);
+        void p2p_update_grade(sql_msg &msg);
 
         typedef std::map<uint32_t, guild_war> enemy_guild_container;
         enemy_guild_container enemy_guild_;

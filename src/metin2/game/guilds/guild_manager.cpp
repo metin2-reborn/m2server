@@ -833,7 +833,10 @@ namespace metin2::game::inline guilds {
 
         iter->second->load(gid);
 
-        db_manager::instance().func_query([guild = iter->second.get()](sql_msg *msg) { guild->send_guild_data_update_to_all_member(msg); },
+        db_manager::instance().func_query([gid](sql_msg &msg) {
+            if (guild *g = guild_manager::instance().find_guild(gid))
+                g->send_guild_data_update_to_all_member(msg);
+        },
             "SELECT 1");
     }
 }
