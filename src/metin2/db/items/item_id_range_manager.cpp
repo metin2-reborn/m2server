@@ -1,6 +1,5 @@
 #include <metin2/db/items/item_id_range_manager.h>
 
-#include <metin2/db/app/main.h>
 #include <metin2/db/clients/client_manager.h>
 #include <metin2/db/clients/peer.h>
 #include <metin2/db/storage/db_manager.h>
@@ -77,7 +76,7 @@ namespace metin2::db::inline items {
         std::unique_ptr<sql_msg> msg;
         MYSQL_ROW row;
 
-        const std::string max_query = sql::format("SELECT MAX(id) FROM item{} WHERE id >= {} and id <= {}", sql::raw(get_table_postfix()), min_value, max_value);
+        const std::string max_query = sql::format("SELECT MAX(id) FROM item WHERE id >= {} and id <= {}", min_value, max_value);
 
         msg = db_manager::instance().direct_query(max_query);
 
@@ -101,8 +100,7 @@ namespace metin2::db::inline items {
             range.max = max_value;
             range.usable_item_id_min = item_max_id;
 
-            const std::string count_query = sql::format("SELECT COUNT(*) FROM item{} WHERE id >= {} AND id <= {}",
-                sql::raw(get_table_postfix()), range.usable_item_id_min, range.max);
+            const std::string count_query = sql::format("SELECT COUNT(*) FROM item WHERE id >= {} AND id <= {}", range.usable_item_id_min, range.max);
 
             msg = db_manager::instance().direct_query(count_query);
 

@@ -8,14 +8,10 @@
 #include <metin2/game/characters/character_manager.h>
 #include <metin2/game/items/item.h>
 #include <metin2/game/protocol/desc_client.h>
-#include <metin2/game/protocol/desc_manager.h>
-#include <metin2/game/protocol/input.h>
 #include <metin2/game/protocol/login_data.h>
-#include <metin2/game/protocol/packet.h>
 #include <metin2/game/text/locale_service.h>
 #include <metin2/game/text/spam.h>
 
-#include <metin2/common/utils.h>
 #include <metin2/core/utils.h>
 #include <metin2/log/log.h>
 #include <metin2/proto/tables.h>
@@ -24,12 +20,10 @@
 
 #include <mysql.h>
 
-#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <ctime>
 #include <functional>
 #include <map>
 #include <memory>
@@ -200,7 +194,7 @@ namespace metin2::game::inline persistence {
                 }
             }
         },
-            sql::format("SELECT name, text FROM string{}", sql::raw(get_table_postfix())));
+            sql::format("SELECT name, text FROM string"));
     }
 
     auto db_manager::greet_message() -> const std::vector<std::string> & {

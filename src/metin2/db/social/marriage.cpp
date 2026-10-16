@@ -1,6 +1,5 @@
 #include <metin2/db/social/marriage.h>
 
-#include <metin2/db/app/main.h>
 #include <metin2/db/clients/client_manager.h>
 #include <metin2/db/clients/peer.h>
 #include <metin2/db/storage/db_manager.h>
@@ -37,8 +36,7 @@ namespace metin2::db::inline social {
 
         auto manager::initialize() -> bool {
             const std::string query = sql::format(
-                "SELECT pid1, pid2, love_point, time, is_married, p1.name, p2.name FROM marriage, player{0} as p1, player{0} as p2 WHERE p1.id = pid1 AND p2.id = pid2",
-                sql::raw(get_table_postfix()));
+                "SELECT pid1, pid2, love_point, time, is_married, p1.name, p2.name FROM marriage, player as p1, player as p2 WHERE p1.id = pid1 AND p2.id = pid2");
 
             auto pmsg_delete = db_manager::instance().direct_query("DELETE FROM marriage WHERE is_married = 0");
             auto pmsg = db_manager::instance().direct_query(query);

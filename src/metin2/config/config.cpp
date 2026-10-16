@@ -214,7 +214,6 @@ namespace metin2::config {
             r.get("port", database.port);
             r.get("user", database.user);
             r.get("password", database.password);
-            r.get("table_postfix", database.table_postfix);
 
             reader names = r.table("names");
             names.get("account", database.account);

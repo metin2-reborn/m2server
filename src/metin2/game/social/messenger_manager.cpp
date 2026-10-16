@@ -1,7 +1,6 @@
 #include <metin2/game/social/messenger_manager.h>
 
 #include <metin2/game/admin/gm.h>
-#include <metin2/game/app/config.h>
 #include <metin2/game/app/crc32.h>
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/characters/character.h>
@@ -23,10 +22,8 @@
 #include <mysql.h>
 
 #include <cstdint>
-#include <cstdio>
 #include <cstring>
 #include <format>
-#include <functional>
 #include <map>
 #include <set>
 #include <string>
@@ -55,7 +52,7 @@ namespace metin2::game::inline social {
             return;
 
         db_manager::instance().func_query([this](sql_msg &msg) { load_list(msg); },
-            sql::format("SELECT account, companion FROM messenger_list{} WHERE account={}", sql::raw(get_table_postfix()), account));
+            sql::format("SELECT account, companion FROM messenger_list WHERE account={}", account));
 
         set_login_account_.insert(account);
     }
@@ -183,8 +180,7 @@ namespace metin2::game::inline social {
             return;
 
         metin2::log::info("Messenger: {} added {} as a friend", account, companion);
-        db_manager::instance().query(sql::format("INSERT INTO messenger_list{} VALUES ({}, {})",
-            sql::raw(get_table_postfix()), account, companion));
+        db_manager::instance().query(sql::format("INSERT INTO messenger_list VALUES ({}, {})", account, companion));
 
         apply_add_to_list(account, companion);
 
@@ -229,8 +225,7 @@ namespace metin2::game::inline social {
 
         metin2::log::debug("Messenger: {} removed {} as a friend", account, companion);
 
-        db_manager::instance().query(sql::format("DELETE FROM messenger_list{} WHERE account={} AND companion = {}",
-            sql::raw(get_table_postfix()), account, companion));
+        db_manager::instance().query(sql::format("DELETE FROM messenger_list WHERE account={} AND companion = {}", account, companion));
 
         apply_remove_from_list(account, companion);
 
@@ -245,8 +240,7 @@ namespace metin2::game::inline social {
     void messenger_manager::remove_all_list(key_a account) {
         std::set<key_t> company(relation_[account]);
 
-        db_manager::instance().query(sql::format("DELETE FROM messenger_list{} WHERE account={} OR companion={}",
-            sql::raw(get_table_postfix()), account, account));
+        db_manager::instance().query(sql::format("DELETE FROM messenger_list WHERE account={} OR companion={}", account, account));
 
         for (const key_t &companion : company)
             remove_from_list(account, companion);

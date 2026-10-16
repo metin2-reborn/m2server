@@ -1,4 +1,3 @@
-#include <metin2/db/app/main.h>
 #include <metin2/db/clients/client_manager.h>
 #include <metin2/db/clients/peer.h>
 #include <metin2/db/guilds/guild_manager.h>
@@ -36,13 +35,12 @@ namespace metin2::db::inline clients {
         metin2::log::info("Guild: guild {:d} added member pid {:d}", p->guild, p->pid);
 
         const std::string insert_query = sql::format(
-            "INSERT INTO guild_member{} VALUES({}, {}, {}, 0, 0)",
-            sql::raw(get_table_postfix()), p->pid, p->guild, p->grade);
+            "INSERT INTO guild_member VALUES({}, {}, {}, 0, 0)", p->pid, p->guild, p->grade);
 
         auto pmsg_insert = db_manager::instance().direct_query(insert_query);
 
         const std::string query = sql::format(
-            "SELECT pid, grade, is_general, offer, level, job, name FROM guild_member{0}, player{0} WHERE guild_id = {1} and pid = id and pid = {2}", sql::raw(get_table_postfix()), p->guild, p->pid);
+            "SELECT pid, grade, is_general, offer, level, job, name FROM guild_member, player WHERE guild_id = {0} and pid = id and pid = {1}", p->guild, p->pid);
 
         auto pmsg = db_manager::instance().direct_query(query);
 
@@ -74,9 +72,9 @@ namespace metin2::db::inline clients {
     void client_manager::guild_remove_member(peer *peer, packet_guild *p) {
         metin2::log::info("Guild: guild {:d} removed member pid {:d}", p->guild, p->info);
 
-        db_manager::instance().async_query(sql::format("DELETE FROM guild_member{} WHERE pid={} and guild_id={}", sql::raw(get_table_postfix()), p->info, p->guild));
+        db_manager::instance().async_query(sql::format("DELETE FROM guild_member WHERE pid={} and guild_id={}", p->info, p->guild));
 
-        db_manager::instance().async_query(sql::format("REPLACE INTO quest{} (dwPID, szName, szState, lValue) VALUES({}, 'guild_manage', 'withdraw_time', {})", sql::raw(get_table_postfix()), p->info, (uint32_t)current_time()));
+        db_manager::instance().async_query(sql::format("REPLACE INTO quest (dwPID, szName, szState, lValue) VALUES({}, 'guild_manage', 'withdraw_time', {})", p->info, (uint32_t)current_time()));
 
         forward_packet(HEADER_DG_GUILD_REMOVE_MEMBER, p, sizeof(packet_guild));
     }
@@ -99,15 +97,15 @@ namespace metin2::db::inline clients {
     void client_manager::guild_disband(peer *peer, packet_guild *p) {
         metin2::log::info("Guild: disbanded guild {:d}", p->guild);
 
-        db_manager::instance().async_query(sql::format("DELETE FROM guild{} WHERE id={}", sql::raw(get_table_postfix()), p->guild));
+        db_manager::instance().async_query(sql::format("DELETE FROM guild WHERE id={}", p->guild));
 
-        db_manager::instance().async_query(sql::format("DELETE FROM guild_grade{} WHERE guild_id={}", sql::raw(get_table_postfix()), p->guild));
+        db_manager::instance().async_query(sql::format("DELETE FROM guild_grade WHERE guild_id={}", p->guild));
 
-        db_manager::instance().async_query(sql::format("REPLACE INTO quest{0} (dwPID, szName, szState, lValue) SELECT pid, 'guild_manage', 'withdraw_time', {1} FROM guild_member{0} WHERE guild_id = {2}", sql::raw(get_table_postfix()), (uint32_t)current_time(), p->guild));
+        db_manager::instance().async_query(sql::format("REPLACE INTO quest (dwPID, szName, szState, lValue) SELECT pid, 'guild_manage', 'withdraw_time', {0} FROM guild_member WHERE guild_id = {1}", (uint32_t)current_time(), p->guild));
 
-        db_manager::instance().async_query(sql::format("DELETE FROM guild_member{} WHERE guild_id={}", sql::raw(get_table_postfix()), p->guild));
+        db_manager::instance().async_query(sql::format("DELETE FROM guild_member WHERE guild_id={}", p->guild));
 
-        db_manager::instance().async_query(sql::format("DELETE FROM guild_comment{} WHERE guild_id={}", sql::raw(get_table_postfix()), p->guild));
+        db_manager::instance().async_query(sql::format("DELETE FROM guild_comment WHERE guild_id={}", p->guild));
 
         forward_packet(HEADER_DG_GUILD_DISBAND, p, sizeof(packet_guild));
     }

@@ -8,8 +8,6 @@
 #include <metin2/game/characters/affect.h>
 #include <metin2/game/characters/character.h>
 #include <metin2/game/characters/character_manager.h>
-#include <metin2/game/guilds/guild.h>
-#include <metin2/game/guilds/guild_manager.h>
 #include <metin2/game/persistence/db.h>
 #include <metin2/game/protocol/buffer_manager.h>
 #include <metin2/game/protocol/desc.h>
@@ -30,7 +28,6 @@
 
 #include <cmath>
 #include <cstdint>
-#include <cstdio>
 #include <cstring>
 #include <format>
 #include <numbers>
@@ -126,7 +123,7 @@ namespace metin2::game {
             const char *board_name = lua_isstring(lua, 1) ? lua_tostring(lua, 1) : "";
             bool order = (int)lua_tonumber(lua, 2) != 0 ? true : false;
 
-            db_manager::instance().func_query([](sql_msg &) {}, sql::format("SELECT h.pid, p.name, h.value FROM highscore{} as h, player{} as p WHERE h.board = {} AND h.pid = p.id ORDER BY h.value {} LIMIT 10", sql::raw(get_table_postfix()), sql::raw(get_table_postfix()), board_name, sql::raw(order ? "DESC" : "")));
+            db_manager::instance().func_query([](sql_msg &) {}, sql::format("SELECT h.pid, p.name, h.value FROM highscore as h, player as p WHERE h.board = {} AND h.pid = p.id ORDER BY h.value {} LIMIT 10", board_name, sql::raw(order ? "DESC" : "")));
             return 0;
         }
 
@@ -156,10 +153,9 @@ namespace metin2::game {
                 }
 
                 if (query)
-                    db_manager::instance().query(sql::format("REPLACE INTO highscore{} VALUES({}, {}, {})",
-                        sql::raw(get_table_postfix()), board, pid, value));
+                    db_manager::instance().query(sql::format("REPLACE INTO highscore VALUES({}, {}, {})", board, pid, value));
             },
-                sql::format("SELECT value FROM highscore{} WHERE board={} AND pid={}", sql::raw(get_table_postfix()), board, pid));
+                sql::format("SELECT value FROM highscore WHERE board={} AND pid={}", board, pid));
             return 0;
         }
 

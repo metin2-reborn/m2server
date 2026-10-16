@@ -382,12 +382,10 @@ namespace metin2::db::inline clients {
         for (int i = 0; i < size; ++i, ++table) {
             if (table->value == 0) {
                 query = sql::format(
-                    "DELETE FROM quest{} WHERE dwPID={} AND szName={} AND szState={}",
-                    sql::raw(get_table_postfix()), table->pid, table->name, table->state);
+                    "DELETE FROM quest WHERE dwPID={} AND szName={} AND szState={}", table->pid, table->name, table->state);
             } else {
                 query = sql::format(
-                    "REPLACE INTO quest{} (dwPID, szName, szState, lValue) VALUES({}, {}, {}, {})",
-                    sql::raw(get_table_postfix()), table->pid, table->name, table->state, table->value);
+                    "REPLACE INTO quest (dwPID, szName, szState, lValue) VALUES({}, {}, {}, {})", table->pid, table->name, table->state, table->value);
             }
 
             db_manager::instance().return_query(query, [](sql_msg &) {});
@@ -403,8 +401,7 @@ namespace metin2::db::inline clients {
         strlcpy(pi->login, packet->login, sizeof(pi->login));
 
         const std::string query = sql::format(
-            "SELECT account_id, size, password FROM safebox{} WHERE account_id={}",
-            sql::raw(get_table_postfix()), packet->id);
+            "SELECT account_id, size, password FROM safebox WHERE account_id={}", packet->id);
 
         if (metin2::config::db().login_log)
             metin2::log::debug("Safebox: load request, handle {:d}, account {:d}, mall {:d}", handle_value, packet->id, mall ? 1 : 0);
@@ -465,8 +462,8 @@ namespace metin2::db::inline clients {
 
             pi->safebox = std::move(safebox_value);
 
-            const std::string query = sql::format("SELECT {} FROM item{} WHERE owner_id={} AND window={}",
-                sql::raw(item_select_columns), sql::raw(get_table_postfix()), pi->account_id, pi->ip[0] == 0 ? "SAFEBOX" : "MALL");
+            const std::string query = sql::format("SELECT {} FROM item WHERE owner_id={} AND window={}",
+                sql::raw(item_select_columns), pi->account_id, pi->ip[0] == 0 ? "SAFEBOX" : "MALL");
 
             pi->account_index = 1;
 
@@ -626,9 +623,8 @@ namespace metin2::db::inline clients {
                             }
 
                             query = sql::format(
-                                "INSERT INTO item{} (id, owner_id, window, pos, vnum, count, socket0, socket1, socket2) "
+                                "INSERT INTO item (id, owner_id, window, pos, vnum, count, socket0, socket1, socket2) "
                                 "VALUES({}, {}, {}, {}, {}, {}, {}, {}, {})",
-                                sql::raw(get_table_postfix()),
                                 gain_item_id(),
                                 pi->account_id,
                                 pi->ip[0] == 0 ? "SAFEBOX" : "MALL",
@@ -678,8 +674,8 @@ namespace metin2::db::inline clients {
         pi->account_index = p->size; // account_index carries the safebox size here.
 
         const std::string query = p->size == 1
-                                      ? sql::format("INSERT INTO safebox{} (account_id, size) VALUES({}, {})", sql::raw(get_table_postfix()), p->id, p->size)
-                                      : sql::format("UPDATE safebox{} SET size={} WHERE account_id={}", sql::raw(get_table_postfix()), p->size, p->id);
+                                      ? sql::format("INSERT INTO safebox (account_id, size) VALUES({}, {})", p->id, p->size)
+                                      : sql::format("UPDATE safebox SET size={} WHERE account_id={}", p->size, p->id);
 
         db_manager::instance().return_query(query, [this, handle = peer_value->handle(), pi = std::move(pi)](sql_msg &msg) {
             if (auto *peer_value = get_peer(handle))
@@ -705,7 +701,7 @@ namespace metin2::db::inline clients {
         strlcpy(pi->login, p->old_password, sizeof(pi->login));
         pi->account_id = p->id;
 
-        const std::string query = sql::format("SELECT password FROM safebox{} WHERE account_id={}", sql::raw(get_table_postfix()), p->id);
+        const std::string query = sql::format("SELECT password FROM safebox WHERE account_id={}", p->id);
 
         db_manager::instance().return_query(query, [this, handle = peer_value->handle(), pi = std::move(pi)](sql_msg &msg) mutable {
             if (auto *peer_value = get_peer(handle))
@@ -722,7 +718,7 @@ namespace metin2::db::inline clients {
             MYSQL_ROW row = mysql_fetch_row(msg.get()->res.get());
 
             if ((row[0] && *row[0] && !strcasecmp(row[0], p->login)) || ((!row[0] || !*row[0]) && !strcmp("000000", p->login))) {
-                const std::string query = sql::format("UPDATE safebox{} SET password={} WHERE account_id={}", sql::raw(get_table_postfix()), p->safebox_password, p->account_id);
+                const std::string query = sql::format("UPDATE safebox SET password={} WHERE account_id={}", p->safebox_password, p->account_id);
 
                 db_manager::instance().return_query(query, [this, handle = peer_value->handle(), p = std::move(p)](sql_msg &msg) {
                     if (auto *peer_value = get_peer(handle))
@@ -794,8 +790,7 @@ namespace metin2::db::inline clients {
 
     void client_manager::query_safebox_save(peer *peer_value, safebox_table *table) {
         const std::string query = sql::format(
-            "UPDATE safebox{} SET gold='{}' WHERE account_id={}",
-            sql::raw(get_table_postfix()), table->gold, table->id);
+            "UPDATE safebox SET gold='{}' WHERE account_id={}", table->gold, table->id);
 
         db_manager::instance().return_query(query, [](sql_msg &) {});
     }
@@ -806,13 +801,13 @@ namespace metin2::db::inline clients {
             return;
         }
 
-        const std::string query = sql::format("UPDATE player_index{} SET empire={} WHERE id={}", sql::raw(get_table_postfix()), p->empire, p->account_id);
+        const std::string query = sql::format("UPDATE player_index SET empire={} WHERE id={}", p->empire, p->account_id);
         db_manager::instance().direct_query(query);
 
         metin2::log::debug("Empire select: {}", query);
         {
             const std::string select_query = sql::format(
-                "SELECT pid1, pid2, pid3, pid4 FROM player_index{} WHERE id={}", sql::raw(get_table_postfix()), p->account_id);
+                "SELECT pid1, pid2, pid3, pid4 FROM player_index WHERE id={}", p->account_id);
 
             auto pmsg = db_manager::instance().direct_query(select_query);
 
@@ -847,8 +842,7 @@ namespace metin2::db::inline clients {
                         metin2::log::info("Empire select: moving pid {:d} to the village of empire {:d} (map {:d})",
                             pids[i], p->empire, g_start_map[p->empire]);
 
-                        const std::string move_query = sql::format("UPDATE player{} SET map_index={},x={},y={} WHERE id={}",
-                            sql::raw(get_table_postfix()),
+                        const std::string move_query = sql::format("UPDATE player SET map_index={},x={},y={} WHERE id={}",
                             g_start_map[p->empire],
                             g_start_position[p->empire][0],
                             g_start_position[p->empire][1],
@@ -1211,7 +1205,7 @@ namespace metin2::db::inline clients {
         uint32_t pid_value = *(uint32_t *)data;
 
         if (!delete_item_cache(id_value)) {
-            const std::string query = sql::format("DELETE FROM item{} WHERE id={}", sql::raw(get_table_postfix()), id_value);
+            const std::string query = sql::format("DELETE FROM item WHERE id={}", id_value);
 
             if (metin2::config::db().login_log)
                 metin2::log::info("Item cache: deleting item {1:d} of pid {0:d}", pid_value, id_value);
@@ -1409,8 +1403,7 @@ namespace metin2::db::inline clients {
         using namespace building;
 
         const std::string query = sql::format(
-            "INSERT INTO object{} (land_id, vnum, map_index, x, y, x_rot, y_rot, z_rot) VALUES({}, {}, {}, {}, {}, {:f}, {:f}, {:f})",
-            sql::raw(get_table_postfix()), p->land_id, p->vnum, p->map_index, p->x, p->y, p->x_rot, p->y_rot, p->z_rot);
+            "INSERT INTO object (land_id, vnum, map_index, x, y, x_rot, y_rot, z_rot) VALUES({}, {}, {}, {}, {}, {:f}, {:f}, {:f})", p->land_id, p->vnum, p->map_index, p->x, p->y, p->x_rot, p->y_rot, p->z_rot);
 
         auto pmsg = db_manager::instance().direct_query(query);
 
@@ -1440,7 +1433,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::delete_object(uint32_t id) {
-        const std::string query = sql::format("DELETE FROM object{} WHERE id={}", sql::raw(get_table_postfix()), id);
+        const std::string query = sql::format("DELETE FROM object WHERE id={}", id);
 
         auto pmsg = db_manager::instance().direct_query(query);
 
@@ -1466,7 +1459,7 @@ namespace metin2::db::inline clients {
         if (p == vec_land_table_.end())
             return;
 
-        const std::string query = sql::format("UPDATE land{} SET guild_id={} WHERE id={}", sql::raw(get_table_postfix()), guild, id_value);
+        const std::string query = sql::format("UPDATE land SET guild_id={} WHERE id={}", guild, id_value);
         db_manager::instance().async_query(query);
 
         p->guild_id = guild;
@@ -1474,7 +1467,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::block_chat(packet_block_chat *p) {
-        const std::string query = sql::format("SELECT id FROM player{} WHERE name = {}", sql::raw(get_table_postfix()), p->name);
+        const std::string query = sql::format("SELECT id FROM player WHERE name = {}", p->name);
         auto pmsg = db_manager::instance().direct_query(query);
         sql_result *res = pmsg->get();
 
@@ -1550,7 +1543,7 @@ namespace metin2::db::inline clients {
 
             std::memcpy(update_table_value->price_info, packet->price_info, sizeof(item_price_info) * packet->count);
 
-            const std::string query = sql::format("SELECT item_vnum, price FROM myshop_pricelist{} WHERE owner_id={}", sql::raw(get_table_postfix()), packet->owner_id);
+            const std::string query = sql::format("SELECT item_vnum, price FROM myshop_pricelist WHERE owner_id={}", packet->owner_id);
             db_manager::instance().return_query(query, [this, update_table = std::move(update_table_value)](sql_msg &msg) {
                 result_pricelist_load_for_update(msg, *update_table);
             });
@@ -1577,7 +1570,7 @@ namespace metin2::db::inline clients {
         } else {
             metin2::log::debug("Price list: loading list for handle {:d}, pid {:d}", handle_value, player_id);
 
-            const std::string query = sql::format("SELECT item_vnum, price FROM myshop_pricelist{} WHERE owner_id={}", sql::raw(get_table_postfix()), player_id);
+            const std::string query = sql::format("SELECT item_vnum, price FROM myshop_pricelist WHERE owner_id={}", player_id);
             db_manager::instance().return_query(query, [this, handle = peer->handle(), req_info = item_pricelist_req_info(handle_value, player_id)](sql_msg &msg) {
                 if (auto *peer_value = get_peer(handle))
                     result_pricelist_load(peer_value, msg, req_info);
@@ -2554,9 +2547,9 @@ namespace metin2::db::inline clients {
 
     void client_manager::change_monarch_lord(peer *peer, uint32_t handle, packet_change_monarch_lord *info) {
         const std::string query = sql::format(
-            "SELECT a.name, NOW() FROM player{0} AS a, player_index{0} AS b WHERE (a.account_id=b.id AND a.id={1} AND b.empire={2}) AND "
-            "(b.pid1={1} OR b.pid2={1} OR b.pid3={1} OR b.pid4={1})",
-            sql::raw(get_table_postfix()), info->pid, info->empire);
+            "SELECT a.name, NOW() FROM player AS a, player_index AS b WHERE (a.account_id=b.id AND a.id={0} AND b.empire={1}) AND "
+            "(b.pid1={0} OR b.pid2={0} OR b.pid3={0} OR b.pid4={0})",
+            info->pid, info->empire);
 
         auto msg = db_manager::instance().direct_query(query, SQL_PLAYER);
 

@@ -2791,7 +2791,7 @@ namespace metin2::game::inline characters {
                     if (prob <= info[i].prob) {
                         if (info[i].vnum == 50001) {
                             db_manager::instance().func_query([pid = player_id(), vnum = info[i].vnum, count = info[i].count](sql_msg &msg) { give_lotto_ticket_result(msg, pid, vnum, count, 0); },
-                                sql::format("INSERT INTO lotto_list VALUES(0, 'server{}', {}, NOW())", sql::raw(get_table_postfix()), player_id()));
+                                sql::format("INSERT INTO lotto_list VALUES(0, 'server', {}, NOW())", player_id()));
                         } else
                             auto_give_item(info[i].vnum, info[i].count);
 

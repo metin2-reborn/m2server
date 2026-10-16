@@ -23,7 +23,6 @@ namespace metin2::config {
         std::uint16_t port = 3306;
         std::string user;
         std::string password;
-        std::string table_postfix;
 
         std::string account = "account";
         std::string common = "common";

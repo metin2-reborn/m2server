@@ -76,11 +76,10 @@ namespace metin2::db::inline clients {
 
     auto create_item_save_query(const player_item &item) -> std::string {
         return sql::format(
-            "REPLACE INTO item{} (id, owner_id, window, pos, count, vnum, socket0, socket1, socket2, "
+            "REPLACE INTO item (id, owner_id, window, pos, count, vnum, socket0, socket1, socket2, "
             "attrtype0, attrvalue0, attrtype1, attrvalue1, attrtype2, attrvalue2, attrtype3, attrvalue3, "
             "attrtype4, attrvalue4, attrtype5, attrvalue5, attrtype6, attrvalue6) "
             "VALUES({}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {})",
-            sql::raw(get_table_postfix()),
             item.id, item.owner, item.window, item.pos, item.count, item.vnum,
             static_cast<uint32_t>(item.sockets[0]), static_cast<uint32_t>(item.sockets[1]), static_cast<uint32_t>(item.sockets[2]),
             item.attr[0].type, item.attr[0].s_value,
@@ -94,7 +93,7 @@ namespace metin2::db::inline clients {
 
     auto create_player_save_query(const player_table *tab) -> std::string {
         return sql::format(
-            "UPDATE player{} SET "
+            "UPDATE player SET "
             "job = {}, "
             "voice = {}, "
             "dir = {}, "
@@ -138,7 +137,6 @@ namespace metin2::db::inline clients {
             "skill_level = {}, "
             "quickslot = {} "
             " WHERE id={}",
-            sql::raw(get_table_postfix()),
             tab->job,
             tab->voice,
             tab->dir,
@@ -282,25 +280,21 @@ namespace metin2::db::inline clients {
                     peer->encode(s_items.data(), sizeof(player_item) * count);
                 }
 
-                query = sql::format("SELECT dwPID,szName,szState,lValue FROM quest{} WHERE dwPID={} AND lValue<>0",
-                    sql::raw(get_table_postfix()), tab->id);
+                query = sql::format("SELECT dwPID,szName,szState,lValue FROM quest WHERE dwPID={} AND lValue<>0", tab->id);
 
                 return_composite_query(query, QID_QUEST, std::make_unique<client_handle_info>(handle_value, 0, packet->account_id));
 
-                query = sql::format("SELECT dwPID,bType,bApplyOn,lApplyValue,dwFlag,lDuration,lSPCost FROM affect{} WHERE dwPID={}",
-                    sql::raw(get_table_postfix()), tab->id);
+                query = sql::format("SELECT dwPID,bType,bApplyOn,lApplyValue,dwFlag,lDuration,lSPCost FROM affect WHERE dwPID={}", tab->id);
                 return_composite_query(query, QID_AFFECT, std::make_unique<client_handle_info>(handle_value));
             } else {
-                query = sql::format("SELECT {} FROM item{} WHERE owner_id={} AND (window < {} or window = {})",
-                    sql::raw(item_select_columns), sql::raw(get_table_postfix()), tab->id, SAFEBOX, DRAGON_SOUL_INVENTORY);
+                query = sql::format("SELECT {} FROM item WHERE owner_id={} AND (window < {} or window = {})",
+                    sql::raw(item_select_columns), tab->id, SAFEBOX, DRAGON_SOUL_INVENTORY);
 
                 return_composite_query(query, QID_ITEM, std::make_unique<client_handle_info>(handle_value, tab->id));
-                query = sql::format("SELECT dwPID, szName, szState, lValue FROM quest{} WHERE dwPID={}",
-                    sql::raw(get_table_postfix()), tab->id);
+                query = sql::format("SELECT dwPID, szName, szState, lValue FROM quest WHERE dwPID={}", tab->id);
 
                 return_composite_query(query, QID_QUEST, std::make_unique<client_handle_info>(handle_value, tab->id));
-                query = sql::format("SELECT dwPID, bType, bApplyOn, lApplyValue, dwFlag, lDuration, lSPCost FROM affect{} WHERE dwPID={}",
-                    sql::raw(get_table_postfix()), tab->id);
+                query = sql::format("SELECT dwPID, bType, bApplyOn, lApplyValue, dwFlag, lDuration, lSPCost FROM affect WHERE dwPID={}", tab->id);
 
                 return_composite_query(query, QID_AFFECT, std::make_unique<client_handle_info>(handle_value, tab->id));
             }
@@ -312,22 +306,20 @@ namespace metin2::db::inline clients {
                                             "gold,level,level_step,st,ht,dx,iq,exp,"
                                             "stat_point,skill_point,sub_skill_point,stat_reset_count,part_base,part_hair,"
                                             "skill_level,quickslot,skill_group,alignment,mobile,horse_level,horse_riding,horse_hp,horse_hp_droptime,horse_stamina,"
-                                            "UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(last_play),horse_skill_point FROM player{} WHERE id={}",
-                sql::raw(get_table_postfix()), packet->player_id);
+                                            "UNIX_TIMESTAMP(NOW())-UNIX_TIMESTAMP(last_play),horse_skill_point FROM player WHERE id={}",
+                packet->player_id);
 
             auto info = std::make_unique<client_handle_info>(handle_value, packet->player_id);
             info->account_id = packet->account_id;
             return_composite_query(query, QID_PLAYER, std::move(info));
 
-            query = sql::format("SELECT {} FROM item{} WHERE owner_id={} AND (window < {} or window = {})",
-                sql::raw(item_select_columns), sql::raw(get_table_postfix()), packet->player_id, SAFEBOX, DRAGON_SOUL_INVENTORY);
+            query = sql::format("SELECT {} FROM item WHERE owner_id={} AND (window < {} or window = {})",
+                sql::raw(item_select_columns), packet->player_id, SAFEBOX, DRAGON_SOUL_INVENTORY);
             return_composite_query(query, QID_ITEM, std::make_unique<client_handle_info>(handle_value, packet->player_id));
 
-            query = sql::format("SELECT dwPID,szName,szState,lValue FROM quest{} WHERE dwPID={}",
-                sql::raw(get_table_postfix()), packet->player_id);
+            query = sql::format("SELECT dwPID,szName,szState,lValue FROM quest WHERE dwPID={}", packet->player_id);
             return_composite_query(query, QID_QUEST, std::make_unique<client_handle_info>(handle_value, packet->player_id, packet->account_id));
-            query = sql::format("SELECT dwPID,bType,bApplyOn,lApplyValue,dwFlag,lDuration,lSPCost FROM affect{} WHERE dwPID={}",
-                sql::raw(get_table_postfix()), packet->player_id);
+            query = sql::format("SELECT dwPID,bType,bApplyOn,lApplyValue,dwFlag,lDuration,lSPCost FROM affect WHERE dwPID={}", packet->player_id);
             return_composite_query(query, QID_AFFECT, std::make_unique<client_handle_info>(handle_value, packet->player_id));
         }
     }
@@ -649,10 +641,8 @@ namespace metin2::db::inline clients {
             }
         }
 
-        const auto postfix = sql::raw(get_table_postfix());
-
         std::string query = sql::format(
-            "SELECT pid{} FROM player_index{} WHERE id={}", packet->account_index + 1, postfix, packet->account_id);
+            "SELECT pid{} FROM player_index WHERE id={}", packet->account_index + 1, packet->account_id);
 
         auto msg0 = db_manager::instance().direct_query(query);
 
@@ -677,7 +667,7 @@ namespace metin2::db::inline clients {
         }
 
         query = sql::format(
-            "SELECT COUNT(*) as count FROM player{} WHERE name={}", postfix, packet->player_table.name);
+            "SELECT COUNT(*) as count FROM player WHERE name={}", packet->player_table.name);
 
         auto msg1 = db_manager::instance().direct_query(query);
 
@@ -700,7 +690,7 @@ namespace metin2::db::inline clients {
         }
 
         query = sql::format(
-            "INSERT INTO player{} "
+            "INSERT INTO player "
             "(id, account_id, name, level, st, ht, dx, iq, "
             "job, voice, dir, x, y, z, "
             "hp, mp, random_hp, random_sp, stat_point, stamina, part_base, part_main, part_hair, gold, playtime, "
@@ -709,7 +699,6 @@ namespace metin2::db::inline clients {
             "{}, {}, {}, {}, {}, {}, {}, "
             "{}, {}, {}, {}, {}, {}, {}, 0, {}, 0, "
             "{}, {})",
-            postfix,
             packet->account_id, packet->player_table.name, packet->player_table.level, packet->player_table.st, packet->player_table.ht, packet->player_table.dx, packet->player_table.iq,
             packet->player_table.job, packet->player_table.voice, packet->player_table.dir, packet->player_table.x, packet->player_table.y, packet->player_table.z,
             packet->player_table.hp, packet->player_table.sp, packet->player_table.s_random_hp, packet->player_table.s_random_sp, packet->player_table.stat_point, packet->player_table.stamina, packet->player_table.part_base, packet->player_table.part_base, packet->player_table.gold,
@@ -738,14 +727,13 @@ namespace metin2::db::inline clients {
 
         player_id = msg2->get()->insert_id;
 
-        query = sql::format("UPDATE player_index{} SET pid{}={} WHERE id={}",
-            postfix, packet->account_index + 1, player_id, packet->account_id);
+        query = sql::format("UPDATE player_index SET pid{}={} WHERE id={}", packet->account_index + 1, player_id, packet->account_id);
         auto msg3 = db_manager::instance().direct_query(query);
 
         if (msg3->get()->affected_rows <= 0) {
             metin2::log::error("Player create: cannot update player_index, rolling back: {}", query);
 
-            query = sql::format("DELETE FROM player{} WHERE id={}", postfix, player_id);
+            query = sql::format("DELETE FROM player WHERE id={}", player_id);
             db_manager::instance().direct_query(query);
 
             peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, handle, 0);
@@ -819,8 +807,7 @@ namespace metin2::db::inline clients {
             }
         }
 
-        const std::string query = sql::format("SELECT p.id, p.level, p.name FROM player_index{0} AS i, player{0} AS p WHERE pid{1}={2} AND pid{1}=p.id",
-            sql::raw(get_table_postfix()), packet->account_index + 1, packet->player_id);
+        const std::string query = sql::format("SELECT p.id, p.level, p.name FROM player_index AS i, player AS p WHERE pid{0}={1} AND pid{0}=p.id", packet->account_index + 1, packet->player_id);
 
         auto pi = std::make_unique<client_handle_info>(handle_value, packet->player_id);
         pi->account_index = packet->account_index;
@@ -858,14 +845,11 @@ namespace metin2::db::inline clients {
                 return;
             }
 
-            const auto postfix = sql::raw(get_table_postfix());
-
-            std::string query = sql::format("INSERT INTO player{}_deleted SELECT * FROM player{} WHERE id={}",
-                postfix, postfix, pi.player_id);
+            std::string query = sql::format("INSERT INTO player_deleted SELECT * FROM player WHERE id={}", pi.player_id);
             auto ins = db_manager::instance().direct_query(query);
 
             if (ins->get()->affected_rows == 0 || ins->get()->affected_rows == (uint32_t)-1) {
-                metin2::log::error("Player delete: cannot copy pid {:d} into player{}_deleted", pid_value, get_table_postfix());
+                metin2::log::error("Player delete: cannot copy pid {:d} into player_deleted", pid_value);
 
                 peer->encode_header(HEADER_DG_PLAYER_DELETE_FAILED, pi.handle, 1);
                 peer->encode_byte(pi.account_index);
@@ -895,8 +879,7 @@ namespace metin2::db::inline clients {
                 map_item_cache_set_ptr_.erase(pi.player_id);
             }
 
-            query = sql::format("UPDATE player_index{} SET pid{}=0 WHERE pid{}={}",
-                postfix,
+            query = sql::format("UPDATE player_index SET pid{}=0 WHERE pid{}={}",
                 pi.account_index + 1,
                 pi.account_index + 1,
                 pi.player_id);
@@ -910,25 +893,25 @@ namespace metin2::db::inline clients {
                 return;
             }
 
-            query = sql::format("DELETE FROM player{} WHERE id={}", postfix, pi.player_id);
+            query = sql::format("DELETE FROM player WHERE id={}", pi.player_id);
             db_manager::instance().direct_query(query);
 
-            query = sql::format("DELETE FROM item{} WHERE owner_id={} AND (window < {} or window = {})", postfix, pi.player_id, SAFEBOX, DRAGON_SOUL_INVENTORY);
+            query = sql::format("DELETE FROM item WHERE owner_id={} AND (window < {} or window = {})", pi.player_id, SAFEBOX, DRAGON_SOUL_INVENTORY);
             db_manager::instance().direct_query(query);
 
-            query = sql::format("DELETE FROM quest{} WHERE dwPID={}", postfix, pi.player_id);
+            query = sql::format("DELETE FROM quest WHERE dwPID={}", pi.player_id);
             db_manager::instance().async_query(query);
 
-            query = sql::format("DELETE FROM affect{} WHERE dwPID={}", postfix, pi.player_id);
+            query = sql::format("DELETE FROM affect WHERE dwPID={}", pi.player_id);
             db_manager::instance().async_query(query);
 
-            query = sql::format("DELETE FROM guild_member{} WHERE pid={}", postfix, pi.player_id);
+            query = sql::format("DELETE FROM guild_member WHERE pid={}", pi.player_id);
             db_manager::instance().async_query(query);
 
-            query = sql::format("DELETE FROM myshop_pricelist{} WHERE owner_id={}", postfix, pi.player_id);
+            query = sql::format("DELETE FROM myshop_pricelist WHERE owner_id={}", pi.player_id);
             db_manager::instance().async_query(query);
 
-            query = sql::format("DELETE FROM messenger_list{} WHERE account={} OR companion={}", postfix, name, name);
+            query = sql::format("DELETE FROM messenger_list WHERE account={} OR companion={}", name, name);
             db_manager::instance().async_query(query);
 
             peer->encode_header(HEADER_DG_PLAYER_DELETE_SUCCESS, pi.handle, 1);
@@ -942,9 +925,8 @@ namespace metin2::db::inline clients {
 
     void client_manager::query_add_affect(peer *peer, packet_gd_add_affect *p) {
         const std::string query = sql::format(
-            "REPLACE INTO affect{} (dwPID, bType, bApplyOn, lApplyValue, dwFlag, lDuration, lSPCost) "
+            "REPLACE INTO affect (dwPID, bType, bApplyOn, lApplyValue, dwFlag, lDuration, lSPCost) "
             "VALUES({}, {}, {}, {}, {}, {}, {})",
-            sql::raw(get_table_postfix()),
             p->pid,
             p->elem.type,
             p->elem.apply_on,
@@ -958,14 +940,13 @@ namespace metin2::db::inline clients {
 
     void client_manager::query_remove_affect(peer *peer, packet_gd_remove_affect *p) {
         const std::string query = sql::format(
-            "DELETE FROM affect{} WHERE dwPID={} AND bType={} AND bApplyOn={}",
-            sql::raw(get_table_postfix()), p->pid, p->type, p->apply_on);
+            "DELETE FROM affect WHERE dwPID={} AND bType={} AND bApplyOn={}", p->pid, p->type, p->apply_on);
 
         db_manager::instance().async_query(query);
     }
 
     void client_manager::query_highscore_register(peer *peer, packet_gd_highscore *data) {
-        const std::string query = sql::format("SELECT value FROM highscore{} WHERE board={} AND pid = {}", sql::raw(get_table_postfix()), data->board, data->pid);
+        const std::string query = sql::format("SELECT value FROM highscore WHERE board={} AND pid = {}", data->board, data->pid);
 
         metin2::log::debug("Highscore: register for pid {:d}", data->pid);
 
@@ -991,7 +972,7 @@ namespace metin2::db::inline clients {
         sql_result *res = msg.get();
 
         if (res->num_rows == 0) {
-            const std::string query = sql::format("INSERT INTO highscore{} VALUES({}, {}, {})", sql::raw(get_table_postfix()), board, pi.player_id, value);
+            const std::string query = sql::format("INSERT INTO highscore VALUES({}, {}, {})", board, pi.player_id, value);
             db_manager::instance().async_query(query);
         } else {
             if (!res->res.get()) {
@@ -1005,11 +986,11 @@ namespace metin2::db::inline clients {
                 if ((pi.account_index && current_value >= value) || (!pi.account_index && current_value <= value)) {
                     value = current_value;
                 } else {
-                    const std::string query = sql::format("REPLACE INTO highscore{} VALUES({}, {}, {})", sql::raw(get_table_postfix()), board, pi.player_id, value);
+                    const std::string query = sql::format("REPLACE INTO highscore VALUES({}, {}, {})", board, pi.player_id, value);
                     db_manager::instance().async_query(query);
                 }
             } else {
-                const std::string query = sql::format("INSERT INTO highscore{} VALUES({}, {}, {})", sql::raw(get_table_postfix()), board, pi.player_id, value);
+                const std::string query = sql::format("INSERT INTO highscore VALUES({}, {}, {})", board, pi.player_id, value);
                 db_manager::instance().async_query(query);
             }
         }

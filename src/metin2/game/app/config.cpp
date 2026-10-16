@@ -338,10 +338,6 @@ namespace metin2::game::inline app {
         war_map_manager::instance().load_war_map_info(nullptr);
     }
 
-    auto get_table_postfix() -> const char * {
-        return metin2::config::database().table_postfix.c_str();
-    }
-
     void check_client_version() {
         check_client_version_enabled = true;
 

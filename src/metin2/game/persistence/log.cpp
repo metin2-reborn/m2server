@@ -2,7 +2,6 @@
 #include <metin2/game/persistence/log.h>
 #include <metin2/log/log.h>
 
-#include <metin2/game/app/config.h>
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/characters/character.h>
 #include <metin2/game/items/item.h>
@@ -47,8 +46,7 @@ namespace metin2::game::inline persistence {
     }
 
     void log_manager::item_log(uint32_t pid, uint32_t x, uint32_t y, uint32_t item_id, const char *text, const char *hint, const char *ip, uint32_t vnum) {
-        query(sql::format("INSERT DELAYED INTO log{} (type, time, who, x, y, what, how, hint, ip, vnum) VALUES('ITEM', NOW(), {}, {}, {}, {}, {}, {}, {}, {})",
-            sql::raw(get_table_postfix()), pid, x, y, item_id, or_empty(text), hint, or_empty(ip), vnum));
+        query(sql::format("INSERT DELAYED INTO log (type, time, who, x, y, what, how, hint, ip, vnum) VALUES('ITEM', NOW(), {}, {}, {}, {}, {}, {}, {}, {})", pid, x, y, item_id, or_empty(text), hint, or_empty(ip), vnum));
     }
 
     void log_manager::item_log(character *ch, item *item, const char *text, const char *hint) {
@@ -68,8 +66,7 @@ namespace metin2::game::inline persistence {
     }
 
     void log_manager::char_log(uint32_t pid, uint32_t x, uint32_t y, uint32_t value, const char *text, const char *hint, const char *ip) {
-        query(sql::format("INSERT DELAYED INTO log{} (type, time, who, x, y, what, how, hint, ip) VALUES('CHARACTER', NOW(), {}, {}, {}, {}, {}, {}, {})",
-            sql::raw(get_table_postfix()), pid, x, y, value, or_empty(text), hint, or_empty(ip)));
+        query(sql::format("INSERT DELAYED INTO log (type, time, who, x, y, what, how, hint, ip) VALUES('CHARACTER', NOW(), {}, {}, {}, {}, {}, {}, {})", pid, x, y, value, or_empty(text), hint, or_empty(ip)));
     }
 
     void log_manager::char_log(character *ch, uint32_t dw, const char *text, const char *hint) {
@@ -85,7 +82,7 @@ namespace metin2::game::inline persistence {
             return;
         }
 
-        query(sql::format("INSERT DELAYED INTO money_log{} VALUES (NOW(), {}, {}, {})", sql::raw(get_table_postfix()), type, vnum, gold));
+        query(sql::format("INSERT DELAYED INTO money_log VALUES (NOW(), {}, {}, {})", type, vnum, gold));
     }
 
     void log_manager::hack_log(const char *hack_name, const char *login, const char *name, const char *ip) {
@@ -138,41 +135,39 @@ namespace metin2::game::inline persistence {
             break;
         }
 
-        query(sql::format("INSERT DELAYED INTO goldlog{} (date, time, pid, what, how, hint) VALUES(CURDATE(), CURTIME(), {}, {}, {}, {})",
-            sql::raw(get_table_postfix()), pid, item_id, how_value, hint));
+        query(sql::format("INSERT DELAYED INTO goldlog (date, time, pid, what, how, hint) VALUES(CURDATE(), CURTIME(), {}, {}, {}, {})", pid, item_id, how_value, hint));
     }
 
     void log_manager::cube_log(uint32_t pid, uint32_t x, uint32_t y, uint32_t item_vnum, uint32_t item_uid, int item_count, bool success) {
-        query(sql::format("INSERT DELAYED INTO cube{} (pid, time, x, y, item_vnum, item_uid, item_count, success) "
+        query(sql::format("INSERT DELAYED INTO cube (pid, time, x, y, item_vnum, item_uid, item_count, success) "
                           "VALUES({}, NOW(), {}, {}, {}, {}, {}, {})",
-            sql::raw(get_table_postfix()), pid, x, y, item_vnum, item_uid, item_count, success ? 1 : 0));
+            pid, x, y, item_vnum, item_uid, item_count, success ? 1 : 0));
     }
 
     void log_manager::speed_hack_log(uint32_t pid, uint32_t x, uint32_t y, int hack_count) {
-        query(sql::format("INSERT INTO speed_hack{} (pid, time, x, y, hack_count) "
+        query(sql::format("INSERT INTO speed_hack (pid, time, x, y, hack_count) "
                           "VALUES({}, NOW(), {}, {}, {})",
-            sql::raw(get_table_postfix()), pid, x, y, hack_count));
+            pid, x, y, hack_count));
     }
 
     void log_manager::change_name_log(uint32_t pid, const char *old_name, const char *new_name, const char *ip) {
-        query(sql::format("INSERT DELAYED INTO change_name{} (pid, old_name, new_name, time, ip) "
+        query(sql::format("INSERT DELAYED INTO change_name (pid, old_name, new_name, time, ip) "
                           "VALUES({}, {}, {}, NOW(), {}) ",
-            sql::raw(get_table_postfix()), pid, old_name, new_name, ip));
+            pid, old_name, new_name, ip));
     }
 
     void log_manager::gm_command_log(uint32_t pid, const char *name, const char *ip, uint8_t channel, const char *command) {
-        query(sql::format("INSERT DELAYED INTO command_log{} (userid, server, ip, port, username, command, date ) "
+        query(sql::format("INSERT DELAYED INTO command_log (userid, server, ip, port, username, command, date ) "
                           "VALUES({}, 999, {}, {}, {}, {}, NOW()) ",
-            sql::raw(get_table_postfix()), pid, ip, channel, name, command));
+            pid, ip, channel, name, command));
     }
 
     void log_manager::refine_log(uint32_t pid, const char *item_name, uint32_t item_id, int item_refine_level, int is_success, const char *how) {
-        query(sql::format("INSERT INTO refinelog{} (pid, item_name, item_id, step, time, is_success, setType) VALUES({}, {}, {}, {}, NOW(), {}, {})",
-            sql::raw(get_table_postfix()), pid, item_name, item_id, item_refine_level, is_success, how));
+        query(sql::format("INSERT INTO refinelog (pid, item_name, item_id, step, time, is_success, setType) VALUES({}, {}, {}, {}, NOW(), {}, {})", pid, item_name, item_id, item_refine_level, is_success, how));
     }
 
     void log_manager::shout_log(uint8_t channel, uint8_t empire, const char *text) {
-        query(sql::format("INSERT INTO shout_log{} VALUES(NOW(), {}, {},{})", sql::raw(get_table_postfix()), channel, empire, text));
+        query(sql::format("INSERT INTO shout_log VALUES(NOW(), {}, {},{})", channel, empire, text));
     }
 
     void log_manager::level_log(character *ch, unsigned int level, unsigned int playhour) {
@@ -182,8 +177,7 @@ namespace metin2::game::inline persistence {
             aid = ch->get_desc()->get_account_table().id;
         }
 
-        query(sql::format("REPLACE INTO levellog{} (name, level, time, account_id, pid, playtime) VALUES({}, {}, NOW(), {}, {}, {})",
-            sql::raw(get_table_postfix()), ch->name(), level, aid, ch->player_id(), playhour));
+        query(sql::format("REPLACE INTO levellog (name, level, time, account_id, pid, playtime) VALUES({}, {}, NOW(), {}, {}, {})", ch->name(), level, aid, ch->player_id(), playhour));
     }
 
     void log_manager::boot_log(const char *host_name, uint8_t channel) {
@@ -192,8 +186,7 @@ namespace metin2::game::inline persistence {
     }
 
     void log_manager::fish_log(uint32_t pid, int prob_idx, int fish_id, int fish_level, uint32_t miliseconds, uint32_t vnum, uint32_t value) {
-        query(sql::format("INSERT INTO fish_log{} VALUES(NOW(), {}, {}, {}, {}, {}, {}, {})",
-            sql::raw(get_table_postfix()),
+        query(sql::format("INSERT INTO fish_log VALUES(NOW(), {}, {}, {}, {}, {}, {}, {})",
             pid,
             prob_idx,
             fish_id,
@@ -204,8 +197,7 @@ namespace metin2::game::inline persistence {
     }
 
     void log_manager::quest_reward_log(const char *quest_name, uint32_t pid, uint32_t level, int value1, int value2) {
-        query(sql::format("INSERT INTO quest_reward_log{} VALUES({},{},{},2,{},{},NOW())",
-            sql::raw(get_table_postfix()),
+        query(sql::format("INSERT INTO quest_reward_log VALUES({},{},{},2,{},{},NOW())",
             quest_name,
             pid,
             level,
@@ -236,8 +228,7 @@ namespace metin2::game::inline persistence {
     }
 
     void log_manager::dragon_slay_log(uint32_t guild_id, uint32_t dragon_vnum, uint32_t start_time, uint32_t end_time) {
-        query(sql::format("INSERT INTO dragon_slay_log{} VALUES( {}, {}, FROM_UNIXTIME({}), FROM_UNIXTIME({}) )",
-            sql::raw(get_table_postfix()),
+        query(sql::format("INSERT INTO dragon_slay_log VALUES( {}, {}, FROM_UNIXTIME({}), FROM_UNIXTIME({}) )",
             guild_id, dragon_vnum, start_time, end_time));
     }
 

@@ -1,7 +1,6 @@
 
 #include <metin2/db/caches/cache.h>
 
-#include <metin2/db/app/main.h>
 #include <metin2/db/clients/client_manager.h>
 #include <metin2/db/storage/db_manager.h>
 
@@ -42,7 +41,7 @@ namespace metin2::db::inline caches {
 
     void item_cache::on_flush() {
         if (data_.vnum == 0) {
-            const auto query = sql::format("DELETE FROM item{} WHERE id={}", sql::raw(get_table_postfix()), data_.id);
+            const auto query = sql::format("DELETE FROM item WHERE id={}", data_.id);
 
             db_manager::instance().return_query(query, [](sql_msg &) {});
 
@@ -131,13 +130,12 @@ namespace metin2::db::inline caches {
     }
 
     void item_price_list_table_cache::on_flush() {
-        const auto query = sql::format("DELETE FROM myshop_pricelist{} WHERE owner_id = {}", sql::raw(get_table_postfix()), data_.owner_id);
+        const auto query = sql::format("DELETE FROM myshop_pricelist WHERE owner_id = {}", data_.owner_id);
         db_manager::instance().return_query(query, [](sql_msg &) {});
 
         for (int idx = 0; idx < data_.count; ++idx) {
             const auto replace_query = sql::format(
-                "REPLACE myshop_pricelist{} (owner_id, item_vnum, price) VALUES({}, {}, {})",
-                sql::raw(get_table_postfix()), data_.owner_id, data_.price_info[idx].vnum, data_.price_info[idx].price);
+                "REPLACE myshop_pricelist (owner_id, item_vnum, price) VALUES({}, {}, {})", data_.owner_id, data_.price_info[idx].vnum, data_.price_info[idx].price);
 
             db_manager::instance().return_query(replace_query, [](sql_msg &) -> void {});
         }

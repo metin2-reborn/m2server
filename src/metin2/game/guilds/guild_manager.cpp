@@ -2,7 +2,6 @@
 #include <metin2/game/guilds/guild_manager.h>
 
 #include <metin2/game/admin/cmd.h>
-#include <metin2/game/app/config.h>
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/app/utils.h>
 #include <metin2/game/characters/character.h>
@@ -34,7 +33,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <format>
-#include <functional>
 #include <iterator>
 #include <memory>
 #include <string>
@@ -71,8 +69,7 @@ namespace metin2::game::inline guilds {
             return 0;
         }
 
-        std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(sql::format("SELECT COUNT(*) FROM guild{} WHERE name = {}",
-            sql::raw(get_table_postfix()), gcp.name)));
+        std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(sql::format("SELECT COUNT(*) FROM guild WHERE name = {}", gcp.name)));
 
         if (pmsg->get()->num_rows > 0) {
             MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res.get());
@@ -172,7 +169,7 @@ namespace metin2::game::inline guilds {
             return;
         }
 
-        auto pmsg = db_manager::instance().direct_query(sql::format("SELECT id FROM guild{}", sql::raw(get_table_postfix())));
+        auto pmsg = db_manager::instance().direct_query(sql::format("SELECT id FROM guild"));
 
         for (uint i = 0; i < pmsg->get()->num_rows; i++) {
             MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res.get());

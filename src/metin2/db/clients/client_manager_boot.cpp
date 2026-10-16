@@ -10,7 +10,6 @@
 #include <metin2/log/log.h>
 #include <metin2/proto/apply_types.h>
 #include <metin2/proto/building.h>
-#include <metin2/proto/character_types.h>
 #include <metin2/proto/item_types.h>
 #include <metin2/proto/shop_types.h>
 #include <metin2/proto/tables.h>
@@ -121,8 +120,8 @@ namespace metin2::db::inline clients {
 
         auto load_item_attr_table(const char *table_name, std::vector<item_attr_table> &tables) -> bool {
             const auto query = sql::format(
-                "SELECT apply, apply+0, prob, lv1, lv2, lv3, lv4, lv5, weapon, body, wrist, foots, neck, head, shield, ear FROM {}{} ORDER BY apply",
-                sql::raw(table_name), sql::raw(get_table_postfix()));
+                "SELECT apply, apply+0, prob, lv1, lv2, lv3, lv4, lv5, weapon, body, wrist, foots, neck, head, shield, ear FROM {} ORDER BY apply",
+                sql::raw(table_name));
 
             auto msg = db_manager::instance().direct_query(query);
             sql_result *res = msg->get();
@@ -268,8 +267,7 @@ namespace metin2::db::inline clients {
 
     auto client_manager::initialize_refine_table() -> bool {
         const auto query = sql::format(
-            "SELECT id, cost, prob, vnum0, count0, vnum1, count1, vnum2, count2,  vnum3, count3, vnum4, count4 FROM refine_proto{}",
-            sql::raw(get_table_postfix()));
+            "SELECT id, cost, prob, vnum0, count0, vnum1, count1, vnum2, count2,  vnum3, count3, vnum4, count4 FROM refine_proto");
 
         auto msg = db_manager::instance().direct_query(query);
         sql_result *res = msg->get();
@@ -465,8 +463,7 @@ namespace metin2::db::inline clients {
             "szPointOn2, szPointPoly2, szDurationPoly2, setAffectFlag2+0, "
             "szPointOn3, szPointPoly3, szDurationPoly3, szGrandMasterAddSPCostPoly, "
             "bLevelStep, bLevelLimit, prerequisiteSkillVnum, prerequisiteSkillLevel, iMaxHit, szSplashAroundDamageAdjustPoly, eSkillType+0, dwTargetRange "
-            "FROM skill_proto{} ORDER BY dwVnum",
-            sql::raw(get_table_postfix()));
+            "FROM skill_proto ORDER BY dwVnum");
 
         auto msg = db_manager::instance().direct_query(query);
         sql_result *res = msg->get();
@@ -578,8 +575,7 @@ namespace metin2::db::inline clients {
 
         const std::string query = sql::format(
             "SELECT id, map_index, x, y, width, height, guild_id, guild_level_limit, price "
-            "FROM land{} WHERE enable='YES' ORDER BY id",
-            sql::raw(get_table_postfix()));
+            "FROM land WHERE enable='YES' ORDER BY id");
 
         auto msg = db_manager::instance().direct_query(query);
         sql_result *res = msg->get();
@@ -672,8 +668,7 @@ namespace metin2::db::inline clients {
 
         const std::string query = sql::format(
             "SELECT vnum, price, materials, upgrade_vnum, upgrade_limit_time, life, reg_1, reg_2, reg_3, reg_4, npc, group_vnum, dependent_group "
-            "FROM object_proto{} ORDER BY vnum",
-            sql::raw(get_table_postfix()));
+            "FROM object_proto ORDER BY vnum");
 
         auto msg = db_manager::instance().direct_query(query);
         sql_result *res = msg->get();
@@ -736,8 +731,7 @@ namespace metin2::db::inline clients {
         using namespace building;
 
         const std::string query = sql::format(
-            "SELECT id, land_id, vnum, map_index, x, y, x_rot, y_rot, z_rot, life FROM object{} ORDER BY id",
-            sql::raw(get_table_postfix()));
+            "SELECT id, land_id, vnum, map_index, x, y, x_rot, y_rot, z_rot, life FROM object ORDER BY id");
 
         auto msg = db_manager::instance().direct_query(query);
         sql_result *res = msg->get();
@@ -787,7 +781,7 @@ namespace metin2::db::inline clients {
         for (const mob_table &t : vec_mob_table_) {
             const auto [locale_column, locale_value] = locale_name_fragments(t.locale_name);
             const std::string query = sql::format(
-                "replace into mob_proto{} "
+                "replace into mob_proto "
                 "("
                 "vnum, name{}, type, rank, battle_type, level, size, ai_flag, setRaceFlag, setImmuneFlag, "
                 "on_click, empire, drop_item, resurrection_vnum, folder, "
@@ -819,7 +813,7 @@ namespace metin2::db::inline clients {
                 "{}, {}, {}, {}, "
                 "{}, {}, {}, {}, {}"
                 ")",
-                sql::raw(get_table_postfix()), sql::raw(locale_column),
+                sql::raw(locale_column),
 
                 t.vnum, t.name, sql::raw(locale_value), t.type, t.rank, t.battle_type, t.level, t.size, t.ai_flag, t.race_flag, t.immune_flag,
                 t.on_click_type, t.empire, t.drop_item_vnum, t.resurrection_vnum, t.folder,
@@ -844,7 +838,7 @@ namespace metin2::db::inline clients {
         for (const item_table &t : vec_item_table_) {
             const auto [locale_column, locale_value] = locale_name_fragments(t.locale_name);
             const std::string query = sql::format(
-                "replace into item_proto{} ("
+                "replace into item_proto ("
                 "vnum, type, subtype, name{}, gold, shop_buy_price, weight, size, "
                 "flag, wearflag, antiflag, immuneflag, "
                 "refined_vnum, refine_set, magic_pct, socket_pct, addon_type, specular, "
@@ -858,7 +852,7 @@ namespace metin2::db::inline clients {
                 "{}, {}, {}, {}, "
                 "{}, {}, {}, {}, {}, {}, "
                 "{}, {}, {}, {}, {}, {} )",
-                sql::raw(get_table_postfix()), sql::raw(locale_column),
+                sql::raw(locale_column),
                 t.vnum, t.type, t.sub_type, t.name, sql::raw(locale_value), static_cast<int32_t>(t.gold), t.shop_buy_price, t.weight, t.size,
                 static_cast<int32_t>(t.flags), static_cast<int32_t>(t.wear_flags), static_cast<int32_t>(t.anti_flags), t.immune_flag,
                 t.refined_vnum, t.refine_set, t.alter_to_magic_item_pct, t.gain_socket_pct, t.s_addon_type, t.specular,

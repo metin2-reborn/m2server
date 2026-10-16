@@ -23,12 +23,7 @@
 #undef __FreeBSD__
 
 namespace metin2::db::inline app {
-    void set_player_db_name(const char *name);
-    void set_table_postfix(const char *postfix);
-
-    std::string table_postfix;
     std::string locale_name_column = "name";
-    std::string player_db_name = "";
 
     // Must be longer than the player and item cache flush intervals.
     int logout_seconds = 60 * 10;
@@ -120,7 +115,6 @@ namespace metin2::db::inline app {
 
         signal_timer_enable(60);
 
-        set_table_postfix(metin2::config::database().table_postfix.c_str());
         client_manager::instance().set_cache_flush_count_limit(db.cache_flush_limit_per_second);
         client_manager::instance().set_player_id_start(db.player_id_start);
         locale_name_column = db.name_column;
@@ -131,8 +125,6 @@ namespace metin2::db::inline app {
             !connect_database(SQL_COMMON, database.common)) {
             return false;
         }
-
-        set_player_db_name(database.player.c_str());
 
         metin2::log::info("Initialising client manager");
 
@@ -146,30 +138,5 @@ namespace metin2::db::inline app {
         signal(SIGUSR1, emergency_sig);
         signal(SIGSEGV, emergency_sig);
         return true;
-    }
-
-    void set_table_postfix(const char *postfix) {
-        if (!postfix || !*postfix) {
-            table_postfix = "";
-        } else {
-            table_postfix = postfix;
-        }
-    }
-
-    auto get_table_postfix() -> const char * {
-        return table_postfix.c_str();
-    }
-
-    void set_player_db_name(const char *name) {
-        if (!name || !*name) {
-            player_db_name = "";
-        } else {
-            player_db_name = name;
-            player_db_name += ".";
-        }
-    }
-
-    auto get_player_db_name() -> const char * {
-        return player_db_name.c_str();
     }
 }

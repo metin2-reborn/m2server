@@ -1988,7 +1988,7 @@ namespace metin2::game::inline admin {
                 ch->chat_packet(CHAT_TYPE_INFO, "No one currently blocked.");
             }
         },
-            sql::format("SELECT p.name, a.lDuration FROM affect{} as a, player{} as p WHERE a.bType = {} AND a.dwPID = p.id", sql::raw(get_table_postfix()), sql::raw(get_table_postfix()), AFFECT_BLOCK_CHAT));
+            sql::format("SELECT p.name, a.lDuration FROM affect as a, player as p WHERE a.bType = {} AND a.dwPID = p.id", AFFECT_BLOCK_CHAT));
     }
 
     ACMD(do_vote_block_chat) {

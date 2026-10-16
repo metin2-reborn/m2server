@@ -1,7 +1,6 @@
 #include <metin2/config/config.h>
 #include <metin2/game/items/item_manager.h>
 
-#include <metin2/game/app/config.h>
 #include <metin2/game/app/constants.h>
 #include <metin2/game/app/utils.h>
 #include <metin2/game/characters/character.h>
@@ -768,7 +767,7 @@ namespace metin2::game::inline items {
 
         if (get_drop_per_kill_pct(100, 1000, delta_percent, "lotto_drop") >= number(1, rand_range)) {
             db_manager::instance().func_query([pid = killer->player_id(), round = static_cast<uint32_t>(quest::quest_manager::instance().event_flag("lotto_round"))](sql_msg &msg) { give_lotto_ticket_result(msg, pid, 50001, 1, round); },
-                sql::format("INSERT INTO lotto_list VALUES(0, 'server{}', {}, NOW())", sql::raw(get_table_postfix()), killer->player_id()));
+                sql::format("INSERT INTO lotto_list VALUES(0, 'server', {}, NOW())", killer->player_id()));
         }
 
         create_quest_drop_item(chr, killer, vec_item, delta_percent, rand_range);

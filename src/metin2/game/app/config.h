@@ -37,5 +37,4 @@ namespace metin2::game::inline app {
     void map_allow_copy(int32_t *pl, int size);
     void map_allow_log();
 
-    auto get_table_postfix() -> const char *;
 }

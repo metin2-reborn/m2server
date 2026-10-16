@@ -1,5 +1,4 @@
 
-#include <metin2/db/app/main.h>
 #include <metin2/db/caches/cache.h>
 #include <metin2/db/clients/client_manager.h>
 #include <metin2/db/clients/peer.h>
@@ -137,7 +136,7 @@ namespace metin2::db::inline clients {
         strlcpy(info->ip, p->ip, sizeof(info->ip));
 
         metin2::log::info("Login: account {} logged in with key {:d} from {}", r.login, p->login_key, info->ip);
-        const std::string query = sql::format("SELECT pid1, pid2, pid3, pid4, empire FROM player_index{} WHERE id={}", sql::raw(get_table_postfix()), r.id);
+        const std::string query = sql::format("SELECT pid1, pid2, pid3, pid4, empire FROM player_index WHERE id={}", r.id);
         db_manager::instance().return_query(query, [this, handle = peer_value->handle(), info = std::move(info)](sql_msg &msg) mutable {
             if (auto *peer_value = get_peer(handle))
                 result_login_by_key(peer_value, msg, std::move(info));
@@ -152,7 +151,7 @@ namespace metin2::db::inline clients {
 
         if (msg.get()->num_rows == 0) {
             uint32_t account_id = info->account_table->id;
-            const std::string query = sql::format("SELECT pid1, pid2, pid3, pid4, empire FROM player_index{} WHERE id={}", sql::raw(get_table_postfix()), account_id);
+            const std::string query = sql::format("SELECT pid1, pid2, pid3, pid4, empire FROM player_index WHERE id={}", account_id);
             auto msg_value = db_manager::instance().direct_query(query, SQL_PLAYER);
 
             metin2::log::debug("Login: account {:d} has no players loaded, checking player_index", account_id);
@@ -160,7 +159,7 @@ namespace metin2::db::inline clients {
             if (msg_value->get()->num_rows == 0) {
                 metin2::log::info("Login: no player_index row for account {:d}, creating one", account_id);
 
-                const std::string insert_query = sql::format("INSERT INTO player_index{} (id) VALUES({})", sql::raw(get_table_postfix()), info->account_table->id);
+                const std::string insert_query = sql::format("INSERT INTO player_index (id) VALUES({})", info->account_table->id);
                 db_manager::instance().return_query(insert_query, [this, handle = peer->handle(), info = std::move(info)](sql_msg &msg) mutable {
                     if (auto *peer_value = get_peer(handle))
                         result_player_index_create(peer_value, msg, std::move(info));
@@ -179,8 +178,7 @@ namespace metin2::db::inline clients {
         str_to_number(info->account_table->empire, row[col++]);
 
         const std::string query = sql::format(
-            "SELECT id, name, job, level, playtime, st, ht, dx, iq, part_main, part_hair, x, y, skill_group, change_name FROM player{} WHERE account_id={}",
-            sql::raw(get_table_postfix()), info->account_table->id);
+            "SELECT id, name, job, level, playtime, st, ht, dx, iq, part_main, part_hair, x, y, skill_group, change_name FROM player WHERE account_id={}", info->account_table->id);
 
         db_manager::instance().return_query(query, [this, handle = peer->handle(), info = std::move(info)](sql_msg &msg) mutable {
             if (auto *peer_value = get_peer(handle))
@@ -189,7 +187,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::result_player_index_create(peer *peer_value, sql_msg &msg, std::unique_ptr<client_handle_info> info) {
-        const std::string query = sql::format("SELECT pid1, pid2, pid3, pid4, empire FROM player_index{} WHERE id={}", sql::raw(get_table_postfix()),
+        const std::string query = sql::format("SELECT pid1, pid2, pid3, pid4, empire FROM player_index WHERE id={}",
             info->account_table->id);
         db_manager::instance().return_query(query, [this, handle = peer_value->handle(), info = std::move(info)](sql_msg &msg) mutable {
             if (auto *peer_value = get_peer(handle))
@@ -344,7 +342,7 @@ namespace metin2::db::inline clients {
 
     void client_manager::query_change_name(peer *peer, uint32_t handle, packet_gd_change_name *p) {
         std::string query = sql::format(
-            "SELECT COUNT(*) as count FROM player{} WHERE name={} AND id <> {}", sql::raw(get_table_postfix()), p->name, p->pid);
+            "SELECT COUNT(*) as count FROM player WHERE name={} AND id <> {}", p->name, p->pid);
 
         auto msg = db_manager::instance().direct_query(query, SQL_PLAYER);
 
@@ -366,7 +364,7 @@ namespace metin2::db::inline clients {
         }
 
         query = sql::format(
-            "UPDATE player{} SET name={},change_name=0 WHERE id={}", sql::raw(get_table_postfix()), p->name, p->pid);
+            "UPDATE player SET name={},change_name=0 WHERE id={}", p->name, p->pid);
 
         auto msg0 = db_manager::instance().direct_query(query, SQL_PLAYER);
 

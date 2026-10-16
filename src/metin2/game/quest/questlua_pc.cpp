@@ -1,7 +1,6 @@
 
 
 #include <metin2/config/config.h>
-#include <metin2/game/app/config.h>
 #include <metin2/game/app/constants.h>
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/app/utils.h>
@@ -49,7 +48,6 @@
 #include <cctype>
 #include <cmath>
 #include <cstdint>
-#include <cstdio>
 #include <format>
 #include <memory>
 #include <string>
@@ -1300,7 +1298,7 @@ namespace metin2::game {
             metin2::log::debug("Quest: giving lotto ticket to pid {:d}", ch->player_id());
 
             db_manager::instance().func_query([pid = ch->player_id(), round = static_cast<uint32_t>(q.event_flag("lotto_round"))](sql_msg &msg) { give_lotto_ticket_result(msg, pid, 50001, 1, round); },
-                sql::format("INSERT INTO lotto_list VALUES(0, 'server{}', {}, NOW())", sql::raw(get_table_postfix()), ch->player_id()));
+                sql::format("INSERT INTO lotto_list VALUES(0, 'server', {}, NOW())", ch->player_id()));
 
             return 0;
         }
@@ -1691,7 +1689,7 @@ namespace metin2::game {
                 return 1;
             }
 
-            auto pmsg = db_manager::instance().direct_query(sql::format("SELECT COUNT(*) FROM player{} WHERE name={}", sql::raw(get_table_postfix()), name_value));
+            auto pmsg = db_manager::instance().direct_query(sql::format("SELECT COUNT(*) FROM player WHERE name={}", name_value));
 
             if (pmsg->get()->num_rows > 0) {
                 MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res.get());
@@ -1712,7 +1710,7 @@ namespace metin2::game {
 
             log_manager::instance().change_name_log(pid, ch->name(), name_value, ch->get_desc()->host_name());
 
-            auto msg = db_manager::instance().direct_query(sql::format("UPDATE player{} SET name={} WHERE id={}", sql::raw(get_table_postfix()), name_value, pid));
+            auto msg = db_manager::instance().direct_query(sql::format("UPDATE player SET name={} WHERE id={}", name_value, pid));
 
             ch->set_new_name(name_value);
             lua_pushnumber(lua, 4);

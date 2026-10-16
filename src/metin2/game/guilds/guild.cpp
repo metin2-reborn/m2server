@@ -34,7 +34,6 @@
 
 #include <algorithm>
 #include <cstdint>
-#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <format>
@@ -86,15 +85,14 @@ namespace metin2::game::inline guilds {
         }
 
         std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(sql::format(
-            "INSERT INTO guild{}(name, master, sp, level, exp, skill_point, skill) "
+            "INSERT INTO guild(name, master, sp, level, exp, skill_point, skill) "
             "VALUES({}, {}, 1000, 1, 0, 0, '\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0')",
-            sql::raw(get_table_postfix()), data_.name, data_.master_pid)));
+            data_.name, data_.master_pid)));
 
         data_.guild_id = pmsg->get()->insert_id;
 
         for (int i = 0; i < GUILD_GRADE_COUNT; ++i) {
-            db_manager::instance().query(sql::format("INSERT INTO guild_grade{} VALUES({}, {}, {}, {})",
-                sql::raw(get_table_postfix()),
+            db_manager::instance().query(sql::format("INSERT INTO guild_grade VALUES({}, {}, {}, {})",
                 data_.guild_id,
                 i + 1,
                 data_.grade_array[i].grade_name,
@@ -537,7 +535,7 @@ namespace metin2::game::inline guilds {
             if (guild *g = guild_manager::instance().find_guild(guild_id))
                 g->load_guild_data(msg);
         },
-            sql::format("SELECT master, level, exp, name, skill_point, skill, sp, ladder_point, win, draw, loss, gold FROM guild{} WHERE id = {}", sql::raw(get_table_postfix()), data_.guild_id));
+            sql::format("SELECT master, level, exp, name, skill_point, skill, sp, ladder_point, win, draw, loss, gold FROM guild WHERE id = {}", data_.guild_id));
 
         metin2::log::info("Guild: loading guild {} (id {:d})", data_.name, guild_id);
 
@@ -545,17 +543,17 @@ namespace metin2::game::inline guilds {
             if (guild *g = guild_manager::instance().find_guild(guild_id))
                 g->load_guild_grade_data(msg);
         },
-            sql::format("SELECT grade, name, auth+0 FROM guild_grade{} WHERE guild_id = {}", sql::raw(get_table_postfix()), data_.guild_id));
+            sql::format("SELECT grade, name, auth+0 FROM guild_grade WHERE guild_id = {}", data_.guild_id));
 
         db_manager::instance().func_query([guild_id](sql_msg &msg) {
             if (guild *g = guild_manager::instance().find_guild(guild_id))
                 g->load_guild_member_data(msg);
         },
-            sql::format("SELECT pid, grade, is_general, offer, level, job, name FROM guild_member{}, player{} WHERE guild_id = {} and pid = id", sql::raw(get_table_postfix()), sql::raw(get_table_postfix()), guild_id));
+            sql::format("SELECT pid, grade, is_general, offer, level, job, name FROM guild_member, player WHERE guild_id = {} and pid = id", guild_id));
     }
 
     void guild::save_level() {
-        db_manager::instance().query(sql::format("UPDATE guild{} SET level={}, exp={}, skill_point={} WHERE id = {}", sql::raw(get_table_postfix()), data_.level, data_.exp, data_.skill_point, data_.guild_id));
+        db_manager::instance().query(sql::format("UPDATE guild SET level={}, exp={}, skill_point={} WHERE id = {}", data_.level, data_.exp, data_.skill_point, data_.guild_id));
     }
 
     void guild::send_db_skill_update(int amount) {
@@ -570,8 +568,7 @@ namespace metin2::game::inline guilds {
 
     void guild::save_skill() {
         const std::string_view skill(reinterpret_cast<const char *>(data_.aby_skill), sizeof(data_.aby_skill));
-        db_manager::instance().query(sql::format("UPDATE guild{} SET sp = {}, skill_point={}, skill={} WHERE id = {}",
-            sql::raw(get_table_postfix()), data_.power, data_.skill_point, skill, data_.guild_id));
+        db_manager::instance().query(sql::format("UPDATE guild SET sp = {}, skill_point={}, skill={} WHERE id = {}", data_.power, data_.skill_point, skill, data_.guild_id));
     }
 
     auto guild::member(uint32_t pid) -> guild_member * {
@@ -667,7 +664,7 @@ namespace metin2::game::inline guilds {
             if (guild *g = guild_manager::instance().find_guild(guild_id))
                 g->p2p_update_grade(msg);
         },
-            sql::format("SELECT grade, name, auth+0 FROM guild_grade{} WHERE guild_id = {} and grade = {}", sql::raw(get_table_postfix()), data_.guild_id, grade));
+            sql::format("SELECT grade, name, auth+0 FROM guild_grade WHERE guild_id = {} and grade = {}", data_.guild_id, grade));
     }
 
     namespace {
@@ -694,7 +691,7 @@ namespace metin2::game::inline guilds {
         if (!*grade_name)
             return;
 
-        db_manager::instance().func_after_query([guild_id = id(), grade] { send_change_grade(guild_id, grade); }, sql::format("UPDATE guild_grade{} SET name = {} where guild_id = {} and grade = {}", sql::raw(get_table_postfix()), grade_name, data_.guild_id, grade));
+        db_manager::instance().func_after_query([guild_id = id(), grade] { send_change_grade(guild_id, grade); }, sql::format("UPDATE guild_grade SET name = {} where guild_id = {} and grade = {}", grade_name, data_.guild_id, grade));
 
         grade--;
         strlcpy(data_.grade_array[grade].grade_name, grade_name, sizeof(data_.grade_array[grade].grade_name));
@@ -730,7 +727,7 @@ namespace metin2::game::inline guilds {
             return;
         }
 
-        db_manager::instance().func_after_query([guild_id = id(), grade] { send_change_grade(guild_id, grade); }, sql::format("UPDATE guild_grade{} SET auth = {} where guild_id = {} and grade = {}", sql::raw(get_table_postfix()), auth, data_.guild_id, grade));
+        db_manager::instance().func_after_query([guild_id = id(), grade] { send_change_grade(guild_id, grade); }, sql::format("UPDATE guild_grade SET auth = {} where guild_id = {} and grade = {}", auth, data_.guild_id, grade));
 
         grade--;
 
@@ -889,16 +886,16 @@ namespace metin2::game::inline guilds {
             if (guild *g = guild_manager::instance().find_guild(guild_id))
                 g->refresh_comment_force(pid);
         },
-            sql::format("INSERT INTO guild_comment{}(guild_id, name, notice, content, time) VALUES({}, {}, {}, {}, NOW())", sql::raw(get_table_postfix()), data_.guild_id, ch->name(), (str[0] == '!') ? 1 : 0, str));
+            sql::format("INSERT INTO guild_comment(guild_id, name, notice, content, time) VALUES({}, {}, {}, {}, NOW())", data_.guild_id, ch->name(), (str[0] == '!') ? 1 : 0, str));
     }
 
     void guild::delete_comment(character *ch, uint32_t comment_id) {
         std::unique_ptr<sql_msg> pmsg;
 
         if (member(ch->player_id())->grade == GUILD_LEADER_GRADE)
-            pmsg = db_manager::instance().direct_query(sql::format("DELETE FROM guild_comment{} WHERE id = {} AND guild_id = {}", sql::raw(get_table_postfix()), comment_id, data_.guild_id));
+            pmsg = db_manager::instance().direct_query(sql::format("DELETE FROM guild_comment WHERE id = {} AND guild_id = {}", comment_id, data_.guild_id));
         else
-            pmsg = db_manager::instance().direct_query(sql::format("DELETE FROM guild_comment{} WHERE id = {} AND guild_id = {} AND name = {}", sql::raw(get_table_postfix()), comment_id, data_.guild_id, ch->name()));
+            pmsg = db_manager::instance().direct_query(sql::format("DELETE FROM guild_comment WHERE id = {} AND guild_id = {} AND name = {}", comment_id, data_.guild_id, ch->name()));
 
         if (pmsg->get()->affected_rows == 0 || pmsg->get()->affected_rows == (uint32_t)-1)
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 삭제할 수 없는 글입니다."));
@@ -916,7 +913,7 @@ namespace metin2::game::inline guilds {
             return;
         }
 
-        auto pmsg = db_manager::instance().direct_query(sql::format("SELECT id, name, content FROM guild_comment{} WHERE guild_id = {} ORDER BY notice DESC, id DESC LIMIT {}", sql::raw(get_table_postfix()), data_.guild_id, GUILD_COMMENT_MAX_COUNT));
+        auto pmsg = db_manager::instance().direct_query(sql::format("SELECT id, name, content FROM guild_comment WHERE guild_id = {} ORDER BY notice DESC, id DESC LIMIT {}", data_.guild_id, GUILD_COMMENT_MAX_COUNT));
 
         packet_gc_guild pack;
         pack.header = HEADER_GC_GUILD;
@@ -1316,8 +1313,7 @@ namespace metin2::game::inline guilds {
             return;
 
         db_manager::instance().query(sql::format(
-            "UPDATE guild_member{} SET grade = {}, offer = {}, is_general = {} WHERE pid = {} and guild_id = {}",
-            sql::raw(get_table_postfix()), it->second.grade, it->second.offer_exp, it->second.is_general, pid, data_.guild_id));
+            "UPDATE guild_member SET grade = {}, offer = {}, is_general = {} WHERE pid = {} and guild_id = {}", it->second.grade, it->second.offer_exp, it->second.is_general, pid, data_.guild_id));
     }
 
     void guild::level_change(uint32_t pid, uint8_t level) {

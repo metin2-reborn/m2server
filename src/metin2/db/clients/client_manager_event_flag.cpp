@@ -1,4 +1,3 @@
-#include <metin2/db/app/main.h>
 #include <metin2/db/clients/client_manager.h>
 #include <metin2/db/clients/peer.h>
 #include <metin2/db/storage/db_manager.h>
@@ -17,7 +16,7 @@
 
 namespace metin2::db::inline clients {
     void client_manager::load_event_flag() {
-        const std::string query = sql::format("SELECT szName, lValue FROM quest{} WHERE dwPID = 0", sql::raw(get_table_postfix()));
+        const std::string query = sql::format("SELECT szName, lValue FROM quest WHERE dwPID = 0");
         auto pmsg = db_manager::instance().direct_query(query);
 
         sql_result *res = pmsg->get();
@@ -50,8 +49,7 @@ namespace metin2::db::inline clients {
 
         if (changed) {
             const std::string query = sql::format(
-                "REPLACE INTO quest{} (dwPID, szName, szState, lValue) VALUES(0, {}, '', {})",
-                sql::raw(get_table_postfix()), p->flag_name, p->value);
+                "REPLACE INTO quest (dwPID, szName, szState, lValue) VALUES(0, {}, '', {})", p->flag_name, p->value);
 
             db_manager::instance().async_query(query);
             metin2::log::info("Event flag: set {} = {:d}", p->flag_name, p->value);

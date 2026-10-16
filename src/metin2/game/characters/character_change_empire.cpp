@@ -1,5 +1,4 @@
 
-#include <metin2/game/app/config.h>
 #include <metin2/game/characters/character.h>
 #include <metin2/game/characters/character_manager.h>
 #include <metin2/game/guilds/guild_manager.h>
@@ -29,8 +28,7 @@ namespace metin2::game::inline characters {
 
         {
             const std::string query = sql::format(
-                "SELECT id, pid1, pid2, pid3, pid4 FROM player_index{} WHERE (pid1={} OR pid2={} OR pid3={} OR pid4={}) AND empire={}",
-                sql::raw(get_table_postfix()), player_id(), player_id(), player_id(), player_id(), empire());
+                "SELECT id, pid1, pid2, pid3, pid4 FROM player_index WHERE (pid1={} OR pid2={} OR pid3={} OR pid4={}) AND empire={}", player_id(), player_id(), player_id(), player_id(), empire());
 
             auto msg = db_manager::instance().direct_query(query);
 
@@ -53,7 +51,7 @@ namespace metin2::game::inline characters {
             uint32_t guild_id_value[4];
             guild *guild[4];
             for (int i = 0; i < loop; ++i) {
-                const std::string query = sql::format("SELECT guild_id FROM guild_member{} WHERE pid={}", sql::raw(get_table_postfix()), pid_value[i]);
+                const std::string query = sql::format("SELECT guild_id FROM guild_member WHERE pid={}", pid_value[i]);
 
                 auto msg_value = db_manager::instance().direct_query(query);
 
@@ -84,8 +82,7 @@ namespace metin2::game::inline characters {
         }
 
         {
-            const std::string query = sql::format("UPDATE player_index{} SET empire={} WHERE (pid1={} OR pid2={} OR pid3={} OR pid4={}) AND empire={}",
-                sql::raw(get_table_postfix()), empire_value, player_id(), player_id(), player_id(), player_id(), empire());
+            const std::string query = sql::format("UPDATE player_index SET empire={} WHERE (pid1={} OR pid2={} OR pid3={} OR pid4={}) AND empire={}", empire_value, player_id(), player_id(), player_id(), player_id(), empire());
 
             auto msg = db_manager::instance().direct_query(query);
 
@@ -146,8 +143,7 @@ namespace metin2::game::inline characters {
     auto character::aid() const -> uint32_t {
         uint32_t aid = 0;
 
-        const std::string query = sql::format("SELECT id FROM player_index{} WHERE (pid1={} OR pid2={} OR pid3={} OR pid4={}) AND empire={}",
-            sql::raw(get_table_postfix()), player_id(), player_id(), player_id(), player_id(), empire());
+        const std::string query = sql::format("SELECT id FROM player_index WHERE (pid1={} OR pid2={} OR pid3={} OR pid4={}) AND empire={}", player_id(), player_id(), player_id(), player_id(), empire());
 
         auto msg = db_manager::instance().direct_query(query);
 

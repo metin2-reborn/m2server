@@ -1,7 +1,6 @@
 #include <metin2/db/guilds/guild_manager.h>
 
 #include <metin2/config/config.h>
-#include <metin2/db/app/main.h>
 #include <metin2/db/clients/client_manager.h>
 #include <metin2/db/clients/peer.h>
 #include <metin2/db/storage/db_manager.h>
@@ -124,7 +123,7 @@ namespace metin2::db::inline guilds {
     }
 
     void guild_manager::initialize() {
-        const std::string query = sql::format("SELECT id, name, ladder_point, win, draw, loss, gold, level FROM guild{}", sql::raw(get_table_postfix()));
+        const std::string query = sql::format("SELECT id, name, ladder_point, win, draw, loss, gold, level FROM guild");
         auto pmsg = db_manager::instance().direct_query(query);
 
         if (pmsg->get()->num_rows)
@@ -145,7 +144,7 @@ namespace metin2::db::inline guilds {
     }
 
     void guild_manager::load(uint32_t guild_id) {
-        const std::string query = sql::format("SELECT id, name, ladder_point, win, draw, loss, gold, level FROM guild{} WHERE id={}", sql::raw(get_table_postfix()), guild_id);
+        const std::string query = sql::format("SELECT id, name, ladder_point, win, draw, loss, gold, level FROM guild WHERE id={}", guild_id);
         auto pmsg = db_manager::instance().direct_query(query);
 
         if (pmsg->get()->num_rows)
@@ -153,7 +152,7 @@ namespace metin2::db::inline guilds {
     }
 
     void guild_manager::query_ranking() {
-        const std::string query = sql::format("SELECT id,name,ladder_point FROM guild{} ORDER BY ladder_point DESC LIMIT 20", sql::raw(get_table_postfix()));
+        const std::string query = sql::format("SELECT id,name,ladder_point FROM guild ORDER BY ladder_point DESC LIMIT 20");
 
         db_manager::instance().return_query(query, [this](sql_msg &msg) { result_ranking(msg.get()->res.get()); });
     }
@@ -270,7 +269,7 @@ namespace metin2::db::inline guilds {
 
         const int count = ++(it->second.*counter);
 
-        const std::string query = sql::format("UPDATE guild{} SET {}={} WHERE id={}", sql::raw(get_table_postfix()), sql::raw(column), count, gid);
+        const std::string query = sql::format("UPDATE guild SET {}={} WHERE id={}", sql::raw(column), count, gid);
         db_manager::instance().async_query(query);
     }
 
@@ -537,7 +536,7 @@ namespace metin2::db::inline guilds {
         if (r.ladder_point < 0)
             r.ladder_point = 0;
 
-        const std::string query = sql::format("UPDATE guild{} SET ladder_point={} WHERE id={}", sql::raw(get_table_postfix()), r.ladder_point, gid);
+        const std::string query = sql::format("UPDATE guild SET ladder_point={} WHERE id={}", r.ladder_point, gid);
         db_manager::instance().async_query(query);
 
         metin2::log::info("Guild {:d}: ladder points now {:d}", gid, r.ladder_point);
@@ -565,7 +564,7 @@ namespace metin2::db::inline guilds {
         p.total_gold = gold;
         client_manager::instance().forward_packet(HEADER_DG_GUILD_MONEY_CHANGE, &p, sizeof(p));
 
-        const std::string query = sql::format("UPDATE guild{} SET gold={} WHERE id = {}", sql::raw(get_table_postfix()), gold, guild_value);
+        const std::string query = sql::format("UPDATE guild SET gold={} WHERE id = {}", gold, guild_value);
         db_manager::instance().async_query(query);
     }
 
@@ -723,8 +722,7 @@ namespace metin2::db::inline guilds {
 
     auto get_average_guild_member_level(uint32_t gid) -> int {
         const std::string query = sql::format(
-            "SELECT AVG(level) FROM guild_member{0}, player{0} AS p WHERE guild_id={1} AND guild_member{0}.pid=p.id",
-            sql::raw(get_table_postfix()), gid);
+            "SELECT AVG(level) FROM guild_member, player AS p WHERE guild_id={0} AND guild_member.pid=p.id", gid);
 
         auto msg = db_manager::instance().direct_query(query);
 
@@ -737,7 +735,7 @@ namespace metin2::db::inline guilds {
     }
 
     auto get_guild_member_count(uint32_t gid) -> int {
-        const std::string query = sql::format("SELECT COUNT(*) FROM guild_member{} WHERE guild_id={}", sql::raw(get_table_postfix()), gid);
+        const std::string query = sql::format("SELECT COUNT(*) FROM guild_member WHERE guild_id={}", gid);
 
         auto msg = db_manager::instance().direct_query(query);
 
@@ -912,9 +910,9 @@ namespace metin2::db::inline guilds {
         if (iter == map_guild_.end())
             return false;
 
-        db_manager::instance().direct_query(sql::format("UPDATE guild{} SET master={} WHERE id={}", sql::raw(get_table_postfix()), to, gid));
-        db_manager::instance().direct_query(sql::format("UPDATE guild_member{} SET grade=1 WHERE pid={}", sql::raw(get_table_postfix()), to));
-        db_manager::instance().direct_query(sql::format("UPDATE guild_member{} SET grade=15 WHERE pid={}", sql::raw(get_table_postfix()), from));
+        db_manager::instance().direct_query(sql::format("UPDATE guild SET master={} WHERE id={}", to, gid));
+        db_manager::instance().direct_query(sql::format("UPDATE guild_member SET grade=1 WHERE pid={}", to));
+        db_manager::instance().direct_query(sql::format("UPDATE guild_member SET grade=15 WHERE pid={}", from));
 
         return true;
     }

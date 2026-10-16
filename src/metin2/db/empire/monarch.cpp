@@ -1,6 +1,5 @@
 #include <metin2/db/empire/monarch.h>
 
-#include <metin2/db/app/main.h>
 #include <metin2/db/storage/db_manager.h>
 
 #include <metin2/common/utils.h>
@@ -168,7 +167,7 @@ namespace metin2::db::inline empire {
 
     auto monarch::load_monarch() -> bool {
         monarch_info *p = &monarch_info_;
-        const std::string query = sql::format("SELECT empire, pid, name, money, windate FROM monarch a, player{} b where a.pid=b.id", sql::raw(get_table_postfix()));
+        const std::string query = sql::format("SELECT empire, pid, name, money, windate FROM monarch a, player b where a.pid=b.id");
         auto msg = db_manager::instance().direct_query(query, SQL_PLAYER);
 
         if (msg->get()->num_rows == 0) {
@@ -197,8 +196,7 @@ namespace metin2::db::inline empire {
     auto monarch::set_monarch(const char *name) -> bool {
         monarch_info *p = &monarch_info_;
         std::string query = sql::format(
-            "SELECT b.empire, a.id, a.name FROM player{} AS a, player_index{} AS b WHERE a.account_id=b.id AND a.name={}",
-            sql::raw(get_table_postfix()), sql::raw(get_table_postfix()), std::string_view(name, strnlen(name, CHARACTER_NAME_MAX_LEN)));
+            "SELECT b.empire, a.id, a.name FROM player AS a, player_index AS b WHERE a.account_id=b.id AND a.name={}", std::string_view(name, strnlen(name, CHARACTER_NAME_MAX_LEN)));
         auto msg = db_manager::instance().direct_query(query, SQL_PLAYER);
 
         if (msg->get()->num_rows == 0) {

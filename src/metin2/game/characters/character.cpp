@@ -4425,14 +4425,14 @@ namespace metin2::game::inline characters {
                     }
                 }
             },
-                sql::format("SELECT size FROM safebox{} WHERE account_id = {}", sql::raw(get_table_postfix()), get_desc()->get_account_table().id));
+                sql::format("SELECT size FROM safebox WHERE account_id = {}", get_desc()->get_account_table().id));
         }
     }
 
     void character::set_safebox_size(int size) {
         metin2::log::debug("{}: safebox size set to {:d}", name(), size);
         safebox_size_ = size;
-        db_manager::instance().query(sql::format("UPDATE safebox{} SET size = {} WHERE account_id = {}", sql::raw(get_table_postfix()), size / SAFEBOX_PAGE_SIZE, get_desc()->get_account_table().id));
+        db_manager::instance().query(sql::format("UPDATE safebox SET size = {} WHERE account_id = {}", size / SAFEBOX_PAGE_SIZE, get_desc()->get_account_table().id));
     }
 
     auto character::safebox_size() const -> int {
