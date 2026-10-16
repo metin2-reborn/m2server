@@ -1252,7 +1252,7 @@ namespace metin2::game {
                 return 1;
             }
 
-            if (pct == 100 || number(1, 100) <= pct) {
+            if (pct == 100 || prob(pct)) {
                 lua_pushboolean(lua, 1);
 
                 game::items::item *pkNewItem = item_manager::instance().create_item(item->refined_vnum(), 1, 0, false);

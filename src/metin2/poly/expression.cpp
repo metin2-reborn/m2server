@@ -1,7 +1,10 @@
 #include <metin2/poly/expression.h>
 
+#include <metin2/core/utils.h>
+
 #include <cctype>
 #include <cmath>
+#include <random>
 #include <numbers>
 #include <string>
 #include <vector>
@@ -40,7 +43,7 @@ namespace metin2::poly {
         };
 
         auto random_unit() -> double {
-            return static_cast<double>(random()) / 2147483648.0;
+            return std::uniform_real_distribution<double>(0.0, 1.0)(random_engine());
         }
 
         auto irandom(double start, double end) -> int {

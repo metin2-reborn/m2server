@@ -455,8 +455,8 @@ namespace metin2::game::inline empire {
                 int x = dead->x();
                 int y = dead->y();
 
-                x = (thecore_random() & 1) ? x - number(200, 1000) : x + number(200, 1000);
-                y = (thecore_random() & 1) ? y - number(200, 1000) : y + number(200, 1000);
+                x = prob(50) ? x - number(200, 1000) : x + number(200, 1000);
+                y = prob(50) ? y - number(200, 1000) : y + number(200, 1000);
 
                 if (x < 0)
                     x = dead->x();

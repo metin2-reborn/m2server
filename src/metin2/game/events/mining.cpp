@@ -233,7 +233,7 @@ namespace metin2::game::inline events {
         }
 
         auto pick_is_refine_success(item &pick) -> bool {
-            return (number(1, 100) <= pick.value(3));
+            return (prob(pick.value(3)));
         }
 
         auto real_refine_pick(character *ch, item *item) -> int {
@@ -362,7 +362,7 @@ namespace metin2::game::inline events {
 
             int iPct = get_ore_pct(ch);
 
-            if (number(1, 100) <= iPct) {
+            if (prob(iPct)) {
                 ore_drop(ch, load->race_num());
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("채광에 성공하였습니다."));
             } else {
@@ -413,7 +413,7 @@ namespace metin2::game::inline events {
             if (metinstone_item)
                 item_manager::instance().remove_item(metinstone_item, "REMOVE (MELT)");
 
-            if (number(1, 100) <= pct) {
+            if (prob(pct)) {
                 ch->auto_give_item(dwRefinedVnum, 1);
                 return true;
             }

@@ -953,10 +953,10 @@ namespace metin2::game::inline items {
 
         put_attribute(item_magic_attribute_percent_high);
 
-        if (number(1, 100) <= iSecondPct)
+        if (prob(iSecondPct))
             put_attribute(item_magic_attribute_percent_low);
 
-        if (number(1, 100) <= iThirdPct)
+        if (prob(iThirdPct))
             put_attribute(item_magic_attribute_percent_low);
     }
 

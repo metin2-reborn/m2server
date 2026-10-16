@@ -23,6 +23,7 @@
 #include <cstdio>
 #include <list>
 #include <memory>
+#include <random>
 #include <set>
 #include <string>
 #include <vector>
@@ -31,18 +32,9 @@ namespace metin2::game::inline items {
 
     typedef std::vector<std::string> token_vector;
     auto gamble(std::vector<float> &vec_probs) -> int {
-        float range = 0.f;
-        for (size_t i = 0; i < vec_probs.size(); i++) {
-            range += vec_probs[i];
-        }
-        float fProb = fnumber(0.f, range);
-        float sum = 0.f;
-        for (size_t idx = 0; idx < vec_probs.size(); idx++) {
-            sum += vec_probs[idx];
-            if (sum >= fProb)
-                return idx;
-        }
-        return -1;
+        if (std::ranges::none_of(vec_probs, [](float p) { return p > 0.f; }))
+            return -1;
+        return std::discrete_distribution<int>(vec_probs.begin(), vec_probs.end())(random_engine());
     }
 
     auto make_distinct_random_number_set(std::list<float> prob_lst, std::vector<int> &random_set) -> bool {

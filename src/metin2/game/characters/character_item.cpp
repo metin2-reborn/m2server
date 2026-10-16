@@ -2635,7 +2635,7 @@ namespace metin2::game::inline characters {
                                 return false;
                             }
 
-                            if (number(1, 100) <= iPct) {
+                            if (prob(iPct)) {
                                 chat_packet(CHAT_TYPE_INFO, lc_text("승마 수련서를 읽어 승마 스킬 포인트를 얻었습니다."));
                                 chat_packet(CHAT_TYPE_INFO, lc_text("얻은 포인트로는 승마 스킬의 레벨을 올릴 수 있습니다."));
                                 point_change(POINT_HORSE_SKILL, 1);
@@ -3739,7 +3739,7 @@ namespace metin2::game::inline characters {
                                 char buf[21];
                                 snprintf(buf, sizeof(buf), "%u", item2->id());
 
-                                if (number(1, 100) <= item_attribute_add_percent[item2->attribute_count()]) {
+                                if (prob(item_attribute_add_percent[item2->attribute_count()])) {
                                     item2->add_attribute();
                                     chat_packet(CHAT_TYPE_INFO, lc_text("속성 추가에 성공하였습니다."));
 
@@ -3774,7 +3774,7 @@ namespace metin2::game::inline characters {
                                 char buf[21];
                                 snprintf(buf, sizeof(buf), "%u", item2->id());
 
-                                if (number(1, 100) <= item_attribute_add_percent[item2->attribute_count()]) {
+                                if (prob(item_attribute_add_percent[item2->attribute_count()])) {
                                     item2->add_attribute();
                                     chat_packet(CHAT_TYPE_INFO, lc_text("속성 추가에 성공하였습니다."));
 
@@ -3810,7 +3810,7 @@ namespace metin2::game::inline characters {
 
                                 if (item2->is_accessory_for_socket()) {
                                     if (item2->accessory_socket_max_grade() < ITEM_ACCESSORY_SOCKET_MAX_NUM) {
-                                        if (number(1, 100) <= 50) {
+                                        if (prob(50)) {
                                             item2->set_accessory_socket_max_grade(item2->accessory_socket_max_grade() + 1);
                                             chat_packet(CHAT_TYPE_INFO, lc_text("소켓이 성공적으로 추가되었습니다."));
                                             log_manager::instance().item_log(this, item, "ADD_SOCKET_SUCCESS", buf);
@@ -3836,7 +3836,7 @@ namespace metin2::game::inline characters {
                                 snprintf(buf, sizeof(buf), "%u", item2->id());
 
                                 if (item2->accessory_socket_grade() < item2->accessory_socket_max_grade()) {
-                                    if (number(1, 100) <= accessory_socket_put_pct[item2->accessory_socket_grade()]) {
+                                    if (prob(accessory_socket_put_pct[item2->accessory_socket_grade()])) {
                                         item2->set_accessory_socket_grade(item2->accessory_socket_grade() + 1);
                                         chat_packet(CHAT_TYPE_INFO, lc_text("장착에 성공하였습니다."));
                                         log_manager::instance().item_log(this, item, "PUT_SOCKET_SUCCESS", buf);
@@ -4029,7 +4029,7 @@ namespace metin2::game::inline characters {
 
                 for (i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
                     if (item2->get_socket(i) >= 1 && item2->get_socket(i) <= 2 && item2->get_socket(i) >= item->value(2)) {
-                        if (number(1, 100) <= 30) {
+                        if (prob(30)) {
                             chat_packet(CHAT_TYPE_INFO, lc_text("메틴석 부착에 성공하였습니다."));
                             item2->set_socket(i, item->vnum());
                         } else {

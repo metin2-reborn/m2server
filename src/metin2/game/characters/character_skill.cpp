@@ -398,7 +398,7 @@ namespace metin2::game::inline characters {
 
             metin2::log::debug("Skill book for skill {:d}: chance {:d}%", skill_vnum, prob);
 
-            if (number(1, 100) <= prob) {
+            if (core::prob(prob)) {
                 if (metin2::config::test_server())
                     metin2::log::debug("Skill book for skill {:d} succeeded", skill_vnum);
 
@@ -905,7 +905,7 @@ namespace metin2::game::inline characters {
             if (is_set(sk->flag, SKILL_FLAG_PENETRATE)) {
                 int iPenetratePct = (int)sk->point_poly2.eval();
 
-                if (number(1, 100) <= iPenetratePct)
+                if (prob(iPenetratePct))
                     bIgnoreDefense = true;
             }
 
@@ -914,7 +914,7 @@ namespace metin2::game::inline characters {
             if (is_set(sk->flag, SKILL_FLAG_IGNORE_TARGET_RATING)) {
                 int iPct = (int)sk->point_poly2.eval();
 
-                if (number(1, 100) <= iPct)
+                if (prob(iPct))
                     bIgnoreTargetRating = true;
             }
 
@@ -1119,7 +1119,7 @@ namespace metin2::game::inline characters {
                     int iDur2 = (int)sk->duration_poly2.eval();
                     iDur2 += chr->point(POINT_PARTY_BUFFER_BONUS);
 
-                    if (number(1, 100) <= iAmount2) {
+                    if (prob(iAmount2)) {
                         pkChrVictim->remove_good_affect();
                         pkChrVictim->add_affect(sk->vnum, POINT_NONE, 0, AFF_PABEOP, iDur2, 0, true);
                     }
@@ -1146,11 +1146,11 @@ namespace metin2::game::inline characters {
                             iDur += bonus / 2;
                         }
 
-                        if (number(1, 100) <= iDur) {
+                        if (prob(iDur)) {
                             pkChrVictim->attacked_by_fire(chr, iPct, 5);
                         }
                     } else if (is_set(sk->flag, SKILL_FLAG_POISON)) {
-                        if (number(1, 100) <= iPct)
+                        if (prob(iPct))
                             pkChrVictim->attacked_by_poison(chr);
                     }
                 }
@@ -1381,7 +1381,7 @@ namespace metin2::game::inline characters {
         }
 
         if (is_set(pkSk->flag, SKILL_FLAG_REMOVE_BAD_AFFECT)) {
-            if (number(1, 100) <= iAmount2) {
+            if (prob(iAmount2)) {
                 remove_bad_affect();
             }
         }
@@ -1648,7 +1648,7 @@ namespace metin2::game::inline characters {
         }
 
         if (is_set(pkSk->flag, SKILL_FLAG_REMOVE_BAD_AFFECT)) {
-            if (number(1, 100) <= iAmount2) {
+            if (prob(iAmount2)) {
                 victim->remove_bad_affect();
             }
         }

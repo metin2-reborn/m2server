@@ -54,7 +54,6 @@ namespace metin2::game::inline app {
 
     extern auto calculate_duration(int spd, int dur) -> int;
 
-    extern auto gauss_random(float avg = 0, float sigma = 1) -> float;
 
     extern auto parse_time_str(const char *str) -> int;
 

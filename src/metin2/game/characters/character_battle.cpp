@@ -499,7 +499,7 @@ namespace metin2::game::inline characters {
             iGoldMultipler *= 5;
 
         if (attacker->point(POINT_GOLD_DOUBLE_BONUS))
-            if (number(1, 100) <= attacker->point(POINT_GOLD_DOUBLE_BONUS))
+            if (prob(attacker->point(POINT_GOLD_DOUBLE_BONUS)))
                 iGoldMultipler *= 2;
 
         if (metin2::config::test_server())
@@ -873,9 +873,7 @@ namespace metin2::game::inline characters {
                     vec_bSlots.push_back(i);
 
             if (!vec_bSlots.empty()) {
-                std::random_device rd;
-                std::mt19937 g(rd());
-                std::shuffle(vec_bSlots.begin(), vec_bSlots.end(), g);
+                std::ranges::shuffle(vec_bSlots, random_engine());
 
                 int iQty = std::min<int>(vec_bSlots.size(), r.inventory_qty);
 
@@ -903,9 +901,7 @@ namespace metin2::game::inline characters {
                     vec_bSlots.push_back(i);
 
             if (!vec_bSlots.empty()) {
-                std::random_device rd;
-                std::mt19937 g(rd());
-                std::shuffle(vec_bSlots.begin(), vec_bSlots.end(), g);
+                std::ranges::shuffle(vec_bSlots, random_engine());
                 int iQty;
 
                 if (isDropAllEquipments)
@@ -1342,7 +1338,7 @@ namespace metin2::game::inline characters {
             if (is_affect_flag(AFF_TERROR)) {
                 int pct = skill_power(SKILL_TERROR) / 400;
 
-                if (number(1, 100) <= pct)
+                if (prob(pct))
                     return false;
             }
         }
@@ -1378,7 +1374,7 @@ namespace metin2::game::inline characters {
 
                     iCriticalPct -= point(POINT_RESIST_CRITICAL);
 
-                    if (number(1, 100) <= iCriticalPct) {
+                    if (prob(iCriticalPct)) {
                         IsCritical = true;
                         dam *= 2;
                         effect_packet(SE_CRITICAL);
@@ -1413,7 +1409,7 @@ namespace metin2::game::inline characters {
 
                     iPenetratePct -= point(POINT_RESIST_PENETRATE);
 
-                    if (number(1, 100) <= iPenetratePct) {
+                    if (prob(iPenetratePct)) {
                         IsPenetrate = true;
 
                         if (metin2::config::test_server())
@@ -1429,7 +1425,7 @@ namespace metin2::game::inline characters {
             }
         } else if (type == DAMAGE_TYPE_NORMAL || type == DAMAGE_TYPE_NORMAL_RANGE) {
             if (type == DAMAGE_TYPE_NORMAL) {
-                if (point(POINT_BLOCK) && number(1, 100) <= point(POINT_BLOCK)) {
+                if (point(POINT_BLOCK) && prob(point(POINT_BLOCK))) {
                     if (metin2::config::test_server()) {
                         attacker->chat_packet(CHAT_TYPE_INFO, lc_text("%s 블럭! (%d%%)"), name(), point(POINT_BLOCK));
                         chat_packet(CHAT_TYPE_INFO, lc_text("%s 블럭! (%d%%)"), name(), point(POINT_BLOCK));
@@ -1439,7 +1435,7 @@ namespace metin2::game::inline characters {
                     return false;
                 }
             } else if (type == DAMAGE_TYPE_NORMAL_RANGE) {
-                if (point(POINT_DODGE) && number(1, 100) <= point(POINT_DODGE)) {
+                if (point(POINT_DODGE) && prob(point(POINT_DODGE))) {
                     if (metin2::config::test_server()) {
                         attacker->chat_packet(CHAT_TYPE_INFO, lc_text("%s 회피! (%d%%)"), name(), point(POINT_DODGE));
                         chat_packet(CHAT_TYPE_INFO, lc_text("%s 회피! (%d%%)"), name(), point(POINT_DODGE));
@@ -1479,7 +1475,7 @@ namespace metin2::game::inline characters {
                 if (iCriticalPct) {
                     iCriticalPct -= point(POINT_RESIST_CRITICAL);
 
-                    if (number(1, 100) <= iCriticalPct) {
+                    if (prob(iCriticalPct)) {
                         IsCritical = true;
                         dam *= 2;
                         effect_packet(SE_CRITICAL);
@@ -1505,7 +1501,7 @@ namespace metin2::game::inline characters {
 
                     iPenetratePct -= point(POINT_RESIST_PENETRATE);
 
-                    if (number(1, 100) <= iPenetratePct) {
+                    if (prob(iPenetratePct)) {
                         IsPenetrate = true;
 
                         if (metin2::config::test_server())
@@ -1552,7 +1548,7 @@ namespace metin2::game::inline characters {
                 }
 
                 if (attacker->point(POINT_STEAL_GOLD)) {
-                    if (number(1, 100) <= attacker->point(POINT_STEAL_GOLD)) {
+                    if (prob(attacker->point(POINT_STEAL_GOLD))) {
                         int iAmount = number(1, level());
                         attacker->point_change(POINT_GOLD, iAmount);
                         db_manager::instance().send_money_log(MONEY_LOG_MISC, 1, iAmount);
@@ -1578,7 +1574,7 @@ namespace metin2::game::inline characters {
                 }
 
                 if (attacker->point(POINT_MANA_BURN_PCT)) {
-                    if (number(1, 100) <= attacker->point(POINT_MANA_BURN_PCT))
+                    if (prob(attacker->point(POINT_MANA_BURN_PCT)))
                         point_change(POINT_SP, -50);
                 }
             }
@@ -1827,7 +1823,7 @@ namespace metin2::game::inline characters {
                 exp += exp * 20 / 100;
 
             if (to->point(POINT_EXP_DOUBLE_BONUS))
-                if (number(1, 100) <= to->point(POINT_EXP_DOUBLE_BONUS))
+                if (prob(to->point(POINT_EXP_DOUBLE_BONUS)))
                     exp += exp * 30 / 100;
 
             if (to->is_equip_unique_item(UNIQUE_ITEM_DOUBLE_EXP))
@@ -2646,7 +2642,7 @@ namespace metin2::game::inline characters {
                 if (ch_value->victim())
                     return;
 
-                if (number(1, 100) <= 50)
+                if (prob(50))
                     if (distance_approx(ch_value->x() - ch->x(), ch_value->y() - ch->y()) < 5000)
                         if (ch_value->can_begin_fight())
                             ch_value->begin_fight(ch);

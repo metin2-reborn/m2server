@@ -76,12 +76,12 @@ namespace metin2::game::inline items {
             idx_vec.clear();
             if (type == PCT) {
                 int count = 0;
-                if (number(1, 100) <= probs[0]) {
+                if (prob(probs[0])) {
                     idx_vec.push_back(0);
                     count++;
                 }
                 for (uint i = 1; i < probs.size(); i++) {
-                    if (number(1, 100) <= probs[i] - probs[i - 1]) {
+                    if (prob(probs[i] - probs[i - 1])) {
                         idx_vec.push_back(i);
                         count++;
                     }

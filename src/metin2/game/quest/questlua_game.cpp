@@ -46,7 +46,7 @@ namespace metin2::game {
                 // Never 0, which means "no request".
                 uint32_t key = 0;
                 while (key == 0)
-                    key = thecore_random();
+                    key = secure_random_u32();
 
                 ch->set_guild_creation_key(key);
 

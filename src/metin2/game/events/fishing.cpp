@@ -421,7 +421,7 @@ namespace metin2::game::inline events {
 
             int time_step = std::clamp<int>(((ms + 99) / 200), 0, MAX_FISHING_TIME_COUNT - 1);
 
-            if (number(1, 100) <= fishing_time[fish_info[fish_id].time_type][time_step]) {
+            if (prob(fishing_time[fish_info[fish_id].time_type][time_step])) {
                 if (number(1, fish_info[fish_id].difficulty) <= level) {
                     *item = fish_info[fish_id].vnum;
                     return 0;
@@ -656,7 +656,7 @@ namespace metin2::game::inline events {
 
             int iAdv = rod->value(0) / 10;
 
-            if (number(1, 100) <= rod->value(3)) {
+            if (prob(rod->value(3))) {
                 log_manager::instance().refine_log(ch->player_id(), rod->name(), rod->id(), iAdv, 1, "ROD");
 
                 game::items::item *pkNewItem = item_manager::instance().create_item(rod->refined_vnum(), 1);

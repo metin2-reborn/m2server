@@ -13,7 +13,6 @@
 #include <cstring>
 #include <fstream>
 
-#include <sys/random.h>
 #include <unistd.h>
 
 namespace metin2::inline core {
@@ -43,13 +42,6 @@ namespace metin2::inline core {
     }
 
     auto thecore_init(int fps) -> bool {
-        unsigned int seed;
-        if (getrandom(&seed, sizeof(seed), 0) != sizeof(seed)) {
-            metin2::log::error("Getrandom failed: {}", std::strerror(errno));
-            return false;
-        }
-
-        srandom(seed);
         signal_setup();
 
         if (!metin2::log::init(".") || !pid_init()) {

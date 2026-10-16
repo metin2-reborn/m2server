@@ -3093,7 +3093,7 @@ namespace metin2::game::inline admin {
             if (empire == 1 || empire == 2 || empire == 3) {
                 battle_arena::instance().start(empire);
             } else {
-                battle_arena::instance().start(rand() % 3 + 1);
+                battle_arena::instance().start(number(1, 3));
             }
             ch->chat_packet(CHAT_TYPE_INFO, "Weekly Event Start");
         } else {

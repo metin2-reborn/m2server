@@ -4,6 +4,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <ctime>
+#include <random>
 #include <source_location>
 
 namespace metin2::inline core {
@@ -26,10 +27,12 @@ namespace metin2::inline core {
     auto utf8_strlcpy(char *dst, const char *src, size_t size) -> size_t;
     auto utf8_strnlcpy(char *dst, size_t dst_size, const char *src, size_t src_max) -> size_t;
 
+    auto random_engine() -> std::mt19937 &;
     auto number(int from, int to, std::source_location where = std::source_location::current()) -> int;
     auto fnumber(float from, float to) -> float;
-
-    auto thecore_random() -> uint32_t;
+    auto prob(int percent) -> bool;
+    auto gauss(float mean, float sigma) -> float;
+    auto secure_random_u32() -> uint32_t;
 
     auto get_float_time() -> float;
     auto get_dword_time() -> uint32_t;

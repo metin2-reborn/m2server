@@ -5643,7 +5643,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character::is_death_blow() const -> bool {
-        if (number(1, 100) <= mob_data->table.death_blow_point) {
+        if (prob(mob_data->table.death_blow_point)) {
             return true;
         } else {
             return false;
@@ -5662,7 +5662,7 @@ namespace metin2::game::inline characters {
             }
 
             if (ch->is_reviver() == true && reviver != ch && ch->is_dead() != true) {
-                if (number(1, 100) <= ch->get_mob_table().revive_point) {
+                if (prob(ch->get_mob_table().revive_point)) {
                     has_reviver = true;
                     reviver = ch;
                 }

@@ -505,7 +505,7 @@ namespace metin2::game::inline combat {
 
     void normal_attack_affect(character *attacker, character *victim) {
         if (attacker->point(POINT_POISON_PCT) && !victim->is_affect_flag(AFF_POISON)) {
-            if (number(1, 100) <= attacker->point(POINT_POISON_PCT))
+            if (prob(attacker->point(POINT_POISON_PCT)))
                 victim->attacked_by_poison(attacker);
         }
 

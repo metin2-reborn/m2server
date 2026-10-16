@@ -96,7 +96,7 @@ namespace metin2::game::inline protocol {
 
     RETRY:
         do {
-            uint32_t val = thecore_random() % (1024 * 1024);
+            uint32_t val = number(0, 1024 * 1024 - 1);
 
             *(uint32_t *)(crc_buf) = val;
             *((uint32_t *)crc_buf + 1) = get_global_time();
@@ -343,7 +343,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto desc_manager::make_random_key(uint32_t handle) -> uint32_t {
-        uint32_t random_key = thecore_random();
+        uint32_t random_key = secure_random_u32();
         map_handle_random_key_[handle] = random_key;
         return random_key;
     }

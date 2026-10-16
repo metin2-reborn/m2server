@@ -284,7 +284,7 @@ namespace metin2::game::inline items {
                 if (rare_pct == -1)
                     rare_pct = table_value->alter_to_magic_item_pct;
 
-                if (number(1, 100) <= rare_pct)
+                if (prob(rare_pct))
                     item->alter_to_magic_item();
             }
 
@@ -1055,7 +1055,7 @@ namespace metin2::game::inline items {
             if (pct > 0) {
                 const uint32_t ITEM_VNUM = 30178;
 
-                if (number(1, 100) <= pct) {
+                if (prob(pct)) {
                     if ((item = create_item(ITEM_VNUM, 1, 0, true)))
                         vec_item.push_back(item);
                 }

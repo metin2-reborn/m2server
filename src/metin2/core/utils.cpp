@@ -9,9 +9,11 @@
 #include <cstdlib>
 #include <cstring>
 #include <ctime>
+#include <random>
 #include <source_location>
 #include <utility>
 
+#include <sys/random.h>
 #include <unistd.h>
 
 namespace metin2::inline core {
@@ -77,8 +79,9 @@ namespace metin2::inline core {
         *value = '\0';
     }
 
-    auto thecore_random() -> uint32_t {
-        return random();
+    auto random_engine() -> std::mt19937 & {
+        thread_local std::mt19937 engine{std::random_device{}()};
+        return engine;
     }
 
     auto number(int from, int to, std::source_location where) -> int {
@@ -86,17 +89,28 @@ namespace metin2::inline core {
             metin2::log::error("Random range is reversed ({:d} > {:d}), called from {}:{:d}", from, to, where.file_name(), where.line());
             std::swap(from, to);
         }
-
-        if (to - from + 1 == 0) {
-            metin2::log::error("Random range covers the whole int domain, returning 0");
-            return 0;
-        }
-
-        return (thecore_random() % (to - from + 1)) + from;
+        return std::uniform_int_distribution<int>(from, to)(random_engine());
     }
 
     auto fnumber(float from, float to) -> float {
-        return ((static_cast<float>(thecore_random()) / static_cast<float>(RAND_MAX)) * (to - from)) + from;
+        if (from > to)
+            std::swap(from, to);
+        return std::uniform_real_distribution<float>(from, to)(random_engine());
+    }
+
+    auto prob(int percent) -> bool {
+        return number(1, 100) <= percent;
+    }
+
+    auto gauss(float mean, float sigma) -> float {
+        return std::normal_distribution<float>(mean, sigma)(random_engine());
+    }
+
+    auto secure_random_u32() -> uint32_t {
+        uint32_t value = 0;
+        while (getrandom(&value, sizeof(value), 0) != sizeof(value))
+            ;
+        return value;
     }
 
     void core_dump(std::source_location where) {

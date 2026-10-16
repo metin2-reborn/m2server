@@ -126,31 +126,6 @@ namespace metin2::game::inline app {
 
         return dur * i / 100;
     }
-    auto uniform_random(double a, double b) -> double {
-        return thecore_random() / (RAND_MAX + 1.0) * (b - a) + a;
-    }
-
-    auto gauss_random(float avg, float sigma) -> float {
-        static bool haveNextGaussian = false;
-        static float nextGaussian = 0.0f;
-
-        if (haveNextGaussian) {
-            haveNextGaussian = false;
-            return nextGaussian * sigma + avg;
-        } else {
-            double v1, v2, s;
-            do {
-                v1 = uniform_random(-1.f, 1.f);
-                v2 = uniform_random(-1.f, 1.f);
-                s = v1 * v1 + v2 * v2;
-            } while (s >= 1.f || fabs(s) < FLT_EPSILON);
-            double multiplier = sqrtf(-2 * logf(s) / s);
-            nextGaussian = v2 * multiplier;
-            haveNextGaussian = true;
-            return v1 * multiplier * sigma + avg;
-        }
-    }
-
     auto parse_time_str(const char *str) -> int {
         int tmp = 0;
         int secs = 0;

@@ -5,6 +5,7 @@
 
 #include <cstdint>
 #include <cstring>
+#include <limits>
 #include <string>
 
 using namespace metin2;
@@ -104,4 +105,16 @@ TEST(number_stays_in_range) {
     const int swapped = number(10, 5);
     CHECK(swapped >= 5 && swapped <= 10);
     CHECK_EQ(number(3, 3), 3);
+}
+
+TEST(random_helpers_stay_in_range) {
+    for (int i = 0; i < 1000; ++i) {
+        const int n = number(-3, 3);
+        CHECK(n >= -3 && n <= 3);
+        const float f = fnumber(0.5f, 1.5f);
+        CHECK(f >= 0.5f && f <= 1.5f);
+        CHECK(!prob(0));
+        CHECK(prob(100));
+    }
+    CHECK_EQ(number(std::numeric_limits<int>::min(), std::numeric_limits<int>::min()), std::numeric_limits<int>::min());
 }

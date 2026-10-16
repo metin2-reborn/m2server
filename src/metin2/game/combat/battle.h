@@ -42,7 +42,7 @@ namespace metin2::game::inline combat {
         int time,
         const char *name) {
         if (attacker->point(att_point) && !victim->is_affect_flag(affect_flag)) {
-            if (number(1, 100) <= attacker->point(att_point) && !victim->is_immune(immune_flag)) {
+            if (prob(attacker->point(att_point)) && !victim->is_immune(immune_flag)) {
                 victim->add_affect(affect_idx, affect_point, affect_amount, affect_flag, time, 0, true);
 
                 if (metin2::config::test_server()) {
