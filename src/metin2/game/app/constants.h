@@ -108,13 +108,13 @@ namespace metin2::game::inline app {
     extern const int chn_ai_party_bonus_exp_percent_by_member_count[9];
 
     using item_attr_map = std::map<uint32_t, item_attr_table>;
-    extern item_attr_map map_item_attr;
-    extern item_attr_map map_item_rare;
+    extern item_attr_map item_attrs;
+    extern item_attr_map item_rares;
 
     extern const int chain_lightning_count_by_skill_level[SKILL_MAX_LEVEL + 1];
 
-    extern const char *apsz_empire_names[EMPIRE_MAX_NUM];
-    extern const char *apsz_priv_names[MAX_PRIV_NUM];
+    extern const char *empire_names[EMPIRE_MAX_NUM];
+    extern const char *priv_names[MAX_PRIV_NUM];
     extern const stone_drop_info stone_drop[STONE_INFO_MAX_NUM];
 
     struct guild_war_info {

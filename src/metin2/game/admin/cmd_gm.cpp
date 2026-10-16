@@ -228,14 +228,14 @@ namespace metin2::game::inline admin {
     }
 
     struct goto_info {
-        std::string st_name;
+        std::string name;
 
         uint8_t empire;
         int index;
         uint32_t x, y;
 
         goto_info() {
-            st_name = "";
+            name = "";
             empire = 0;
             index = 0;
 
@@ -249,7 +249,7 @@ namespace metin2::game::inline admin {
             copy(src);
         }
         void copy(const goto_info &src) {
-            st_name = src.st_name;
+            name = src.name;
             empire = src.empire;
             index = src.index;
 
@@ -258,18 +258,18 @@ namespace metin2::game::inline admin {
         }
     };
 
-    static std::vector<goto_info> vec_goto_info;
+    static std::vector<goto_info> goto_infos;
 
-    void character_add_goto_info(const std::string &st_name_value, uint8_t empire, int index_value, uint32_t x, uint32_t y) {
+    void character_add_goto_info(const std::string &name_value, uint8_t empire, int index_value, uint32_t x, uint32_t y) {
         goto_info new_goto_info;
-        new_goto_info.st_name = st_name_value;
+        new_goto_info.name = name_value;
         new_goto_info.empire = empire;
         new_goto_info.index = index_value;
         new_goto_info.x = x;
         new_goto_info.y = y;
-        vec_goto_info.push_back(new_goto_info);
+        goto_infos.push_back(new_goto_info);
 
-        metin2::log::debug("Goto location {}: empire {:d}, map {:d}, position {:d}x{:d}", st_name_value, empire, index_value, x, y);
+        metin2::log::debug("Goto location {}: empire {:d}, map {:d}, position {:d}x{:d}", name_value, empire, index_value, x, y);
     }
 
     auto find_in_string(const char *find, const char *in) -> bool {
@@ -303,18 +303,18 @@ namespace metin2::game::inline admin {
 
     auto character_go_to_name(character *ch, uint8_t empire, int index_value, const char *goto_name) -> bool {
         std::vector<goto_info>::iterator i;
-        for (i = vec_goto_info.begin(); i != vec_goto_info.end(); ++i) {
-            const goto_info &c_each_goto_info = *i;
+        for (i = goto_infos.begin(); i != goto_infos.end(); ++i) {
+            const goto_info &each_goto_info = *i;
 
             if (index_value != 0) {
-                if (index_value != c_each_goto_info.index)
+                if (index_value != each_goto_info.index)
                     continue;
-            } else if (!find_in_string(goto_name, c_each_goto_info.st_name.c_str()))
+            } else if (!find_in_string(goto_name, each_goto_info.name.c_str()))
                 continue;
 
-            if (c_each_goto_info.empire == 0 || c_each_goto_info.empire == empire) {
-                int x = c_each_goto_info.x * 100;
-                int y = c_each_goto_info.y * 100;
+            if (each_goto_info.empire == 0 || each_goto_info.empire == empire) {
+                int x = each_goto_info.x * 100;
+                int y = each_goto_info.y * 100;
 
                 ch->chat_packet(CHAT_TYPE_INFO, "You warp to ( %d, %d )", x, y);
                 ch->warp_set(x, y);
@@ -811,28 +811,28 @@ namespace metin2::game::inline admin {
 
         for (int i = 0; i < MAX_PRIV_NUM; ++i)
             if (get_priv_manager().priv(tch, i)) {
-                int by_empire = get_priv_manager().priv_by_empire(tch->empire(), i);
-                int by_guild = 0;
+                int empire_value = get_priv_manager().priv_by_empire(tch->empire(), i);
+                int guild_value = 0;
 
                 if (tch->get_guild())
-                    by_guild = get_priv_manager().priv_by_guild(tch->get_guild()->id(), i);
+                    guild_value = get_priv_manager().priv_by_guild(tch->get_guild()->id(), i);
 
-                int by_player = get_priv_manager().priv_by_character(tch->player_id(), i);
+                int player_value = get_priv_manager().priv_by_character(tch->player_id(), i);
 
-                if (by_empire)
-                    ch->chat_packet(CHAT_TYPE_INFO, "%s for empire : %d", lc_text(apsz_priv_names[i]), by_empire);
+                if (empire_value)
+                    ch->chat_packet(CHAT_TYPE_INFO, "%s for empire : %d", lc_text(priv_names[i]), empire_value);
 
-                if (by_guild)
-                    ch->chat_packet(CHAT_TYPE_INFO, "%s for guild : %d", lc_text(apsz_priv_names[i]), by_guild);
+                if (guild_value)
+                    ch->chat_packet(CHAT_TYPE_INFO, "%s for guild : %d", lc_text(priv_names[i]), guild_value);
 
-                if (by_player)
-                    ch->chat_packet(CHAT_TYPE_INFO, "%s for player : %d", lc_text(apsz_priv_names[i]), by_player);
+                if (player_value)
+                    ch->chat_packet(CHAT_TYPE_INFO, "%s for player : %d", lc_text(priv_names[i]), player_value);
             }
     }
 
     void send_notice(const char *buf) {
-        const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
-        for (desc *d : c_ref_set) {
+        const desc_manager::desc_set &descs = get_desc_manager().client_set();
+        for (desc *d : descs) {
             if (!d->get_character())
                 continue;
 
@@ -841,8 +841,8 @@ namespace metin2::game::inline admin {
     }
 
     void send_monarch_notice(uint8_t empire, const char *buf) {
-        const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
-        for (desc *d : c_ref_set) {
+        const desc_manager::desc_set &descs = get_desc_manager().client_set();
+        for (desc *d : descs) {
             if (!d->get_character())
                 continue;
 
@@ -853,8 +853,8 @@ namespace metin2::game::inline admin {
     }
 
     void send_notice_map(const char *buf, int map_index, bool big_font) {
-        const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
-        for (desc *d : c_ref_set) {
+        const desc_manager::desc_set &descs = get_desc_manager().client_set();
+        for (desc *d : descs) {
             if (d->get_character() == nullptr) continue;
             if (d->get_character()->map_index() != map_index) continue;
 
@@ -863,8 +863,8 @@ namespace metin2::game::inline admin {
     }
 
     void send_log(const char *buf) {
-        const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
-        for (desc *d : c_ref_set) {
+        const desc_manager::desc_set &descs = get_desc_manager().client_set();
+        for (desc *d : descs) {
             if (!d->get_character())
                 continue;
 
@@ -934,11 +934,11 @@ namespace metin2::game::inline admin {
     }
 
     ACMD(do_user) {
-        const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
+        const desc_manager::desc_set &descs = get_desc_manager().client_set();
         int count = 0;
         std::string str;
 
-        for (desc *d : c_ref_set) {
+        for (desc *d : descs) {
             if (!d->get_character())
                 continue;
 

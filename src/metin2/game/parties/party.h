@@ -81,9 +81,9 @@ namespace metin2::game::inline parties {
         void p2p_quit_party(uint32_t pid);
 
       private:
-        party_map map_party_;
+        party_map parties_;
 
-        pc_party_set set_pc_party_;
+        pc_party_set pc_parties_;
 
         bool enable_pc_party_;
     };

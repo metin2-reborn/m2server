@@ -769,7 +769,7 @@ namespace metin2::game::inline characters {
 
         float sync_time_;
         character *chr_sync_owner_ = nullptr;
-        character_list lst_chr_sync_owned_;
+        character_list chr_sync_owned_;
 
         pixel_position pos_dest_{};
         pixel_position pos_start_{};
@@ -793,7 +793,7 @@ namespace metin2::game::inline characters {
 
       public:
         void sync_quickslot(uint8_t type_value, uint8_t old_pos, uint8_t new_pos);
-        auto get_quickslot(uint8_t pos, quickslot **pp_slot) -> bool;
+        auto get_quickslot(uint8_t pos, quickslot **slot) -> bool;
         auto set_quickslot(uint8_t pos, quickslot &slot_value) -> bool;
         auto del_quickslot(uint8_t pos) -> bool;
         auto swap_quickslot(uint8_t a, uint8_t b) -> bool;
@@ -823,12 +823,12 @@ namespace metin2::game::inline characters {
         void remove_bad_affect();
 
         auto find_affect(uint32_t type_value, uint8_t apply = APPLY_NONE) const -> affect *;
-        auto affect_container() const -> const std::list<affect *> & { return list_affect_; }
+        auto affect_container() const -> const std::list<affect *> & { return affects_; }
         auto remove_affect(affect *aff) -> bool;
 
       protected:
         affect_flag af_affect_flag_;
-        std::list<affect *> list_affect_;
+        std::list<affect *> affects_;
 
       public:
         void set_party(party *party_value);
@@ -1159,8 +1159,8 @@ namespace metin2::game::inline characters {
         void change_victim_by_aggro(int new_aggro, character *new_victim);
 
         uint32_t fly_target_id_ = 0;
-        std::vector<uint32_t> vec_fly_targets_;
-        damage_map map_damage_;
+        std::vector<uint32_t> fly_targets_;
+        damage_map damages_;
         uint32_t killer_pid_ = 0;
 
         int alignment_ = 0;
@@ -1180,7 +1180,7 @@ namespace metin2::game::inline characters {
 
       protected:
         character *chr_stone_ = nullptr;
-        character_set set_chr_spawned_by_;
+        character_set chrs_spawned_by_;
         uint32_t drop_metin_stone_;
         uint8_t drop_metin_stone_pct_;
 
@@ -1303,7 +1303,7 @@ namespace metin2::game::inline characters {
 
       protected:
         character *chr_target_ = nullptr;
-        character_set set_chr_targeted_by_;
+        character_set chrs_targeted_by_;
 
       public:
         void set_target(character *chr_target);
@@ -1674,7 +1674,7 @@ namespace metin2::game::inline characters {
         void buff_on_attr_clear_all();
 
         using map_buff_on_attrs = std::map<uint8_t, std::unique_ptr<buff_on_attributes>>;
-        map_buff_on_attrs map_buff_on_attrs_;
+        map_buff_on_attrs buff_on_attrs_;
 
       public:
         void set_armada() { cannot_dead_ = true; }

@@ -25,13 +25,13 @@ namespace metin2::db::inline empire {
     }
 
     auto monarch::vote_monarch(uint32_t pid, uint32_t selectdpid) -> bool {
-        auto it = map_monarch_election_.find(pid);
+        auto it = monarch_elections_.find(pid);
 
-        if (it == map_monarch_election_.end()) {
+        if (it == monarch_elections_.end()) {
             auto p = std::make_unique<monarch_election_info>();
             p->pid = pid;
             p->selectedpid = selectdpid;
-            map_monarch_election_.insert(map_monarchelection::value_type(pid, std::move(p)));
+            monarch_elections_.insert(map_monarchelection::value_type(pid, std::move(p)));
 
             const std::string query = sql::format(
                 "INSERT INTO monarch_election(pid, selectedpid, electiondata) VALUES({}, {}, now())", pid, selectdpid);
@@ -48,25 +48,25 @@ namespace metin2::db::inline empire {
 
         auto s = std::make_unique<int[]>(size);
 
-        auto it = map_monarch_election_.begin();
+        auto it = monarch_elections_.begin();
 
         int idx = 0;
 
-        for (; it != map_monarch_election_.end(); ++it) {
+        for (; it != monarch_elections_.end(); ++it) {
             if ((idx = candidacy_index(it->second->pid)) < 0)
                 continue;
 
             ++s[idx];
 
             if (metin2::config::test_server())
-                metin2::log::debug("Monarch election: pid {:d} voted for candidate pid {:d}", it->second->pid, vec_monarch_candidacy_[idx].pid);
+                metin2::log::debug("Monarch election: pid {:d} voted for candidate pid {:d}", it->second->pid, monarch_candidacies_[idx].pid);
         }
     }
 
     auto monarch::is_candidacy(uint32_t pid) -> bool {
-        auto it = vec_monarch_candidacy_.begin();
+        auto it = monarch_candidacies_.begin();
 
-        for (; it != vec_monarch_candidacy_.end(); ++it) {
+        for (; it != monarch_candidacies_.end(); ++it) {
             if (it->pid == pid)
                 return false;
         }
@@ -82,7 +82,7 @@ namespace metin2::db::inline empire {
 
         info.pid = pid;
         strlcpy(info.name, name, sizeof(info.name));
-        vec_monarch_candidacy_.push_back(info);
+        monarch_candidacies_.push_back(info);
 
         const std::string query = sql::format("INSERT INTO monarch_candidacy(pid, date) VALUES({}, now())", pid);
 
@@ -91,13 +91,13 @@ namespace metin2::db::inline empire {
     }
 
     auto monarch::del_candidacy(const char *name) -> bool {
-        auto it = vec_monarch_candidacy_.begin();
-        for (; it != vec_monarch_candidacy_.end(); ++it) {
+        auto it = monarch_candidacies_.begin();
+        for (; it != monarch_candidacies_.end(); ++it) {
             if (0 == strncmp(it->name, name, sizeof(it->name))) {
                 const std::string query = sql::format("DELETE FROM monarch_candidacy WHERE pid={} ", it->pid);
                 get_db_manager().async_query(query);
 
-                vec_monarch_candidacy_.erase(it);
+                monarch_candidacies_.erase(it);
                 return true;
             }
         }
@@ -246,9 +246,9 @@ namespace metin2::db::inline empire {
     }
 
     auto monarch::candidacy_index(uint32_t pid) -> int {
-        auto it = vec_monarch_candidacy_.begin();
+        auto it = monarch_candidacies_.begin();
 
-        for (int n = 0; it != vec_monarch_candidacy_.end(); ++it, ++n) {
+        for (int n = 0; it != monarch_candidacies_.end(); ++it, ++n) {
             if (it->pid == pid)
                 return n;
         }

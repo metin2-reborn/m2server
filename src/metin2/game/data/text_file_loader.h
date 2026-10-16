@@ -41,7 +41,7 @@ namespace metin2::game::inline data {
         auto set_parent_node() -> bool;
         auto current_node_name(std::string *pstr_name) -> bool;
 
-        auto get_token_vector(const std::string &rstr_key, token_vector **pp_token_vector) -> bool;
+        auto get_token_vector(const std::string &rstr_key, token_vector **token_vector) -> bool;
         auto token_integer(const std::string &rstr_key, int *data) -> bool;
         auto token_double_word(const std::string &rstr_key, uint32_t *data) -> bool;
         auto token_float(const std::string &rstr_key, float *data) -> bool;

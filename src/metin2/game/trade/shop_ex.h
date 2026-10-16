@@ -33,9 +33,9 @@ namespace metin2::game::inline trade {
         auto buy(character *ch, uint8_t pos) -> int override;
         auto is_selling_item(uint32_t item_id) -> bool override { return false; }
 
-        auto tab_count() -> size_t { return vec_shop_tabs_.size(); }
+        auto tab_count() -> size_t { return shop_tabs_.size(); }
 
       private:
-        std::vector<shop_table_ex> vec_shop_tabs_;
+        std::vector<shop_table_ex> shop_tabs_;
     };
 }

@@ -99,14 +99,14 @@ namespace metin2::game::inline guilds {
         chr_flag = nullptr;
         chr_flag_base = nullptr;
 
-        set_pid_joiner.clear();
+        pid_joiners.clear();
     }
 
-    war_map::war_map(int32_t map_index_value, const guild_war_info &r_info, war_map_info *war_map_info_value, uint32_t guild_id1, uint32_t guild_id2) {
+    war_map::war_map(int32_t map_index_value, const guild_war_info &info_value, war_map_info *war_map_info_value, uint32_t guild_id1, uint32_t guild_id2) {
         map_info_ = *war_map_info_value;
         map_info_.map_index = map_index_value;
 
-        memcpy(&war_info_, &r_info, sizeof(guild_war_info));
+        memcpy(&war_info_, &info_value, sizeof(guild_war_info));
 
         team_data_[0].initialize();
         team_data_[0].id = guild_id1;
@@ -144,9 +144,9 @@ namespace metin2::game::inline guilds {
 
         metin2::log::info("Guild war: closing war map {:d}", map_index());
 
-        auto it = set_chr_.begin();
+        auto it = chrs_.begin();
 
-        while (it != set_chr_.end()) {
+        while (it != chrs_.end()) {
             character *ch = *(it++);
 
             if (ch->get_desc()) {
@@ -155,7 +155,7 @@ namespace metin2::game::inline guilds {
             }
         }
 
-        set_chr_.clear();
+        chrs_.clear();
     }
 
     namespace {
@@ -256,7 +256,7 @@ namespace metin2::game::inline guilds {
     }
 
     auto war_map::team_data::accumulated_joiner_count() -> int {
-        return set_pid_joiner.size();
+        return pid_joiners.size();
     }
 
     auto war_map::team_data::cur_jointer_count() -> int {
@@ -264,7 +264,7 @@ namespace metin2::game::inline guilds {
     }
 
     void war_map::team_data::append_member(character *ch) {
-        set_pid_joiner.insert(ch->player_id());
+        pid_joiners.insert(ch->player_id());
         ++member_count;
     }
 
@@ -277,7 +277,7 @@ namespace metin2::game::inline guilds {
         const std::string observer_text = std::format("ObserverCount {}", observer_count_);
         const std::string user_count_text = std::format("WarUC {} {} {} {} {}", team_data_[0].id, team_data_[0].accumulated_joiner_count(), team_data_[1].id, team_data_[1].accumulated_joiner_count(), observer_count_);
 
-        for (character *ch : set_chr_) {
+        for (character *ch : chrs_) {
             ch->chat_packet(CHAT_TYPE_COMMAND, observer_text.c_str());
             ch->chat_packet(CHAT_TYPE_COMMAND, user_count_text.c_str());
         }
@@ -322,7 +322,7 @@ namespace metin2::game::inline guilds {
 
         update_user_count();
 
-        set_chr_.insert(ch);
+        chrs_.insert(ch);
 
         desc *d = ch->get_desc();
 
@@ -374,11 +374,11 @@ namespace metin2::game::inline guilds {
 
         update_user_count();
 
-        set_chr_.erase(ch);
+        chrs_.erase(ch);
     }
 
     void war_map::exit_all() {
-        for (character *ch : set_chr_) {
+        for (character *ch : chrs_) {
             if (ch->is_pc()) {
                 ch->exit_to_saved_location();
             }
@@ -480,12 +480,12 @@ namespace metin2::game::inline guilds {
     }
 
     void war_map::notice(const char *psz) {
-        for (character *ch : set_chr_)
+        for (character *ch : chrs_)
             ch->chat_packet(CHAT_TYPE_NOTICE, "%s", psz);
     }
 
     void war_map::packet(const void *p, int size) {
-        for (character *ch : set_chr_)
+        for (character *ch : chrs_)
             ch->get_desc()->packet(p, size);
     }
 
@@ -778,7 +778,7 @@ namespace metin2::game::inline guilds {
         if (ended_)
             return;
 
-        for (character *ch : set_chr_) {
+        for (character *ch : chrs_) {
             if (ch->find_affect(AFFECT_WAR_FLAG))
                 ch->remove_affect(AFFECT_WAR_FLAG);
         }
@@ -809,7 +809,7 @@ namespace metin2::game::inline guilds {
         k->pos_start[2].x = 141 * 100 + 32000;
         k->pos_start[2].y = 117 * 100 + 0;
 
-        map_war_map_info_.emplace(k->map_index, std::move(k));
+        war_map_info_.emplace(k->map_index, std::move(k));
 
         k = std::make_unique<war_map_info>();
         k->type = WAR_MAP_TYPE_FLAG;
@@ -822,7 +822,7 @@ namespace metin2::game::inline guilds {
         k->pos_start[2].x = 122 * 100 + 57600;
         k->pos_start[2].y = 131 * 100 + 0;
 
-        map_war_map_info_.emplace(k->map_index, std::move(k));
+        war_map_info_.emplace(k->map_index, std::move(k));
         return true;
     }
 
@@ -836,10 +836,10 @@ namespace metin2::game::inline guilds {
         war_map_info *pi = get_war_map_info(map_index);
 
         if (!pi) {
-            metin2::log::warn("No war map info for map {:d}, cannot get start position ({:d} war maps registered)", map_index, map_war_map_info_.size());
+            metin2::log::warn("No war map info for map {:d}, cannot get start position ({:d} war maps registered)", map_index, war_map_info_.size());
 
-            decltype(map_war_map_info_.begin()) it;
-            for (it = map_war_map_info_.begin(); it != map_war_map_info_.end(); ++it) {
+            decltype(war_map_info_.begin()) it;
+            for (it = war_map_info_.begin(); it != war_map_info_.end(); ++it) {
                 pixel_position &cur = it->second->pos_start[idx];
                 metin2::log::warn("War map {:d} start position ({:d}, {:d})", it->first, cur.x, cur.y);
             }
@@ -870,9 +870,9 @@ namespace metin2::game::inline guilds {
         if (map_index >= 10000)
             map_index /= 10000;
 
-        auto it = map_war_map_info_.find(map_index);
+        auto it = war_map_info_.find(map_index);
 
-        if (map_war_map_info_.end() == it)
+        if (war_map_info_.end() == it)
             return nullptr;
 
         return it->second.get();

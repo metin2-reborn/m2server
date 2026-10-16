@@ -279,10 +279,10 @@ namespace metin2::db::inline social {
                     get_client_manager().forward_packet(HEADER_DG_WEDDING_END, &p, sizeof(p));
                     running_wedding_.erase(it);
 
-                    auto it_marriage = marriage_by_pid_.find(w.pid1);
+                    auto marriage_it = marriage_by_pid_.find(w.pid1);
 
-                    if (it_marriage != marriage_by_pid_.end()) {
-                        marriage *marriage = it_marriage->second;
+                    if (marriage_it != marriage_by_pid_.end()) {
+                        marriage *marriage = marriage_it->second;
                         if (!marriage->is_married) {
                             remove(marriage->pid1, marriage->pid2);
                         }

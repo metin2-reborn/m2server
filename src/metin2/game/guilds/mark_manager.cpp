@@ -163,8 +163,8 @@ namespace metin2::game::inline guilds {
         return gid_mark_id_.size();
     }
 
-    void guild_mark_manager::copy_mark_idx(char *pc_buf) const {
-        auto *buf = (uint16_t *)pc_buf;
+    void guild_mark_manager::copy_mark_idx(char *buf_value) const {
+        auto *buf = (uint16_t *)buf_value;
 
         for (auto it = gid_mark_id_.begin(); it != gid_mark_id_.end(); ++it) {
             *(buf++) = it->first;

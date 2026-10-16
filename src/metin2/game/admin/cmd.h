@@ -55,7 +55,7 @@ namespace metin2::game::inline admin {
     extern void send_notice_map(const char *buf, int map_index, bool big_font);
     extern void send_monarch_notice(uint8_t empire, const char *buf);
 
-    extern void character_add_goto_info(const std::string &st_name_value, uint8_t empire, int index_value, uint32_t x, uint32_t y);
+    extern void character_add_goto_info(const std::string &name_value, uint8_t empire, int index_value, uint32_t x, uint32_t y);
 
     ACMD(do_block_chat);
     ACMD(do_monarch_mob);

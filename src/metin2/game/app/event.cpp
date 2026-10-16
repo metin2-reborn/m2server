@@ -85,7 +85,7 @@ namespace metin2::game::inline app {
 
             new_time = elem_value->key;
 
-            event_ptr the_event = elem_value->pv_data;
+            event_ptr the_event = elem_value->data;
             int32_t processing_time = event_processing_time(the_event);
             elem = {};
             the_event->q_el = nullptr;
@@ -137,8 +137,8 @@ namespace metin2::game::inline app {
         while (event_queue::element elem = cxx_q.dequeue()) {
             queue_element &el = elem.mapped();
 
-            if (el.pv_data && el.pv_data->q_el == &el)
-                el.pv_data->q_el = nullptr;
+            if (el.data && el.data->q_el == &el)
+                el.data->q_el = nullptr;
         }
     }
 

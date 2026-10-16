@@ -65,7 +65,7 @@ namespace metin2::game::inline trade {
 
             shop *shop = shops_.emplace_back(std::move(new_shop)).get();
             map_shop_.insert(shop_map::value_type(table->vnum, shop));
-            map_shop_by_npc_vnum_.insert(shop_map::value_type(table->npc_vnum, shop));
+            shops_by_npc_vnum_.insert(shop_map::value_type(table->npc_vnum, shop));
         }
         const std::string shop_table_ex_file_name = std::format("{}/shop_table_ex.txt", locale_service_get_base_path());
 
@@ -74,7 +74,7 @@ namespace metin2::game::inline trade {
 
     void shop_manager::destroy() {
         map_shop_.clear();
-        map_shop_by_npc_vnum_.clear();
+        shops_by_npc_vnum_.clear();
         shops_.clear();
     }
 
@@ -88,9 +88,9 @@ namespace metin2::game::inline trade {
     }
 
     auto shop_manager::by_npc_vnum(uint32_t vnum) -> shop * {
-        auto it = map_shop_by_npc_vnum_.find(vnum);
+        auto it = shops_by_npc_vnum_.find(vnum);
 
-        if (it == map_shop_by_npc_vnum_.end())
+        if (it == shops_by_npc_vnum_.end())
             return nullptr;
 
         return (it->second);
@@ -138,9 +138,9 @@ namespace metin2::game::inline trade {
     }
 
     auto shop_manager::find_pc_shop(uint32_t vid) -> shop * {
-        auto it = map_shop_by_pc_.find(vid);
+        auto it = shops_by_pc_.find(vid);
 
-        if (it == map_shop_by_pc_.end())
+        if (it == shops_by_pc_.end())
             return nullptr;
 
         return it->second.get();
@@ -155,7 +155,7 @@ namespace metin2::game::inline trade {
         shop->set_pc_shop(ch);
         shop->set_shop_items(table, item_count);
 
-        map_shop_by_pc_.emplace(ch->get_vid(), std::move(new_shop));
+        shops_by_pc_.emplace(ch->get_vid(), std::move(new_shop));
         return shop;
     }
 
@@ -167,7 +167,7 @@ namespace metin2::game::inline trade {
 
         ch->set_my_shop_time();
 
-        map_shop_by_pc_.erase(ch->get_vid());
+        shops_by_pc_.erase(ch->get_vid());
     }
 
     void shop_manager::stop_shopping(character *ch) {
@@ -417,7 +417,7 @@ namespace metin2::game::inline trade {
         }
 
         using map_np_cshop = std::multimap<uint32_t, shop_table_ex>;
-        map_np_cshop map_npc_shop;
+        map_np_cshop npc_shops;
         for (int i = 0; i < shop_npc_group->row_count(); i++) {
             uint32_t npc_vnum;
             std::string shop_name;
@@ -436,30 +436,30 @@ namespace metin2::game::inline trade {
                 metin2::log::error("Cannot read shop group {}", shop_name);
                 return false;
             }
-            if (map_shop_by_npc_vnum_.find(npc_vnum) != map_shop_by_npc_vnum_.end()) {
+            if (shops_by_npc_vnum_.find(npc_vnum) != shops_by_npc_vnum_.end()) {
                 metin2::log::error("Npc {:d} cannot have both a regular and an extended shop", npc_vnum);
                 return false;
             }
 
-            map_npc_shop.insert(map_np_cshop::value_type(npc_vnum, table));
+            npc_shops.insert(map_np_cshop::value_type(npc_vnum, table));
         }
 
-        for (auto it = map_npc_shop.begin(); it != map_npc_shop.end(); ++it) {
+        for (auto it = npc_shops.begin(); it != npc_shops.end(); ++it) {
             uint32_t npc_vnum = it->first;
             shop_table_ex &table = it->second;
             if (map_shop_.find(table.vnum) != map_shop_.end()) {
                 metin2::log::error("Shop vnum {:d} already exists", table.vnum);
                 return false;
             }
-            auto shop_it = map_shop_by_npc_vnum_.find(npc_vnum);
+            auto shop_it = shops_by_npc_vnum_.find(npc_vnum);
 
             shop_ex *shop_ex_value = nullptr;
-            if (map_shop_by_npc_vnum_.end() == shop_it) {
+            if (shops_by_npc_vnum_.end() == shop_it) {
                 auto new_shop_ex = std::make_unique<shop_ex>();
                 shop_ex_value = new_shop_ex.get();
                 shops_.push_back(std::move(new_shop_ex));
                 shop_ex_value->create(0, npc_vnum);
-                map_shop_by_npc_vnum_.insert(shop_map::value_type(npc_vnum, shop_ex_value));
+                shops_by_npc_vnum_.insert(shop_map::value_type(npc_vnum, shop_ex_value));
             } else {
                 shop_ex_value = dynamic_cast<shop_ex *>(shop_it->second);
                 if (nullptr == shop_ex_value) {

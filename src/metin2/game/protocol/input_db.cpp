@@ -482,7 +482,7 @@ namespace metin2::game::inline protocol {
             if (attr.apply_index >= MAX_APPLY_NUM)
                 continue;
 
-            map_item_attr[attr.apply_index] = attr;
+            item_attrs[attr.apply_index] = attr;
             metin2::log::debug("Item attribute {:d}: {} (probability {:d})", attr.apply_index, attr.apply, attr.prob);
         }
 
@@ -494,7 +494,7 @@ namespace metin2::game::inline protocol {
             if (attr.apply_index >= MAX_APPLY_NUM)
                 continue;
 
-            map_item_rare[attr.apply_index] = attr;
+            item_rares[attr.apply_index] = attr;
             metin2::log::debug("Item rare attribute {:d}: {} (probability {:d})", attr.apply_index, attr.apply, attr.prob);
         }
 
@@ -1949,18 +1949,18 @@ namespace metin2::game::inline protocol {
         }
     }
 
-    void input_db::respond_channel_status(desc *desc, const char *pc_data) {
+    void input_db::respond_channel_status(desc *desc, const char *data) {
         if (!desc) {
             return;
         }
-        const int size = decode_4bytes(pc_data);
-        pc_data += sizeof(size);
+        const int size = decode_4bytes(data);
+        data += sizeof(size);
 
         uint8_t header = HEADER_GC_RESPOND_CHANNELSTATUS;
         desc->buffered_packet(&header, sizeof(uint8_t));
         desc->buffered_packet(&size, sizeof(size));
         if (0 < size) {
-            desc->buffered_packet(pc_data, sizeof(channel_status) * size);
+            desc->buffered_packet(data, sizeof(channel_status) * size);
         }
         uint8_t success = 1;
         desc->packet(&success, sizeof(success));

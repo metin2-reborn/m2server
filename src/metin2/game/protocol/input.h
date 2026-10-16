@@ -118,7 +118,7 @@ namespace metin2::game::inline protocol {
         void item_drop2(character *ch, const char *data);
         void item_move(character *ch, const char *data);
         void item_pickup(character *ch, const char *data);
-        void item_to_item(character *ch, const char *pc_data);
+        void item_to_item(character *ch, const char *data);
         void quickslot_add(character *ch, const char *data);
         void quickslot_delete(character *ch, const char *data);
         void quickslot_swap(character *ch, const char *data);
@@ -127,9 +127,9 @@ namespace metin2::game::inline protocol {
         void exchange(character *ch, const char *data);
         void position(character *ch, const char *data);
         void move(character *ch, const char *data);
-        auto sync_position(character *ch, const char *pc_data, size_t bytes) -> int;
-        void fly_target(character *ch, const char *pc_data, uint8_t header);
-        void use_skill(character *ch, const char *pc_data);
+        auto sync_position(character *ch, const char *data, size_t bytes) -> int;
+        void fly_target(character *ch, const char *data, uint8_t header);
+        void use_skill(character *ch, const char *data);
 
         void script_answer(character *ch, const void *data);
         void script_button(character *ch, const void *data);
@@ -137,8 +137,8 @@ namespace metin2::game::inline protocol {
 
         void quest_input_string(character *ch, const void *data);
         void quest_confirm(character *ch, const void *data);
-        void target(character *ch, const char *pc_data);
-        void warp(character *ch, const char *pc_data);
+        void target(character *ch, const char *data);
+        void warp(character *ch, const char *data);
         void safebox_checkin(character *ch, const char *data);
         void safebox_checkout(character *ch, const char *data, bool mall_value);
         void safebox_item_move(character *ch, const char *data);
@@ -266,7 +266,7 @@ namespace metin2::game::inline protocol {
         void detail_log(const packet_need_login_log_info *info);
         void item_award_informer(packet_item_award_infromer *data);
 
-        void respond_channel_status(desc *desc, const char *pc_data);
+        void respond_channel_status(desc *desc, const char *data);
 
       protected:
         uint32_t handle_;

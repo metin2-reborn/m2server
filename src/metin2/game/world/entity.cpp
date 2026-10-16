@@ -27,7 +27,7 @@ namespace metin2::game::inline world {
         type_ = type;
         view_age_ = 0;
         pos_.x = pos_.y = pos_.z = 0;
-        map_view_.clear();
+        views_.clear();
 
         sectree_ = nullptr;
         desc_ = nullptr;
@@ -69,7 +69,7 @@ namespace metin2::game::inline world {
         };
 
         if (!is_observer_)
-            for (const auto &[ent, age] : map_view_)
+            for (const auto &[ent, age] : views_)
                 send(ent);
 
         send(this);

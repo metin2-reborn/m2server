@@ -27,7 +27,7 @@ namespace metin2::db::inline clients {
                 strlcpy(p.flag_name, row[0], sizeof(p.flag_name));
                 str_to_number(p.value, row[1]);
                 metin2::log::info("Event flag: loaded {} = {:d}", p.flag_name, p.value);
-                map_event_flag_.insert(std::make_pair(std::string(p.flag_name), p.value));
+                event_flags_.insert(std::make_pair(std::string(p.flag_name), p.value));
                 forward_packet(HEADER_DG_SET_EVENT_FLAG, &p, sizeof(packet_set_event_flag));
             }
         }
@@ -38,10 +38,10 @@ namespace metin2::db::inline clients {
 
         bool changed = false;
 
-        auto it = map_event_flag_.find(p->flag_name);
-        if (it == map_event_flag_.end()) {
+        auto it = event_flags_.find(p->flag_name);
+        if (it == event_flags_.end()) {
             changed = true;
-            map_event_flag_.insert(std::make_pair(std::string(p->flag_name), p->value));
+            event_flags_.insert(std::make_pair(std::string(p->flag_name), p->value));
         } else if (it->second != p->value) {
             changed = true;
             it->second = p->value;
@@ -60,7 +60,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::send_event_flags_on_setup(peer *peer) {
-        for (auto it = map_event_flag_.begin(); it != map_event_flag_.end(); ++it) {
+        for (auto it = event_flags_.begin(); it != event_flags_.end(); ++it) {
             packet_set_event_flag p;
 
             strlcpy(p.flag_name, it->first.c_str(), sizeof(p.flag_name));

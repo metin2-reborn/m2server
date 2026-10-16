@@ -56,9 +56,9 @@ namespace metin2::game::inline protocol {
     }
 
     void p2p_manager::flush_output() {
-        auto it = set_peers_.begin();
+        auto it = peers_.begin();
 
-        while (it != set_peers_.end()) {
+        while (it != peers_.end()) {
             desc *desc = *it++;
             desc->flush_output();
         }
@@ -66,19 +66,19 @@ namespace metin2::game::inline protocol {
 
     void p2p_manager::register_acceptor(desc *d) {
         metin2::log::info("Peer acceptor opened (host {})", d->host_name());
-        set_peers_.insert(d);
+        peers_.insert(d);
         boot(d);
     }
 
     void p2p_manager::unregister_acceptor(desc *d) {
         metin2::log::info("Peer acceptor closed (host {})", d->host_name());
         erase_user_by_desc(d);
-        set_peers_.erase(d);
+        peers_.erase(d);
     }
 
     void p2p_manager::register_connector(desc *d) {
         metin2::log::info("Peer connector opened (host {})", d->host_name());
-        set_peers_.insert(d);
+        peers_.insert(d);
         boot(d);
 
         packet_gg_setup p;
@@ -89,19 +89,19 @@ namespace metin2::game::inline protocol {
     }
 
     void p2p_manager::unregister_connector(desc *d) {
-        auto it = set_peers_.find(d);
+        auto it = peers_.find(d);
 
-        if (it != set_peers_.end()) {
+        if (it != peers_.end()) {
             metin2::log::info("Peer connector closed (host {})", d->host_name());
             erase_user_by_desc(d);
-            set_peers_.erase(it);
+            peers_.erase(it);
         }
     }
 
     void p2p_manager::erase_user_by_desc(desc *d) {
-        auto it = map_cci_.begin();
+        auto it = ccis_.begin();
 
-        while (it != map_cci_.end()) {
+        while (it != ccis_.end()) {
             cci *cci = it->second.get();
             it++;
 
@@ -111,9 +111,9 @@ namespace metin2::game::inline protocol {
     }
 
     void p2p_manager::send(const void *data, int size, desc *except) {
-        auto it = set_peers_.begin();
+        auto it = peers_.begin();
 
-        while (it != set_peers_.end()) {
+        while (it != peers_.end()) {
             desc *desc = *it++;
 
             if (except == desc)
@@ -146,8 +146,8 @@ namespace metin2::game::inline protocol {
                 }
             }
 
-            map_pid_pk_cci_.insert(std::make_pair(cci_value->pid, cci_value));
-            map_cci_.emplace(cci_value->name, std::move(new_cci));
+            pid_pk_ccis_.insert(std::make_pair(cci_value->pid, cci_value));
+            ccis_.emplace(cci_value->name, std::move(new_cci));
         }
 
         cci_value->map_index = p->map_index;
@@ -183,8 +183,8 @@ namespace metin2::game::inline protocol {
         get_messenger_manager().p2p_logout(name);
         marriage::get_manager().logout(cci_value->pid);
 
-        map_pid_pk_cci_.erase(cci_value->pid);
-        map_cci_.erase(name);
+        pid_pk_ccis_.erase(cci_value->pid);
+        ccis_.erase(name);
     }
 
     void p2p_manager::logout(const char *name) {
@@ -198,8 +198,8 @@ namespace metin2::game::inline protocol {
     }
 
     auto p2p_manager::find_by_pid(uint32_t pid) -> cci * {
-        auto it = map_pid_pk_cci_.find(pid);
-        if (it == map_pid_pk_cci_.end())
+        auto it = pid_pk_ccis_.find(pid);
+        if (it == pid_pk_ccis_.end())
             return nullptr;
         return it->second;
     }
@@ -207,9 +207,9 @@ namespace metin2::game::inline protocol {
     auto p2p_manager::find(const char *name) -> cci * {
         cci_map::const_iterator it;
 
-        it = map_cci_.find(name);
+        it = ccis_.find(name);
 
-        if (it == map_cci_.end())
+        if (it == ccis_.end())
             return nullptr;
 
         return it->second.get();
@@ -225,15 +225,15 @@ namespace metin2::game::inline protocol {
     }
 
     auto p2p_manager::desc_count() -> int {
-        return set_peers_.size();
+        return peers_.size();
     }
 
     void p2p_manager::p2p_host_names(std::string &host_names) {
-        auto it = set_peers_.begin();
+        auto it = peers_.begin();
 
         std::ostringstream oss(std::ostringstream::out);
 
-        while (it != set_peers_.end()) {
+        while (it != peers_.end()) {
             desc *desc = *it++;
 
             oss << desc->p2p_host() << " " << desc->p2p_port() << "\n";

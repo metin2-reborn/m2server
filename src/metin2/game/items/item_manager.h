@@ -198,15 +198,15 @@ namespace metin2::game::inline items {
         drop_item_group() = default;
 
         auto get_vector() -> const std::vector<drop_item_group_info> & {
-            return vec_items_;
+            return items_;
         }
 
         void add_item(uint32_t item_vnum, uint32_t pct, int count) {
-            vec_items_.push_back(drop_item_group_info(item_vnum, pct, count));
+            items_.push_back(drop_item_group_info(item_vnum, pct, count));
         }
 
       private:
-        std::vector<drop_item_group_info> vec_items_;
+        std::vector<drop_item_group_info> items_;
     };
 
     class level_item_group {
@@ -221,7 +221,7 @@ namespace metin2::game::inline items {
 
       private:
         uint32_t level_limit_;
-        std::vector<level_item_group_info> vec_items_;
+        std::vector<level_item_group_info> items_;
 
       public:
         level_item_group(uint32_t level_limit)
@@ -230,11 +230,11 @@ namespace metin2::game::inline items {
         auto level_limit() -> uint32_t { return level_limit_; }
 
         void add_item(uint32_t item_vnum, uint32_t pct, int count) {
-            vec_items_.push_back(level_item_group_info(item_vnum, pct, count));
+            items_.push_back(level_item_group_info(item_vnum, pct, count));
         }
 
         auto get_vector() -> const std::vector<level_item_group_info> & {
-            return vec_items_;
+            return items_;
         }
     };
 
@@ -252,15 +252,15 @@ namespace metin2::game::inline items {
         buyer_thief_gloves_item_group() = default;
 
         auto get_vector() -> const std::vector<thief_group_info> & {
-            return vec_items_;
+            return items_;
         }
 
         void add_item(uint32_t item_vnum, uint32_t pct, int count) {
-            vec_items_.push_back(thief_group_info(item_vnum, pct, count));
+            items_.push_back(thief_group_info(item_vnum, pct, count));
         }
 
       private:
-        std::vector<thief_group_info> vec_items_;
+        std::vector<thief_group_info> items_;
     };
 
     class item_manager {
@@ -288,11 +288,11 @@ namespace metin2::game::inline items {
         auto find(uint32_t id) -> item *;
         auto find_by_vid(uint32_t vid) -> item *;
         auto table(uint32_t vnum) -> item_table *;
-        auto vnum(const char *name, uint32_t &r_dw_vnum) -> bool;
-        auto vnum_by_original_name(const char *name_value, uint32_t &r_dw_vnum) -> bool;
+        auto vnum(const char *name, uint32_t &vnum) -> bool;
+        auto vnum_by_original_name(const char *name_value, uint32_t &vnum) -> bool;
 
         auto drop_pct(character *chr, character *killer, int &delta_percent, int &rand_range) -> bool;
-        auto create_drop_item(character *chr, character *killer, std::vector<item *> &vec_item) -> bool;
+        auto create_drop_item(character *chr, character *killer, std::vector<item *> &items) -> bool;
 
         auto read_common_drop_item_file(const char *file_name) -> bool;
         auto read_etc_drop_item_file(const char *file_name) -> bool;
@@ -316,14 +316,14 @@ namespace metin2::game::inline items {
 
       protected:
         auto real_number(uint32_t vnum) -> int;
-        void create_quest_drop_item(character *chr, character *killer, std::vector<item *> &vec_item, int delta_percent, int rand_range);
+        void create_quest_drop_item(character *chr, character *killer, std::vector<item *> &items, int delta_percent, int rand_range);
 
       protected:
         using item_vid_map = std::map<uint32_t, item *>;
 
-        std::vector<item_table> vec_prototype_;
-        std::vector<item_table *> vec_item_vnum_range_info_;
-        std::map<uint32_t, uint32_t> map_item_refine_from_;
+        std::vector<item_table> prototypes_;
+        std::vector<item_table *> item_vnum_range_info_;
+        std::map<uint32_t, uint32_t> item_refine_from_;
 
         item_vid_map vid_map_;
         uint32_t vid_count_;
@@ -331,26 +331,26 @@ namespace metin2::game::inline items {
         item_id_range_table item_id_range_;
         item_id_range_table item_id_spare_range_;
 
-        std::unordered_set<item *> set_item_for_delayed_save_;
-        std::map<uint32_t, item *> map_item_by_id_;
-        std::map<uint32_t, uint32_t> map_etc_item_drop_prob_;
-        std::map<uint32_t, std::unique_ptr<drop_item_group>> map_drop_item_group_;
-        std::map<uint32_t, std::unique_ptr<special_item_group>> map_special_item_group_;
-        std::map<uint32_t, std::unique_ptr<special_item_group>> map_quest_item_group_;
-        std::map<uint32_t, std::unique_ptr<special_attr_group>> map_special_attr_group_;
-        std::map<uint32_t, std::unique_ptr<mob_item_group>> map_mob_item_group_;
-        std::map<uint32_t, std::unique_ptr<level_item_group>> map_level_item_group_;
-        std::map<uint32_t, std::unique_ptr<buyer_thief_gloves_item_group>> map_glove_item_group_;
+        std::unordered_set<item *> items_for_delayed_save_;
+        std::map<uint32_t, item *> items_by_id_;
+        std::map<uint32_t, uint32_t> etc_item_drop_probs_;
+        std::map<uint32_t, std::unique_ptr<drop_item_group>> drop_item_groups_;
+        std::map<uint32_t, std::unique_ptr<special_item_group>> special_item_groups_;
+        std::map<uint32_t, std::unique_ptr<special_item_group>> quest_item_groups_;
+        std::map<uint32_t, std::unique_ptr<special_attr_group>> special_attr_groups_;
+        std::map<uint32_t, std::unique_ptr<mob_item_group>> mob_item_groups_;
+        std::map<uint32_t, std::unique_ptr<level_item_group>> level_item_groups_;
+        std::map<uint32_t, std::unique_ptr<buyer_thief_gloves_item_group>> glove_item_groups_;
 
         std::map<uint32_t, int> item_to_special_group_;
 
       private:
         using map_dw2_dw = std::map<uint32_t, uint32_t>;
-        map_dw2_dw map_new_to_ori_;
+        map_dw2_dw new_to_ori_;
 
       public:
         auto mask_vnum(uint32_t vnum) -> uint32_t;
-        std::map<uint32_t, item_table> map_vid;
+        std::map<uint32_t, item_table> vids;
 
         const static int max_norm_attr_num = 5;
         const static int max_rare_attr_num = 2;

@@ -36,7 +36,7 @@ namespace metin2::db::inline clients {
         auto load_locale_names(const char *file_name) -> std::map<int, std::string> {
             std::map<int, std::string> names;
 
-            c_csv_table table;
+            csv_table table;
             if (!table.load(file_name, '\t')) {
                 metin2::log::warn("Cannot read {}", file_name);
                 return names;
@@ -60,12 +60,12 @@ namespace metin2::db::inline clients {
         };
 
         template <typename Table>
-        auto load_proto(const proto_files &files, auto (*parse)(Table *, c_csv_table &, const std::map<int, std::string> &)->bool,
+        auto load_proto(const proto_files &files, auto (*parse)(Table *, csv_table &, const std::map<int, std::string> &)->bool,
             void (*reset_untaken)(Table &), std::vector<Table> &tables) -> std::optional<size_t> {
             const auto names = load_locale_names(files.names);
 
             std::vector<Table> test_tables;
-            c_csv_table test_data;
+            csv_table test_data;
             if (!test_data.load(files.test, '\t')) {
                 metin2::log::warn("{}", files.missing_test_warning);
             } else {
@@ -82,7 +82,7 @@ namespace metin2::db::inline clients {
                 test_by_vnum.try_emplace(table.vnum, &table);
             }
 
-            c_csv_table data;
+            csv_table data;
             if (!data.load(files.proto, '\t')) {
                 metin2::log::error("Cannot read {}", files.proto);
                 return std::nullopt;
@@ -318,16 +318,16 @@ namespace metin2::db::inline clients {
             "No mob_proto_test.txt, continuing without it", "Cannot parse a mob_proto row", "Reloading mob_proto"};
 
         // The test override has never carried the mob colour.
-        const auto proto_count = load_proto<mob_table>(files, set_proto_mob_table, [](mob_table &t) { t.mob_color = 0; }, vec_mob_table_);
+        const auto proto_count = load_proto<mob_table>(files, set_proto_mob_table, [](mob_table &t) { t.mob_color = 0; }, mob_tables_);
         if (!proto_count) {
             return false;
         }
 
-        for (const auto &t : std::span(vec_mob_table_).first(*proto_count)) {
+        for (const auto &t : std::span(mob_tables_).first(*proto_count)) {
             metin2::log::debug("Mob {1} / {2} (vnum {0:d}) level {3:d} rank {4:d} empire {5:d}", t.vnum, t.name, t.locale_name, t.level, t.rank, t.empire);
         }
 
-        std::ranges::sort(vec_mob_table_, {}, &mob_table::vnum);
+        std::ranges::sort(mob_tables_, {}, &mob_table::vnum);
 
         return true;
     }
@@ -354,7 +354,7 @@ namespace metin2::db::inline clients {
             return false;
         }
 
-        std::map<int, std::unique_ptr<shop_table>> map_shop;
+        std::map<int, std::unique_ptr<shop_table>> shops;
 
         if (shop_table_) {
             shop_table_.reset();
@@ -368,15 +368,15 @@ namespace metin2::db::inline clients {
             int shop_vnum = 0;
             str_to_number(shop_vnum, data[col++]);
 
-            if (map_shop.end() == map_shop.find(shop_vnum)) {
+            if (shops.end() == shops.find(shop_vnum)) {
                 auto shop_table_value = std::make_unique<proto::shop_table>();
                 shop_table = shop_table_value.get();
                 *shop_table = proto::shop_table();
                 shop_table->vnum = shop_vnum;
 
-                map_shop[shop_vnum] = std::move(shop_table_value);
+                shops[shop_vnum] = std::move(shop_table_value);
             } else {
-                shop_table = map_shop[shop_vnum].get();
+                shop_table = shops[shop_vnum].get();
             }
 
             str_to_number(shop_table->npc_vnum, data[col++]);
@@ -398,11 +398,11 @@ namespace metin2::db::inline clients {
             ++shop_table->item_count;
         }
 
-        shop_table_ = std::make_unique<proto::shop_table[]>(map_shop.size());
-        shop_table_size_ = map_shop.size();
+        shop_table_ = std::make_unique<proto::shop_table[]>(shops.size());
+        shop_table_size_ = shops.size();
 
         int i = 0;
-        for (const auto &[vnum, table] : map_shop) {
+        for (const auto &[vnum, table] : shops) {
             shop_table_[i] = *table;
             metin2::log::debug("Shop {:d}: {:d} items", shop_table_[i].vnum, shop_table_[i].item_count);
             ++i;
@@ -422,14 +422,14 @@ namespace metin2::db::inline clients {
             t.specular = 0;
         };
 
-        if (!load_proto<item_table>(files, set_proto_item_table, reset_untaken, vec_item_table_)) {
+        if (!load_proto<item_table>(files, set_proto_item_table, reset_untaken, item_tables_)) {
             return false;
         }
 
-        std::ranges::sort(vec_item_table_, {}, &proto::item_table::vnum);
-        map_item_table_by_vnum_.clear();
+        std::ranges::sort(item_tables_, {}, &proto::item_table::vnum);
+        item_tables_by_vnum_.clear();
 
-        for (auto &t : vec_item_table_) {
+        for (auto &t : item_tables_) {
             const proto::item_table *item_table = &t;
 
             metin2::log::debug("Item {1} / {2} (vnum {0:d}) values {3:d} {4:d} {5:d} {6:d} {7:d} {8:d}, wear flags {9:d}, anti flags {10:d}, immune {11:d}, refined vnum {12:d}, refine set {13:d}, magic pct {14:d}",
@@ -449,7 +449,7 @@ namespace metin2::db::inline clients {
                 item_table->refine_set,
                 item_table->alter_to_magic_item_pct);
 
-            map_item_table_by_vnum_.emplace(t.vnum, &t);
+            item_tables_by_vnum_.emplace(t.vnum, &t);
         }
 
         return true;
@@ -473,12 +473,12 @@ namespace metin2::db::inline clients {
             return false;
         }
 
-        if (!vec_skill_table_.empty()) {
+        if (!skill_tables_.empty()) {
             metin2::log::info("Reloading skill_proto");
-            vec_skill_table_.clear();
+            skill_tables_.clear();
         }
 
-        vec_skill_table_.reserve(res->num_rows);
+        skill_tables_.reserve(res->num_rows);
 
         MYSQL_ROW data;
         int col;
@@ -531,14 +531,14 @@ namespace metin2::db::inline clients {
 
             metin2::log::debug("Skill {1} (vnum {0:d}) flag {2:d}, point {3}, affect {4:d}, cooldown {5}", t.vnum, t.name, t.flag, t.point_on, t.affect_flag, t.cooldown_poly);
 
-            vec_skill_table_.push_back(t);
+            skill_tables_.push_back(t);
         }
 
         return true;
     }
 
     auto client_manager::initialize_banword_table() -> bool {
-        vec_banword_table_.clear();
+        banword_tables_.clear();
 
         auto msg = get_db_manager().direct_query("SELECT word FROM banword");
 
@@ -554,20 +554,20 @@ namespace metin2::db::inline clients {
 
             if (data[0]) {
                 strlcpy(t.word, data[0], sizeof(t.word));
-                vec_banword_table_.push_back(t);
+                banword_tables_.push_back(t);
             }
         }
 
-        metin2::log::info("Loaded {:d} banwords", vec_banword_table_.size());
+        metin2::log::info("Loaded {:d} banwords", banword_tables_.size());
         return true;
     }
 
     auto client_manager::initialize_item_attr_table() -> bool {
-        return load_item_attr_table("item_attr", vec_item_attr_table_);
+        return load_item_attr_table("item_attr", item_attr_tables_);
     }
 
     auto client_manager::initialize_item_rare_table() -> bool {
-        return load_item_attr_table("item_attr_rare", vec_item_rare_table_);
+        return load_item_attr_table("item_attr_rare", item_rare_tables_);
     }
 
     auto client_manager::initialize_land_table() -> bool {
@@ -580,12 +580,12 @@ namespace metin2::db::inline clients {
         auto msg = get_db_manager().direct_query(query);
         sql_result *res = msg->get();
 
-        if (!vec_land_table_.empty()) {
+        if (!land_tables_.empty()) {
             metin2::log::info("Reloading land");
-            vec_land_table_.clear();
+            land_tables_.clear();
         }
 
-        vec_land_table_.reserve(res->num_rows);
+        land_tables_.reserve(res->num_rows);
 
         MYSQL_ROW data;
 
@@ -609,7 +609,7 @@ namespace metin2::db::inline clients {
 
                 metin2::log::debug("Land {:d}: map {:d} at ({:d}, {:d}), {:d} x {:d}", t.id, t.map_index, t.x, t.y, t.width, t.height);
 
-                vec_land_table_.push_back(t);
+                land_tables_.push_back(t);
             }
         }
 
@@ -673,12 +673,12 @@ namespace metin2::db::inline clients {
         auto msg = get_db_manager().direct_query(query);
         sql_result *res = msg->get();
 
-        if (!vec_object_proto_.empty()) {
+        if (!object_protos_.empty()) {
             metin2::log::info("Reloading object_proto");
-            vec_object_proto_.clear();
+            object_protos_.clear();
         }
 
-        vec_object_proto_.reserve(std::max<int>(0, res->num_rows));
+        object_protos_.reserve(std::max<int>(0, res->num_rows));
 
         MYSQL_ROW data;
 
@@ -721,7 +721,7 @@ namespace metin2::db::inline clients {
                 metin2::log::debug("Object proto {:d}: price {:d}, first material vnum {:d} x{:d}",
                     t.vnum, t.price, t.materials[0].item_vnum, t.materials[0].count);
 
-                vec_object_proto_.push_back(t);
+                object_protos_.push_back(t);
             }
 
         return true;
@@ -736,9 +736,9 @@ namespace metin2::db::inline clients {
         auto msg = get_db_manager().direct_query(query);
         sql_result *res = msg->get();
 
-        if (!map_object_table_.empty()) {
+        if (!object_tables_.empty()) {
             metin2::log::info("Reloading object");
-            map_object_table_.clear();
+            object_tables_.clear();
         }
 
         MYSQL_ROW data;
@@ -765,7 +765,7 @@ namespace metin2::db::inline clients {
                 metin2::log::debug("Object {:d} (vnum {:d}) on map {:d} at ({:d}, {:d}), life {:d}",
                     k->id, k->vnum, k->map_index, k->x, k->y, k->life);
 
-                map_object_table_.insert(std::make_pair(k->id, std::move(k)));
+                object_tables_.insert(std::make_pair(k->id, std::move(k)));
             }
 
         return true;
@@ -778,7 +778,7 @@ namespace metin2::db::inline clients {
     }
 
     auto client_manager::mirror_mob_table_into_db() -> bool {
-        for (const mob_table &t : vec_mob_table_) {
+        for (const mob_table &t : mob_tables_) {
             const auto [locale_column, locale_value] = locale_name_fragments(t.locale_name);
             const std::string query = sql::format(
                 "replace into mob_proto "
@@ -820,9 +820,9 @@ namespace metin2::db::inline clients {
                 t.str, t.dex, t.con, t.iq, t.damage_range[0], t.damage_range[1], t.max_hp, t.regen_cycle, t.regen_percent, t.exp,
 
                 t.gold_min, t.gold_max, t.def, t.s_attack_speed, t.s_moving_speed, t.aggresive_hp_pct, t.aggressive_sight, t.attack_range, t.polymorph_item_vnum,
-                t.c_enchants[0], t.c_enchants[1], t.c_enchants[2], t.c_enchants[3], t.c_enchants[4], t.c_enchants[5],
-                t.c_resists[0], t.c_resists[1], t.c_resists[2], t.c_resists[3], t.c_resists[4], t.c_resists[5],
-                t.c_resists[6], t.c_resists[7], t.c_resists[8], t.c_resists[9], t.c_resists[10],
+                t.enchants[0], t.enchants[1], t.enchants[2], t.enchants[3], t.enchants[4], t.enchants[5],
+                t.resists[0], t.resists[1], t.resists[2], t.resists[3], t.resists[4], t.resists[5],
+                t.resists[6], t.resists[7], t.resists[8], t.resists[9], t.resists[10],
                 t.dam_multiply, t.summon_vnum, t.drain_sp, t.mob_color,
 
                 t.skills[0].vnum, t.skills[0].level, t.skills[1].vnum, t.skills[1].level, t.skills[2].vnum, t.skills[2].level,
@@ -835,7 +835,7 @@ namespace metin2::db::inline clients {
     }
 
     auto client_manager::mirror_item_table_into_db() -> bool {
-        for (const item_table &t : vec_item_table_) {
+        for (const item_table &t : item_tables_) {
             const auto [locale_column, locale_value] = locale_name_fragments(t.locale_name);
             const std::string query = sql::format(
                 "replace into item_proto ("

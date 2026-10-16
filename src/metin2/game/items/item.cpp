@@ -133,14 +133,14 @@ namespace metin2::game::inline items {
         if (!(d = ent->get_desc()))
             return;
 
-        const pixel_position &c_pos = xyz();
+        const pixel_position &pos = xyz();
 
         struct packet_gc_item_ground_add pack;
 
         pack.header = HEADER_GC_ITEM_GROUND_ADD;
-        pack.x = c_pos.x;
-        pack.y = c_pos.y;
-        pack.z = c_pos.z;
+        pack.x = pos.x;
+        pack.y = pos.y;
+        pack.z = pos.z;
         pack.vnum = vnum();
         pack.vid = vid_;
 
@@ -713,7 +713,7 @@ namespace metin2::game::inline items {
         } else {
             modify_points(true);
             start_unique_expire_event();
-            if (-1 != proto()->c_limit_timer_based_on_wear_index)
+            if (-1 != proto()->limit_timer_based_on_wear_index)
                 start_timer_based_on_wear_expire_event();
 
             start_accessory_socket_expire_event();
@@ -753,7 +753,7 @@ namespace metin2::game::inline items {
 
         stop_unique_expire_event();
 
-        if (-1 != proto()->c_limit_timer_based_on_wear_index)
+        if (-1 != proto()->limit_timer_based_on_wear_index)
             stop_timer_based_on_wear_expire_event();
 
         stop_accessory_socket_expire_event();
@@ -1147,7 +1147,7 @@ namespace metin2::game::inline items {
         if (is_real_time_item())
             return;
 
-        if (-1 == proto()->c_limit_timer_based_on_wear_index)
+        if (-1 == proto()->limit_timer_based_on_wear_index)
             return;
 
         int sec = get_socket(0);
@@ -1514,7 +1514,7 @@ namespace metin2::game::inline items {
     }
 
     auto item::on_after_created_item() -> bool {
-        if (-1 != this->proto()->c_limit_real_time_first_use_index) {
+        if (-1 != this->proto()->limit_real_time_first_use_index) {
             if (0 != get_socket(1)) {
                 start_real_time_expire_event();
             }
@@ -1571,8 +1571,8 @@ namespace metin2::game::inline items {
                 return proto()->limits[i].value;
         }
 
-        if (-1 != proto()->c_limit_timer_based_on_wear_index)
-            return proto()->limits[static_cast<int>(proto()->c_limit_timer_based_on_wear_index)].value;
+        if (-1 != proto()->limit_timer_based_on_wear_index)
+            return proto()->limits[static_cast<int>(proto()->limit_timer_based_on_wear_index)].value;
 
         return -1;
     }

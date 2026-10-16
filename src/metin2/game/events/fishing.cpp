@@ -585,9 +585,9 @@ namespace metin2::game::inline events {
                 ch->auto_give_item(FISH_BONE_VNUM);
             } else {
                 static int s_acc_prob[NUM_USE_RESULT_COUNT] = {1000, 1500, 1800, 1900, 1950, 1980, 1990, 1995, 1999, 2000};
-                int u_index = std::lower_bound(s_acc_prob, s_acc_prob + NUM_USE_RESULT_COUNT, r) - s_acc_prob;
+                int index = std::lower_bound(s_acc_prob, s_acc_prob + NUM_USE_RESULT_COUNT, r) - s_acc_prob;
 
-                switch (fish_info[idx].used_table[u_index]) {
+                switch (fish_info[idx].used_table[index]) {
                 case USED_TREASURE_MAP:
                 case USED_NONE:
                 case USED_WATER_STONE:
@@ -606,7 +606,7 @@ namespace metin2::game::inline events {
                     break;
 
                 default:
-                    ch->auto_give_item(fish_info[idx].used_table[u_index]);
+                    ch->auto_give_item(fish_info[idx].used_table[index]);
                     break;
                 }
             }

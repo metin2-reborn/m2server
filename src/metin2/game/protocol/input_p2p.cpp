@@ -61,18 +61,18 @@ namespace metin2::game::inline protocol {
 
         character *chr = get_character_manager().find_pc(p->name);
 
-        const auto *c_pb_data = (const uint8_t *)(data + sizeof(packet_gg_relay));
+        const auto *data_value = (const uint8_t *)(data + sizeof(packet_gg_relay));
 
         if (!chr)
             return p->size;
 
-        if (*c_pb_data == HEADER_GC_WHISPER) {
+        if (*data_value == HEADER_GC_WHISPER) {
             if (chr->is_block_mode(BLOCK_WHISPER)) {
                 return p->size;
             }
 
             char buf[1024];
-            memcpy(buf, c_pb_data, std::min<int>(p->size, sizeof(buf)));
+            memcpy(buf, data_value, std::min<int>(p->size, sizeof(buf)));
 
             auto *p2 = (packet_gc_whisper *)buf;
             uint8_t to_empire = (p2->type >> 4);
@@ -91,7 +91,7 @@ namespace metin2::game::inline protocol {
 
             chr->get_desc()->packet(buf, p->size);
         } else
-            chr->get_desc()->packet(c_pb_data, p->size);
+            chr->get_desc()->packet(data_value, p->size);
 
         return (p->size);
     }
@@ -190,8 +190,8 @@ namespace metin2::game::inline protocol {
     }
 
     void send_shout(const char *text, uint8_t empire) {
-        const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
-        for (desc *d : c_ref_set) {
+        const desc_manager::desc_set &descs = get_desc_manager().client_set();
+        for (desc *d : descs) {
             if (!d->get_character() || (d->get_character()->gm_level() == GM_PLAYER && d->empire() != empire))
                 continue;
 

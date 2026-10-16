@@ -505,7 +505,7 @@ namespace metin2::game {
                     if (found)
                         os << ", ";
 
-                    os << lc_text(apsz_priv_names[type]) << " : " << priv_empire_data->value << "%" << " (" << ((priv_empire_data->end_time_sec - get_global_time()) / 3600.0f) << " hours)" << std::endl;
+                    os << lc_text(priv_names[type]) << " : " << priv_empire_data->value << "%" << " (" << ((priv_empire_data->end_time_sec - get_global_time()) / 3600.0f) << " hours)" << std::endl;
                     found = true;
                 }
             }
@@ -541,7 +541,7 @@ namespace metin2::game {
                     if (found)
                         os << ", ";
 
-                    os << lc_text(apsz_priv_names[type]) << " : " << priv_guild_data->value << "%"
+                    os << lc_text(priv_names[type]) << " : " << priv_guild_data->value << "%"
                        << " (" << ((priv_guild_data->end_time_sec - get_global_time()) / 3600.0f) << " hours)" << std::endl;
                     found = true;
                 }

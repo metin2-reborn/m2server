@@ -25,12 +25,12 @@ namespace metin2::game::inline world {
             return false;
         }
 
-        auto it = map_address_.find(index);
+        auto it = addresses_.find(index);
 
-        if (map_address_.end() == it) {
+        if (addresses_.end() == it) {
             metin2::log::warn("No server known for map {:d}", index);
             std::map<int32_t, location>::iterator i;
-            for (i = map_address_.begin(); i != map_address_.end(); ++i) {
+            for (i = addresses_.begin(); i != addresses_.end(); ++i) {
                 metin2::log::debug("Known map {:d} on server {:x}:{:d}", i->first, i->second.addr, i->second.port);
             }
             return false;
@@ -47,7 +47,7 @@ namespace metin2::game::inline world {
         loc.addr = inet_addr(host);
         loc.port = port_value;
 
-        map_address_.insert(std::make_pair(index, loc));
+        addresses_.insert(std::make_pair(index, loc));
         metin2::log::info("Map {:d} is on server {}:{:d}", index, host, port_value);
     }
 }

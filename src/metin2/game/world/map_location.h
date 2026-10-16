@@ -17,7 +17,7 @@ namespace metin2::game::inline world {
         void insert(int32_t index, const char *host, uint16_t port_value);
 
       protected:
-        std::map<int32_t, location> map_address_;
+        std::map<int32_t, location> addresses_;
     };
 
     inline auto get_map_locations() -> map_locations & {

@@ -105,7 +105,7 @@ namespace metin2::game::inline items {
         if (i == MAX_NORM_ATTR_NUM)
             metin2::log::error("Item {} (id {:d}) has no free attribute slot", name(), id());
         else {
-            const item_attr_table &r = map_item_attr[apply];
+            const item_attr_table &r = item_attrs[apply];
             int32_t val = r.values[std::min(4, level - 1)];
 
             if (val)
@@ -127,7 +127,7 @@ namespace metin2::game::inline items {
         int total = 0;
 
         for (int i = 0; i < MAX_APPLY_NUM; ++i) {
-            const item_attr_table &r = map_item_attr[i];
+            const item_attr_table &r = item_attrs[i];
 
             if (r.max_level_by_set[attribute_set] && !has_attr(i)) {
                 avail.push_back(i);
@@ -139,7 +139,7 @@ namespace metin2::game::inline items {
         int attr_idx = APPLY_NONE;
 
         for (uint32_t i = 0; i < avail.size(); ++i) {
-            const item_attr_table &r = map_item_attr[avail[i]];
+            const item_attr_table &r = item_attrs[avail[i]];
 
             if (prob <= r.prob) {
                 attr_idx = avail[i];
@@ -154,7 +154,7 @@ namespace metin2::game::inline items {
             return;
         }
 
-        const item_attr_table &r = map_item_attr[attr_idx];
+        const item_attr_table &r = item_attrs[attr_idx];
 
         if (level > r.max_level_by_set[attribute_set])
             level = r.max_level_by_set[attribute_set];
@@ -342,14 +342,14 @@ namespace metin2::game::inline items {
         std::vector<int> avail;
 
         for (int i = 0; i < MAX_APPLY_NUM; ++i) {
-            const item_attr_table &r = map_item_rare[i];
+            const item_attr_table &r = item_rares[i];
 
             if (r.apply_index != 0 && r.max_level_by_set[attr_set] > 0 && has_rare_attr(i) != true) {
                 avail.push_back(i);
             }
         }
 
-        const item_attr_table &r = map_item_rare[avail[number(0, avail.size() - 1)]];
+        const item_attr_table &r = item_rares[avail[number(0, avail.size() - 1)]];
         int attr_level = 5;
 
         if (attr_level > r.max_level_by_set[attr_set])

@@ -47,7 +47,7 @@ namespace metin2::game::inline social {
           private:
             uint32_t map_index_;
             event_ptr end_event_;
-            charset_t set_chr_;
+            charset_t chrs_;
 
             bool is_dark_;
             bool is_snow_;

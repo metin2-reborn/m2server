@@ -9,6 +9,6 @@
 
 namespace metin2::db::inline tables {
 
-    auto set_proto_mob_table(mob_table *mob_table_value, c_csv_table &csv_table, const std::map<int, std::string> &name_map) -> bool;
-    auto set_proto_item_table(item_table *item_table_value, c_csv_table &csv_table, const std::map<int, std::string> &name_map) -> bool;
+    auto set_proto_mob_table(mob_table *out, csv_table &csv, const std::map<int, std::string> &name_map) -> bool;
+    auto set_proto_item_table(item_table *out, csv_table &csv, const std::map<int, std::string> &name_map) -> bool;
 }

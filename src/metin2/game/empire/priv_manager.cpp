@@ -26,11 +26,11 @@
 namespace metin2::game::inline empire {
 
     static auto get_empire_name(int priv) -> const char * {
-        return lc_text(apsz_empire_names[priv]);
+        return lc_text(empire_names[priv]);
     }
 
     static auto get_priv_name(int priv) -> const char * {
-        return lc_text(apsz_priv_names[priv]);
+        return lc_text(priv_names[priv]);
     }
 
     priv_manager::priv_manager() {

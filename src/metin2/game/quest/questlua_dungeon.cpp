@@ -25,9 +25,9 @@ namespace metin2::game {
 
     template <class Func>
     auto dungeon::for_each_member(Func f) -> Func {
-        decltype(set_character_.begin()) it;
+        decltype(characters_.begin()) it;
 
-        for (it = set_character_.begin(); it != set_character_.end(); ++it) {
+        for (it = characters_.begin(); it != characters_.end(); ++it) {
             metin2::log::debug("Dungeon: visiting member {}", (*it)->name());
             f(*it);
         }
@@ -194,17 +194,17 @@ namespace metin2::game {
             if (!require_number(lua, 4, "Invalid y argument"))
                 return 0;
 
-            const char *c_psz_regen_file = nullptr;
+            const char *regen_file = nullptr;
 
             if (lua_gettop(lua) >= 5)
-                c_psz_regen_file = lua_tostring(lua, 5);
+                regen_file = lua_tostring(lua, 5);
 
             if (dungeon *dungeon = current_dungeon_or_error()) {
                 dungeon->set_warp_at_eliminate((int32_t)lua_tonumber(lua, 1),
                     (int32_t)lua_tonumber(lua, 2),
                     (int32_t)lua_tonumber(lua, 3),
                     (int32_t)lua_tonumber(lua, 4),
-                    c_psz_regen_file);
+                    regen_file);
             }
 
             return 0;

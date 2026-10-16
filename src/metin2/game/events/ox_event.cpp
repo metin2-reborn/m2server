@@ -31,9 +31,9 @@ namespace metin2::game::inline events {
 
     auto ox_event_manager::initialize() -> bool {
         timed_event_ = nullptr;
-        map_char_.clear();
-        map_attender_.clear();
-        vec_quiz_.clear();
+        chars_.clear();
+        attenders_.clear();
+        quizzes_.clear();
 
         set_status(OXEVENT_FINISH);
 
@@ -43,9 +43,9 @@ namespace metin2::game::inline events {
     void ox_event_manager::destroy() {
         close_event();
 
-        map_char_.clear();
-        map_attender_.clear();
-        vec_quiz_.clear();
+        chars_.clear();
+        attenders_.clear();
+        quizzes_.clear();
 
         set_status(OXEVENT_FINISH);
     }
@@ -121,8 +121,8 @@ namespace metin2::game::inline events {
     auto ox_event_manager::enter_attender(character *ch) -> bool {
         uint32_t pid = ch->player_id();
 
-        map_char_.insert(std::make_pair(pid, pid));
-        map_attender_.insert(std::make_pair(pid, pid));
+        chars_.insert(std::make_pair(pid, pid));
+        attenders_.insert(std::make_pair(pid, pid));
 
         return true;
     }
@@ -130,14 +130,14 @@ namespace metin2::game::inline events {
     auto ox_event_manager::enter_audience(character *ch) -> bool {
         uint32_t pid = ch->player_id();
 
-        map_char_.insert(std::make_pair(pid, pid));
+        chars_.insert(std::make_pair(pid, pid));
 
         return true;
     }
 
     auto ox_event_manager::add_quiz(unsigned char level, const char *question, bool answer) -> bool {
-        if (vec_quiz_.size() < (size_t)level + 1)
-            vec_quiz_.resize(level + 1);
+        if (quizzes_.size() < (size_t)level + 1)
+            quizzes_.resize(level + 1);
 
         struct tag_quiz tmp_quiz;
 
@@ -145,16 +145,16 @@ namespace metin2::game::inline events {
         tmp_quiz.quiz = question;
         tmp_quiz.answer = answer;
 
-        vec_quiz_[level].push_back(tmp_quiz);
+        quizzes_[level].push_back(tmp_quiz);
         return true;
     }
 
     auto ox_event_manager::show_quiz_list(character *ch) -> bool {
         int c = 0;
 
-        for (size_t i = 0; i < vec_quiz_.size(); ++i) {
-            for (size_t j = 0; j < vec_quiz_[i].size(); ++j, ++c) {
-                ch->chat_packet(CHAT_TYPE_INFO, "%d %s %s", vec_quiz_[i][j].level, vec_quiz_[i][j].quiz.c_str(), vec_quiz_[i][j].answer ? lc_text("참") : lc_text("거짓"));
+        for (size_t i = 0; i < quizzes_.size(); ++i) {
+            for (size_t j = 0; j < quizzes_[i].size(); ++j, ++c) {
+                ch->chat_packet(CHAT_TYPE_INFO, "%d %s %s", quizzes_[i][j].level, quizzes_[i][j].quiz.c_str(), quizzes_[i][j].answer ? lc_text("참") : lc_text("거짓"));
             }
         }
 
@@ -163,11 +163,11 @@ namespace metin2::game::inline events {
     }
 
     void ox_event_manager::clear_quiz() {
-        for (unsigned int i = 0; i < vec_quiz_.size(); ++i) {
-            vec_quiz_[i].clear();
+        for (unsigned int i = 0; i < quizzes_.size(); ++i) {
+            quizzes_[i].clear();
         }
 
-        vec_quiz_.clear();
+        quizzes_.clear();
     }
 
     EVENTINFO(ox_event_info_data) {
@@ -220,16 +220,16 @@ namespace metin2::game::inline events {
     }
 
     auto ox_event_manager::quiz(unsigned char level, int timelimit) -> bool {
-        if (vec_quiz_.size() == 0) return false;
-        if (level > vec_quiz_.size()) level = vec_quiz_.size() - 1;
-        if (vec_quiz_[level].size() <= 0) return false;
+        if (quizzes_.size() == 0) return false;
+        if (level > quizzes_.size()) level = quizzes_.size() - 1;
+        if (quizzes_[level].size() <= 0) return false;
 
         if (timelimit < 0) timelimit = 30;
 
-        int idx = number(0, vec_quiz_[level].size() - 1);
+        int idx = number(0, quizzes_[level].size() - 1);
 
         send_notice_map(lc_text("문제 입니다."), OXEVENT_MAP_INDEX, true);
-        send_notice_map(vec_quiz_[level][idx].quiz.c_str(), OXEVENT_MAP_INDEX, true);
+        send_notice_map(quizzes_[level][idx].quiz.c_str(), OXEVENT_MAP_INDEX, true);
         send_notice_map(lc_text("맞으면 O, 틀리면 X로 이동해주세요"), OXEVENT_MAP_INDEX, true);
 
         if (timed_event_ != nullptr) {
@@ -238,24 +238,24 @@ namespace metin2::game::inline events {
 
         auto *answer = alloc_event_info<ox_event_info_data>();
 
-        answer->answer = vec_quiz_[level][idx].answer;
+        answer->answer = quizzes_[level][idx].answer;
 
         timelimit -= 15;
         timed_event_ = event_create(oxevent_timer, answer, passes_per_sec(timelimit));
 
         set_status(OXEVENT_QUIZ);
 
-        vec_quiz_[level].erase(vec_quiz_[level].begin() + idx);
+        quizzes_[level].erase(quizzes_[level].begin() + idx);
         return true;
     }
 
     auto ox_event_manager::check_answer(bool answer) -> bool {
-        if (map_attender_.size() <= 0) return true;
+        if (attenders_.size() <= 0) return true;
 
-        auto iter = map_attender_.begin();
-        decltype(map_attender_.begin()) iter_tmp;
+        auto iter = attenders_.begin();
+        decltype(attenders_.begin()) iter_tmp;
 
-        map_miss_.clear();
+        misses_.clear();
 
         int rect[4];
         if (answer != true) {
@@ -272,7 +272,7 @@ namespace metin2::game::inline events {
 
         character *ch = nullptr;
         pixel_position pos;
-        for (; iter != map_attender_.end();) {
+        for (; iter != attenders_.end();) {
             ch = get_character_manager().find_by_pid(iter->second);
             if (ch != nullptr) {
                 pos = ch->xyz();
@@ -281,8 +281,8 @@ namespace metin2::game::inline events {
                     ch->effect_packet(SE_FAIL);
                     iter_tmp = iter;
                     iter++;
-                    map_attender_.erase(iter_tmp);
-                    map_miss_.insert(std::make_pair(ch->player_id(), ch->player_id()));
+                    attenders_.erase(iter_tmp);
+                    misses_.insert(std::make_pair(ch->player_id(), ch->player_id()));
                 } else {
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("정답입니다!"));
                     const std::string text = std::format(
@@ -306,27 +306,27 @@ namespace metin2::game::inline events {
                     ++iter;
                 }
             } else {
-                auto err = map_char_.find(iter->first);
-                if (err != map_char_.end()) map_char_.erase(err);
+                auto err = chars_.find(iter->first);
+                if (err != chars_.end()) chars_.erase(err);
 
-                auto err2 = map_miss_.find(iter->first);
-                if (err2 != map_miss_.end()) map_miss_.erase(err2);
+                auto err2 = misses_.find(iter->first);
+                if (err2 != misses_.end()) misses_.erase(err2);
 
                 iter_tmp = iter;
                 ++iter;
-                map_attender_.erase(iter_tmp);
+                attenders_.erase(iter_tmp);
             }
         }
         return true;
     }
 
     void ox_event_manager::warp_to_audience() {
-        if (map_miss_.size() <= 0) return;
+        if (misses_.size() <= 0) return;
 
-        auto iter = map_miss_.begin();
+        auto iter = misses_.begin();
         character *ch = nullptr;
 
-        for (; iter != map_miss_.end(); ++iter) {
+        for (; iter != misses_.end(); ++iter) {
             ch = get_character_manager().find_by_pid(iter->second);
 
             if (ch != nullptr) {
@@ -340,7 +340,7 @@ namespace metin2::game::inline events {
             }
         }
 
-        map_miss_.clear();
+        misses_.clear();
     }
 
     auto ox_event_manager::close_event() -> bool {
@@ -348,25 +348,25 @@ namespace metin2::game::inline events {
             event_cancel(&timed_event_);
         }
 
-        auto iter = map_char_.begin();
+        auto iter = chars_.begin();
 
         character *ch = nullptr;
-        for (; iter != map_char_.end(); ++iter) {
+        for (; iter != chars_.end(); ++iter) {
             ch = get_character_manager().find_by_pid(iter->second);
 
             if (ch != nullptr)
                 ch->warp_set(empire_start_x(ch->empire()), empire_start_y(ch->empire()));
         }
 
-        map_char_.clear();
+        chars_.clear();
 
         return true;
     }
 
     auto ox_event_manager::log_winner() -> bool {
-        auto iter = map_attender_.begin();
+        auto iter = attenders_.begin();
 
-        for (; iter != map_attender_.end(); ++iter) {
+        for (; iter != attenders_.end(); ++iter) {
             character *ch = get_character_manager().find_by_pid(iter->second);
 
             if (ch)
@@ -377,9 +377,9 @@ namespace metin2::game::inline events {
     }
 
     auto ox_event_manager::give_item_to_attender(uint32_t item_vnum, uint8_t count) -> bool {
-        auto iter = map_attender_.begin();
+        auto iter = attenders_.begin();
 
-        for (; iter != map_attender_.end(); ++iter) {
+        for (; iter != attenders_.end(); ++iter) {
             character *ch = get_character_manager().find_by_pid(iter->second);
 
             if (ch) {

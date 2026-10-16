@@ -50,7 +50,7 @@ namespace metin2::game::inline guilds {
       public:
         friend class guild;
 
-        war_map(int32_t map_index_value, const guild_war_info &r_info, war_map_info *war_map_info_value, uint32_t guild_id1, uint32_t guild_id2);
+        war_map(int32_t map_index_value, const guild_war_info &info, war_map_info *war_map_info_value, uint32_t guild_id1, uint32_t guild_id2);
         ~war_map();
 
         auto team_index(uint32_t guild_id, uint8_t &idx) -> bool;
@@ -117,7 +117,7 @@ namespace metin2::game::inline guilds {
             character *chr_flag;
             character *chr_flag_base;
 
-            std::set<uint32_t> set_pid_joiner;
+            std::set<uint32_t> pid_joiners;
 
             void initialize();
 
@@ -135,7 +135,7 @@ namespace metin2::game::inline guilds {
 
         guild_war_info war_info_;
 
-        character_set set_chr_;
+        character_set chrs_;
     };
 
     class war_map_manager {
@@ -157,7 +157,7 @@ namespace metin2::game::inline guilds {
         void on_shutdown();
 
       private:
-        std::map<int32_t, std::unique_ptr<war_map_info>> map_war_map_info_;
+        std::map<int32_t, std::unique_ptr<war_map_info>> war_map_info_;
         std::map<int32_t, war_map *> war_map_;
     };
 

@@ -66,15 +66,15 @@ namespace metin2::game::inline protocol {
         auto is_p2p_desc_exist(const char *host, uint16_t port) -> bool;
 
       private:
-        desc_handle_random_key_map map_handle_random_key_;
+        desc_handle_random_key_map handle_random_keys_;
 
-        client_desc_set set_client_desc_;
-        desc_set set_desc_;
+        client_desc_set client_descs_;
+        desc_set descs_;
 
-        desc_handle_map map_handle_;
-        desc_handshake_map map_handshake_;
-        desc_loginname_map map_login_name_;
-        std::map<uint32_t, std::unique_ptr<login_key>> map_login_key_;
+        desc_handle_map handles_;
+        desc_handshake_map handshakes_;
+        desc_loginname_map login_names_;
+        std::map<uint32_t, std::unique_ptr<login_key>> login_keys_;
 
         int sockets_connected_;
 

@@ -152,12 +152,12 @@ namespace metin2::game::inline guilds {
         if ((it = member_.find(p->pid)) == member_.end())
             member_.insert(std::make_pair(p->pid, guild_member(p->pid, p->grade, p->is_general, p->job, p->level, p->offer, p->name)));
         else {
-            guild_member &r_gm = it->second;
-            r_gm.pid = p->pid;
-            r_gm.grade = p->grade;
-            r_gm.job = p->job;
-            r_gm.offer_exp = p->offer;
-            r_gm.is_general = p->is_general;
+            guild_member &gm = it->second;
+            gm.pid = p->pid;
+            gm.grade = p->grade;
+            gm.job = p->job;
+            gm.offer_exp = p->offer;
+            gm.is_general = p->is_general;
         }
 
         get_guild_manager().link(p->pid, this);

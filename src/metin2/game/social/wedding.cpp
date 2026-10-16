@@ -84,7 +84,7 @@ namespace metin2::game::inline social {
             notice(lc_text("결혼식이 종료됩니다."));
             notice(lc_text("자동으로 나가게됩니다."));
 
-            for (auto it = set_chr_.begin(); it != set_chr_.end(); ++it) {
+            for (auto it = chrs_.begin(); it != chrs_.end(); ++it) {
                 character *ch = *it;
                 if (ch->player_id() == pid1_ || ch->player_id() == pid2_)
                     continue;
@@ -97,12 +97,12 @@ namespace metin2::game::inline social {
         }
 
         void wedding_map::notice(const char *psz) {
-            for (character *ch : set_chr_)
+            for (character *ch : chrs_)
                 ch->chat_packet(CHAT_TYPE_NOTICE, "%s", psz);
         }
 
         void wedding_map::warp_all() {
-            for (character *ch : set_chr_) {
+            for (character *ch : chrs_) {
                 if (ch->is_pc()) {
                     ch->exit_to_saved_location();
                 }
@@ -110,10 +110,10 @@ namespace metin2::game::inline social {
         }
 
         void wedding_map::destroy_all() {
-            metin2::log::info("Wedding map: removing {:d} characters", set_chr_.size());
+            metin2::log::info("Wedding map: removing {:d} characters", chrs_.size());
 
-            while (!set_chr_.empty()) {
-                character *ch = *set_chr_.begin();
+            while (!chrs_.empty()) {
+                character *ch = *chrs_.begin();
 
                 metin2::log::debug("Wedding map: removing {}", ch->name());
 
@@ -128,7 +128,7 @@ namespace metin2::game::inline social {
             if (is_member(ch) == true)
                 return;
 
-            set_chr_.insert(ch);
+            chrs_.insert(ch);
 
             send_local_event(ch);
 
@@ -141,7 +141,7 @@ namespace metin2::game::inline social {
             if (is_member(ch) == false)
                 return;
 
-            set_chr_.erase(ch);
+            chrs_.erase(ch);
 
             if (ch->level() < 10) {
                 ch->set_observer_mode(false);
@@ -149,14 +149,14 @@ namespace metin2::game::inline social {
         }
 
         auto wedding_map::is_member(character *ch) -> bool {
-            if (set_chr_.size() <= 0)
+            if (chrs_.size() <= 0)
                 return false;
 
-            return set_chr_.find(ch) != set_chr_.end();
+            return chrs_.find(ch) != chrs_.end();
         }
 
         void wedding_map::shout_in_map(uint8_t type, const char *msg) {
-            for (auto it = set_chr_.begin(); it != set_chr_.end(); ++it) {
+            for (auto it = chrs_.begin(); it != chrs_.end(); ++it) {
                 character *ch = *it;
                 ch->chat_packet(CHAT_TYPE_COMMAND, msg);
             }
@@ -247,15 +247,15 @@ namespace metin2::game::inline social {
             if (sectree_map == nullptr) {
                 return 0;
             }
-            std::string st_wedding_map_regen_file_name;
-            st_wedding_map_regen_file_name.reserve(64);
-            st_wedding_map_regen_file_name = locale_service_get_map_path();
-            st_wedding_map_regen_file_name += "/metin2_map_wedding_01/npc.txt";
+            std::string wedding_map_regen_file_name;
+            wedding_map_regen_file_name.reserve(64);
+            wedding_map_regen_file_name = locale_service_get_map_path();
+            wedding_map_regen_file_name += "/metin2_map_wedding_01/npc.txt";
 
-            if (!regen_do(st_wedding_map_regen_file_name.c_str(), map_index, sectree_map->setting.base_x, sectree_map->setting.base_y, nullptr, true)) {
-                metin2::log::error("Cannot spawn wedding of {:d} and {:d}: regen {} failed on map {:d} (base {:d}, {:d})", pid1, pid2, st_wedding_map_regen_file_name, map_index, sectree_map->setting.base_x, sectree_map->setting.base_y);
+            if (!regen_do(wedding_map_regen_file_name.c_str(), map_index, sectree_map->setting.base_x, sectree_map->setting.base_y, nullptr, true)) {
+                metin2::log::error("Cannot spawn wedding of {:d} and {:d}: regen {} failed on map {:d} (base {:d}, {:d})", pid1, pid2, wedding_map_regen_file_name, map_index, sectree_map->setting.base_x, sectree_map->setting.base_y);
             } else {
-                metin2::log::info("Wedding map created for {:d} and {:d}: regen {} on map {:d} (base {:d}, {:d})", pid1, pid2, st_wedding_map_regen_file_name, map_index, sectree_map->setting.base_x, sectree_map->setting.base_y);
+                metin2::log::info("Wedding map created for {:d} and {:d}: regen {} on map {:d} (base {:d}, {:d})", pid1, pid2, wedding_map_regen_file_name, map_index, sectree_map->setting.base_x, sectree_map->setting.base_y);
             }
 
             return map_index;

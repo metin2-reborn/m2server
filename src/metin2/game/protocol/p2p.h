@@ -61,9 +61,9 @@ namespace metin2::game::inline protocol {
 
         using cci_map = std::unordered_map<std::string, std::unique_ptr<cci>>;
         using pidcci_map = std::unordered_map<uint32_t, cci *>;
-        std::unordered_set<desc *> set_peers_;
-        cci_map map_cci_;
-        pidcci_map map_pid_pk_cci_;
+        std::unordered_set<desc *> peers_;
+        cci_map ccis_;
+        pidcci_map pid_pk_ccis_;
         int empire_user_count_[EMPIRE_MAX_NUM];
     };
 

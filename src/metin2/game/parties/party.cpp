@@ -64,18 +64,18 @@ namespace metin2::game::inline parties {
     }
 
     void party_manager::delete_all_party() {
-        auto it = set_pc_party_.begin();
+        auto it = pc_parties_.begin();
 
-        while (it != set_pc_party_.end()) {
+        while (it != pc_parties_.end()) {
             delete_party(*it);
-            it = set_pc_party_.begin();
+            it = pc_parties_.begin();
         }
     }
 
     auto party_manager::set_party(character *ch) -> bool {
-        auto it = map_party_.find(ch->player_id());
+        auto it = parties_.find(ch->player_id());
 
-        if (it == map_party_.end())
+        if (it == parties_.end())
             return false;
 
         party *party = it->second;
@@ -84,26 +84,26 @@ namespace metin2::game::inline parties {
     }
 
     void party_manager::p2p_login(uint32_t pid, const char *name) {
-        auto it = map_party_.find(pid);
+        auto it = parties_.find(pid);
 
-        if (it == map_party_.end())
+        if (it == parties_.end())
             return;
 
         it->second->update_online_state(pid, name);
     }
     void party_manager::p2p_logout(uint32_t pid) {
-        auto it = map_party_.find(pid);
+        auto it = parties_.find(pid);
 
-        if (it == map_party_.end())
+        if (it == parties_.end())
             return;
 
         it->second->update_offline_state(pid);
     }
 
     void party_manager::p2p_join_party(uint32_t leader, uint32_t pid, uint8_t role) {
-        auto it = map_party_.find(leader);
+        auto it = parties_.find(leader);
 
-        if (it != map_party_.end()) {
+        if (it != parties_.end()) {
             it->second->p2p_join(pid);
 
             if (role >= PARTY_ROLE_MAX_NUM)
@@ -116,9 +116,9 @@ namespace metin2::game::inline parties {
     }
 
     void party_manager::p2p_quit_party(uint32_t pid) {
-        auto it = map_party_.find(pid);
+        auto it = parties_.find(pid);
 
-        if (it != map_party_.end()) {
+        if (it != parties_.end()) {
             it->second->p2p_quit(pid);
         } else {
             metin2::log::error("No party with member pid {:d}", pid);
@@ -126,13 +126,13 @@ namespace metin2::game::inline parties {
     }
 
     auto party_manager::p2p_create_party(uint32_t pid) -> party * {
-        auto it = map_party_.find(pid);
-        if (it != map_party_.end())
+        auto it = parties_.find(pid);
+        if (it != parties_.end())
             return it->second;
 
         auto *party_value = new party;
 
-        set_pc_party_.insert(party_value);
+        pc_parties_.insert(party_value);
 
         set_party_member(pid, party_value);
         party_value->set_pc_party(true);
@@ -142,10 +142,10 @@ namespace metin2::game::inline parties {
     }
 
     void party_manager::p2p_delete_party(uint32_t pid) {
-        auto it = map_party_.find(pid);
+        auto it = parties_.find(pid);
 
-        if (it != map_party_.end()) {
-            set_pc_party_.erase(it->second);
+        if (it != parties_.end()) {
+            pc_parties_.erase(it->second);
             delete it->second;
         } else
             metin2::log::error("Cannot delete party of leader pid {:d}: not found", pid);
@@ -167,7 +167,7 @@ namespace metin2::game::inline parties {
             party_value->set_pc_party(true);
             party_value->join(leader->player_id());
 
-            set_pc_party_.insert(party_value);
+            pc_parties_.insert(party_value);
         } else {
             party_value->set_pc_party(false);
             party_value->join(leader->get_vid());
@@ -183,24 +183,24 @@ namespace metin2::game::inline parties {
 
         db_clientdesc->db_packet(HEADER_GD_PARTY_DELETE, 0, &p, sizeof(packet_party_delete));
 
-        set_pc_party_.erase(party_value);
+        pc_parties_.erase(party_value);
         delete party_value;
     }
 
     void party_manager::set_party_member(uint32_t pid, party *party_value) {
-        auto it = map_party_.find(pid);
+        auto it = parties_.find(pid);
 
         if (party_value == nullptr) {
-            if (it != map_party_.end())
-                map_party_.erase(it);
+            if (it != parties_.end())
+                parties_.erase(it);
         } else {
-            if (it != map_party_.end()) {
+            if (it != parties_.end()) {
                 if (it->second != party_value) {
                     it->second->quit(pid);
                     it->second = party_value;
                 }
             } else
-                map_party_.insert(party_map::value_type(pid, party_value));
+                parties_.insert(party_map::value_type(pid, party_value));
         }
     }
 

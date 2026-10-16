@@ -188,9 +188,9 @@ namespace metin2::game::inline characters {
     motion_manager::~motion_manager() = default;
 
     auto motion_manager::get_motion_set(uint32_t vnum) -> const motion_set * {
-        auto it = map_motion_set_.find(vnum);
+        auto it = motion_sets_.find(vnum);
 
-        if (map_motion_set_.end() == it)
+        if (motion_sets_.end() == it)
             return nullptr;
 
         return it->second.get();
@@ -211,8 +211,8 @@ namespace metin2::game::inline characters {
     }
 
     auto motion_manager::normal_attack_duration(uint32_t vnum) -> float {
-        auto f = map_normal_attack_duration_.find(vnum);
-        if (map_normal_attack_duration_.end() == f)
+        auto f = normal_attack_durations_.find(vnum);
+        if (normal_attack_durations_.end() == f)
             return 0.0f;
         else
             return f->second;
@@ -234,7 +234,7 @@ namespace metin2::game::inline characters {
     };
 
     auto motion_manager::build() -> bool {
-        const char *c_apsz_folder_name[MAIN_RACE_MAX_NUM] =
+        const char *folder_names[MAIN_RACE_MAX_NUM] =
             {
                 "data/pc/warrior",
                 "data/pc/assassin",
@@ -248,31 +248,31 @@ namespace metin2::game::inline characters {
         for (int i = 0; i < MAIN_RACE_MAX_NUM; ++i) {
             auto motion_set_owner = std::make_unique<motion_set>();
             motion_set *motion_set_value = motion_set_owner.get();
-            map_motion_set_.try_emplace(i, std::move(motion_set_owner));
+            motion_sets_.try_emplace(i, std::move(motion_set_owner));
 
-            motion_set_value->load(std::format("{}/general/run.msa", c_apsz_folder_name[i]).c_str(), MOTION_MODE_GENERAL, MOTION_RUN);
-            motion_set_value->load(std::format("{}/general/walk.msa", c_apsz_folder_name[i]).c_str(), MOTION_MODE_GENERAL, MOTION_WALK);
+            motion_set_value->load(std::format("{}/general/run.msa", folder_names[i]).c_str(), MOTION_MODE_GENERAL, MOTION_RUN);
+            motion_set_value->load(std::format("{}/general/walk.msa", folder_names[i]).c_str(), MOTION_MODE_GENERAL, MOTION_WALK);
 
-            motion_set_value->load(std::format("{}/twohand_sword/run.msa", c_apsz_folder_name[i]).c_str(), MOTION_MODE_TWOHAND_SWORD, MOTION_RUN);
-            motion_set_value->load(std::format("{}/twohand_sword/walk.msa", c_apsz_folder_name[i]).c_str(), MOTION_MODE_TWOHAND_SWORD, MOTION_WALK);
+            motion_set_value->load(std::format("{}/twohand_sword/run.msa", folder_names[i]).c_str(), MOTION_MODE_TWOHAND_SWORD, MOTION_RUN);
+            motion_set_value->load(std::format("{}/twohand_sword/walk.msa", folder_names[i]).c_str(), MOTION_MODE_TWOHAND_SWORD, MOTION_WALK);
 
-            motion_set_value->load(std::format("{}/onehand_sword/run.msa", c_apsz_folder_name[i]).c_str(), MOTION_MODE_ONEHAND_SWORD, MOTION_RUN);
-            motion_set_value->load(std::format("{}/onehand_sword/walk.msa", c_apsz_folder_name[i]).c_str(), MOTION_MODE_ONEHAND_SWORD, MOTION_WALK);
+            motion_set_value->load(std::format("{}/onehand_sword/run.msa", folder_names[i]).c_str(), MOTION_MODE_ONEHAND_SWORD, MOTION_RUN);
+            motion_set_value->load(std::format("{}/onehand_sword/walk.msa", folder_names[i]).c_str(), MOTION_MODE_ONEHAND_SWORD, MOTION_WALK);
 
-            motion_set_value->load(std::format("{}/dualhand_sword/run.msa", c_apsz_folder_name[i]).c_str(), MOTION_MODE_DUALHAND_SWORD, MOTION_RUN);
-            motion_set_value->load(std::format("{}/dualhand_sword/walk.msa", c_apsz_folder_name[i]).c_str(), MOTION_MODE_DUALHAND_SWORD, MOTION_WALK);
+            motion_set_value->load(std::format("{}/dualhand_sword/run.msa", folder_names[i]).c_str(), MOTION_MODE_DUALHAND_SWORD, MOTION_RUN);
+            motion_set_value->load(std::format("{}/dualhand_sword/walk.msa", folder_names[i]).c_str(), MOTION_MODE_DUALHAND_SWORD, MOTION_WALK);
 
-            motion_set_value->load(std::format("{}/bow/run.msa", c_apsz_folder_name[i]).c_str(), MOTION_MODE_BOW, MOTION_RUN);
-            motion_set_value->load(std::format("{}/bow/walk.msa", c_apsz_folder_name[i]).c_str(), MOTION_MODE_BOW, MOTION_WALK);
+            motion_set_value->load(std::format("{}/bow/run.msa", folder_names[i]).c_str(), MOTION_MODE_BOW, MOTION_RUN);
+            motion_set_value->load(std::format("{}/bow/walk.msa", folder_names[i]).c_str(), MOTION_MODE_BOW, MOTION_WALK);
 
-            motion_set_value->load(std::format("{}/bell/run.msa", c_apsz_folder_name[i]).c_str(), MOTION_MODE_BELL, MOTION_RUN);
-            motion_set_value->load(std::format("{}/bell/walk.msa", c_apsz_folder_name[i]).c_str(), MOTION_MODE_BELL, MOTION_WALK);
+            motion_set_value->load(std::format("{}/bell/run.msa", folder_names[i]).c_str(), MOTION_MODE_BELL, MOTION_RUN);
+            motion_set_value->load(std::format("{}/bell/walk.msa", folder_names[i]).c_str(), MOTION_MODE_BELL, MOTION_WALK);
 
-            motion_set_value->load(std::format("{}/fan/run.msa", c_apsz_folder_name[i]).c_str(), MOTION_MODE_FAN, MOTION_RUN);
-            motion_set_value->load(std::format("{}/fan/walk.msa", c_apsz_folder_name[i]).c_str(), MOTION_MODE_FAN, MOTION_WALK);
+            motion_set_value->load(std::format("{}/fan/run.msa", folder_names[i]).c_str(), MOTION_MODE_FAN, MOTION_RUN);
+            motion_set_value->load(std::format("{}/fan/walk.msa", folder_names[i]).c_str(), MOTION_MODE_FAN, MOTION_WALK);
 
-            motion_set_value->load(std::format("{}/horse/run.msa", c_apsz_folder_name[i]).c_str(), MOTION_MODE_HORSE, MOTION_RUN);
-            motion_set_value->load(std::format("{}/horse/walk.msa", c_apsz_folder_name[i]).c_str(), MOTION_MODE_HORSE, MOTION_WALK);
+            motion_set_value->load(std::format("{}/horse/run.msa", folder_names[i]).c_str(), MOTION_MODE_HORSE, MOTION_RUN);
+            motion_set_value->load(std::format("{}/horse/walk.msa", folder_names[i]).c_str(), MOTION_MODE_HORSE, MOTION_WALK);
         }
 
         auto it = get_mob_manager().begin();
@@ -284,7 +284,7 @@ namespace metin2::game::inline characters {
             if ('\0' != t->folder[0]) {
                 auto motion_set_owner = std::make_unique<motion_set>();
                 motion_set *motion_set_value = motion_set_owner.get();
-                map_motion_set_.try_emplace(t->vnum, std::move(motion_set_owner));
+                motion_sets_.try_emplace(t->vnum, std::move(motion_set_owner));
 
                 load_motion(motion_set_value, t, MOTION_WALK);
                 load_motion(motion_set_value, t, MOTION_RUN);
@@ -298,7 +298,7 @@ namespace metin2::game::inline characters {
 
                 float normal_attack_duration = mob_get_normal_attack_duration(t);
                 metin2::log::debug("Mob {:d} ({}): normal attack duration {:.2f}", t->vnum, t->folder, normal_attack_duration);
-                map_normal_attack_duration_.insert(std::map<uint32_t, float>::value_type(t->vnum, normal_attack_duration));
+                normal_attack_durations_.insert(std::map<uint32_t, float>::value_type(t->vnum, normal_attack_duration));
             }
         }
 
@@ -310,16 +310,16 @@ namespace metin2::game::inline characters {
     motion_set::~motion_set() = default;
 
     auto motion_set::get_motion(uint32_t key) const -> const motion * {
-        auto it = map_motion_.find(key);
+        auto it = motions_.find(key);
 
-        if (it == map_motion_.end())
+        if (it == motions_.end())
             return nullptr;
 
         return it->second.get();
     }
 
     void motion_set::insert(uint32_t key, std::unique_ptr<motion> motion_value) {
-        map_motion_.insert(container::value_type(key, std::move(motion_value)));
+        motions_.insert(container::value_type(key, std::move(motion_value)));
     }
 
     auto motion_set::load(const char *file_name, int mode, int motion) -> bool {

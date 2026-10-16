@@ -2706,9 +2706,9 @@ namespace metin2::game::inline characters {
             return false;
         }
 
-        auto iter_target_map = skill_use_info.target_vid_map.find(target_vid);
+        auto target_map = skill_use_info.target_vid_map.find(target_vid);
 
-        if (skill_use_info.target_vid_map.end() != iter_target_map) {
+        if (skill_use_info.target_vid_map.end() != target_map) {
             size_t max_attack_count_per_target = 1;
 
             switch (skill_id) {
@@ -2730,12 +2730,12 @@ namespace metin2::game::inline characters {
                 break;
             }
 
-            if (iter_target_map->second >= max_attack_count_per_target) {
-                metin2::log::warn("Possible skill hack by {}: too many hits with skill {:d} ({:d})", name(), skill_id, iter_target_map->second);
+            if (target_map->second >= max_attack_count_per_target) {
+                metin2::log::warn("Possible skill hack by {}: too many hits with skill {:d} ({:d})", name(), skill_id, target_map->second);
                 return false;
             }
 
-            iter_target_map->second++;
+            target_map->second++;
         } else {
             skill_use_info.target_vid_map.insert(std::make_pair(target_vid, 1));
         }

@@ -22,9 +22,9 @@ namespace metin2::game::inline events {
     namespace xmas {
         void process_event_flag(const std::string &name, int prev_value, int value) {
             if (name == "xmas_snow" || name == "xmas_boom" || name == "xmas_song" || name == "xmas_tree") {
-                const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
+                const desc_manager::desc_set &descs = get_desc_manager().client_set();
 
-                for (auto it = c_ref_set.begin(); it != c_ref_set.end(); ++it) {
+                for (auto it = descs.begin(); it != descs.end(); ++it) {
                     character *ch = (*it)->get_character();
 
                     if (!ch)

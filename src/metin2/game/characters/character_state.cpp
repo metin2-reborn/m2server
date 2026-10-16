@@ -300,9 +300,9 @@ namespace metin2::game::inline characters {
                     play_start_time_ = get_dword_time() + next_warp_time;
 
                     const int warp_map_index_num = 7;
-                    static const int32_t c_l_warp_map_indexs[warp_map_index_num] = {61, 62, 63, 64, 3, 23, 43};
+                    static const int32_t warp_map_indexes[warp_map_index_num] = {61, 62, 63, 64, 3, 23, 43};
                     int32_t next_map_index;
-                    next_map_index = c_l_warp_map_indexs[number(1, warp_map_index_num) - 1];
+                    next_map_index = warp_map_indexes[number(1, warp_map_index_num) - 1];
 
                     if (map_allow_find(next_map_index)) {
                         get_character_manager().destroy_character(this);

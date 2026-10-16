@@ -86,9 +86,9 @@ namespace metin2::game::inline persistence {
     }
 
     auto db_manager::get_login_data(uint32_t key) -> login_data * {
-        auto it = map_login_data_.find(key);
+        auto it = login_data_.find(key);
 
-        if (it == map_login_data_.end())
+        if (it == login_data_.end())
             return nullptr;
 
         return it->second.get();
@@ -96,18 +96,18 @@ namespace metin2::game::inline persistence {
 
     void db_manager::insert_login_data(std::unique_ptr<login_data> ld) {
         const uint32_t key = ld->key();
-        map_login_data_.insert(std::make_pair(key, std::move(ld)));
+        login_data_.insert(std::make_pair(key, std::move(ld)));
     }
 
     void db_manager::delete_login_data(login_data *ld) {
-        auto it = map_login_data_.find(ld->key());
+        auto it = login_data_.find(ld->key());
 
-        if (it == map_login_data_.end())
+        if (it == login_data_.end())
             return;
 
         metin2::log::debug("Login data of account {} released ({})", ld->login(), static_cast<const void *>(ld));
 
-        map_login_data_.erase(it);
+        login_data_.erase(it);
     }
 
     void db_manager::send_auth_login(desc *d) {
@@ -175,22 +175,22 @@ namespace metin2::game::inline persistence {
 
     void db_manager::load_db_string() {
         func_query([this](sql_msg &msg) {
-            map_dbstring_.clear();
-            vec_greet_message_.clear();
+            dbstrings_.clear();
+            greet_messages_.clear();
 
             for (uint i = 0; i < msg.get()->num_rows; ++i) {
                 MYSQL_ROW row = mysql_fetch_row(msg.get()->res.get());
                 if (row[0] && row[1]) {
-                    map_dbstring_.insert(make_pair(std::string(row[0]), std::string(row[1])));
+                    dbstrings_.insert(make_pair(std::string(row[0]), std::string(row[1])));
                     metin2::log::debug("Db string {} = \"{}\"", row[0], row[1]);
                 }
             }
-            if (map_dbstring_.find("GREET") != map_dbstring_.end()) {
-                std::istringstream is(map_dbstring_["GREET"]);
+            if (dbstrings_.find("GREET") != dbstrings_.end()) {
+                std::istringstream is(dbstrings_["GREET"]);
                 while (!is.eof()) {
                     std::string str;
                     getline(is, str);
-                    vec_greet_message_.push_back(str);
+                    greet_messages_.push_back(str);
                 }
             }
         },
@@ -198,7 +198,7 @@ namespace metin2::game::inline persistence {
     }
 
     auto db_manager::greet_message() -> const std::vector<std::string> & {
-        return vec_greet_message_;
+        return greet_messages_;
     }
 
     void db_manager::send_money_log(uint8_t type, uint32_t vnum, int gold) {

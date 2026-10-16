@@ -99,10 +99,10 @@ namespace metin2::sql {
 
         std::mutex mtx_query_;
         std::condition_variable_any cv_query_;
-        std::deque<std::unique_ptr<sql_msg>> queue_query_;
+        std::deque<std::unique_ptr<sql_msg>> queries_;
 
         std::mutex mtx_result_;
-        std::deque<std::unique_ptr<sql_msg>> queue_result_;
+        std::deque<std::unique_ptr<sql_msg>> results_;
 
         std::atomic<int> query_finished_{0};
         std::atomic<int> copied_query_{0};

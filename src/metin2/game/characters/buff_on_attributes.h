@@ -12,7 +12,7 @@ namespace metin2::game::inline characters {
 
     class buff_on_attributes {
       public:
-        buff_on_attributes(character *owner, uint8_t point_type, std::vector<uint8_t> *p_vec_buff_wear_targets);
+        buff_on_attributes(character *owner, uint8_t point_type, std::vector<uint8_t> *buff_wear_targets);
         ~buff_on_attributes();
 
         void remove_buff_from_item(item *item_value);
@@ -32,6 +32,6 @@ namespace metin2::game::inline characters {
         std::vector<uint8_t> *wear_targets_;
 
         using map_attr = std::map<uint8_t, int>;
-        map_attr map_additional_attrs_;
+        map_attr additional_attrs_;
     };
 }

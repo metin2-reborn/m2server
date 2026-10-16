@@ -4583,9 +4583,9 @@ namespace metin2::game::inline characters {
         }
 
         if (true == item->is_equipped()) {
-            if (-1 != item->proto()->c_limit_real_time_first_use_index) {
+            if (-1 != item->proto()->limit_real_time_first_use_index) {
                 if (0 == item->get_socket(1)) {
-                    int32_t duration = (0 != item->get_socket(0)) ? item->get_socket(0) : item->proto()->limits[static_cast<int>(item->proto()->c_limit_real_time_first_use_index)].value;
+                    int32_t duration = (0 != item->get_socket(0)) ? item->get_socket(0) : item->proto()->limits[static_cast<int>(item->proto()->limit_real_time_first_use_index)].value;
 
                     if (0 == duration)
                         duration = 60 * 60 * 24 * 7;
@@ -4631,8 +4631,8 @@ namespace metin2::game::inline characters {
 
     void character::buff_on_attr_add_buffs_from_item(item *item_value) {
         for (size_t i = 0; i < std::size(buff_on_attr_points); i++) {
-            auto it = map_buff_on_attrs_.find(buff_on_attr_points[i]);
-            if (it != map_buff_on_attrs_.end()) {
+            auto it = buff_on_attrs_.find(buff_on_attr_points[i]);
+            if (it != buff_on_attrs_.end()) {
                 it->second->add_buff_from_item(item_value);
             }
         }
@@ -4640,15 +4640,15 @@ namespace metin2::game::inline characters {
 
     void character::buff_on_attr_remove_buffs_from_item(item *item_value) {
         for (size_t i = 0; i < std::size(buff_on_attr_points); i++) {
-            auto it = map_buff_on_attrs_.find(buff_on_attr_points[i]);
-            if (it != map_buff_on_attrs_.end()) {
+            auto it = buff_on_attrs_.find(buff_on_attr_points[i]);
+            if (it != buff_on_attrs_.end()) {
                 it->second->remove_buff_from_item(item_value);
             }
         }
     }
 
     void character::buff_on_attr_clear_all() {
-        for (auto it = map_buff_on_attrs_.begin(); it != map_buff_on_attrs_.end(); it++) {
+        for (auto it = buff_on_attrs_.begin(); it != buff_on_attrs_.end(); it++) {
             buff_on_attributes *buff = it->second.get();
             if (buff) {
                 buff->initialize();
@@ -4657,44 +4657,44 @@ namespace metin2::game::inline characters {
     }
 
     void character::buff_on_attr_value_change(uint8_t type, uint8_t old_value, uint8_t new_value) {
-        auto it = map_buff_on_attrs_.find(type);
+        auto it = buff_on_attrs_.find(type);
 
         if (0 == new_value) {
-            if (map_buff_on_attrs_.end() == it)
+            if (buff_on_attrs_.end() == it)
                 return;
             else
                 it->second->off();
         } else if (0 == old_value) {
             buff_on_attributes *buff;
-            if (map_buff_on_attrs_.end() == it) {
+            if (buff_on_attrs_.end() == it) {
                 std::unique_ptr<buff_on_attributes> new_buff;
                 switch (type) {
                 case POINT_ENERGY:
                     {
                         static uint8_t ab_slot[] = {WEAR_BODY, WEAR_HEAD, WEAR_FOOTS, WEAR_WRIST, WEAR_WEAPON, WEAR_NECK, WEAR_EAR, WEAR_SHIELD};
-                        static std::vector<uint8_t> vec_slots(ab_slot, ab_slot + std::size(ab_slot));
-                        new_buff = std::make_unique<buff_on_attributes>(this, type, &vec_slots);
+                        static std::vector<uint8_t> slots(ab_slot, ab_slot + std::size(ab_slot));
+                        new_buff = std::make_unique<buff_on_attributes>(this, type, &slots);
                     }
                     break;
                 case POINT_COSTUME_ATTR_BONUS:
                     {
                         static uint8_t ab_slot[] = {WEAR_COSTUME_BODY, WEAR_COSTUME_HAIR};
-                        static std::vector<uint8_t> vec_slots(ab_slot, ab_slot + std::size(ab_slot));
-                        new_buff = std::make_unique<buff_on_attributes>(this, type, &vec_slots);
+                        static std::vector<uint8_t> slots(ab_slot, ab_slot + std::size(ab_slot));
+                        new_buff = std::make_unique<buff_on_attributes>(this, type, &slots);
                     }
                     break;
                 default:
                     break;
                 }
                 buff = new_buff.get();
-                map_buff_on_attrs_.insert(map_buff_on_attrs::value_type(type, std::move(new_buff)));
+                buff_on_attrs_.insert(map_buff_on_attrs::value_type(type, std::move(new_buff)));
 
             } else
                 buff = it->second.get();
 
             buff->on(new_value);
         } else {
-            if (map_buff_on_attrs_.end() == it)
+            if (buff_on_attrs_.end() == it)
                 return;
             else
                 it->second->change_buff_value(new_value);

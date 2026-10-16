@@ -65,7 +65,7 @@ namespace metin2::game::inline trade {
         std::unique_ptr<grid> grid_;
 
         using guest_map_type = std::unordered_map<character *, bool>;
-        guest_map_type map_guest_;
+        guest_map_type guests_;
         std::vector<shop_item> item_vector_;
 
         character *pc_;

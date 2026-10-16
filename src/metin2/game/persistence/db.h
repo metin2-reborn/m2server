@@ -55,9 +55,9 @@ namespace metin2::game::inline persistence {
         async_sql sql_direct_;
         bool is_connect_;
 
-        std::map<std::string, std::string> map_dbstring_;
-        std::vector<std::string> vec_greet_message_;
-        std::map<uint32_t, std::unique_ptr<login_data>> map_login_data_;
+        std::map<std::string, std::string> dbstrings_;
+        std::vector<std::string> greet_messages_;
+        std::map<uint32_t, std::unique_ptr<login_data>> login_data_;
     };
 
     inline auto get_db_manager() -> db_manager & {

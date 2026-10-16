@@ -38,18 +38,18 @@ namespace metin2::db::inline empire {
         }
 
         auto vec_monarch_candidacy() -> vec_monarchcandidacy & {
-            return vec_monarch_candidacy_;
+            return monarch_candidacies_;
         }
 
         auto monarch_candidacy_size() -> size_t {
-            return vec_monarch_candidacy_.size();
+            return monarch_candidacies_.size();
         }
 
       private:
         auto candidacy_index(uint32_t pid) -> int;
 
-        map_monarchelection map_monarch_election_;
-        vec_monarchcandidacy vec_monarch_candidacy_;
+        map_monarchelection monarch_elections_;
+        vec_monarchcandidacy monarch_candidacies_;
         monarch_info monarch_info_;
     };
 

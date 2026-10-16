@@ -172,12 +172,12 @@ namespace metin2::game::inline app {
 
         if (shutting_down) {
             if (thecore_pulse() > shutdown_disconnect_pulse) {
-                const desc_manager::desc_set &c_set_desc = get_desc_manager().client_set();
-                std::ranges::for_each(c_set_desc, metin2::game::send_disconnect_func());
+                const desc_manager::desc_set &descs = get_desc_manager().client_set();
+                std::ranges::for_each(descs, metin2::game::send_disconnect_func());
                 shutdown_disconnect_pulse = INT_MAX;
             } else if (thecore_pulse() > shutdown_disconnect_force_pulse) {
-                const desc_manager::desc_set &c_set_desc = get_desc_manager().client_set();
-                std::ranges::for_each(c_set_desc, metin2::game::disconnect_func());
+                const desc_manager::desc_set &descs = get_desc_manager().client_set();
+                std::ranges::for_each(descs, metin2::game::disconnect_func());
             } else if (thecore_pulse() > shutdown_disconnect_force_pulse + passes_per_sec(5)) {
                 thecore_shutdown();
             }

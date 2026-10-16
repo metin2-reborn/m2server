@@ -25,7 +25,7 @@
 
 namespace metin2::game::inline items {
 
-    std::vector<item_drop_info> vec_common_drop_item[MOB_RANK_MAX_NUM];
+    std::vector<item_drop_info> common_drop_items[MOB_RANK_MAX_NUM];
 
     auto item_manager::read_common_drop_item_file(const char *file_name) -> bool {
         FILE *fp = fopen(file_name, "r");
@@ -85,14 +85,14 @@ namespace metin2::game::inline items {
                 if (d[i].lv_start == 0)
                     continue;
 
-                vec_common_drop_item[i].push_back(item_drop_info(d[i].lv_start, d[i].lv_end, pct, item_vnum));
+                common_drop_items[i].push_back(item_drop_info(d[i].lv_start, d[i].lv_end, pct, item_vnum));
             }
         }
 
         fclose(fp);
 
         for (int i = 0; i < MOB_RANK_MAX_NUM; ++i) {
-            std::vector<item_drop_info> &v = vec_common_drop_item[i];
+            std::vector<item_drop_info> &v = common_drop_items[i];
             std::sort(v.begin(), v.end());
 
             auto it = v.begin();
@@ -175,7 +175,7 @@ namespace metin2::game::inline items {
                     group_value->effect_file_name = tok->at(0);
                 }
                 loader.set_parent_node();
-                map_special_attr_group_.emplace(vnum_value, std::move(group_value));
+                special_attr_groups_.emplace(vnum_value, std::move(group_value));
             } else {
                 auto group_value = std::make_unique<special_item_group>(vnum_value, type);
                 for (int k = 1; k < 256; ++k) {
@@ -229,9 +229,9 @@ namespace metin2::game::inline items {
                 }
                 loader.set_parent_node();
                 if (special_item_group::QUEST == type) {
-                    map_quest_item_group_.emplace(vnum_value, std::move(group_value));
+                    quest_item_groups_.emplace(vnum_value, std::move(group_value));
                 } else {
-                    map_special_item_group_.emplace(vnum_value, std::move(group_value));
+                    special_item_groups_.emplace(vnum_value, std::move(group_value));
                 }
             }
         }
@@ -380,7 +380,7 @@ namespace metin2::game::inline items {
                 return false;
             }
 
-            map_etc_item_drop_prob_[item_vnum] = (uint32_t)(prob * 10000.0f);
+            etc_item_drop_probs_[item_vnum] = (uint32_t)(prob * 10000.0f);
             metin2::log::debug("Etc drop: item {} chance {:f}", item_name, prob);
         }
 
@@ -495,13 +495,13 @@ namespace metin2::game::inline items {
 
                     break;
                 }
-                map_mob_item_group_.emplace(mob_vnum, std::move(group_value));
+                mob_item_groups_.emplace(mob_vnum, std::move(group_value));
 
             } else if (type_value == "drop") {
                 std::unique_ptr<drop_item_group> new_group;
                 drop_item_group *group_value = nullptr;
-                auto it = map_drop_item_group_.find(mob_vnum);
-                if (it == map_drop_item_group_.end()) {
+                auto it = drop_item_groups_.find(mob_vnum);
+                if (it == drop_item_groups_.end()) {
                     new_group = std::make_unique<drop_item_group>();
                     group_value = new_group.get();
                 } else {
@@ -542,7 +542,7 @@ namespace metin2::game::inline items {
                     break;
                 }
                 if (new_group)
-                    map_drop_item_group_.emplace(mob_vnum, std::move(new_group));
+                    drop_item_groups_.emplace(mob_vnum, std::move(new_group));
 
             } else if (type_value == "limit") {
                 auto level_item_group_value = std::make_unique<level_item_group>(level_limit_value);
@@ -577,7 +577,7 @@ namespace metin2::game::inline items {
                     break;
                 }
 
-                map_level_item_group_.emplace(mob_vnum, std::move(level_item_group_value));
+                level_item_groups_.emplace(mob_vnum, std::move(level_item_group_value));
             } else if (type_value == "thiefgloves") {
                 auto group_value = std::make_unique<buyer_thief_gloves_item_group>();
 
@@ -615,7 +615,7 @@ namespace metin2::game::inline items {
                     break;
                 }
 
-                map_glove_item_group_.emplace(mob_vnum, std::move(group_value));
+                glove_item_groups_.emplace(mob_vnum, std::move(group_value));
             } else {
                 metin2::log::error("{}: group {} has invalid type {} (expected kill or drop)", file_name, name_value, type_value);
                 loader.set_parent_node();
@@ -660,12 +660,12 @@ namespace metin2::game::inline items {
 
             token_vector *tok;
 
-            auto it = map_drop_item_group_.find(mob_vnum);
+            auto it = drop_item_groups_.find(mob_vnum);
 
             std::unique_ptr<drop_item_group> new_group;
             drop_item_group *group_value;
 
-            if (it == map_drop_item_group_.end()) {
+            if (it == drop_item_groups_.end()) {
                 new_group = std::make_unique<drop_item_group>();
                 group_value = new_group.get();
             } else
@@ -706,7 +706,7 @@ namespace metin2::game::inline items {
             }
 
             if (new_group)
-                map_drop_item_group_.emplace(mob_vnum, std::move(new_group));
+                drop_item_groups_.emplace(mob_vnum, std::move(new_group));
 
             loader.set_parent_node();
         }
@@ -722,7 +722,7 @@ namespace metin2::game::inline items {
 
         int ori_vnum, new_vnum;
         while (fscanf(fp, "%u %u", &ori_vnum, &new_vnum) != EOF) {
-            map_new_to_ori_.insert(map_dw2_dw::value_type(new_vnum, ori_vnum));
+            new_to_ori_.insert(map_dw2_dw::value_type(new_vnum, ori_vnum));
         }
         fclose(fp);
         return true;

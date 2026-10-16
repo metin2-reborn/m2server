@@ -294,24 +294,24 @@ namespace metin2::db::inline clients {
         peer *auth_peer_;
 
         using login_data_by_login_key = std::unordered_map<uint32_t, login_data *>;
-        login_data_by_login_key map_login_data_;
+        login_data_by_login_key login_data_;
 
         using login_data_by_login = std::unordered_map<std::string, login_data *>;
-        login_data_by_login map_login_data_by_login_;
+        login_data_by_login login_data_by_login_;
 
         using login_data_by_aid = std::unordered_map<uint32_t, login_data *>;
-        login_data_by_aid map_login_data_by_aid_;
+        login_data_by_aid login_data_by_aid_;
 
         using logon_account_map = std::unordered_map<std::string, login_data *>;
-        logon_account_map map_logon_account_;
+        logon_account_map logon_accounts_;
 
         int player_id_start_;
         int player_delete_level_limit_;
         int player_delete_level_limit_lower_;
 
-        std::vector<mob_table> vec_mob_table_;
-        std::vector<item_table> vec_item_table_;
-        std::map<uint32_t, item_table *> map_item_table_by_vnum_;
+        std::vector<mob_table> mob_tables_;
+        std::vector<item_table> item_tables_;
+        std::map<uint32_t, item_table *> item_tables_by_vnum_;
 
         int shop_table_size_;
         std::unique_ptr<shop_table[]> shop_table_;
@@ -319,25 +319,25 @@ namespace metin2::db::inline clients {
         int refine_table_size_;
         std::unique_ptr<refine_table[]> refine_table_;
 
-        std::vector<skill_table> vec_skill_table_;
-        std::vector<banword_table> vec_banword_table_;
-        std::vector<item_attr_table> vec_item_attr_table_;
-        std::vector<item_attr_table> vec_item_rare_table_;
+        std::vector<skill_table> skill_tables_;
+        std::vector<banword_table> banword_tables_;
+        std::vector<item_attr_table> item_attr_tables_;
+        std::vector<item_attr_table> item_rare_tables_;
 
-        std::vector<building::land_table> vec_land_table_;
-        std::vector<building::object_proto> vec_object_proto_;
-        std::map<uint32_t, std::unique_ptr<building::object_table>> map_object_table_;
+        std::vector<building::land_table> land_tables_;
+        std::vector<building::object_proto> object_protos_;
+        std::map<uint32_t, std::unique_ptr<building::object_table>> object_tables_;
 
         bool shutdowned_;
 
-        player_table_cache_map map_player_cache_;
+        player_table_cache_map player_caches_;
 
-        item_cache_map map_item_cache_;
-        item_cache_set_ptr_map map_item_cache_set_ptr_;
+        item_cache_map item_caches_;
+        item_cache_set_ptr_map item_cache_set_ptrs_;
 
         item_price_list_cache_map item_price_list_cache_;
 
-        channel_status_map m_channel_status_;
+        channel_status_map channel_status_;
 
         struct party_info {
             uint8_t role;
@@ -350,10 +350,10 @@ namespace metin2::db::inline clients {
         using party_member = std::map<uint32_t, party_info>;
         using party_map = std::map<uint32_t, party_member>;
         using party_channel_map = std::map<uint8_t, party_map>;
-        party_channel_map map_channel_party_;
+        party_channel_map channel_parties_;
 
         using event_flag_map = std::map<std::string, int32_t>;
-        event_flag_map map_event_flag_;
+        event_flag_map event_flags_;
 
         int cache_flush_count_;
         int cache_flush_count_limit_;
@@ -384,7 +384,7 @@ namespace metin2::db::inline clients {
 
         using logout_player_map = std::unordered_map<uint32_t, std::unique_ptr<logout_player>>;
 
-        logout_player_map map_logout_;
+        logout_player_map logouts_;
 
         void insert_logout_player(uint32_t pid);
         void delete_logout_player(uint32_t pid);

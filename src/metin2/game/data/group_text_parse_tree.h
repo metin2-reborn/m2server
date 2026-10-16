@@ -19,7 +19,7 @@ namespace metin2::game::inline data {
       public:
         class group_node_row {
           public:
-            group_node_row(group_node *group_node_value, token_vector &vec_values);
+            group_node_row(group_node *group_node_value, token_vector &values);
             virtual ~group_node_row();
 
             template <typename T>
@@ -31,7 +31,7 @@ namespace metin2::game::inline data {
 
           private:
             group_node *owner_group_node_;
-            token_vector vec_values_;
+            token_vector values_;
         };
 
       public:
@@ -53,9 +53,9 @@ namespace metin2::game::inline data {
         template <typename T>
         auto value(const std::string &rstr_row_key, int index, T &t_value) const -> bool;
 
-        auto row(const std::string &rstr_row_key, const group_node_row **pp_row) const -> bool;
-        auto row(int idx, const group_node_row **pp_row) const -> bool;
-        auto group_row(const std::string &group_name, const std::string &row_value, const group_node::group_node_row **pp_row) const -> bool;
+        auto row(const std::string &rstr_row_key, const group_node_row **row) const -> bool;
+        auto row(int idx, const group_node_row **row) const -> bool;
+        auto group_row(const std::string &group_name, const std::string &row_value, const group_node::group_node_row **row) const -> bool;
 
         template <typename T>
         auto group_value(const std::string &group_name, const std::string &row, int col, T &t_value) const -> bool;
@@ -70,8 +70,8 @@ namespace metin2::game::inline data {
         map_group child_nodes_;
         std::string group_name_;
 
-        map_name_to_index map_column_name_to_index_;
-        map_row map_rows_;
+        map_name_to_index column_name_to_index_;
+        map_row rows_;
         friend class group_text_parse_tree_loader;
     };
 
@@ -111,14 +111,14 @@ namespace metin2::game::inline data {
 
     template <typename T>
     auto group_node::value(size_t i, const std::string &rstr_col_key, T &t_value) const -> bool {
-        if (i >= map_rows_.size())
+        if (i >= rows_.size())
             return false;
 
-        auto row_it = map_rows_.begin();
+        auto row_it = rows_.begin();
         std::advance(row_it, i);
 
-        auto col_idx_it = map_column_name_to_index_.find(rstr_col_key);
-        if (map_column_name_to_index_.end() == col_idx_it) {
+        auto col_idx_it = column_name_to_index_.find(rstr_col_key);
+        if (column_name_to_index_.end() == col_idx_it) {
             return false;
         }
 
@@ -132,12 +132,12 @@ namespace metin2::game::inline data {
 
     template <typename T>
     auto group_node::value(const std::string &rstr_row_key, const std::string &rstr_col_key, T &t_value) const -> bool {
-        auto row_it = map_rows_.find(rstr_row_key);
-        if (map_rows_.end() == row_it) {
+        auto row_it = rows_.find(rstr_row_key);
+        if (rows_.end() == row_it) {
             return false;
         }
-        auto col_idx_it = map_column_name_to_index_.find(rstr_col_key);
-        if (map_column_name_to_index_.end() == col_idx_it) {
+        auto col_idx_it = column_name_to_index_.find(rstr_col_key);
+        if (column_name_to_index_.end() == col_idx_it) {
             return false;
         }
 
@@ -151,8 +151,8 @@ namespace metin2::game::inline data {
 
     template <typename T>
     auto group_node::value(const std::string &rstr_row_key, int index, T &t_value) const -> bool {
-        auto row_it = map_rows_.find(rstr_row_key);
-        if (map_rows_.end() == row_it) {
+        auto row_it = rows_.find(rstr_row_key);
+        if (rows_.end() == row_it) {
             return false;
         }
 
@@ -195,15 +195,15 @@ namespace metin2::game::inline data {
     template <typename T>
     auto group_node::group_node_row::value(const std::string &col_key, T &value) const -> bool {
         int idx = owner_group_node_->column_index_from_name(col_key);
-        if (idx < 0 || static_cast<size_t>(idx) >= vec_values_.size())
+        if (idx < 0 || static_cast<size_t>(idx) >= values_.size())
             return false;
-        return from_string(value, vec_values_[idx]);
+        return from_string(value, values_[idx]);
     }
 
     template <typename T>
     auto group_node::group_node_row::value(int idx, T &value) const -> bool {
-        if (idx < 0 || static_cast<size_t>(idx) >= vec_values_.size())
+        if (idx < 0 || static_cast<size_t>(idx) >= values_.size())
             return false;
-        return from_string(value, vec_values_[idx]);
+        return from_string(value, values_[idx]);
     }
 }

@@ -135,13 +135,13 @@ namespace metin2::game::inline world {
         id_type id_;
         uint32_t map_index_;
 
-        character_set set_character_;
-        std::map<std::string, int> map_flag_;
+        character_set characters_;
+        std::map<std::string, int> flags_;
         using item_group_map = std::map<std::string, item_group>;
-        item_group_map map_item_group_;
-        party_map map_party_;
-        area_map &map_area_;
-        unique_mob_map map_unique_mob_;
+        item_group_map item_groups_;
+        party_map parties_;
+        area_map &areas_;
+        unique_mob_map unique_mobs_;
 
         auto find_unique(const std::string &key, bool may_be_dead) -> unique_mob_map::iterator;
 
@@ -193,8 +193,8 @@ namespace metin2::game::inline world {
         auto find_by_map_index(int32_t map_index) -> dungeon *;
 
       private:
-        dungeon_map map_dungeon_;
-        map_dungeon map_map_dungeon_;
+        dungeon_map dungeons_;
+        map_dungeon map_dungeons_;
 
         dungeon::id_type next_id_;
     };

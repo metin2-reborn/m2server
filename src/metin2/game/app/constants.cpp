@@ -579,8 +579,8 @@ namespace metin2::game::inline app {
             APPLY_POISON_REDUCE,
     };
 
-    item_attr_map map_item_attr;
-    item_attr_map map_item_rare;
+    item_attr_map item_attrs;
+    item_attr_map item_rares;
 
     const apply_info a_apply_info[MAX_APPLY_NUM] =
         {
@@ -1051,14 +1051,14 @@ namespace metin2::game::inline app {
             {8014, 60, {0, 26, 41, 30, 3} },
     };
 
-    const char *apsz_empire_names[EMPIRE_MAX_NUM] =
+    const char *empire_names[EMPIRE_MAX_NUM] =
         {
             "전제국",
             "신수국",
             "천조국",
             "진노국"};
 
-    const char *apsz_priv_names[MAX_PRIV_NUM] =
+    const char *priv_names[MAX_PRIV_NUM] =
         {
             "",
             "아이템이 나올 확률",
@@ -1131,7 +1131,7 @@ namespace metin2::game::inline app {
             90, 80, 70, 0};
 
     struct value_name {
-        const char *psz_name;
+        const char *name;
         int32_t value;
     };
 
@@ -1231,8 +1231,8 @@ namespace metin2::game::inline app {
 
     auto fn_get_apply_type(const char *apply_type_string) -> int32_t {
         value_name *value_name;
-        for (value_name = apply_type_names; value_name->psz_name; ++value_name) {
-            if (0 == strcasecmp(value_name->psz_name, apply_type_string))
+        for (value_name = apply_type_names; value_name->name; ++value_name) {
+            if (0 == strcasecmp(value_name->name, apply_type_string))
                 return value_name->value;
         }
         return 0;

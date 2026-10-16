@@ -155,8 +155,8 @@ namespace metin2::game::inline admin {
             metin2::log::debug("Shutdown countdown at {:d}", *sec);
 
             if (--*sec == -10) {
-                const desc_manager::desc_set &c_set_desc = get_desc_manager().client_set();
-                for (desc *d : c_set_desc) {
+                const desc_manager::desc_set &descs = get_desc_manager().client_set();
+                for (desc *d : descs) {
                     if (d->type() == DESC_TYPE_CONNECTOR)
                         continue;
 
@@ -174,8 +174,8 @@ namespace metin2::game::inline admin {
 
             return metin2::config::server().passes_per_sec;
         } else if (*sec == 0) {
-            const desc_manager::desc_set &c_set_desc = get_desc_manager().client_set();
-            for (desc *d : c_set_desc) {
+            const desc_manager::desc_set &descs = get_desc_manager().client_set();
+            for (desc *d : descs) {
                 if (d->get_character()) {
                     if (d->get_character()->gm_level() == GM_PLAYER)
                         d->get_character()->chat_packet(CHAT_TYPE_COMMAND, "quit Shutdown(SendDisconnectFunc)");
@@ -1355,14 +1355,14 @@ namespace metin2::game::inline admin {
     }
 
     struct goto_info {
-        std::string st_name;
+        std::string name;
 
         uint8_t empire;
         int index;
         uint32_t x, y;
 
         goto_info() {
-            st_name = "";
+            name = "";
             empire = 0;
             index = 0;
 

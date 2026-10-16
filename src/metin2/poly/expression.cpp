@@ -243,7 +243,7 @@ namespace metin2::poly {
         }
 
         error_occur_ = false;
-        ui_look_pos_ = 0;
+        look_pos_ = 0;
         look_ahead_ = lexan();
 
         expr();
@@ -253,7 +253,7 @@ namespace metin2::poly {
 
     void expression::expr() {
         if (look_ahead_ == '+' || look_ahead_ == '-') {
-            ui_look_pos_--;
+            look_pos_--;
             look_ahead_ = NUM;
             num_token_ = token_ = 0;
         }
@@ -289,31 +289,31 @@ namespace metin2::poly {
     }
 
     auto expression::lexan() -> int {
-        while (ui_look_pos_ < data_.size()) {
-            const auto c = static_cast<unsigned char>(data_[ui_look_pos_]);
+        while (look_pos_ < data_.size()) {
+            const auto c = static_cast<unsigned char>(data_[look_pos_]);
 
             if (c == ' ' || c == '\t') {
-                ui_look_pos_++;
+                look_pos_++;
                 continue;
             }
 
             if (std::isdigit(c)) {
-                const char *begin = data_.data() + ui_look_pos_;
+                const char *begin = data_.data() + look_pos_;
                 const auto [end, ec] = std::from_chars(begin, data_.data() + data_.size(), num_token_, std::chars_format::fixed);
                 if (ec == std::errc::result_out_of_range) {
                     num_token_ = HUGE_VAL;
                 }
 
-                ui_look_pos_ += end - begin;
+                look_pos_ += end - begin;
                 token_ = 0;
                 return NUM;
             }
 
             if (std::isalpha(c)) {
                 const auto is_alpha = [](char ch) -> bool { return std::isalpha(static_cast<unsigned char>(ch)) != 0; };
-                const auto name_end = std::find_if_not(data_.begin() + ui_look_pos_, data_.end(), is_alpha);
-                const std::string name = data_.substr(ui_look_pos_, name_end - data_.begin() - ui_look_pos_);
-                ui_look_pos_ += name.size();
+                const auto name_end = std::find_if_not(data_.begin() + look_pos_, data_.end(), is_alpha);
+                const std::string name = data_.substr(look_pos_, name_end - data_.begin() - look_pos_);
+                look_pos_ += name.size();
 
                 token_ = find(name);
                 if (token_ == -1) {
@@ -323,7 +323,7 @@ namespace metin2::poly {
             }
 
             token_ = 0;
-            ui_look_pos_++;
+            look_pos_++;
             return c;
         }
 

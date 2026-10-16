@@ -6,7 +6,7 @@
 
 namespace metin2::db::inline tables {
 
-    class c_csv_table {
+    class csv_table {
       public:
         auto load(const char *file_name, char separator = ',', char quote = '"') -> bool;
 

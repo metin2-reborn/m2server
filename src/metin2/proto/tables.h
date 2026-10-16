@@ -437,8 +437,8 @@ namespace metin2::inline proto {
         uint16_t aggressive_sight;
         uint16_t attack_range;
 
-        char c_enchants[MOB_ENCHANTS_MAX_NUM];
-        char c_resists[MOB_RESISTS_MAX_NUM];
+        char enchants[MOB_ENCHANTS_MAX_NUM];
+        char resists[MOB_RESISTS_MAX_NUM];
 
         uint32_t resurrection_vnum;
         uint32_t drop_item_vnum;
@@ -572,8 +572,8 @@ namespace metin2::inline proto {
 
         short int s_addon_type;
 
-        char c_limit_real_time_first_use_index;
-        char c_limit_timer_based_on_wear_index;
+        char limit_real_time_first_use_index;
+        char limit_timer_based_on_wear_index;
     };
 
     struct item_attr_table {
@@ -727,7 +727,7 @@ namespace metin2::inline proto {
     struct packet_gd_highscore {
         uint32_t pid;
         int32_t value;
-        char c_dir;
+        char dir;
         char board[21];
     };
 

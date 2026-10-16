@@ -23,7 +23,7 @@ namespace metin2::game::inline items {
         }
     };
 
-    extern std::vector<item_drop_info> vec_common_drop_item[MOB_RANK_MAX_NUM];
+    extern std::vector<item_drop_info> common_drop_items[MOB_RANK_MAX_NUM];
 
     struct drop_item {
         int lv_start;

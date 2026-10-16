@@ -36,8 +36,8 @@ namespace metin2::db::inline items {
         auto remove(uint32_t award_id) -> bool;
 
       private:
-        std::map<uint32_t, std::unique_ptr<item_award>> map_award_;
-        std::map<std::string, std::set<item_award *>> map_set_award_by_login_;
+        std::map<uint32_t, std::unique_ptr<item_award>> awards_;
+        std::map<std::string, std::set<item_award *>> set_awards_by_login_;
     };
 
     inline auto get_item_award_manager() -> item_award_manager & {

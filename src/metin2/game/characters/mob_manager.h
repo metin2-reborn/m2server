@@ -68,44 +68,44 @@ namespace metin2::game::inline characters {
                 prob += probs.back();
 
             probs.push_back(prob);
-            vec_member_vnum.push_back(vnum);
+            member_vnums.push_back(vnum);
         }
 
         auto member() -> uint32_t {
-            if (vec_member_vnum.empty())
+            if (member_vnums.empty())
                 return 0;
 
             int n = number(1, probs.back());
             auto it = std::ranges::lower_bound(probs, n);
 
-            return vec_member_vnum[std::distance(probs.begin(), it)];
+            return member_vnums[std::distance(probs.begin(), it)];
         }
 
         uint32_t vnum;
-        std::vector<uint32_t> vec_member_vnum;
+        std::vector<uint32_t> member_vnums;
 
         std::vector<int> probs;
     };
 
     class mob_group {
       public:
-        void create(uint32_t vnum, std::string &r_st_name) {
+        void create(uint32_t vnum, std::string &name) {
             vnum_ = vnum;
-            name_ = r_st_name;
+            name_ = name;
         }
 
         auto member_vector() -> const std::vector<uint32_t> & {
-            return vec_member_vnum_;
+            return member_vnums_;
         }
 
         void add_member(uint32_t vnum) {
-            vec_member_vnum_.push_back(vnum);
+            member_vnums_.push_back(vnum);
         }
 
       protected:
         uint32_t vnum_;
         std::string name_;
-        std::vector<uint32_t> vec_member_vnum_;
+        std::vector<uint32_t> member_vnums_;
     };
 
     class mob_manager {
@@ -126,8 +126,8 @@ namespace metin2::game::inline characters {
         auto get(uint32_t vnum) -> const mob *;
         auto get(const char *name, bool is_abbrev) -> const mob *;
 
-        auto begin() -> const iterator { return map_mob_by_vnum_.begin(); }
-        auto end() -> const iterator { return map_mob_by_vnum_.end(); }
+        auto begin() -> const iterator { return mobs_by_vnum_.begin(); }
+        auto end() -> const iterator { return mobs_by_vnum_.end(); }
 
         void rebind_mob_proto(character *ch);
 
@@ -135,10 +135,10 @@ namespace metin2::game::inline characters {
         void dump_regen_count(const char *filename);
 
       private:
-        std::map<uint32_t, std::unique_ptr<mob>> map_mob_by_vnum_;
-        std::map<std::string, mob *> map_mob_by_name_;
-        std::map<uint32_t, std::unique_ptr<mob_group>> map_mob_group_;
-        std::map<uint32_t, std::unique_ptr<mob_group_group>> map_mob_group_group_;
+        std::map<uint32_t, std::unique_ptr<mob>> mobs_by_vnum_;
+        std::map<std::string, mob *> mobs_by_name_;
+        std::map<uint32_t, std::unique_ptr<mob_group>> mob_groups_;
+        std::map<uint32_t, std::unique_ptr<mob_group_group>> mob_group_groups_;
         std::vector<std::unique_ptr<mob>> retired_mobs_;
 
         std::map<uint32_t, double> regen_count_;

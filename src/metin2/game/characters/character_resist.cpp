@@ -191,13 +191,13 @@ namespace metin2::game::inline characters {
 
     void character::apply_mob_attribute(const mob_table *table) {
         for (int i = 0; i < MOB_ENCHANTS_MAX_NUM; ++i) {
-            if (table->c_enchants[i] != 0)
-                apply_point(mob_enchant_apply_idx[i], table->c_enchants[i]);
+            if (table->enchants[i] != 0)
+                apply_point(mob_enchant_apply_idx[i], table->enchants[i]);
         }
 
         for (int i = 0; i < MOB_RESISTS_MAX_NUM; ++i) {
-            if (table->c_resists[i] != 0)
-                apply_point(mob_resists_apply_idx[i], table->c_resists[i]);
+            if (table->resists[i] != 0)
+                apply_point(mob_resists_apply_idx[i], table->resists[i]);
         }
     }
 

@@ -182,8 +182,8 @@ namespace metin2::db::inline clients {
     }
 
     auto client_manager::player_cache(uint32_t id) -> player_table_cache * {
-        auto it = map_player_cache_.find(id);
-        if (it == map_player_cache_.end()) {
+        auto it = player_caches_.find(id);
+        if (it == player_caches_.end()) {
             return nullptr;
         }
 
@@ -195,7 +195,7 @@ namespace metin2::db::inline clients {
     void client_manager::put_player_cache(player_table *updated) {
         auto *c = player_cache(updated->id);
         if (!c) {
-            c = map_player_cache_.emplace(updated->id, std::make_unique<player_table_cache>()).first->second.get();
+            c = player_caches_.emplace(updated->id, std::make_unique<player_table_cache>()).first->second.get();
         }
 
         c->put(updated);
@@ -861,7 +861,7 @@ namespace metin2::db::inline clients {
             player_table_cache *player_cache_value = player_cache(pi.player_id);
 
             if (player_cache_value) {
-                map_player_cache_.erase(pi.player_id);
+                player_caches_.erase(pi.player_id);
             }
 
             item_cache_set *set = get_item_cache_set(pi.player_id);
@@ -876,7 +876,7 @@ namespace metin2::db::inline clients {
 
                 set->clear();
 
-                map_item_cache_set_ptr_.erase(pi.player_id);
+                item_cache_set_ptrs_.erase(pi.player_id);
             }
 
             query = sql::format("UPDATE player_index SET pid{}=0 WHERE pid{}={}",
@@ -954,7 +954,7 @@ namespace metin2::db::inline clients {
         strlcpy(pi->login, data->board, sizeof(pi->login));
         pi->account_id = (uint32_t)data->value;
         pi->player_id = data->pid;
-        pi->account_index = (data->c_dir > 0);
+        pi->account_index = (data->dir > 0);
 
         get_db_manager().return_query(query, [this, handle = peer->handle(), pi = std::move(pi)](sql_msg &msg) {
             if (auto *peer_value = get_peer(handle))
@@ -997,9 +997,9 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::insert_logout_player(uint32_t pid) {
-        auto it = map_logout_.find(pid);
+        auto it = logouts_.find(pid);
 
-        if (it != map_logout_.end()) {
+        if (it != logouts_.end()) {
             if (metin2::config::db().login_log) {
                 metin2::log::info("Logout: refreshed logout time of pid {:d}", pid);
             }
@@ -1013,31 +1013,31 @@ namespace metin2::db::inline clients {
         logout_value->pid = pid;
         logout_value->time = time(nullptr);
 
-        map_logout_.insert(std::make_pair(pid, std::move(logout_value)));
+        logouts_.insert(std::make_pair(pid, std::move(logout_value)));
 
         if (metin2::config::db().login_log)
             metin2::log::info("Logout: recorded logout time of pid {:d}", pid);
     }
 
     void client_manager::delete_logout_player(uint32_t pid) {
-        auto it = map_logout_.find(pid);
-        if (it != map_logout_.end()) {
-            map_logout_.erase(it);
+        auto it = logouts_.find(pid);
+        if (it != logouts_.end()) {
+            logouts_.erase(it);
         }
     }
 
     void client_manager::update_logout_player() {
         time_t now = time(nullptr);
 
-        auto it = map_logout_.begin();
-        while (it != map_logout_.end()) {
+        auto it = logouts_.begin();
+        while (it != logouts_.end()) {
             logout_player *logout = it->second.get();
 
             if (now - logout_seconds > logout->time) {
                 flush_item_cache_set(logout->pid);
                 flush_player_cache_set(logout->pid);
 
-                map_logout_.erase(it++);
+                logouts_.erase(it++);
             } else {
                 ++it;
             }
@@ -1045,12 +1045,12 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::flush_player_cache_set(uint32_t pid) {
-        auto it = map_player_cache_.find(pid);
+        auto it = player_caches_.find(pid);
 
-        if (it != map_player_cache_.end()) {
+        if (it != player_caches_.end()) {
             it->second->flush();
 
-            map_player_cache_.erase(it);
+            player_caches_.erase(it);
         }
     }
 }

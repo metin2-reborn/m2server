@@ -49,7 +49,7 @@ namespace metin2::game::inline items {
         void send_refine_result_packet(character *ch, uint8_t sub_header, const item_pos &pos);
         auto collect_refine_items(character *ch, item_pos (&item_poses)[DRAGON_SOUL_REFINE_GRID_SIZE], std::set<item *> &items, bool reject_equip_position, const char *non_dragon_soul_message) -> bool;
         auto has_refine_fee(character *ch, int fee) -> bool;
-        auto refine_grade_or_step(character *ch, item_pos (&item_poses)[DRAGON_SOUL_REFINE_GRID_SIZE], bool by_grade) -> bool;
+        auto refine_grade_or_step(character *ch, item_pos (&item_poses)[DRAGON_SOUL_REFINE_GRID_SIZE], bool grade) -> bool;
 
         void refresh_dragon_soul_state(character *ch);
 

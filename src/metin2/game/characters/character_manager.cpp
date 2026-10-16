@@ -66,18 +66,18 @@ namespace metin2::game::inline characters {
     }
 
     void character_manager::destroy() {
-        auto it = map_chr_by_vid_.begin();
-        while (it != map_chr_by_vid_.end()) {
+        auto it = chrs_by_vid_.begin();
+        while (it != chrs_by_vid_.end()) {
             character *ch = it->second;
             get_character_manager().destroy_character(ch);
-            it = map_chr_by_vid_.begin();
+            it = chrs_by_vid_.begin();
         }
     }
 
     void character_manager::graceful_shutdown() {
-        auto it = map_pc_chr_.begin();
+        auto it = pc_chrs_.begin();
 
-        while (it != map_pc_chr_.end())
+        while (it != pc_chrs_.end())
             (it++)->second->disconnect("server shutdown");
     }
 
@@ -92,14 +92,14 @@ namespace metin2::game::inline characters {
         auto *ch = new character;
         ch->create(name, vid, pid ? true : false);
 
-        map_chr_by_vid_.insert(std::make_pair(vid, ch));
+        chrs_by_vid_.insert(std::make_pair(vid, ch));
 
         if (pid) {
             char name_value[CHARACTER_NAME_MAX_LEN + 1];
             str_lower(name, name_value, sizeof(name_value));
 
-            map_pc_chr_.insert(name_map::value_type(name_value, ch));
-            map_chr_by_pid_.insert(std::make_pair(pid, ch));
+            pc_chrs_.insert(name_map::value_type(name_value, ch));
+            chrs_by_pid_.insert(std::make_pair(pid, ch));
         }
 
         return (ch);
@@ -109,8 +109,8 @@ namespace metin2::game::inline characters {
         if (!ch)
             return;
 
-        auto it = map_chr_by_vid_.find(ch->get_vid());
-        if (it == map_chr_by_vid_.end()) {
+        auto it = chrs_by_vid_.find(ch->get_vid());
+        if (it == chrs_by_vid_.end()) {
             metin2::log::error("Cannot destroy character vid {:d}: not found", (int32_t)(ch->get_vid()));
             return;
         }
@@ -122,28 +122,28 @@ namespace metin2::game::inline characters {
         }
 
         if (use_pending_destroy_) {
-            set_chr_pending_destroy_.insert(ch);
+            chrs_pending_destroy_.insert(ch);
             return;
         }
 
-        map_chr_by_vid_.erase(it);
+        chrs_by_vid_.erase(it);
 
         if (true == ch->is_pc()) {
             char name[CHARACTER_NAME_MAX_LEN + 1];
 
             str_lower(ch->name(), name, sizeof(name));
 
-            auto it = map_pc_chr_.find(name);
+            auto it = pc_chrs_.find(name);
 
-            if (map_pc_chr_.end() != it)
-                map_pc_chr_.erase(it);
+            if (pc_chrs_.end() != it)
+                pc_chrs_.erase(it);
         }
 
         if (0 != ch->player_id()) {
-            auto it = map_chr_by_pid_.find(ch->player_id());
+            auto it = chrs_by_pid_.find(ch->player_id());
 
-            if (map_chr_by_pid_.end() != it) {
-                map_chr_by_pid_.erase(it);
+            if (chrs_by_pid_.end() != it) {
+                chrs_by_pid_.erase(it);
             }
         }
 
@@ -155,9 +155,9 @@ namespace metin2::game::inline characters {
     }
 
     auto character_manager::find(uint32_t vid) -> character * {
-        auto it = map_chr_by_vid_.find(vid);
+        auto it = chrs_by_vid_.find(vid);
 
-        if (map_chr_by_vid_.end() == it)
+        if (chrs_by_vid_.end() == it)
             return nullptr;
 
         character *found = it->second;
@@ -178,9 +178,9 @@ namespace metin2::game::inline characters {
     }
 
     auto character_manager::find_by_pid(uint32_t pid) -> character * {
-        auto it = map_chr_by_pid_.find(pid);
+        auto it = chrs_by_pid_.find(pid);
 
-        if (map_chr_by_pid_.end() == it)
+        if (chrs_by_pid_.end() == it)
             return nullptr;
 
         character *found = it->second;
@@ -194,9 +194,9 @@ namespace metin2::game::inline characters {
     auto character_manager::find_pc(const char *name) -> character * {
         char name_value[CHARACTER_NAME_MAX_LEN + 1];
         str_lower(name, name_value, sizeof(name_value));
-        auto it = map_pc_chr_.find(name_value);
+        auto it = pc_chrs_.find(name_value);
 
-        if (it == map_pc_chr_.end())
+        if (it == pc_chrs_.end())
             return nullptr;
 
         character *found = it->second;
@@ -433,7 +433,7 @@ namespace metin2::game::inline characters {
         character *chr_master = nullptr;
         party *party = nullptr;
 
-        const std::vector<uint32_t> &c_rdw_members = group_value->member_vector();
+        const std::vector<uint32_t> &members = group_value->member_vector();
 
         bool spawned_by_stone = false;
         bool aggressive_value = aggressive;
@@ -444,8 +444,8 @@ namespace metin2::game::inline characters {
                 aggressive_value = true;
         }
 
-        for (uint32_t i = 0; i < c_rdw_members.size(); ++i) {
-            character *tch = spawn_mob_range(c_rdw_members[i], map_index, sx, sy, ex, ey, true, spawned_by_stone);
+        for (uint32_t i = 0; i < members.size(); ++i) {
+            character *tch = spawn_mob_range(members[i], map_index, sx, sy, ex, ey, true, spawned_by_stone);
 
             if (!tch) {
                 if (i == 0)
@@ -502,7 +502,7 @@ namespace metin2::game::inline characters {
         character *chr_master = nullptr;
         party *party = nullptr;
 
-        const std::vector<uint32_t> &c_rdw_members = group_value->member_vector();
+        const std::vector<uint32_t> &members = group_value->member_vector();
 
         bool spawned_by_stone = false;
         bool aggressive_value = aggressive;
@@ -516,8 +516,8 @@ namespace metin2::game::inline characters {
 
         character *ch_leader = nullptr;
 
-        for (uint32_t i = 0; i < c_rdw_members.size(); ++i) {
-            character *tch = spawn_mob_range(c_rdw_members[i], map_index, sx, sy, ex, ey, true, spawned_by_stone);
+        for (uint32_t i = 0; i < members.size(); ++i) {
+            character *tch = spawn_mob_range(members[i], map_index, sx, sy, ex, ey, true, spawned_by_stone);
 
             if (!tch) {
                 if (i == 0)
@@ -559,10 +559,10 @@ namespace metin2::game::inline characters {
         begin_pending_destroy();
 
         {
-            if (!map_pc_chr_.empty()) {
+            if (!pc_chrs_.empty()) {
                 character_vector v;
-                v.reserve(map_pc_chr_.size());
-                for (const auto &[name, chr] : map_pc_chr_)
+                v.reserve(pc_chrs_.size());
+                for (const auto &[name, chr] : pc_chrs_)
                     v.push_back(chr);
                 if (0 == (pulse % passes_per_sec(5))) {
                     for (character *ch : v) {
@@ -577,10 +577,10 @@ namespace metin2::game::inline characters {
         }
 
         {
-            if (!set_chr_state_.empty()) {
+            if (!state_chrs_.empty()) {
                 character_vector v;
-                v.reserve(set_chr_state_.size());
-                v.insert(v.end(), set_chr_state_.begin(), set_chr_state_.end());
+                v.reserve(state_chrs_.size());
+                v.insert(v.end(), state_chrs_.begin(), state_chrs_.end());
                 for (character *ch : v)
                     ch->update_state_machine(pulse);
             }
@@ -596,36 +596,36 @@ namespace metin2::game::inline characters {
         }
 
         if (0 == (pulse % passes_per_sec(3600))) {
-            for (auto it = map_mob_kill_count_.begin(); it != map_mob_kill_count_.end(); ++it)
+            for (auto it = mob_kill_counts_.begin(); it != mob_kill_counts_.end(); ++it)
                 get_db_manager().send_money_log(MONEY_LOG_MONSTER_KILL, it->first, it->second);
 
-            map_mob_kill_count_.clear();
+            mob_kill_counts_.clear();
         }
 
         if (metin2::config::test_server() && 0 == (pulse % passes_per_sec(60)))
-            metin2::log::debug("Characters: {:d} by vid, {:d} by pid", map_chr_by_vid_.size(), map_chr_by_pid_.size());
+            metin2::log::debug("Characters: {:d} by vid, {:d} by pid", chrs_by_vid_.size(), chrs_by_pid_.size());
 
         flush_pending_destroy();
     }
 
     void character_manager::process_delayed_save() {
-        auto it = set_chr_for_delayed_save_.begin();
+        auto it = chrs_for_delayed_save_.begin();
 
-        while (it != set_chr_for_delayed_save_.end()) {
+        while (it != chrs_for_delayed_save_.end()) {
             character *chr = *it++;
             chr->save_real();
         }
 
-        set_chr_for_delayed_save_.clear();
+        chrs_for_delayed_save_.clear();
     }
 
     auto character_manager::add_to_state_list(character *ch) -> bool {
         assert(ch != nullptr);
 
-        auto it = set_chr_state_.find(ch);
+        auto it = state_chrs_.find(ch);
 
-        if (it == set_chr_state_.end()) {
-            set_chr_state_.insert(ch);
+        if (it == state_chrs_.end()) {
+            state_chrs_.insert(ch);
             return true;
         }
 
@@ -633,40 +633,40 @@ namespace metin2::game::inline characters {
     }
 
     void character_manager::remove_from_state_list(character *ch) {
-        auto it = set_chr_state_.find(ch);
+        auto it = state_chrs_.find(ch);
 
-        if (it != set_chr_state_.end()) {
-            set_chr_state_.erase(it);
+        if (it != state_chrs_.end()) {
+            state_chrs_.erase(it);
         }
     }
 
     void character_manager::delayed_save(character *ch) {
-        set_chr_for_delayed_save_.insert(ch);
+        chrs_for_delayed_save_.insert(ch);
     }
 
     auto character_manager::flush_delayed_save(character *ch) -> bool {
-        auto it = set_chr_for_delayed_save_.find(ch);
+        auto it = chrs_for_delayed_save_.find(ch);
 
-        if (it == set_chr_for_delayed_save_.end())
+        if (it == chrs_for_delayed_save_.end())
             return false;
 
-        set_chr_for_delayed_save_.erase(it);
+        chrs_for_delayed_save_.erase(it);
         ch->save_real();
         return true;
     }
 
     void character_manager::register_for_monster_log(character *ch) {
-        set_chr_monster_log_.insert(ch);
+        monster_log_chrs_.insert(ch);
     }
 
     void character_manager::unregister_for_monster_log(character *ch) {
-        set_chr_monster_log_.erase(ch);
+        monster_log_chrs_.erase(ch);
     }
 
     void character_manager::packet_monster_log(character *ch, const void *buf, int size) {
-        decltype(set_chr_monster_log_.begin()) it;
+        decltype(monster_log_chrs_.begin()) it;
 
-        for (it = set_chr_monster_log_.begin(); it != set_chr_monster_log_.end(); ++it) {
+        for (it = monster_log_chrs_.begin(); it != monster_log_chrs_.end(); ++it) {
             character *c = *it;
 
             if (ch && distance_approx(c->x() - ch->x(), c->y() - ch->y()) > 6000)
@@ -682,46 +682,46 @@ namespace metin2::game::inline characters {
     void character_manager::kill_log(uint32_t vnum) {
         const uint32_t send_limit = 10000;
 
-        auto it = map_mob_kill_count_.find(vnum);
+        auto it = mob_kill_counts_.find(vnum);
 
-        if (it == map_mob_kill_count_.end())
-            map_mob_kill_count_.insert(std::make_pair(vnum, 1));
+        if (it == mob_kill_counts_.end())
+            mob_kill_counts_.insert(std::make_pair(vnum, 1));
         else {
             ++it->second;
 
             if (it->second > send_limit) {
                 get_db_manager().send_money_log(MONEY_LOG_MONSTER_KILL, it->first, it->second);
-                map_mob_kill_count_.erase(it);
+                mob_kill_counts_.erase(it);
             }
         }
     }
 
     void character_manager::register_race_num(uint32_t vnum) {
-        set_registered_race_num_.insert(vnum);
+        registered_race_nums_.insert(vnum);
     }
 
     void character_manager::register_race_num_map(character *ch) {
         uint32_t vnum_value = ch->race_num();
 
-        if (set_registered_race_num_.find(vnum_value) != set_registered_race_num_.end()) {
+        if (registered_race_nums_.find(vnum_value) != registered_race_nums_.end()) {
             metin2::log::debug("Registered {} in race map for vnum {:d}", ch->name(), vnum_value);
-            map_chr_by_race_num_[vnum_value].insert(ch);
+            chrs_by_race_num_[vnum_value].insert(ch);
         }
     }
 
     void character_manager::unregister_race_num_map(character *ch) {
         uint32_t vnum = ch->race_num();
 
-        auto it = map_chr_by_race_num_.find(vnum);
+        auto it = chrs_by_race_num_.find(vnum);
 
-        if (it != map_chr_by_race_num_.end())
+        if (it != chrs_by_race_num_.end())
             it->second.erase(ch);
     }
 
     auto character_manager::characters_by_race_num(uint32_t race_num, character_vector_interactor &i) -> bool {
-        auto it = map_chr_by_race_num_.find(race_num);
+        auto it = chrs_by_race_num_.find(race_num);
 
-        if (it == map_chr_by_race_num_.end())
+        if (it == chrs_by_race_num_.end())
             return false;
 
         i = it->second;
@@ -730,10 +730,10 @@ namespace metin2::game::inline characters {
 
     auto character_manager::find_specify_pc(unsigned int job_flag, int32_t map_index_value, character *except, int min_level, int max_level) -> character * {
         character *ch_find = nullptr;
-        decltype(map_chr_by_pid_.begin()) it;
+        decltype(chrs_by_pid_.begin()) it;
         int n = 0;
 
-        for (it = map_chr_by_pid_.begin(); it != map_chr_by_pid_.end(); ++it) {
+        for (it = chrs_by_pid_.begin(); it != chrs_by_pid_.end(); ++it) {
             character *ch = it->second;
 
             if (ch == except)
@@ -830,16 +830,16 @@ namespace metin2::game::inline characters {
     void character_manager::flush_pending_destroy() {
         use_pending_destroy_ = false; // The flag must be set first or nothing is destroyed.
 
-        if (!set_chr_pending_destroy_.empty()) {
-            metin2::log::debug("Destroying {:d} pending characters", set_chr_pending_destroy_.size());
+        if (!chrs_pending_destroy_.empty()) {
+            metin2::log::debug("Destroying {:d} pending characters", chrs_pending_destroy_.size());
 
-            auto it = set_chr_pending_destroy_.begin(),
-                 end = set_chr_pending_destroy_.end();
+            auto it = chrs_pending_destroy_.begin(),
+                 end = chrs_pending_destroy_.end();
             for (; it != end; ++it) {
                 get_character_manager().destroy_character(*it);
             }
 
-            set_chr_pending_destroy_.clear();
+            chrs_pending_destroy_.clear();
         }
     }
 

@@ -14,8 +14,8 @@
 
 namespace metin2::game::inline characters {
 
-    buff_on_attributes::buff_on_attributes(character *owner, uint8_t point_type, std::vector<uint8_t> *p_vec_buff_wear_targets)
-        : buff_owner_(owner), point_type_(point_type), wear_targets_(p_vec_buff_wear_targets) {
+    buff_on_attributes::buff_on_attributes(character *owner, uint8_t point_type, std::vector<uint8_t> *buff_wear_targets)
+        : buff_owner_(owner), point_type_(point_type), wear_targets_(buff_wear_targets) {
         initialize();
     }
 
@@ -25,7 +25,7 @@ namespace metin2::game::inline characters {
 
     void buff_on_attributes::initialize() {
         buff_value_ = 0;
-        map_additional_attrs_.clear();
+        additional_attrs_.clear();
     }
 
     void buff_on_attributes::remove_buff_from_item(item *item_value) {
@@ -41,8 +41,8 @@ namespace metin2::game::inline characters {
             int m = item_value->attribute_count();
             for (int j = 0; j < m; j++) {
                 player_item_attribute attr = item_value->get_attribute(j);
-                auto it = map_additional_attrs_.find(attr.type);
-                if (it != map_additional_attrs_.end()) {
+                auto it = additional_attrs_.find(attr.type);
+                if (it != additional_attrs_.end()) {
                     int &sum_of_attr_value = it->second;
                     int old_value = sum_of_attr_value * buff_value_ / 100;
                     int new_value = (sum_of_attr_value - attr.s_value) * buff_value_ / 100;
@@ -69,11 +69,11 @@ namespace metin2::game::inline characters {
             int m = item_value->attribute_count();
             for (int j = 0; j < m; j++) {
                 player_item_attribute attr = item_value->get_attribute(j);
-                auto it = map_additional_attrs_.find(attr.type);
+                auto it = additional_attrs_.find(attr.type);
 
-                if (it == map_additional_attrs_.end()) {
+                if (it == additional_attrs_.end()) {
                     buff_owner_->apply_point(attr.type, attr.s_value * buff_value_ / 100);
-                    map_additional_attrs_.insert(map_attr::value_type(attr.type, attr.s_value));
+                    additional_attrs_.insert(map_attr::value_type(attr.type, attr.s_value));
                 } else {
                     int &sum_of_attr_value = it->second;
                     int old_value = sum_of_attr_value * buff_value_ / 100;
@@ -91,7 +91,7 @@ namespace metin2::game::inline characters {
         else if (0 == new_value)
             off();
         else {
-            for (auto it = map_additional_attrs_.begin(); it != map_additional_attrs_.end(); it++) {
+            for (auto it = additional_attrs_.begin(); it != additional_attrs_.end(); it++) {
                 int &sum_of_attr_value = it->second;
 
                 buff_owner_->apply_point(it->first, -sum_of_attr_value * buff_value_ / 100);
@@ -103,7 +103,7 @@ namespace metin2::game::inline characters {
     void buff_on_attributes::give_all_attributes() {
         if (0 == buff_value_)
             return;
-        for (auto it = map_additional_attrs_.begin(); it != map_additional_attrs_.end(); it++) {
+        for (auto it = additional_attrs_.begin(); it != additional_attrs_.end(); it++) {
             uint8_t apply_type = it->first;
             int apply_value = it->second * buff_value_ / 100;
 
@@ -116,24 +116,24 @@ namespace metin2::game::inline characters {
             return false;
 
         int n = wear_targets_->size();
-        map_additional_attrs_.clear();
+        additional_attrs_.clear();
         for (int i = 0; i < n; i++) {
             item *item = buff_owner_->wear(wear_targets_->at(i));
             if (nullptr != item) {
                 int m = item->attribute_count();
                 for (int j = 0; j < m; j++) {
                     player_item_attribute attr = item->get_attribute(j);
-                    auto it = map_additional_attrs_.find(attr.type);
-                    if (it != map_additional_attrs_.end()) {
+                    auto it = additional_attrs_.find(attr.type);
+                    if (it != additional_attrs_.end()) {
                         it->second += attr.s_value;
                     } else {
-                        map_additional_attrs_.insert(map_attr::value_type(attr.type, attr.s_value));
+                        additional_attrs_.insert(map_attr::value_type(attr.type, attr.s_value));
                     }
                 }
             }
         }
 
-        for (auto it = map_additional_attrs_.begin(); it != map_additional_attrs_.end(); it++) {
+        for (auto it = additional_attrs_.begin(); it != additional_attrs_.end(); it++) {
             buff_owner_->apply_point(it->first, it->second * value / 100);
         }
 
@@ -146,7 +146,7 @@ namespace metin2::game::inline characters {
         if (0 == buff_value_)
             return;
 
-        for (auto it = map_additional_attrs_.begin(); it != map_additional_attrs_.end(); it++) {
+        for (auto it = additional_attrs_.begin(); it != additional_attrs_.end(); it++) {
             buff_owner_->apply_point(it->first, -it->second * buff_value_ / 100);
         }
         initialize();

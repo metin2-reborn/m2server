@@ -7,7 +7,7 @@
 namespace metin2::game::inline app {
 
     struct queue_element {
-        event_ptr pv_data;
+        event_ptr data;
         int start_time;
         int key;
         bool cancel;

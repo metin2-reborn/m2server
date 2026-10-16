@@ -98,10 +98,10 @@ namespace metin2::game::inline guilds {
         using guild_war_end_time_container = std::map<std::pair<uint32_t, uint32_t>, uint32_t>;
         guild_war_end_time_container guild_war_end_time_;
 
-        guild_map map_guild_by_pid_;
+        guild_map guilds_by_pid_;
 
-        std::map<uint32_t, std::unique_ptr<guild_war_reserve_for_game>> map_reserve_war_;
-        std::vector<guild_war_reserve_for_game *> vec_reserve_war_;
+        std::map<uint32_t, std::unique_ptr<guild_war_reserve_for_game>> reserve_wars_;
+        std::vector<guild_war_reserve_for_game *> reserve_war_list_;
 
         friend class guild;
     };

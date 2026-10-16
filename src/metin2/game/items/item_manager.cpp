@@ -66,46 +66,46 @@ namespace metin2::game::inline items {
     }
 
     void item_manager::graceful_shutdown() {
-        auto it = set_item_for_delayed_save_.begin();
+        auto it = items_for_delayed_save_.begin();
 
-        while (it != set_item_for_delayed_save_.end())
+        while (it != items_for_delayed_save_.end())
             save_single_item(*(it++));
 
-        set_item_for_delayed_save_.clear();
+        items_for_delayed_save_.clear();
     }
 
     auto item_manager::initialize(item_table *table_value, int size) -> bool {
-        if (!vec_prototype_.empty())
-            vec_prototype_.clear();
+        if (!prototypes_.empty())
+            prototypes_.clear();
 
         int i;
 
-        vec_prototype_.resize(size);
-        std::memcpy(&vec_prototype_[0], table_value, sizeof(item_table) * size);
+        prototypes_.resize(size);
+        std::memcpy(&prototypes_[0], table_value, sizeof(item_table) * size);
         for (int i = 0; i < size; i++) {
-            if (0 != vec_prototype_[i].vnum_range) {
-                vec_item_vnum_range_info_.push_back(&vec_prototype_[i]);
+            if (0 != prototypes_[i].vnum_range) {
+                item_vnum_range_info_.push_back(&prototypes_[i]);
             }
         }
 
-        map_item_refine_from_.clear();
+        item_refine_from_.clear();
         for (i = 0; i < size; ++i) {
 
-            if (vec_prototype_[i].refined_vnum)
-                map_item_refine_from_.insert(std::make_pair(vec_prototype_[i].refined_vnum, vec_prototype_[i].vnum));
+            if (prototypes_[i].refined_vnum)
+                item_refine_from_.insert(std::make_pair(prototypes_[i].refined_vnum, prototypes_[i].vnum));
 
-            if (vec_prototype_[i].type == ITEM_QUEST || is_set(vec_prototype_[i].flags, ITEM_FLAG_QUEST_USE | ITEM_FLAG_QUEST_USE_MULTIPLE))
-                quest::get_quest_manager().register_npc_vnum(vec_prototype_[i].vnum);
+            if (prototypes_[i].type == ITEM_QUEST || is_set(prototypes_[i].flags, ITEM_FLAG_QUEST_USE | ITEM_FLAG_QUEST_USE_MULTIPLE))
+                quest::get_quest_manager().register_npc_vnum(prototypes_[i].vnum);
 
-            map_vid.insert(std::map<uint32_t, item_table>::value_type(vec_prototype_[i].vnum, vec_prototype_[i]));
+            vids.insert(std::map<uint32_t, item_table>::value_type(prototypes_[i].vnum, prototypes_[i]));
             if (metin2::config::test_server())
-                metin2::log::debug("Item proto: vnum {:d} {}", vec_prototype_[i].vnum, vec_prototype_[i].name);
+                metin2::log::debug("Item proto: vnum {:d} {}", prototypes_[i].vnum, prototypes_[i].name);
         }
 
         std::string buf;
 
         for (i = 0; i < size; ++i) {
-            buf += std::format("{:5} {:<16}", vec_prototype_[i].vnum, vec_prototype_[i].locale_name);
+            buf += std::format("{:5} {:<16}", prototypes_[i].vnum, prototypes_[i].locale_name);
 
             if (!((i + 1) % 4)) {
                 if (!metin2::config::test_server())
@@ -158,8 +158,8 @@ namespace metin2::game::inline items {
 
         item *item = nullptr;
 
-        if (map_item_by_id_.find(id) != map_item_by_id_.end()) {
-            item = map_item_by_id_[id];
+        if (items_by_id_.find(id) != items_by_id_.end()) {
+            item = items_by_id_[id];
             character *owner = item->owner();
             metin2::log::error("Duplicate item id {:d} ({}, owner {})", id, item->name(), static_cast<const void *>(owner));
             return nullptr;
@@ -229,7 +229,7 @@ namespace metin2::game::inline items {
             vid_map_.insert(item_vid_map::value_type(item->get_vid(), item));
 
         if (item->id() != 0 && skip_save == false)
-            map_item_by_id_.insert(std::map<uint32_t, game::items::item *>::value_type(item->id(), item));
+            items_by_id_.insert(std::map<uint32_t, game::items::item *>::value_type(item->id(), item));
 
         if (!item->set_count(count))
             return nullptr;
@@ -315,13 +315,13 @@ namespace metin2::game::inline items {
         }
 
         if (item->type() == ITEM_QUEST) {
-            for (auto it = map_quest_item_group_.begin(); it != map_quest_item_group_.end(); it++) {
+            for (auto it = quest_item_groups_.begin(); it != quest_item_groups_.end(); it++) {
                 if (it->second->type == special_item_group::QUEST && it->second->contains(vnum)) {
                     item->set_sig_vnum(it->first);
                 }
             }
         } else if (item->type() == ITEM_UNIQUE) {
-            for (auto it = map_special_item_group_.begin(); it != map_special_item_group_.end(); it++) {
+            for (auto it = special_item_groups_.begin(); it != special_item_groups_.end(); it++) {
                 if (it->second->type == special_item_group::SPECIAL && it->second->contains(vnum)) {
                     item->set_sig_vnum(it->first);
                 }
@@ -336,17 +336,17 @@ namespace metin2::game::inline items {
 
     void item_manager::delayed_save(item *item) {
         if (item->id() != 0)
-            set_item_for_delayed_save_.insert(item);
+            items_for_delayed_save_.insert(item);
     }
 
     void item_manager::flush_delayed_save(item *item) {
-        auto it = set_item_for_delayed_save_.find(item);
+        auto it = items_for_delayed_save_.find(item);
 
-        if (it == set_item_for_delayed_save_.end()) {
+        if (it == items_for_delayed_save_.end()) {
             return;
         }
 
-        set_item_for_delayed_save_.erase(it);
+        items_for_delayed_save_.erase(it);
         save_single_item(item);
     }
 
@@ -381,10 +381,10 @@ namespace metin2::game::inline items {
     }
 
     void item_manager::update() {
-        auto it = set_item_for_delayed_save_.begin();
+        auto it = items_for_delayed_save_.begin();
         std::unordered_set<item *>::iterator this_it;
 
-        while (it != set_item_for_delayed_save_.end()) {
+        while (it != items_for_delayed_save_.end()) {
             this_it = it++;
             item *item = *this_it;
 
@@ -393,7 +393,7 @@ namespace metin2::game::inline items {
 
             save_single_item(item);
 
-            set_item_for_delayed_save_.erase(this_it);
+            items_for_delayed_save_.erase(this_it);
         }
     }
 
@@ -431,10 +431,10 @@ namespace metin2::game::inline items {
             }
         }
 
-        auto it = set_item_for_delayed_save_.find(item);
+        auto it = items_for_delayed_save_.find(item);
 
-        if (it != set_item_for_delayed_save_.end())
-            set_item_for_delayed_save_.erase(it);
+        if (it != items_for_delayed_save_.end())
+            items_for_delayed_save_.erase(it);
 
         uint32_t id_value = item->id();
         metin2::log::debug("Item: destroy {} (id {:d})", item->name(), id_value);
@@ -450,7 +450,7 @@ namespace metin2::game::inline items {
         }
 
         if (id_value)
-            map_item_by_id_.erase(id_value);
+            items_by_id_.erase(id_value);
 
         vid_map_.erase(item->get_vid());
 
@@ -458,8 +458,8 @@ namespace metin2::game::inline items {
     }
 
     auto item_manager::find(uint32_t id) -> item * {
-        auto it = map_item_by_id_.find(id);
-        if (it == map_item_by_id_.end())
+        auto it = items_by_id_.find(id);
+        if (it == items_by_id_.end())
             return nullptr;
         return it->second;
     }
@@ -477,8 +477,8 @@ namespace metin2::game::inline items {
         int rnum = real_number(vnum);
 
         if (rnum < 0) {
-            for (size_t i = 0; i < vec_item_vnum_range_info_.size(); i++) {
-                item_table *p = vec_item_vnum_range_info_[i];
+            for (size_t i = 0; i < item_vnum_range_info_.size(); i++) {
+                item_table *p = item_vnum_range_info_[i];
                 if ((p->vnum < vnum) &&
                     vnum < (p->vnum + p->vnum_range)) {
                     return p;
@@ -488,16 +488,16 @@ namespace metin2::game::inline items {
             return nullptr;
         }
 
-        return &vec_prototype_[rnum];
+        return &prototypes_[rnum];
     }
 
     auto item_manager::real_number(uint32_t vnum) -> int {
         int bot, top, mid;
 
         bot = 0;
-        top = vec_prototype_.size();
+        top = prototypes_.size();
 
-        item_table *table = &vec_prototype_[0];
+        item_table *table = &prototypes_[0];
 
         while (1) {
             mid = (bot + top) >> 1;
@@ -515,14 +515,14 @@ namespace metin2::game::inline items {
         }
     }
 
-    auto item_manager::vnum(const char *name, uint32_t &r_dw_vnum) -> bool {
+    auto item_manager::vnum(const char *name, uint32_t &vnum_value) -> bool {
         int len = strlen(name);
 
-        item_table *table = &vec_prototype_[0];
+        item_table *table = &prototypes_[0];
 
-        for (uint32_t i = 0; i < vec_prototype_.size(); ++i, ++table) {
+        for (uint32_t i = 0; i < prototypes_.size(); ++i, ++table) {
             if (!strncasecmp(name, table->locale_name, len)) {
-                r_dw_vnum = table->vnum;
+                vnum_value = table->vnum;
                 return true;
             }
         }
@@ -530,14 +530,14 @@ namespace metin2::game::inline items {
         return false;
     }
 
-    auto item_manager::vnum_by_original_name(const char *name_value, uint32_t &r_dw_vnum) -> bool {
+    auto item_manager::vnum_by_original_name(const char *name_value, uint32_t &vnum_value) -> bool {
         int len = strlen(name_value);
 
-        item_table *table = &vec_prototype_[0];
+        item_table *table = &prototypes_[0];
 
-        for (uint32_t i = 0; i < vec_prototype_.size(); ++i, ++table) {
+        for (uint32_t i = 0; i < prototypes_.size(); ++i, ++table) {
             if (!strncasecmp(name_value, table->name, len)) {
-                r_dw_vnum = table->vnum;
+                vnum_value = table->vnum;
                 return true;
             }
         }
@@ -545,7 +545,7 @@ namespace metin2::game::inline items {
         return false;
     }
 
-    std::set<uint32_t> set_lotto;
+    std::set<uint32_t> lottos;
 
     auto get_drop_per_kill_pct(int minimum, int fallback, int delta_percent, const char *flag) -> int {
         int val = 0;
@@ -603,7 +603,7 @@ namespace metin2::game::inline items {
         return true;
     }
 
-    auto item_manager::create_drop_item(character *chr, character *killer, std::vector<item *> &vec_item) -> bool {
+    auto item_manager::create_drop_item(character *chr, character *killer, std::vector<item *> &item_list) -> bool {
         int level = killer->level();
 
         int delta_percent, rand_range;
@@ -613,19 +613,19 @@ namespace metin2::game::inline items {
         uint8_t rank = chr->get_mob_rank();
         item *item = nullptr;
 
-        auto it = vec_common_drop_item[rank].begin();
+        auto it = common_drop_items[rank].begin();
 
-        while (it != vec_common_drop_item[rank].end()) {
-            const item_drop_info &c_r_info = *(it++);
+        while (it != common_drop_items[rank].end()) {
+            const item_drop_info &info_value = *(it++);
 
-            if (level < c_r_info.level_start || level > c_r_info.level_end)
+            if (level < info_value.level_start || level > info_value.level_end)
                 continue;
 
-            int percent = (c_r_info.percent * delta_percent) / 100;
-            metin2::log::debug("Drop: levels {:d}-{:d}, vnum {:d}, chance {:d} (base {:d})", c_r_info.level_start, c_r_info.level_end, c_r_info.vnum, percent, c_r_info.percent);
+            int percent = (info_value.percent * delta_percent) / 100;
+            metin2::log::debug("Drop: levels {:d}-{:d}, vnum {:d}, chance {:d} (base {:d})", info_value.level_start, info_value.level_end, info_value.vnum, percent, info_value.percent);
 
             if (percent >= number(1, rand_range)) {
-                item_table *table_value = table(c_r_info.vnum);
+                item_table *table_value = table(info_value.vnum);
 
                 if (!table_value)
                     continue;
@@ -633,24 +633,24 @@ namespace metin2::game::inline items {
                 item = nullptr;
 
                 if (table_value->type == ITEM_POLYMORPH) {
-                    if (c_r_info.vnum == chr->polymorph_item_vnum()) {
-                        item = create_item(c_r_info.vnum, 1, 0, true);
+                    if (info_value.vnum == chr->polymorph_item_vnum()) {
+                        item = create_item(info_value.vnum, 1, 0, true);
 
                         if (item)
                             item->set_socket(0, chr->race_num());
                     }
                 } else
-                    item = create_item(c_r_info.vnum, 1, 0, true);
+                    item = create_item(info_value.vnum, 1, 0, true);
 
-                if (item) vec_item.push_back(item);
+                if (item) item_list.push_back(item);
             }
         }
 
         {
-            decltype(map_drop_item_group_.begin()) it;
-            it = map_drop_item_group_.find(chr->race_num());
+            decltype(drop_item_groups_.begin()) it;
+            it = drop_item_groups_.find(chr->race_num());
 
-            if (it != map_drop_item_group_.end()) {
+            if (it != drop_item_groups_.end()) {
                 __typeof(it->second->get_vector()) v = it->second->get_vector();
 
                 for (uint32_t i = 0; i < v.size(); ++i) {
@@ -666,7 +666,7 @@ namespace metin2::game::inline items {
                                 }
                             }
 
-                            vec_item.push_back(item);
+                            item_list.push_back(item);
                         }
                     }
                 }
@@ -674,10 +674,10 @@ namespace metin2::game::inline items {
         }
 
         {
-            decltype(map_mob_item_group_.begin()) it;
-            it = map_mob_item_group_.find(chr->race_num());
+            decltype(mob_item_groups_.begin()) it;
+            it = mob_item_groups_.find(chr->race_num());
 
-            if (it != map_mob_item_group_.end()) {
+            if (it != mob_item_groups_.end()) {
                 mob_item_group *group = it->second.get();
 
                 if (group && !group->is_empty()) {
@@ -686,17 +686,17 @@ namespace metin2::game::inline items {
                         const mob_item_group::mob_item_group_info &info = group->one();
                         item = create_item(info.item_vnum, info.count, 0, true, info.rare_pct);
 
-                        if (item) vec_item.push_back(item);
+                        if (item) item_list.push_back(item);
                     }
                 }
             }
         }
 
         {
-            decltype(map_level_item_group_.begin()) it;
-            it = map_level_item_group_.find(chr->race_num());
+            decltype(level_item_groups_.begin()) it;
+            it = level_item_groups_.find(chr->race_num());
 
-            if (it != map_level_item_group_.end()) {
+            if (it != level_item_groups_.end()) {
                 if (it->second->level_limit() <= (uint32_t)level) {
                     __typeof(it->second->get_vector()) v = it->second->get_vector();
 
@@ -704,7 +704,7 @@ namespace metin2::game::inline items {
                         if (v[i].pct >= (uint32_t)number(1, 1000000)) {
                             uint32_t vnum = v[i].v_num;
                             item = create_item(vnum, v[i].count, 0, true);
-                            if (item) vec_item.push_back(item);
+                            if (item) item_list.push_back(item);
                         }
                     }
                 }
@@ -714,10 +714,10 @@ namespace metin2::game::inline items {
         {
             if (killer->premium_remain_seconds(PREMIUM_ITEM) > 0 ||
                 killer->is_equip_unique_group(UNIQUE_GROUP_DOUBLE_ITEM)) {
-                decltype(map_glove_item_group_.begin()) it;
-                it = map_glove_item_group_.find(chr->race_num());
+                decltype(glove_item_groups_.begin()) it;
+                it = glove_item_groups_.find(chr->race_num());
 
-                if (it != map_glove_item_group_.end()) {
+                if (it != glove_item_groups_.end()) {
                     __typeof(it->second->get_vector()) v = it->second->get_vector();
 
                     for (uint32_t i = 0; i < v.size(); ++i) {
@@ -726,7 +726,7 @@ namespace metin2::game::inline items {
                         if (percent >= number(1, rand_range)) {
                             uint32_t vnum = v[i].vnum;
                             item = create_item(vnum, v[i].count, 0, true);
-                            if (item) vec_item.push_back(item);
+                            if (item) item_list.push_back(item);
                         }
                     }
                 }
@@ -734,14 +734,14 @@ namespace metin2::game::inline items {
         }
 
         if (chr->mob_drop_item_vnum()) {
-            auto it = map_etc_item_drop_prob_.find(chr->mob_drop_item_vnum());
+            auto it = etc_item_drop_probs_.find(chr->mob_drop_item_vnum());
 
-            if (it != map_etc_item_drop_prob_.end()) {
+            if (it != etc_item_drop_probs_.end()) {
                 int percent = (it->second * delta_percent) / 100;
 
                 if (percent >= number(1, rand_range)) {
                     item = create_item(chr->mob_drop_item_vnum(), 1, 0, true);
-                    if (item) vec_item.push_back(item);
+                    if (item) item_list.push_back(item);
                 }
             }
         }
@@ -752,7 +752,7 @@ namespace metin2::game::inline items {
 
                 if (percent >= number(1, rand_range)) {
                     item = create_item(chr->drop_metin_stone_vnum(), 1, 0, true);
-                    if (item) vec_item.push_back(item);
+                    if (item) item_list.push_back(item);
                 }
             }
         }
@@ -762,7 +762,7 @@ namespace metin2::game::inline items {
             metin2::log::debug("Drop event: horse skill book");
 
             if ((item = create_item(ITEM_HORSE_SKILL_TRAIN_BOOK, 1, 0, true)))
-                vec_item.push_back(item);
+                item_list.push_back(item);
         }
 
         if (get_drop_per_kill_pct(100, 1000, delta_percent, "lotto_drop") >= number(1, rand_range)) {
@@ -770,14 +770,14 @@ namespace metin2::game::inline items {
                 sql::format("INSERT INTO lotto_list VALUES(0, 'server', {}, NOW())", killer->player_id()));
         }
 
-        create_quest_drop_item(chr, killer, vec_item, delta_percent, rand_range);
+        create_quest_drop_item(chr, killer, item_list, delta_percent, rand_range);
 
-        for (auto it = vec_item.begin(); it != vec_item.end(); ++it) {
+        for (auto it = item_list.begin(); it != item_list.end(); ++it) {
             game::items::item *item = *it;
             get_db_manager().send_money_log(MONEY_LOG_DROP, item->vnum(), item->count());
         }
 
-        return vec_item.size();
+        return item_list.size();
     }
 
     auto get_three_skill_level_adjust(int level) -> int {
@@ -825,7 +825,7 @@ namespace metin2::game::inline items {
         return gs_drop_event_char_stone.percent_lv31_mx;
     }
 
-    static void drop_event_char_stone_drop_item(character &killer, character &victim, item_manager &item_mgr, std::vector<item *> &vec_item) {
+    static void drop_event_char_stone_drop_item(character &killer, character &victim, item_manager &item_mgr, std::vector<item *> &items) {
         if (!gs_drop_event_char_stone.alive)
             return;
 
@@ -848,14 +848,14 @@ namespace metin2::game::inline items {
             static const int stones[] = {30210, 30211, 30212, 30213, 30214, 30215, 30216, 30217, 30218, 30219, 30258, 30259, 30260, 30261, 30262, 30263};
             int item_vnum = stones[number(0, static_cast<int>(std::size(stones)) - 1)];
 
-            item *p_item = nullptr;
+            item *item_value = nullptr;
 
-            if ((p_item = item_mgr.create_item(item_vnum, 1, 0, true))) {
-                vec_item.push_back(p_item);
+            if ((item_value = item_mgr.create_item(item_vnum, 1, 0, true))) {
+                items.push_back(item_value);
 
                 metin2::log::debug(
                     "Drop event: char stone (killer {} lv {:d}, victim {} lv {:d}, item {})",
-                    killer.name(), killer.level(), victim.name(), victim.level(), p_item->name());
+                    killer.name(), killer.level(), victim.name(), victim.level(), item_value->name());
             }
         }
     }
@@ -936,18 +936,18 @@ namespace metin2::game::inline items {
         return nullptr;
     }
 
-    static void drop_event_refine_box_drop_item(character &killer, character &victim, item_manager &item_mgr, std::vector<item *> &vec_item) {
+    static void drop_event_refine_box_drop_item(character &killer, character &victim, item_manager &item_mgr, std::vector<item *> &items) {
         if (!gs_drop_event_refine_box.alive)
             return;
 
-        item *p_item = drop_event_refine_box_get_drop_item(killer, victim, item_mgr);
+        item *item_value = drop_event_refine_box_get_drop_item(killer, victim, item_mgr);
 
-        if (p_item) {
-            vec_item.push_back(p_item);
+        if (item_value) {
+            items.push_back(item_value);
 
             metin2::log::debug(
                 "Drop event: refine box (killer {} lv {:d}, victim {} lv {:d}, item {})",
-                killer.name(), killer.level(), victim.name(), victim.level(), p_item->name());
+                killer.name(), killer.level(), victim.name(), victim.level(), item_value->name());
         }
     }
 
@@ -977,7 +977,7 @@ namespace metin2::game::inline items {
         return true;
     }
 
-    void item_manager::create_quest_drop_item(character *chr, character *killer, std::vector<item *> &vec_item, int delta_percent, int rand_range) {
+    void item_manager::create_quest_drop_item(character *chr, character *killer, std::vector<item *> &items, int delta_percent, int rand_range) {
         item *item = nullptr;
 
         if (!chr)
@@ -988,8 +988,8 @@ namespace metin2::game::inline items {
 
         metin2::log::debug("Drop: quest drops for {} killed by {}", chr->name(), killer->name());
 
-        drop_event_char_stone_drop_item(*killer, *chr, *this, vec_item);
-        drop_event_refine_box_drop_item(*killer, *chr, *this, vec_item);
+        drop_event_char_stone_drop_item(*killer, *chr, *this, items);
+        drop_event_refine_box_drop_item(*killer, *chr, *this, items);
 
         if (quest::get_quest_manager().event_flag("xmas_sock")) {
             uint32_t sock_item_vnum = 0;
@@ -1011,7 +1011,7 @@ namespace metin2::game::inline items {
                 metin2::log::debug("Drop event: sock chance {:d} of {:d}", percent, rand_range);
                 if (percent >= number(1, rand_range)) {
                     if ((item = create_item(sock_item_vnum, 1, 0, true)))
-                        vec_item.push_back(item);
+                        items.push_back(item);
                 }
             }
         }
@@ -1034,7 +1034,7 @@ namespace metin2::game::inline items {
 
                 if (percent >= number(1, rand_range)) {
                     if ((item = create_item(item_vnum, 1, 0, true)))
-                        vec_item.push_back(item);
+                        items.push_back(item);
                 }
             }
         }
@@ -1047,7 +1047,7 @@ namespace metin2::game::inline items {
 
                 if (prob(pct)) {
                     if ((item = create_item(item_vnum, 1, 0, true)))
-                        vec_item.push_back(item);
+                        items.push_back(item);
                 }
             }
         }
@@ -1058,7 +1058,7 @@ namespace metin2::game::inline items {
             const static uint32_t vnum = 50037;
 
             if ((item = create_item(vnum, 1, 0, true)))
-                vec_item.push_back(item);
+                items.push_back(item);
         }
 
         if (get_drop_per_kill_pct(100, 2000, delta_percent, "2007_drop") >= number(1, rand_range)) {
@@ -1067,14 +1067,14 @@ namespace metin2::game::inline items {
             const static uint32_t vnum = 50043;
 
             if ((item = create_item(vnum, 1, 0, true)))
-                vec_item.push_back(item);
+                items.push_back(item);
         }
 
         if (get_drop_per_kill_pct(100, 1000, delta_percent, "newyear_fire") >= number(1, rand_range)) {
             const uint32_t item_vnum_fire = 50107;
 
             if ((item = create_item(item_vnum_fire, 1, 0, true)))
-                vec_item.push_back(item);
+                items.push_back(item);
         }
 
         if (get_drop_per_kill_pct(100, 500, delta_percent, "newyear_moon") >= number(1, rand_range)) {
@@ -1091,7 +1091,7 @@ namespace metin2::game::inline items {
             uint32_t vnum = wonso_items[number(0, 5)];
 
             if ((item = create_item(vnum, 1, 0, true)))
-                vec_item.push_back(item);
+                items.push_back(item);
         }
 
         if (get_drop_per_kill_pct(1, 2000, delta_percent, "valentine_drop") >= number(1, rand_range)) {
@@ -1101,14 +1101,14 @@ namespace metin2::game::inline items {
             uint32_t vnum = valentine_items[number(0, 1)];
 
             if ((item = create_item(vnum, 1, 0, true)))
-                vec_item.push_back(item);
+                items.push_back(item);
         }
 
         if (get_drop_per_kill_pct(100, 2000, delta_percent, "icecream_drop") >= number(1, rand_range)) {
             const static uint32_t icecream = 50123;
 
             if ((item = create_item(icecream, 1, 0, true)))
-                vec_item.push_back(item);
+                items.push_back(item);
         }
 
         if ((killer->count_specify_item(53002) > 0) && (get_drop_per_kill_pct(50, 100, delta_percent, "new_xmas_event") >= number(1, rand_range))) {
@@ -1125,28 +1125,28 @@ namespace metin2::game::inline items {
             const static uint32_t halloween_item = 30321;
 
             if ((item = create_item(halloween_item, 1, 0, true)))
-                vec_item.push_back(item);
+                items.push_back(item);
         }
 
         if (get_drop_per_kill_pct(100, 2000, delta_percent, "ramadan_drop") >= number(1, rand_range)) {
             const static uint32_t ramadan_item = 30315;
 
             if ((item = create_item(ramadan_item, 1, 0, true)))
-                vec_item.push_back(item);
+                items.push_back(item);
         }
 
         if (get_drop_per_kill_pct(100, 2000, delta_percent, "easter_drop") >= number(1, rand_range)) {
             const static uint32_t easter_item_base = 50160;
 
             if ((item = create_item(easter_item_base + number(0, 19), 1, 0, true)))
-                vec_item.push_back(item);
+                items.push_back(item);
         }
 
         if (get_drop_per_kill_pct(100, 2000, delta_percent, "football_drop") >= number(1, rand_range)) {
             const static uint32_t football_item = 50096;
 
             if ((item = create_item(football_item, 1, 0, true)))
-                vec_item.push_back(item);
+                items.push_back(item);
         }
 
         if (get_drop_per_kill_pct(100, 2000, delta_percent, "whiteday_drop") >= number(1, rand_range)) {
@@ -1155,7 +1155,7 @@ namespace metin2::game::inline items {
             uint32_t vnum = whiteday_items[number(0, 1)];
 
             if ((item = create_item(vnum, 1, 0, true)))
-                vec_item.push_back(item);
+                items.push_back(item);
         }
 
         if (killer->level() >= 50) {
@@ -1163,14 +1163,14 @@ namespace metin2::game::inline items {
                 uint32_t item_quiz_box = 50034;
 
                 if ((item = create_item(item_quiz_box, 1, 0, true)))
-                    vec_item.push_back(item);
+                    items.push_back(item);
             }
         } else {
             if (get_drop_per_kill_pct(100, 1000, delta_percent, "kids_day_drop") >= number(1, rand_range)) {
                 uint32_t item_quiz_box = 50034;
 
                 if ((item = create_item(item_quiz_box, 1, 0, true)))
-                    vec_item.push_back(item);
+                    items.push_back(item);
             }
         }
 
@@ -1179,21 +1179,21 @@ namespace metin2::game::inline items {
             int i = number(0, 4);
             item = create_item(drop_items[i]);
             if (item != nullptr)
-                vec_item.push_back(item);
+                items.push_back(item);
         }
 
         if (chr->level() >= 40 && chr->get_mob_rank() >= MOB_RANK_BOSS && get_drop_per_kill_pct(1, 1000, delta_percent, "three_skill_item") / get_three_skill_level_adjust(chr->level()) >= number(1, rand_range)) {
             const uint32_t item_vnum = 50513;
 
             if ((item = create_item(item_vnum, 1, 0, true)))
-                vec_item.push_back(item);
+                items.push_back(item);
         }
 
         if (get_drop_per_kill_pct(100, 1000, delta_percent, "dragon_boat_festival_drop") >= number(1, rand_range)) {
             const uint32_t item_seed = 50085;
 
             if ((item = create_item(item_seed, 1, 0, true)))
-                vec_item.push_back(item);
+                items.push_back(item);
         }
 
         if (killer->level() >= 15 && quest::get_quest_manager().event_flag("mars_drop")) {
@@ -1211,37 +1211,37 @@ namespace metin2::game::inline items {
             if (drop_multiply[chr->get_mob_rank()] &&
                 get_drop_per_kill_pct(1000, 1500, delta_percent, "mars_drop") >= number(1, rand_range) * drop_multiply[chr->get_mob_rank()]) {
                 if ((item = create_item(item_haniron, 1, 0, true)))
-                    vec_item.push_back(item);
+                    items.push_back(item);
             }
         }
     }
 
     auto item_manager::refine_from_vnum(uint32_t vnum) -> uint32_t {
-        auto it = map_item_refine_from_.find(vnum);
-        if (it != map_item_refine_from_.end())
+        auto it = item_refine_from_.find(vnum);
+        if (it != item_refine_from_.end())
             return it->second;
         return 0;
     }
 
     auto item_manager::get_special_item_group(uint32_t vnum) -> const special_item_group * {
-        auto it = map_special_item_group_.find(vnum);
-        if (it != map_special_item_group_.end()) {
+        auto it = special_item_groups_.find(vnum);
+        if (it != special_item_groups_.end()) {
             return it->second.get();
         }
         return nullptr;
     }
 
     auto item_manager::get_special_attr_group(uint32_t vnum) -> const special_attr_group * {
-        auto it = map_special_attr_group_.find(vnum);
-        if (it != map_special_attr_group_.end()) {
+        auto it = special_attr_groups_.find(vnum);
+        if (it != special_attr_groups_.end()) {
             return it->second.get();
         }
         return nullptr;
     }
 
     auto item_manager::mask_vnum(uint32_t vnum) -> uint32_t {
-        auto it = map_new_to_ori_.find(vnum);
-        if (it != map_new_to_ori_.end()) {
+        auto it = new_to_ori_.find(vnum);
+        if (it != new_to_ori_.end()) {
             return it->second;
         } else
             return 0;

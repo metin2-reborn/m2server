@@ -88,7 +88,7 @@ namespace metin2::game::inline data {
             } else if (0 == token_vector[0].compare("#--#")) {
                 for (size_t i = 1; i < token_vector.size(); i++) {
                     to_lower(token_vector[i]);
-                    group_node_value->map_column_name_to_index_.insert(map_name_to_index::value_type(token_vector[i], i - 1));
+                    group_node_value->column_name_to_index_.insert(map_name_to_index::value_type(token_vector[i], i - 1));
                 }
             } else {
                 std::string key = token_vector[0];
@@ -102,7 +102,7 @@ namespace metin2::game::inline data {
                 }
 
                 token_vector.erase(token_vector.begin());
-                group_node_value->map_rows_.insert(std::make_pair(key, group_node::group_node_row(group_node_value, token_vector)));
+                group_node_value->rows_.insert(std::make_pair(key, group_node::group_node_row(group_node_value, token_vector)));
             }
         }
 
@@ -146,29 +146,29 @@ namespace metin2::game::inline data {
     }
 
     auto group_node::row_count() -> int {
-        return map_rows_.size();
+        return rows_.size();
     }
 
-    auto group_node::row(const std::string &rstr_row_key, const group_node::group_node_row **pp_row) const -> bool {
-        auto row_it = map_rows_.find(rstr_row_key);
-        if (map_rows_.end() == row_it) {
+    auto group_node::row(const std::string &rstr_row_key, const group_node::group_node_row **row) const -> bool {
+        auto row_it = rows_.find(rstr_row_key);
+        if (rows_.end() == row_it) {
             return false;
         }
 
-        *pp_row = &row_it->second;
+        *row = &row_it->second;
 
         return true;
     }
 
-    auto group_node::row(int idx, const group_node::group_node_row **pp_row) const -> bool {
-        if (idx < 0 || static_cast<size_t>(idx) >= map_rows_.size())
+    auto group_node::row(int idx, const group_node::group_node_row **row) const -> bool {
+        if (idx < 0 || static_cast<size_t>(idx) >= rows_.size())
             return false;
 
-        auto row_it = map_rows_.begin();
+        auto row_it = rows_.begin();
 
         std::advance(row_it, idx);
 
-        *pp_row = &row_it->second;
+        *row = &row_it->second;
 
         return true;
     }
@@ -188,22 +188,22 @@ namespace metin2::game::inline data {
     }
 
     auto group_node::column_index_from_name(const std::string &name) const -> int {
-        auto it = map_column_name_to_index_.find(name);
-        if (map_column_name_to_index_.end() == it)
+        auto it = column_name_to_index_.find(name);
+        if (column_name_to_index_.end() == it)
             return -1;
         else
             return it->second;
     }
 
-    group_node::group_node_row::group_node_row(group_node *group_node_value, token_vector &vec_values) {
+    group_node::group_node_row::group_node_row(group_node *group_node_value, token_vector &values) {
         owner_group_node_ = group_node_value;
-        vec_values_.clear();
-        std::ranges::copy(vec_values, std::back_inserter(vec_values_));
+        values_.clear();
+        std::ranges::copy(values, std::back_inserter(values_));
     }
 
     group_node::group_node_row::~group_node_row() = default;
 
     auto group_node::group_node_row::size() const -> int {
-        return vec_values_.size();
+        return values_.size();
     }
 }

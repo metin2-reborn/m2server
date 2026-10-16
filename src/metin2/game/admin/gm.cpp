@@ -12,10 +12,10 @@
 
 namespace metin2::game::inline admin {
 
-    std::map<std::string, t_admin_info> map_gm;
+    std::map<std::string, t_admin_info> gms;
 
     void gm_new_clear() {
-        map_gm.clear();
+        gms.clear();
     }
 
     void gm_new_insert(const t_admin_info &admin_info) {
@@ -26,15 +26,15 @@ namespace metin2::game::inline admin {
             admin_info.server_ip,
             admin_info.authority);
 
-        map_gm[admin_info.name] = admin_info;
+        gms[admin_info.name] = admin_info;
     }
 
     auto gm_get_level(const char *name, const char *account) -> uint8_t {
         if (metin2::config::test_server()) return GM_IMPLEMENTOR;
 
-        auto it = map_gm.find(name);
+        auto it = gms.find(name);
 
-        if (map_gm.end() == it)
+        if (gms.end() == it)
             return GM_PLAYER;
 
         if (account && strcmp(it->second.account, account) != 0) {

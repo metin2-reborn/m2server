@@ -115,25 +115,25 @@ namespace metin2::game::inline world {
             }
         }
 
-        auto load_setting_file(int32_t map_index, const char *setting_file_name, map_setting &r_setting) -> int;
-        auto load_map_region(const char *file_name, map_setting &r_setting, const char *map_name_value) -> bool;
+        auto load_setting_file(int32_t map_index, const char *setting_file_name, map_setting &setting) -> int;
+        auto load_map_region(const char *file_name, map_setting &setting, const char *map_name_value) -> bool;
         auto build(const char *list_file_name, const char *map_base_path) -> int;
-        auto build_sectree_from_setting(map_setting &r_setting) -> std::unique_ptr<sectree_map>;
-        auto load_attribute(sectree_map *map_sectree, const char *file_name, map_setting &r_setting) -> bool;
+        auto build_sectree_from_setting(map_setting &setting) -> std::unique_ptr<sectree_map>;
+        auto load_attribute(sectree_map *map_sectree, const char *file_name, map_setting &setting) -> bool;
         void load_dungeon(int index, const char *file_name);
-        auto valid_location(int32_t map_index, int32_t x, int32_t y, int32_t &valid_map_index, pixel_position &r_pos, uint8_t empire = 0) -> bool;
-        auto recall_position_by_empire(int map_index, uint8_t empire, pixel_position &r_pos) -> bool;
+        auto valid_location(int32_t map_index, int32_t x, int32_t y, int32_t &valid_map_index, pixel_position &pos, uint8_t empire = 0) -> bool;
+        auto recall_position_by_empire(int map_index, uint8_t empire, pixel_position &pos) -> bool;
 
         auto get_map_region(int32_t map_index) -> const map_region *;
         auto map_index(int32_t x, int32_t y) -> int;
         auto find_region_by_partial_name(const char *map_name_value) -> const map_region *;
 
-        auto map_base_position(int32_t x, int32_t y, pixel_position &r_pos) -> bool;
-        auto map_base_position_by_map_index(int32_t map_index, pixel_position &r_pos) -> bool;
+        auto map_base_position(int32_t x, int32_t y, pixel_position &pos) -> bool;
+        auto map_base_position_by_map_index(int32_t map_index, pixel_position &pos) -> bool;
         auto movable_position(int32_t map_index, int32_t x, int32_t y, pixel_position &pos) -> bool;
         auto is_movable_position(int32_t map_index, int32_t x, int32_t y) -> bool;
-        auto center_position_of_map(int32_t map_index, pixel_position &r_pos) -> bool;
-        auto random_location(int32_t map_index, pixel_position &r_pos, uint32_t current_x = 0, uint32_t current_y = 0, int max_distance = 0) -> bool;
+        auto center_position_of_map(int32_t map_index, pixel_position &pos) -> bool;
+        auto random_location(int32_t map_index, pixel_position &pos, uint32_t current_x = 0, uint32_t current_y = 0, int max_distance = 0) -> bool;
 
         auto create_private_map(int32_t map_index) -> int32_t;
         void destroy_private_map(int32_t map_index);
@@ -161,9 +161,9 @@ namespace metin2::game::inline world {
         auto for_attr_region_cell(int32_t map_index, int32_t cx, int32_t cy, uint32_t attr, attr_region_mode mode) -> bool;
 
         static uint16_t current_sectree_version_;
-        std::map<uint32_t, std::unique_ptr<sectree_map>> map_sectree_;
+        std::map<uint32_t, std::unique_ptr<sectree_map>> sectrees_;
         std::map<int, area_map> area_by_map_;
-        std::vector<map_region> vec_map_region_;
+        std::vector<map_region> map_regions_;
         std::map<uint32_t, std::vector<npc_info>> npc_position_;
 
         using private_index_map_type = std::unordered_map<int32_t, int>;

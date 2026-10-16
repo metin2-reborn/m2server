@@ -12,16 +12,16 @@
 namespace metin2::game::inline world {
 
     void entity::view_cleanup() {
-        auto it = map_view_.begin();
+        auto it = views_.begin();
 
-        while (it != map_view_.end()) {
+        while (it != views_.end()) {
             entity *entity = it->first;
             ++it;
 
             entity->view_remove(this, false);
         }
 
-        map_view_.clear();
+        views_.clear();
     }
 
     void entity::view_reencode() {
@@ -31,9 +31,9 @@ namespace metin2::game::inline world {
         encode_remove_packet(this);
         encode_insert_packet(this);
 
-        auto it = map_view_.begin();
+        auto it = views_.begin();
 
-        while (it != map_view_.end()) {
+        while (it != views_.end()) {
             entity *entity = (it++)->first;
 
             encode_remove_packet(entity);
@@ -49,14 +49,14 @@ namespace metin2::game::inline world {
         if (this == entity)
             return;
 
-        auto it = map_view_.find(entity);
+        auto it = views_.find(entity);
 
-        if (map_view_.end() != it) {
+        if (views_.end() != it) {
             it->second = view_age_;
             return;
         }
 
-        map_view_.insert(entity_map::value_type(entity, view_age_));
+        views_.insert(entity_map::value_type(entity, view_age_));
 
         if (!entity->is_observer_)
             entity->encode_insert_packet(this);
@@ -66,12 +66,12 @@ namespace metin2::game::inline world {
     }
 
     void entity::view_remove(entity *entity, bool recursive) {
-        auto it = map_view_.find(entity);
+        auto it = views_.find(entity);
 
-        if (it == map_view_.end())
+        if (it == views_.end())
             return;
 
-        map_view_.erase(it);
+        views_.erase(it);
 
         if (!entity->is_observer_)
             entity->encode_remove_packet(this);
@@ -112,15 +112,15 @@ namespace metin2::game::inline world {
 
         if (observer_mode_change_) {
             if (is_observer_) {
-                it = map_view_.begin();
+                it = views_.begin();
 
-                while (it != map_view_.end()) {
+                while (it != views_.end()) {
                     this_it = it++;
                     if (this_it->second < view_age_) {
                         entity *ent = this_it->first;
 
                         ent->encode_remove_packet(this);
-                        map_view_.erase(this_it);
+                        views_.erase(this_it);
 
                         ent->view_remove(this, false);
                     } else {
@@ -131,16 +131,16 @@ namespace metin2::game::inline world {
                     }
                 }
             } else {
-                it = map_view_.begin();
+                it = views_.begin();
 
-                while (it != map_view_.end()) {
+                while (it != views_.end()) {
                     this_it = it++;
 
                     if (this_it->second < view_age_) {
                         entity *ent = this_it->first;
 
                         ent->encode_remove_packet(this);
-                        map_view_.erase(this_it);
+                        views_.erase(this_it);
 
                         ent->view_remove(this, false);
                     } else {
@@ -156,16 +156,16 @@ namespace metin2::game::inline world {
             observer_mode_change_ = false;
         } else {
             if (!is_observer_) {
-                it = map_view_.begin();
+                it = views_.begin();
 
-                while (it != map_view_.end()) {
+                while (it != views_.end()) {
                     this_it = it++;
 
                     if (this_it->second < view_age_) {
                         entity *ent = this_it->first;
 
                         ent->encode_remove_packet(this);
-                        map_view_.erase(this_it);
+                        views_.erase(this_it);
 
                         ent->view_remove(this, false);
                     }

@@ -717,7 +717,7 @@ namespace metin2::game::inline characters {
 
                 int total_dam = 0;
 
-                for (auto it = map_damage_.begin(); it != map_damage_.end(); ++it) {
+                for (auto it = damages_.begin(); it != damages_.end(); ++it) {
                     int damage = it->second.total_damage;
                     if (damage > 0) {
                         character *ch = get_character_manager().find(it->first);
@@ -795,7 +795,7 @@ namespace metin2::game::inline characters {
             }
         }
 
-        map_damage_.clear();
+        damages_.clear();
     }
 
     struct item_drop_penalty {
@@ -855,7 +855,7 @@ namespace metin2::game::inline characters {
         else
             align_index = 8;
 
-        std::vector<std::pair<item *, int>> vec_item;
+        std::vector<std::pair<item *, int>> items;
         item *item_value;
         int i;
         bool is_drop_all_equipments = false;
@@ -874,60 +874,60 @@ namespace metin2::game::inline characters {
         }
 
         if (drop_inventory) {
-            std::vector<uint8_t> vec_b_slots;
+            std::vector<uint8_t> slots;
 
             for (i = 0; i < INVENTORY_MAX_NUM; ++i)
                 if (inventory_item(i))
-                    vec_b_slots.push_back(i);
+                    slots.push_back(i);
 
-            if (!vec_b_slots.empty()) {
-                std::ranges::shuffle(vec_b_slots, random_engine());
+            if (!slots.empty()) {
+                std::ranges::shuffle(slots, random_engine());
 
-                int qty = std::min<int>(vec_b_slots.size(), r.inventory_qty);
+                int qty = std::min<int>(slots.size(), r.inventory_qty);
 
                 if (qty)
                     qty = number(1, qty);
 
                 for (i = 0; i < qty; ++i) {
-                    item_value = inventory_item(vec_b_slots[i]);
+                    item_value = inventory_item(slots[i]);
 
                     if (is_set(item_value->anti_flag(), ITEM_ANTIFLAG_GIVE | ITEM_ANTIFLAG_PKDROP))
                         continue;
 
-                    sync_quickslot(QUICKSLOT_TYPE_ITEM, vec_b_slots[i], 255);
-                    vec_item.push_back(std::make_pair(item_value->remove_from_character(), INVENTORY));
+                    sync_quickslot(QUICKSLOT_TYPE_ITEM, slots[i], 255);
+                    items.push_back(std::make_pair(item_value->remove_from_character(), INVENTORY));
                 }
             } else if (align_index == 8)
                 is_drop_all_equipments = true;
         }
 
         if (drop_equipment) {
-            std::vector<uint8_t> vec_b_slots;
+            std::vector<uint8_t> slots;
 
             for (i = 0; i < WEAR_MAX_NUM; ++i)
                 if (wear(i))
-                    vec_b_slots.push_back(i);
+                    slots.push_back(i);
 
-            if (!vec_b_slots.empty()) {
-                std::ranges::shuffle(vec_b_slots, random_engine());
+            if (!slots.empty()) {
+                std::ranges::shuffle(slots, random_engine());
                 int qty;
 
                 if (is_drop_all_equipments)
-                    qty = vec_b_slots.size();
+                    qty = slots.size();
                 else
-                    qty = std::min<int>(vec_b_slots.size(), number(1, r.equipment_qty));
+                    qty = std::min<int>(slots.size(), number(1, r.equipment_qty));
 
                 if (qty)
                     qty = number(1, qty);
 
                 for (i = 0; i < qty; ++i) {
-                    item_value = wear(vec_b_slots[i]);
+                    item_value = wear(slots[i]);
 
                     if (is_set(item_value->anti_flag(), ITEM_ANTIFLAG_GIVE | ITEM_ANTIFLAG_PKDROP))
                         continue;
 
-                    sync_quickslot(QUICKSLOT_TYPE_ITEM, vec_b_slots[i], 255);
-                    vec_item.push_back(std::make_pair(item_value->remove_from_character(), EQUIPMENT));
+                    sync_quickslot(QUICKSLOT_TYPE_ITEM, slots[i], 255);
+                    items.push_back(std::make_pair(item_value->remove_from_character(), EQUIPMENT));
                 }
             }
         }
@@ -939,14 +939,14 @@ namespace metin2::game::inline characters {
 
             if (item_value && item_value->vnum() == UNIQUE_ITEM_SKIP_ITEM_DROP_PENALTY) {
                 sync_quickslot(QUICKSLOT_TYPE_ITEM, WEAR_UNIQUE1, 255);
-                vec_item.push_back(std::make_pair(item_value->remove_from_character(), EQUIPMENT));
+                items.push_back(std::make_pair(item_value->remove_from_character(), EQUIPMENT));
             }
 
             item_value = wear(WEAR_UNIQUE2);
 
             if (item_value && item_value->vnum() == UNIQUE_ITEM_SKIP_ITEM_DROP_PENALTY) {
                 sync_quickslot(QUICKSLOT_TYPE_ITEM, WEAR_UNIQUE2, 255);
-                vec_item.push_back(std::make_pair(item_value->remove_from_character(), EQUIPMENT));
+                items.push_back(std::make_pair(item_value->remove_from_character(), EQUIPMENT));
             }
         }
 
@@ -957,9 +957,9 @@ namespace metin2::game::inline characters {
 
             unsigned int i;
 
-            for (i = 0; i < vec_item.size(); ++i) {
-                item *item = vec_item[i].first;
-                int window = vec_item[i].second;
+            for (i = 0; i < items.size(); ++i) {
+                item *item = items[i].first;
+                int window = items[i].second;
 
                 item->add_to_ground(map_index(), pos);
                 item->start_destroy_event();
@@ -1180,9 +1180,9 @@ namespace metin2::game::inline characters {
         remove_bit(points_instant_.instant_flag, INSTANT_FLAG_STUN);
 
         if (get_desc() != nullptr) {
-            auto it = list_affect_.begin();
+            auto it = affects_.begin();
 
-            while (it != list_affect_.end())
+            while (it != affects_.end())
                 send_affect_add_packet(get_desc(), *it++);
         }
 
@@ -1759,11 +1759,11 @@ namespace metin2::game::inline characters {
         }
 
         if (attacker && dam > 0 && is_npc()) {
-            auto it = map_damage_.find(attacker->get_vid());
+            auto it = damages_.find(attacker->get_vid());
 
-            if (it == map_damage_.end()) {
-                map_damage_.insert(damage_map::value_type(attacker->get_vid(), battle_info(dam, 0)));
-                it = map_damage_.find(attacker->get_vid());
+            if (it == damages_.end()) {
+                damages_.insert(damage_map::value_type(attacker->get_vid(), battle_info(dam, 0)));
+                it = damages_.find(attacker->get_vid());
             } else {
                 it->second.total_damage += dam;
             }
@@ -1935,7 +1935,7 @@ namespace metin2::game::inline characters {
                     }
                 }
 
-                const uint32_t i_exp = exp;
+                const uint32_t exp_value = exp;
                 const int mode = party->exp_distribution_mode();
 
                 if (member_count == 0)
@@ -1947,11 +1947,11 @@ namespace metin2::game::inline characters {
 
                         switch (mode) {
                         case PARTY_EXP_DISTRIBUTION_NON_PARITY:
-                            exp2 = (uint32_t)(i_exp * (float)party_exp_distribute_table[member->level()] / total);
+                            exp2 = (uint32_t)(exp_value * (float)party_exp_distribute_table[member->level()] / total);
                             break;
 
                         case PARTY_EXP_DISTRIBUTION_PARITY:
-                            exp2 = i_exp / member_count;
+                            exp2 = exp_value / member_count;
                             break;
 
                         default:
@@ -1978,13 +1978,13 @@ namespace metin2::game::inline characters {
 
         using damage_info_list = std::vector<damage_info>;
         damage_info_list damage_info_table;
-        std::map<party *, damage_info> map_party_damage;
+        std::map<party *, damage_info> party_damages;
 
-        damage_info_table.reserve(map_damage_.size());
+        damage_info_table.reserve(damages_.size());
 
-        auto it = map_damage_.begin();
+        auto it = damages_.begin();
 
-        while (it != map_damage_.end()) {
+        while (it != damages_.end()) {
             const vid &vid = it->first;
             int dam = it->second.total_damage;
 
@@ -2002,13 +2002,13 @@ namespace metin2::game::inline characters {
             }
 
             if (attacker->get_party()) {
-                auto it = map_party_damage.find(attacker->get_party());
-                if (it == map_party_damage.end()) {
+                auto it = party_damages.find(attacker->get_party());
+                if (it == party_damages.end()) {
                     damage_info di;
                     di.dam = dam;
                     di.attacker = nullptr;
                     di.party = attacker->get_party();
-                    map_party_damage.insert(std::make_pair(di.party, di));
+                    party_damages.insert(std::make_pair(di.party, di));
                 } else {
                     it->second.dam += dam;
                 }
@@ -2023,7 +2023,7 @@ namespace metin2::game::inline characters {
             }
         }
 
-        for (auto it = map_party_damage.begin(); it != map_party_damage.end(); ++it) {
+        for (auto it = party_damages.begin(); it != party_damages.end(); ++it) {
             damage_info_table.push_back(it->second);
         }
 
@@ -2136,7 +2136,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character::shoot(uint8_t type) -> bool {
-        metin2::log::debug("{}: shoot type {:d}, {:d} fly targets", name(), type, vec_fly_targets_.size());
+        metin2::log::debug("{}: shoot type {:d}, {:d} fly targets", name(), type, fly_targets_.size());
 
         if (!can_move()) {
             return false;
@@ -2381,9 +2381,9 @@ namespace metin2::game::inline characters {
             fly_target_id_ = 0;
         }
 
-        for (uint32_t target_vid : vec_fly_targets_)
+        for (uint32_t target_vid : fly_targets_)
             shoot_at(target_vid);
-        vec_fly_targets_.clear();
+        fly_targets_.clear();
 
         return succeed;
     }
@@ -2403,7 +2403,7 @@ namespace metin2::game::inline characters {
             if (header_value == HEADER_CG_FLY_TARGETING)
                 fly_target_id_ = target_vid_value;
             else
-                vec_fly_targets_.push_back(target_vid_value);
+                fly_targets_.push_back(target_vid_value);
         } else {
             pack.target_vid = 0;
             pack.x = x;
@@ -2421,9 +2421,9 @@ namespace metin2::game::inline characters {
         float min_dist = 99999.0f;
         character *victim = nullptr;
 
-        auto it = map_damage_.begin();
+        auto it = damages_.begin();
 
-        while (it != map_damage_.end()) {
+        while (it != damages_.end()) {
             const vid &vid = it->first;
             ++it;
 
@@ -2711,11 +2711,11 @@ namespace metin2::game::inline characters {
         if (is_dead() || is_stun())
             return;
 
-        auto it = map_damage_.find(attacker->get_vid());
+        auto it = damages_.find(attacker->get_vid());
 
-        if (it == map_damage_.end()) {
-            map_damage_.insert(damage_map::value_type(attacker->get_vid(), battle_info(0, dam)));
-            it = map_damage_.find(attacker->get_vid());
+        if (it == damages_.end()) {
+            damages_.insert(damage_map::value_type(attacker->get_vid(), battle_info(0, dam)));
+            it = damages_.find(attacker->get_vid());
         }
 
         update_aggr_point_ex(attacker, type, dam, it->second);
@@ -2732,9 +2732,9 @@ namespace metin2::game::inline characters {
             }
 
             damage_map::iterator it;
-            auto find = map_damage_.end();
+            auto find = damages_.end();
 
-            for (it = map_damage_.begin(); it != map_damage_.end(); ++it) {
+            for (it = damages_.begin(); it != damages_.end(); ++it) {
                 if (it->second.aggro > new_aggro) {
                     character *ch = get_character_manager().find(it->first);
 
@@ -2745,7 +2745,7 @@ namespace metin2::game::inline characters {
                 }
             }
 
-            if (find != map_damage_.end()) {
+            if (find != damages_.end()) {
                 max_aggro_ = new_aggro;
                 set_victim(get_character_manager().find(find->first));
                 state_duration_ = 1;

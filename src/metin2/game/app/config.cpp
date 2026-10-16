@@ -53,13 +53,13 @@ namespace metin2::game::inline app {
     std::string quest_dir = "./quest";
     std::set<std::string> quest_object_dir;
 
-    static std::set<int> set_map_allows;
+    static std::set<int> map_allows;
 
     auto map_allow_find(int index) -> bool {
         if (metin2::config::is_auth())
             return false;
 
-        if (set_map_allows.find(index) == set_map_allows.end())
+        if (map_allows.find(index) == map_allows.end())
             return false;
 
         return true;
@@ -68,19 +68,19 @@ namespace metin2::game::inline app {
     void map_allow_log() {
         std::set<int>::iterator i;
 
-        for (i = set_map_allows.begin(); i != set_map_allows.end(); ++i)
+        for (i = map_allows.begin(); i != map_allows.end(); ++i)
             metin2::log::info("Hosting map {:d}", *i);
     }
 
     void map_allow_copy(int32_t *pl, int size) {
         int count = 0;
-        auto it = set_map_allows.begin();
+        auto it = map_allows.begin();
 
-        if (set_map_allows.size() > static_cast<size_t>(size)) {
+        if (map_allows.size() > static_cast<size_t>(size)) {
             metin2::log::error("Too many allowed maps (at most {:d})", size);
             exit(1);
         }
-        while (it != set_map_allows.end() && count < size) {
+        while (it != map_allows.end() && count < size) {
             *(pl++) = *(it++);
             ++count;
         }
@@ -154,7 +154,7 @@ namespace metin2::game::inline app {
         no_more_client = metin2::config::game().refuse_clients;
 
         for (long index : metin2::config::game().map_allow)
-            set_map_allows.insert(static_cast<int>(index));
+            map_allows.insert(static_cast<int>(index));
 
         if (metin2::config::game().max_level < 1 || metin2::config::game().max_level > PLAYER_MAX_LEVEL_CONST) {
             metin2::log::error("game.max_level must be from 1 to {:d}", PLAYER_MAX_LEVEL_CONST);
@@ -341,10 +341,10 @@ namespace metin2::game::inline app {
     void check_client_version() {
         check_client_version_enabled = true;
 
-        const desc_manager::desc_set &set = get_desc_manager().client_set();
-        auto it = set.begin();
+        const desc_manager::desc_set &descs = get_desc_manager().client_set();
+        auto it = descs.begin();
 
-        while (it != set.end()) {
+        while (it != descs.end()) {
             desc *d = *(it++);
 
             if (!d->get_character())

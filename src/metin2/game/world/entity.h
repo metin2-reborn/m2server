@@ -59,7 +59,7 @@ namespace metin2::game::inline world {
       protected:
         bool is_observer_;
         bool observer_mode_change_;
-        entity_map map_view_;
+        entity_map views_;
         int32_t map_index_;
 
       private:

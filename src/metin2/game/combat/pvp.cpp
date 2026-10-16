@@ -91,10 +91,10 @@ namespace metin2::game::inline combat {
             }
         }
 
-        const desc_manager::desc_set &c_r_set = get_desc_manager().client_set();
-        auto it = c_r_set.begin();
+        const desc_manager::desc_set &descs = get_desc_manager().client_set();
+        auto it = descs.begin();
 
-        while (it != c_r_set.end()) {
+        while (it != descs.end()) {
             desc *d = *it++;
 
             if (d->is_phase(PHASE_GAME) || d->is_phase(PHASE_DEAD))
@@ -170,10 +170,10 @@ namespace metin2::game::inline combat {
         pk_pvp->set_vid(chr->player_id(), chr->get_vid());
         pk_pvp->set_vid(victim->player_id(), victim->get_vid());
 
-        map_pvp_.emplace(pk_pvp->crc_, std::move(new_pvp));
+        pvps_.emplace(pk_pvp->crc_, std::move(new_pvp));
 
-        map_pvp_set_by_id_[chr->player_id()].insert(pk_pvp);
-        map_pvp_set_by_id_[victim->player_id()].insert(pk_pvp);
+        pvp_sets_by_id_[chr->player_id()].insert(pk_pvp);
+        pvp_sets_by_id_[victim->player_id()].insert(pk_pvp);
 
         pk_pvp->packet();
 
@@ -204,9 +204,9 @@ namespace metin2::game::inline combat {
     }
 
     void pvp_manager::connect_ex(character *chr, bool disconnect) {
-        auto it = map_pvp_set_by_id_.find(chr->player_id());
+        auto it = pvp_sets_by_id_.find(chr->player_id());
 
-        if (it == map_pvp_set_by_id_.end())
+        if (it == pvp_sets_by_id_.end())
             return;
 
         uint32_t vid = disconnect ? 0 : chr->get_vid();
@@ -227,9 +227,9 @@ namespace metin2::game::inline combat {
     }
 
     auto pvp_manager::dead(character *chr, uint32_t killer_pid) -> bool {
-        auto it = map_pvp_set_by_id_.find(chr->player_id());
+        auto it = pvp_sets_by_id_.find(chr->player_id());
 
-        if (it == map_pvp_set_by_id_.end())
+        if (it == pvp_sets_by_id_.end())
             return false;
 
         bool found = false;
@@ -416,27 +416,27 @@ namespace metin2::game::inline combat {
     }
 
     auto pvp_manager::find(uint32_t crc) -> pvp * {
-        auto it = map_pvp_.find(crc);
+        auto it = pvps_.find(crc);
 
-        if (it == map_pvp_.end())
+        if (it == pvps_.end())
             return nullptr;
 
         return it->second.get();
     }
 
     void pvp_manager::remove(pvp *pvp_value) {
-        auto it = map_pvp_.find(pvp_value->crc_);
+        auto it = pvps_.find(pvp_value->crc_);
 
-        if (it == map_pvp_.end())
+        if (it == pvps_.end())
             return;
 
-        map_pvp_set_by_id_[pvp_value->players_[0].pid].erase(pvp_value);
-        map_pvp_set_by_id_[pvp_value->players_[1].pid].erase(pvp_value);
-        map_pvp_.erase(it);
+        pvp_sets_by_id_[pvp_value->players_[0].pid].erase(pvp_value);
+        pvp_sets_by_id_[pvp_value->players_[1].pid].erase(pvp_value);
+        pvps_.erase(it);
     }
 
     void pvp_manager::send_list(desc *d) {
-        auto it = map_pvp_.begin();
+        auto it = pvps_.begin();
 
         uint32_t vid_value = d->get_character()->get_vid();
 
@@ -444,7 +444,7 @@ namespace metin2::game::inline combat {
 
         pack.header = HEADER_GC_PVP;
 
-        while (it != map_pvp_.end()) {
+        while (it != pvps_.end()) {
             pvp *pvp = (it++)->second.get();
 
             if (!pvp->players_[0].vid || !pvp->players_[1].vid)
@@ -486,9 +486,9 @@ namespace metin2::game::inline combat {
     }
 
     void pvp_manager::process() {
-        auto it = map_pvp_.begin();
+        auto it = pvps_.begin();
 
-        while (it != map_pvp_.end()) {
+        while (it != pvps_.end()) {
             pvp *pvp = (it++)->second.get();
 
             if (get_dword_time() - pvp->last_fight_time() > 600000) {

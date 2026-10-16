@@ -50,10 +50,10 @@ namespace metin2::game::inline social {
 
         void destroy();
 
-        std::set<key_t> set_login_account_;
+        std::set<key_t> login_accounts_;
         std::map<key_t, std::set<key_t>> relation_;
         std::map<key_t, std::set<key_t>> inverse_relation_;
-        std::set<uint32_t> set_request_to_add_;
+        std::set<uint32_t> request_to_add_;
     };
 
     inline auto get_messenger_manager() -> messenger_manager & {

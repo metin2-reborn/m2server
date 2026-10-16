@@ -93,8 +93,8 @@ namespace metin2::game::inline characters {
 
             if (field && value) {
                 if (0 == strcasecmp(field, key)) {
-                    float f_speed = strtof(value, nullptr);
-                    speed = (int)(f_speed * 1000.0);
+                    float speed_value = strtof(value, nullptr);
+                    speed = (int)(speed_value * 1000.0);
                     break;
                 }
             }

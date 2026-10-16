@@ -40,8 +40,8 @@ namespace metin2::game::inline trade {
       private:
         std::vector<std::unique_ptr<shop>> shops_;
         shop_map map_shop_;
-        shop_map map_shop_by_npc_vnum_;
-        owned_shop_map map_shop_by_pc_;
+        shop_map shops_by_npc_vnum_;
+        owned_shop_map shops_by_pc_;
 
         auto read_shop_table_ex(const char *file_name) -> bool;
     };

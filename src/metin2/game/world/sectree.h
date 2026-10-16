@@ -41,19 +41,19 @@ namespace metin2::game::inline world {
 
         template <class Func>
         auto find_if(Func &&func) const -> entity * {
-            auto it_tree = neighbor_list_.begin();
+            auto tree = neighbor_list_.begin();
 
-            while (it_tree != neighbor_list_.end()) {
-                auto it_entity = (*it_tree)->set_entity_.begin();
+            while (tree != neighbor_list_.end()) {
+                auto entity_it = (*tree)->entities_.begin();
 
-                while (it_entity != (*it_tree)->set_entity_.end()) {
-                    if (func(*it_entity))
-                        return (*it_entity);
+                while (entity_it != (*tree)->entities_.end()) {
+                    if (func(*entity_it))
+                        return (*entity_it);
 
-                    ++it_entity;
+                    ++entity_it;
                 }
 
-                ++it_tree;
+                ++tree;
             }
 
             return nullptr;
@@ -70,18 +70,18 @@ namespace metin2::game::inline world {
 
         template <class Func>
         void for_each_for_find_victim(Func &&func) {
-            auto it_tree = neighbor_list_.begin();
+            auto tree = neighbor_list_.begin();
 
-            while (it_tree != neighbor_list_.end()) {
-                if ((*(it_tree++))->for_each_entity_for_find_victim(func))
+            while (tree != neighbor_list_.end()) {
+                if ((*(tree++))->for_each_entity_for_find_victim(func))
                     return;
             }
         }
         template <class Func>
         auto for_each_entity_for_find_victim(Func &&func) -> bool {
-            auto it = set_entity_.begin();
+            auto it = entities_.begin();
 
-            while (it != set_entity_.end()) {
+            while (it != entities_.end()) {
                 if (func(*it++))
                     return true;
             }
@@ -118,19 +118,19 @@ namespace metin2::game::inline world {
       private:
         template <class Func>
         void for_each_entity(Func &&func) {
-            std::erase_if(set_entity_, [this](entity *e) {
+            std::erase_if(entities_, [this](entity *e) {
                 if (e->get_sectree() == this)
                     return false;
                 metin2::log::error("Entity in sectree points to a different sectree");
                 return true;
             });
 
-            for (entity *e : set_entity_)
+            for (entity *e : entities_)
                 func(e);
         }
 
         sectreeid id_;
-        entity_set set_entity_;
+        entity_set entities_;
         sectree_list neighbor_list_;
         int pc_count_;
 

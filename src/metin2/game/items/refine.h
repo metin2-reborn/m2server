@@ -33,7 +33,7 @@ namespace metin2::game::inline items {
         auto refine_recipe(uint32_t vnum) -> const refine_table *;
 
       private:
-        refine_recipe_map map_refine_recipe_;
+        refine_recipe_map refine_recipes_;
     };
 
     inline auto get_refine_manager() -> refine_manager & {

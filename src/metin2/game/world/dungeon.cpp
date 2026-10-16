@@ -35,7 +35,7 @@ namespace metin2::game::inline world {
     dungeon::dungeon(id_type id, int32_t original_map_index, int32_t map_index)
         : id_(id),
           map_index_(map_index),
-          map_area_(get_sectree_manager().dungeon_area(original_map_index)) {
+          areas_(get_sectree_manager().dungeon_area(original_map_index)) {
         initialize();
     }
 
@@ -76,23 +76,23 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::set_flag(std::string name, int value) {
-        auto it = map_flag_.find(name);
-        if (it != map_flag_.end())
+        auto it = flags_.find(name);
+        if (it != flags_.end())
             it->second = value;
         else
-            map_flag_.insert(make_pair(name, value));
+            flags_.insert(make_pair(name, value));
     }
 
     auto dungeon::flag(std::string name) -> int {
-        auto it = map_flag_.find(name);
-        if (it != map_flag_.end())
+        auto it = flags_.find(name);
+        if (it != flags_.end())
             return it->second;
         else
             return 0;
     }
 
     void dungeon::send_dest_position_to_party(party *party_value, int32_t x, int32_t y) {
-        if (map_party_.find(party_value) == map_party_.end()) {
+        if (parties_.find(party_value) == parties_.end()) {
             metin2::log::error("Party of leader pid {:d} is not in dungeon {:d}", party_value->leader_pid(), map_index_);
             return;
         }
@@ -123,7 +123,7 @@ namespace metin2::game::inline world {
 
     void dungeon::join_party(party *party_value) {
         party_value->set_dungeon(this);
-        map_party_.insert(std::make_pair(party_value, 0));
+        parties_.insert(std::make_pair(party_value, 0));
 
         sectree_map *sectree_map = get_sectree_manager().map(map_index_);
         if (sectree_map == nullptr) {
@@ -138,10 +138,10 @@ namespace metin2::game::inline world {
 
     void dungeon::quit_party(party *party_value) {
         party_value->set_dungeon(nullptr);
-        auto it = map_party_.find(party_value);
+        auto it = parties_.find(party_value);
 
-        if (it != map_party_.end())
-            map_party_.erase(it);
+        if (it != parties_.end())
+            parties_.erase(it);
     }
 
     EVENTINFO(dungeon_id_info) {
@@ -172,22 +172,22 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::inc_member(character *ch) {
-        if (set_character_.find(ch) == set_character_.end())
-            set_character_.insert(ch);
+        if (characters_.find(ch) == characters_.end())
+            characters_.insert(ch);
 
         event_cancel(&dead_event_);
     }
 
     void dungeon::dec_member(character *ch) {
-        auto it = set_character_.find(ch);
+        auto it = characters_.find(ch);
 
-        if (it == set_character_.end()) {
+        if (it == characters_.end()) {
             return;
         }
 
-        set_character_.erase(it);
+        characters_.erase(it);
 
-        if (set_character_.empty()) {
+        if (characters_.empty()) {
             auto *info = alloc_event_info<dungeon_id_info>();
             info->dungeon_id = id_;
 
@@ -197,20 +197,20 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::inc_party_member(party *party_value, character *ch) {
-        auto it = map_party_.find(party_value);
+        auto it = parties_.find(party_value);
 
-        if (it != map_party_.end())
+        if (it != parties_.end())
             it->second++;
         else
-            map_party_.insert(std::make_pair(party_value, 1));
+            parties_.insert(std::make_pair(party_value, 1));
 
         inc_member(ch);
     }
 
     void dungeon::dec_party_member(party *party_value, character *ch) {
-        auto it = map_party_.find(party_value);
+        auto it = parties_.find(party_value);
 
-        if (it == map_party_.end())
+        if (it == parties_.end())
             metin2::log::error("Cannot remove party, it is not in the dungeon");
         else {
             it->second--;
@@ -307,15 +307,15 @@ namespace metin2::game::inline world {
 
     void dungeon_manager::destroy(dungeon::id_type dungeon_id) {
         metin2::log::info("Destroying dungeon {:d}", dungeon_id);
-        auto owner_it = map_dungeon_.find(dungeon_id);
-        if (owner_it == map_dungeon_.end()) {
+        auto owner_it = dungeons_.find(dungeon_id);
+        if (owner_it == dungeons_.end()) {
             return;
         }
         std::unique_ptr<dungeon> dungeon = std::move(owner_it->second);
-        map_dungeon_.erase(owner_it);
+        dungeons_.erase(owner_it);
 
         int32_t map_index = dungeon->map_index_;
-        map_map_dungeon_.erase(map_index);
+        map_dungeons_.erase(map_index);
 
         uint32_t server_timer_arg = map_index;
         quest::get_quest_manager().cancel_server_timers(server_timer_arg);
@@ -325,15 +325,15 @@ namespace metin2::game::inline world {
     }
 
     auto dungeon_manager::find(dungeon::id_type dungeon_id) -> dungeon * {
-        auto it = map_dungeon_.find(dungeon_id);
-        if (it != map_dungeon_.end())
+        auto it = dungeons_.find(dungeon_id);
+        if (it != dungeons_.end())
             return it->second.get();
         return nullptr;
     }
 
     auto dungeon_manager::find_by_map_index(int32_t map_index) -> dungeon * {
-        auto it = map_map_dungeon_.find(map_index);
-        if (it != map_map_dungeon_.end()) {
+        auto it = map_dungeons_.find(map_index);
+        if (it != map_dungeons_.end()) {
             return it->second;
         }
         return nullptr;
@@ -354,8 +354,8 @@ namespace metin2::game::inline world {
 
         std::unique_ptr<dungeon> new_dungeon(new dungeon(id, original_map_index, map_index));
         dungeon *dungeon = new_dungeon.get();
-        map_dungeon_.emplace(id, std::move(new_dungeon));
-        map_map_dungeon_.insert(std::make_pair(map_index, dungeon));
+        dungeons_.emplace(id, std::move(new_dungeon));
+        map_dungeons_.insert(std::make_pair(map_index, dungeon));
 
         return dungeon;
     }
@@ -367,8 +367,8 @@ namespace metin2::game::inline world {
     dungeon_manager::~dungeon_manager() = default;
 
     auto dungeon::find_unique(const std::string &key, bool may_be_dead) -> unique_mob_map::iterator {
-        auto it = map_unique_mob_.find(key);
-        if (it == map_unique_mob_.end()) {
+        auto it = unique_mobs_.find(key);
+        if (it == unique_mobs_.end()) {
             if (may_be_dead)
                 metin2::log::error("Dungeon unique mob {} not found or dead", key);
             else
@@ -379,40 +379,40 @@ namespace metin2::game::inline world {
 
     void dungeon::unique_set_max_hp(const std::string &key, int max_hp) {
         auto it = find_unique(key, false);
-        if (it == map_unique_mob_.end())
+        if (it == unique_mobs_.end())
             return;
         it->second->set_max_hp(max_hp);
     }
 
     void dungeon::unique_set_hp(const std::string &key, int hp) {
         auto it = find_unique(key, false);
-        if (it == map_unique_mob_.end())
+        if (it == unique_mobs_.end())
             return;
         it->second->set_hp(hp);
     }
 
     void dungeon::unique_set_def_grade(const std::string &key, int grade) {
         auto it = find_unique(key, false);
-        if (it == map_unique_mob_.end())
+        if (it == unique_mobs_.end())
             return;
         it->second->point_change(POINT_DEF_GRADE, grade - it->second->point(POINT_DEF_GRADE));
     }
 
     void dungeon::spawn_move_unique(const char *key, uint32_t vnum, const char *pos_from, const char *pos_to) {
-        auto it_to = map_area_.find(pos_to);
-        if (it_to == map_area_.end()) {
+        auto to_it = areas_.find(pos_to);
+        if (to_it == areas_.end()) {
             metin2::log::error("Unknown dungeon position {}", pos_to);
             return;
         }
 
-        auto it_from = map_area_.find(pos_from);
-        if (it_from == map_area_.end()) {
+        auto from = areas_.find(pos_from);
+        if (from == areas_.end()) {
             metin2::log::error("Unknown dungeon position {}", pos_from);
             return;
         }
 
-        area_info &ai = it_from->second;
-        area_info &ai_to = it_to->second;
+        area_info &ai = from->second;
+        area_info &ai_to = to_it->second;
         int dir = ai.dir;
         if (dir == -1)
             dir = number(0, 359);
@@ -431,7 +431,7 @@ namespace metin2::game::inline world {
             character *ch = get_character_manager().spawn_mob(vnum, map_index_, sectree_map->setting.base_x + dx, sectree_map->setting.base_y + dy, 0, false, dir);
 
             if (ch) {
-                map_unique_mob_.insert(make_pair(std::string(key), ch));
+                unique_mobs_.insert(make_pair(std::string(key), ch));
                 ch->add_affect(AFFECT_DUNGEON_UNIQUE, POINT_NONE, 0, AFF_DUNGEON_UNIQUE, 65535, 0, true);
                 ch->set_dungeon(this);
 
@@ -444,8 +444,8 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::spawn_unique(const char *key, uint32_t vnum, const char *pos) {
-        auto it = map_area_.find(pos);
-        if (it == map_area_.end()) {
+        auto it = areas_.find(pos);
+        if (it == areas_.end()) {
             metin2::log::error("Unknown dungeon position {}", pos);
             return;
         }
@@ -467,7 +467,7 @@ namespace metin2::game::inline world {
             character *ch = get_character_manager().spawn_mob(vnum, map_index_, sectree_map->setting.base_x + dx, sectree_map->setting.base_y + dy, 0, false, dir);
 
             if (ch) {
-                map_unique_mob_.insert(make_pair(std::string(key), ch));
+                unique_mobs_.insert(make_pair(std::string(key), ch));
                 ch->set_dungeon(this);
                 ch->add_affect(AFFECT_DUNGEON_UNIQUE, POINT_NONE, 0, AFF_DUNGEON_UNIQUE, 65535, 0, true);
                 break;
@@ -480,7 +480,7 @@ namespace metin2::game::inline world {
     void dungeon::set_unique(const char *key, uint32_t vid) {
         character *ch = get_character_manager().find(vid);
         if (ch) {
-            map_unique_mob_.insert(make_pair(std::string(key), ch));
+            unique_mobs_.insert(make_pair(std::string(key), ch));
             ch->add_affect(AFFECT_DUNGEON_UNIQUE, POINT_NONE, 0, AFF_DUNGEON_UNIQUE, 65535, 0, true);
         }
     }
@@ -498,25 +498,25 @@ namespace metin2::game::inline world {
 
     void dungeon::purge_unique(const std::string &key) {
         auto it = find_unique(key, true);
-        if (it == map_unique_mob_.end())
+        if (it == unique_mobs_.end())
             return;
         character *ch = it->second;
-        map_unique_mob_.erase(it);
+        unique_mobs_.erase(it);
         get_character_manager().destroy_character(ch);
     }
 
     void dungeon::kill_unique(const std::string &key) {
         auto it = find_unique(key, true);
-        if (it == map_unique_mob_.end())
+        if (it == unique_mobs_.end())
             return;
         character *ch = it->second;
-        map_unique_mob_.erase(it);
+        unique_mobs_.erase(it);
         ch->dead();
     }
 
     auto dungeon::unique_vid(const std::string &key) -> uint32_t {
         auto it = find_unique(key, true);
-        if (it == map_unique_mob_.end())
+        if (it == unique_mobs_.end())
             return 0;
         character *ch = it->second;
         return ch->get_vid();
@@ -524,29 +524,29 @@ namespace metin2::game::inline world {
 
     auto dungeon::unique_hp_perc(const std::string &key) -> float {
         auto it = find_unique(key, false);
-        if (it == map_unique_mob_.end())
+        if (it == unique_mobs_.end())
             return false;
         return (100.f * it->second->hp()) / it->second->max_hp();
     }
 
     void dungeon::dead_character(character *ch) {
         if (!ch->is_pc()) {
-            if (auto it = std::ranges::find(map_unique_mob_, ch, &unique_mob_map::value_type::second); it != map_unique_mob_.end())
-                map_unique_mob_.erase(it);
+            if (auto it = std::ranges::find(unique_mobs_, ch, &unique_mob_map::value_type::second); it != unique_mobs_.end())
+                unique_mobs_.erase(it);
         }
     }
 
     auto dungeon::is_unique_dead(const std::string &key) -> bool {
         auto it = find_unique(key, true);
-        if (it == map_unique_mob_.end())
+        if (it == unique_mobs_.end())
             return true;
         return it->second->is_dead();
     }
 
     void dungeon::spawn(uint32_t vnum, const char *pos) {
-        auto it = map_area_.find(pos);
+        auto it = areas_.find(pos);
 
-        if (it == map_area_.end()) {
+        if (it == areas_.end()) {
             metin2::log::error("Unknown dungeon position {}", pos);
             return;
         }
@@ -705,22 +705,22 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::spawn_move_group(uint32_t vnum, const char *pos_from, const char *pos_to, int count) {
-        auto it_to = map_area_.find(pos_to);
+        auto to = areas_.find(pos_to);
 
-        if (it_to == map_area_.end()) {
+        if (to == areas_.end()) {
             metin2::log::error("Unknown dungeon position {}", pos_to);
             return;
         }
 
-        auto it_from = map_area_.find(pos_from);
+        auto from = areas_.find(pos_from);
 
-        if (it_from == map_area_.end()) {
+        if (from == areas_.end()) {
             metin2::log::error("Unknown dungeon position {}", pos_from);
             return;
         }
 
-        area_info &ai = it_from->second;
-        area_info &ai_to = it_to->second;
+        area_info &ai = from->second;
+        area_info &ai_to = to->second;
         int dir = ai.dir;
 
         if (dir == -1)
@@ -1006,12 +1006,12 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::create_item_group(std::string &group_name, item_group &item_group) {
-        map_item_group_.insert(item_group_map::value_type(group_name, item_group));
+        item_groups_.insert(item_group_map::value_type(group_name, item_group));
     }
 
     auto dungeon::get_item_group(std::string &group_name) -> const dungeon::item_group * {
-        auto it = map_item_group_.find(group_name);
-        if (it != map_item_group_.end())
+        auto it = item_groups_.find(group_name);
+        if (it != item_groups_.end())
             return &(it->second);
         else
             return nullptr;

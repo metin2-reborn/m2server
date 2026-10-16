@@ -54,9 +54,9 @@ namespace metin2::game::inline protocol {
         }
         destroyed_ = true;
 
-        auto i = set_desc_.begin();
+        auto i = descs_.begin();
 
-        while (i != set_desc_.end()) {
+        while (i != descs_.end()) {
             desc *d = *i;
             auto ci = i;
             ++i;
@@ -68,24 +68,24 @@ namespace metin2::game::inline protocol {
                 continue;
 
             destroy_desc(d, false);
-            set_desc_.erase(ci);
+            descs_.erase(ci);
         }
 
-        i = set_desc_.begin();
+        i = descs_.begin();
 
-        while (i != set_desc_.end()) {
+        while (i != descs_.end()) {
             desc *d = *i;
             auto ci = i;
             ++i;
 
             destroy_desc(d, false);
-            set_desc_.erase(ci);
+            descs_.erase(ci);
         }
 
-        set_client_desc_.clear();
+        client_descs_.clear();
 
-        map_login_name_.clear();
-        map_handle_.clear();
+        login_names_.clear();
+        handles_.clear();
 
         initialize();
     }
@@ -103,8 +103,8 @@ namespace metin2::game::inline protocol {
             *((uint32_t *)crc_buf + 1) = get_global_time();
 
             crc = get_cr_c32(crc_buf, 8);
-            it = map_handshake_.find(crc);
-        } while (it != map_handshake_.end());
+            it = handshakes_.find(crc);
+        } while (it != handshakes_.end());
 
         if (crc == 0)
             goto RETRY;
@@ -141,10 +141,10 @@ namespace metin2::game::inline protocol {
             return nullptr;
         }
 
-        map_handshake_.insert(desc_handshake_map::value_type(handshake, newd));
-        map_handle_.insert(desc_handle_map::value_type(newd->handle(), newd));
+        handshakes_.insert(desc_handshake_map::value_type(handshake, newd));
+        handles_.insert(desc_handle_map::value_type(newd->handle(), newd));
 
-        set_desc_.insert(newd);
+        descs_.insert(newd);
         ++sockets_connected_;
         return (newd);
     }
@@ -159,7 +159,7 @@ namespace metin2::game::inline protocol {
             return nullptr;
         }
 
-        set_desc_.insert(desc);
+        descs_.insert(desc);
         ++sockets_connected_;
 
         metin2::log::info("Accepted peer connection from {}", desc->host_name());
@@ -169,26 +169,26 @@ namespace metin2::game::inline protocol {
 
     void desc_manager::connect_account(const std::string &login, desc *d) {
         metin2::log::debug("Account {} bound to connection", login);
-        map_login_name_.insert(desc_loginname_map::value_type(login, d));
+        login_names_.insert(desc_loginname_map::value_type(login, d));
     }
 
     void desc_manager::disconnect_account(const std::string &login) {
         metin2::log::debug("Account {} unbound from connection", login);
-        map_login_name_.erase(login);
+        login_names_.erase(login);
     }
 
     void desc_manager::destroy_desc(desc *d, bool erase_from_set) {
         if (erase_from_set)
-            set_desc_.erase(d);
+            descs_.erase(d);
 
         if (d->handshake())
-            map_handshake_.erase(d->handshake());
+            handshakes_.erase(d->handshake());
 
         if (d->handle() != 0) {
-            map_handle_.erase(d->handle());
-            map_handle_random_key_.erase(d->handle());
+            handles_.erase(d->handle());
+            handle_random_keys_.erase(d->handle());
         } else
-            set_client_desc_.erase((client_desc *)d);
+            client_descs_.erase((client_desc *)d);
 
         d->destroy();
 
@@ -197,9 +197,9 @@ namespace metin2::game::inline protocol {
     }
 
     void desc_manager::destroy_closed() {
-        auto i = set_desc_.begin();
+        auto i = descs_.begin();
 
-        while (i != set_desc_.end()) {
+        while (i != descs_.end()) {
             desc *d = *i;
             auto ci = i;
             ++i;
@@ -215,38 +215,38 @@ namespace metin2::game::inline protocol {
                 }
 
                 destroy_desc(d, false);
-                set_desc_.erase(ci);
+                descs_.erase(ci);
             }
         }
     }
 
     auto desc_manager::find_by_login_name(const std::string &login) -> desc * {
-        auto it = map_login_name_.find(login);
+        auto it = login_names_.find(login);
 
-        if (map_login_name_.end() == it)
+        if (login_names_.end() == it)
             return nullptr;
 
         return (it->second);
     }
 
     auto desc_manager::find_by_handle(uint32_t handle) -> desc * {
-        auto it = map_handle_.find(handle);
+        auto it = handles_.find(handle);
 
-        if (map_handle_.end() == it)
+        if (handles_.end() == it)
             return nullptr;
 
         return (it->second);
     }
 
     auto desc_manager::client_set() -> const desc_manager::desc_set & {
-        return set_desc_;
+        return descs_;
     }
 
     auto desc_manager::find_by_character_name(const char *name) -> desc * {
-        auto it = std::ranges::find_if(set_desc_, [name](desc *d) -> bool {
+        auto it = std::ranges::find_if(descs_, [name](desc *d) -> bool {
             return d->get_character() && !strcmp(d->get_character()->name(), name);
         });
-        return (it == set_desc_.end()) ? nullptr : (*it);
+        return (it == descs_.end()) ? nullptr : (*it);
     }
 
     auto desc_manager::create_connection_desc(const char *host, uint16_t port, int phase_when_succeed, bool retry_when_closed) -> client_desc * {
@@ -258,22 +258,22 @@ namespace metin2::game::inline protocol {
         newd->connect(phase_when_succeed);
         newd->set_retry_when_closed(retry_when_closed);
 
-        set_desc_.insert(newd);
-        set_client_desc_.insert(newd);
+        descs_.insert(newd);
+        client_descs_.insert(newd);
 
         ++sockets_connected_;
         return (newd);
     }
 
     void desc_manager::try_connect() {
-        for (desc *d : set_client_desc_)
+        for (desc *d : client_descs_)
             ((client_desc *)d)->connect();
     }
 
     auto desc_manager::is_p2p_desc_exist(const char *host, uint16_t port) -> bool {
-        auto it = set_client_desc_.begin();
+        auto it = client_descs_.begin();
 
-        while (it != set_client_desc_.end()) {
+        while (it != client_descs_.end()) {
             client_desc *d = *(it++);
 
             if (!strcmp(d->p2p_host(), host) && d->p2p_port() == port)
@@ -284,11 +284,11 @@ namespace metin2::game::inline protocol {
     }
 
     void desc_manager::update_local_user_count() {
-        const desc_set &c_ref_set = client_set();
+        const desc_set &descs = client_set();
         int total_count = 0;
         int empire_user_count[EMPIRE_MAX_NUM] = {};
 
-        for (desc *d : c_ref_set) {
+        for (desc *d : descs) {
             if (d->get_character()) {
                 ++total_count;
                 ++empire_user_count[d->empire()];
@@ -316,19 +316,19 @@ namespace metin2::game::inline protocol {
 
     auto desc_manager::make_random_key(uint32_t handle) -> uint32_t {
         uint32_t random_key = secure_random_u32();
-        map_handle_random_key_[handle] = random_key;
+        handle_random_keys_[handle] = random_key;
         return random_key;
     }
 
     auto desc_manager::check_random_key(uint32_t handle, uint32_t key) -> bool {
-        auto it = map_handle_random_key_.find(handle);
-        return it != map_handle_random_key_.end() && it->second == key && find_by_handle(handle) != nullptr;
+        auto it = handle_random_keys_.find(handle);
+        return it != handle_random_keys_.end() && it->second == key && find_by_handle(handle) != nullptr;
     }
 
     auto desc_manager::find_by_login_key(uint32_t key) -> desc * {
-        auto it = map_login_key_.find(key);
+        auto it = login_keys_.find(key);
 
-        if (it == map_login_key_.end())
+        if (it == login_keys_.end())
             return nullptr;
 
         return it->second->desc;
@@ -340,12 +340,12 @@ namespace metin2::game::inline protocol {
         do {
             key = number(1, INT_MAX);
 
-            if (map_login_key_.find(key) != map_login_key_.end())
+            if (login_keys_.find(key) != login_keys_.end())
                 continue;
 
             auto key_value = std::make_unique<login_key>(key, d);
             d->set_login_key(key_value.get());
-            map_login_key_.emplace(key, std::move(key_value));
+            login_keys_.emplace(key, std::move(key_value));
             break;
         } while (1);
 
@@ -355,16 +355,16 @@ namespace metin2::game::inline protocol {
     void desc_manager::process_expired_login_key() {
         uint32_t current_time = get_dword_time();
 
-        auto it = map_login_key_.begin();
+        auto it = login_keys_.begin();
 
-        while (it != map_login_key_.end()) {
+        while (it != login_keys_.end()) {
             auto it2 = it++;
 
             if (it2->second->expire_time == 0)
                 continue;
 
             if (current_time - it2->second->expire_time > 60000) {
-                map_login_key_.erase(it2);
+                login_keys_.erase(it2);
             }
         }
     }

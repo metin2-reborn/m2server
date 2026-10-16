@@ -15,10 +15,10 @@ namespace metin2::game::inline items {
     auto refine_manager::initialize(refine_table *table, int size) -> bool {
         for (int i = 0; i < size; ++i, ++table) {
             metin2::log::debug("Refine: recipe {:d}, chance {:d}, cost {:d}", table->id, table->prob, table->cost);
-            map_refine_recipe_.insert(std::make_pair(table->id, *table));
+            refine_recipes_.insert(std::make_pair(table->id, *table));
         }
 
-        metin2::log::info("Refine: loaded {:d} recipes", map_refine_recipe_.size());
+        metin2::log::info("Refine: loaded {:d} recipes", refine_recipes_.size());
         return true;
     }
 
@@ -26,10 +26,10 @@ namespace metin2::game::inline items {
         if (vnum == 0)
             return nullptr;
 
-        auto it = map_refine_recipe_.find(vnum);
-        metin2::log::debug("Refine: recipe {:d} {}", vnum, it == map_refine_recipe_.end() ? "not found" : "found");
+        auto it = refine_recipes_.find(vnum);
+        metin2::log::debug("Refine: recipe {:d} {}", vnum, it == refine_recipes_.end() ? "not found" : "found");
 
-        if (it == map_refine_recipe_.end()) {
+        if (it == refine_recipes_.end()) {
             return nullptr;
         }
 

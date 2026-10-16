@@ -39,7 +39,7 @@ namespace metin2::poly {
         double num_token_ = 0;
         int look_ahead_ = 0;
         bool error_occur_ = true;
-        std::size_t ui_look_pos_ = 0;
+        std::size_t look_pos_ = 0;
         std::vector<int> token_base_;
         std::vector<double> num_base_;
         std::vector<symbol> symbols_;

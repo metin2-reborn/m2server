@@ -266,7 +266,7 @@ namespace metin2::game::inline characters {
         safebox_.reset();
         mall_.reset();
 
-        set_chr_spawned_by_.clear();
+        chrs_spawned_by_.clear();
 
         stop_muyeong_event();
         event_cancel(&warp_npc_event);
@@ -292,7 +292,7 @@ namespace metin2::game::inline characters {
 
         clear_affect();
 
-        map_buff_on_attrs_.clear();
+        buff_on_attrs_.clear();
 
         event_cancel(&destroy_when_idle_event);
 
@@ -476,9 +476,9 @@ namespace metin2::game::inline characters {
         encode_remove_packet(this);
         encode_insert_packet(this);
 
-        auto it = map_view_.begin();
+        auto it = views_.begin();
 
-        while (it != map_view_.end()) {
+        while (it != views_.end()) {
             entity *entity = (it++)->first;
 
             encode_remove_packet(entity);
@@ -669,9 +669,9 @@ namespace metin2::game::inline characters {
     }
 
     auto character::find_character_in_view(const char *name_value, bool find_pc_only) -> character * {
-        auto it = map_view_.begin();
+        auto it = views_.begin();
 
-        for (; it != map_view_.end(); ++it) {
+        for (; it != views_.end(); ++it) {
             if (!it->first->is_type(ENTITY_CHARACTER))
                 continue;
 
@@ -1741,7 +1741,7 @@ namespace metin2::game::inline characters {
             pet_system->refresh_buff();
         }
 
-        for (auto it = map_buff_on_attrs_.begin(); it != map_buff_on_attrs_.end(); it++) {
+        for (auto it = buff_on_attrs_.begin(); it != buff_on_attrs_.end(); it++) {
             it->second->give_all_attributes();
         }
 
@@ -3116,7 +3116,7 @@ namespace metin2::game::inline characters {
 
         if (!ch) {
             if (remove_from_list && chr_sync_owner_) {
-                chr_sync_owner_->lst_chr_sync_owned_.remove(this);
+                chr_sync_owner_->chr_sync_owned_.remove(this);
             }
 
             if (chr_sync_owner_)
@@ -3139,11 +3139,11 @@ namespace metin2::game::inline characters {
             if (chr_sync_owner_ != ch) {
                 if (chr_sync_owner_) {
                     metin2::log::debug("{} ({}): sync released from {}", name(), static_cast<const void *>(this), chr_sync_owner_->name());
-                    chr_sync_owner_->lst_chr_sync_owned_.remove(this);
+                    chr_sync_owner_->chr_sync_owned_.remove(this);
                 }
 
                 chr_sync_owner_ = ch;
-                chr_sync_owner_->lst_chr_sync_owned_.push_back(this);
+                chr_sync_owner_->chr_sync_owned_.push_back(this);
 
                 static const timeval zero_tv = {0, 0};
                 set_last_sync_time(zero_tv);
@@ -3167,11 +3167,11 @@ namespace metin2::game::inline characters {
     void character::clear_sync() {
         set_sync_owner(nullptr);
 
-        for (character *ch : lst_chr_sync_owned_) {
+        for (character *ch : chr_sync_owned_) {
             assert(ch != nullptr);
             ch->set_sync_owner(nullptr, false); // Must be false for the for_each to work.
         }
-        lst_chr_sync_owned_.clear();
+        chr_sync_owned_.clear();
     }
 
     auto character::is_sync_owner(character *ch) const -> bool {
@@ -3791,30 +3791,30 @@ namespace metin2::game::inline characters {
         chr_stone_ = chr_stone;
 
         if (chr_stone_) {
-            if (chr_stone->set_chr_spawned_by_.find(this) == chr_stone->set_chr_spawned_by_.end())
-                chr_stone->set_chr_spawned_by_.insert(this);
+            if (chr_stone->chrs_spawned_by_.find(this) == chr_stone->chrs_spawned_by_.end())
+                chr_stone->chrs_spawned_by_.insert(this);
         }
     }
 
     void character::clear_stone() {
-        if (!set_chr_spawned_by_.empty()) {
-            for (character *ch : set_chr_spawned_by_) {
+        if (!chrs_spawned_by_.empty()) {
+            for (character *ch : chrs_spawned_by_) {
                 ch->dead(nullptr);
                 ch->set_stone(nullptr);
             }
-            set_chr_spawned_by_.clear();
+            chrs_spawned_by_.clear();
         }
 
         if (!chr_stone_)
             return;
 
-        chr_stone_->set_chr_spawned_by_.erase(this);
+        chr_stone_->chrs_spawned_by_.erase(this);
         chr_stone_ = nullptr;
     }
 
     void character::clear_target() {
         if (chr_target_) {
-            chr_target_->set_chr_targeted_by_.erase(this);
+            chr_target_->chrs_targeted_by_.erase(this);
             chr_target_ = nullptr;
         }
 
@@ -3824,9 +3824,9 @@ namespace metin2::game::inline characters {
         p.vid = 0;
         p.hp_percent = 0;
 
-        auto it = set_chr_targeted_by_.begin();
+        auto it = chrs_targeted_by_.begin();
 
-        while (it != set_chr_targeted_by_.end()) {
+        while (it != chrs_targeted_by_.end()) {
             character *chr = *(it++);
             chr->chr_target_ = nullptr;
 
@@ -3838,7 +3838,7 @@ namespace metin2::game::inline characters {
             chr->get_desc()->packet(&p, sizeof(packet_gc_target));
         }
 
-        set_chr_targeted_by_.clear();
+        chrs_targeted_by_.clear();
     }
 
     void character::set_target(character *chr_target) {
@@ -3849,7 +3849,7 @@ namespace metin2::game::inline characters {
             return;
 
         if (chr_target_)
-            chr_target_->set_chr_targeted_by_.erase(this);
+            chr_target_->chrs_targeted_by_.erase(this);
 
         chr_target_ = chr_target;
 
@@ -3858,7 +3858,7 @@ namespace metin2::game::inline characters {
         p.header = HEADER_GC_TARGET;
 
         if (chr_target_) {
-            chr_target_->set_chr_targeted_by_.insert(this);
+            chr_target_->chrs_targeted_by_.insert(this);
 
             p.vid = chr_target_->get_vid();
 
@@ -3898,7 +3898,7 @@ namespace metin2::game::inline characters {
     }
 
     void character::broadcast_target_packet() {
-        if (set_chr_targeted_by_.empty())
+        if (chrs_targeted_by_.empty())
             return;
 
         packet_gc_target p;
@@ -3911,9 +3911,9 @@ namespace metin2::game::inline characters {
         else
             p.hp_percent = std::clamp((hp() * 100) / max_hp(), 0, 100);
 
-        auto it = set_chr_targeted_by_.begin();
+        auto it = chrs_targeted_by_.begin();
 
-        while (it != set_chr_targeted_by_.end()) {
+        while (it != chrs_targeted_by_.end()) {
             character *chr = *it++;
 
             if (!chr->get_desc()) {
@@ -4786,7 +4786,7 @@ namespace metin2::game::inline characters {
 
     void character::determine_drop_metin_stone() {
         const int metin_stone_num = 14;
-        static uint32_t c_adw_metin[metin_stone_num] =
+        static uint32_t metin_vnums[metin_stone_num] =
             {
                 28030,
                 28031,
@@ -4811,7 +4811,7 @@ namespace metin2::game::inline characters {
             const stone_drop_info &info = stone_drop[idx];
             drop_metin_stone_pct_ = info.drop_pct;
             {
-                drop_metin_stone_ = c_adw_metin[number(0, metin_stone_num - 1)];
+                drop_metin_stone_ = metin_vnums[number(0, metin_stone_num - 1)];
                 int grade_pct = number(1, 100);
                 for (int stone_level = 0; stone_level < STONE_LEVEL_MAX_NUM; stone_level++) {
                     int level_grade_portion = info.level_pct[stone_level];
@@ -4865,9 +4865,9 @@ namespace metin2::game::inline characters {
         pos_dest_.y = pos_start_.y = y();
         encode_insert_packet(this);
 
-        auto it = map_view_.begin();
+        auto it = views_.begin();
 
-        while (it != map_view_.end()) {
+        while (it != views_.end()) {
             entity *entity = (it++)->first;
 
             encode_insert_packet(entity);

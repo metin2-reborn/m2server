@@ -84,8 +84,8 @@ namespace metin2::game::inline items {
     }
 
     auto dragon_soul_table::dragon_soul_group_name(uint8_t type, std::string &group_name) const -> bool {
-        auto it = map_type_to_name_.find(type);
-        if (it != map_type_to_name_.end()) {
+        auto it = type_to_name_.find(type);
+        if (it != type_to_name_.end()) {
             group_name = it->second;
             return true;
         } else {
@@ -110,7 +110,7 @@ namespace metin2::game::inline items {
                 return false;
             }
 
-            std::set<uint8_t> set_types;
+            std::set<uint8_t> types;
 
             for (int i = 0; i < n; i++) {
                 const group_node::group_node_row *row_value;
@@ -127,12 +127,12 @@ namespace metin2::game::inline items {
                     return false;
                 }
 
-                if (set_types.end() != set_types.find(type_value)) {
+                if (types.end() != types.find(type_value)) {
                     metin2::log::error("VnumMapper has duplicate vnums");
                     return false;
                 }
-                map_name_to_type_.insert(map_name_to_type::value_type(dragon_soul_name, type_value));
-                map_type_to_name_.insert(map_type_to_name::value_type(type_value, dragon_soul_name));
+                name_to_type_.insert(map_name_to_type::value_type(dragon_soul_name, type_value));
+                type_to_name_.insert(map_type_to_name::value_type(type_value, dragon_soul_name));
                 dragon_soul_types_.push_back(type_value);
                 dragon_soul_names_.push_back(dragon_soul_name);
             }
@@ -184,7 +184,7 @@ namespace metin2::game::inline items {
                 }
                 applys.push_back(apply(at, av));
             }
-            map_basic_applys_group_.insert(map_apply_group::value_type(map_name_to_type_[dragon_soul_names_[i]], applys));
+            basic_applys_groups_.insert(map_apply_group::value_type(name_to_type_[dragon_soul_names_[i]], applys));
         }
 
         return true;
@@ -234,7 +234,7 @@ namespace metin2::game::inline items {
                 }
                 applys.push_back(apply(at, av, prob));
             }
-            map_additional_applys_group_.insert(map_apply_group::value_type(map_name_to_type_[dragon_soul_names_[i]], applys));
+            additional_applys_groups_.insert(map_apply_group::value_type(name_to_type_[dragon_soul_names_[i]], applys));
         }
 
         return true;
@@ -290,8 +290,8 @@ namespace metin2::game::inline items {
             for (size_t i = 0; i < dragon_soul_types_.size(); i++) {
                 for (int j = 0; j < DRAGON_SOUL_GRADE_MAX - 1; j++) {
                     int need_count, fee;
-                    std::vector<float> vec_probs;
-                    if (!refine_grade_values(dragon_soul_types_[i], j, need_count, fee, vec_probs)) {
+                    std::vector<float> probs;
+                    if (!refine_grade_values(dragon_soul_types_[i], j, need_count, fee, probs)) {
                         metin2::log::error("RefineGradeTables: group {} has an invalid row for grade {}",
                             dragon_soul_names_[i], ast_grade_name[j]);
                         return false;
@@ -306,12 +306,12 @@ namespace metin2::game::inline items {
                             dragon_soul_names_[i], ast_grade_name[j]);
                         return false;
                     }
-                    if (DRAGON_SOUL_GRADE_MAX != vec_probs.size()) {
+                    if (DRAGON_SOUL_GRADE_MAX != probs.size()) {
                         metin2::log::error("RefineGradeTables: probability list must have {:d} entries", DRAGON_SOUL_GRADE_MAX);
                         return false;
                     }
-                    for (size_t k = 0; k < vec_probs.size(); k++) {
-                        if (vec_probs[k] < 0.f) {
+                    for (size_t k = 0; k < probs.size(); k++) {
+                        if (probs[k] < 0.f) {
                             metin2::log::error("RefineGradeTables: probability {:d} is negative", k);
                             return false;
                         }
@@ -331,8 +331,8 @@ namespace metin2::game::inline items {
             for (size_t i = 0; i < dragon_soul_types_.size(); i++) {
                 for (int j = 0; j < DRAGON_SOUL_STEP_MAX - 1; j++) {
                     int need_count, fee;
-                    std::vector<float> vec_probs;
-                    if (!refine_step_values(dragon_soul_types_[i], j, need_count, fee, vec_probs)) {
+                    std::vector<float> probs;
+                    if (!refine_step_values(dragon_soul_types_[i], j, need_count, fee, probs)) {
                         metin2::log::error("RefineStepTables: group {} has an invalid row for step {}",
                             dragon_soul_names_[i], ast_step_name[j]);
                         return false;
@@ -347,13 +347,13 @@ namespace metin2::game::inline items {
                             dragon_soul_names_[i], ast_step_name[j]);
                         return false;
                     }
-                    if (DRAGON_SOUL_GRADE_MAX != vec_probs.size()) {
+                    if (DRAGON_SOUL_GRADE_MAX != probs.size()) {
                         metin2::log::error("RefineStepTables: group {} probability list must have {:d} entries",
                             dragon_soul_names_[i], DRAGON_SOUL_GRADE_MAX);
                         return false;
                     }
-                    for (size_t k = 0; k < vec_probs.size(); k++) {
-                        if (vec_probs[k] < 0.f) {
+                    for (size_t k = 0; k < probs.size(); k++) {
+                        if (probs[k] < 0.f) {
                             metin2::log::error("RefineStepTables: group {} has negative probability {:d}",
                                 dragon_soul_names_[i], k);
                             return false;
@@ -406,28 +406,28 @@ namespace metin2::game::inline items {
         }
         for (size_t i = 0; i < dragon_soul_types_.size(); i++) {
             for (int j = 0; j < DRAGON_SOUL_GRADE_MAX; j++) {
-                std::vector<float> vec_chargings;
-                std::vector<float> vec_probs;
+                std::vector<float> chargings;
+                std::vector<float> probs;
 
-                if (!dragon_heart_ext_values(dragon_soul_types_[i], j, vec_chargings, vec_probs)) {
+                if (!dragon_heart_ext_values(dragon_soul_types_[i], j, chargings, probs)) {
                     metin2::log::error("DragonHeartExtTables: group {} has an invalid CHARGING row or row for grade {}",
                         dragon_soul_names_[i], ast_grade_name[j]);
                     return false;
                 }
-                if (vec_chargings.size() != vec_probs.size()) {
+                if (chargings.size() != probs.size()) {
                     metin2::log::error("DragonHeartExtTables: group {} has {:d} CHARGING values but {:d} probabilities",
-                        dragon_soul_names_[i], vec_chargings.size(), vec_probs.size());
+                        dragon_soul_names_[i], chargings.size(), probs.size());
                     return false;
                 }
-                for (size_t k = 0; k < vec_chargings.size(); k++) {
-                    if (vec_chargings[k] < 0.f) {
+                for (size_t k = 0; k < chargings.size(); k++) {
+                    if (chargings[k] < 0.f) {
                         metin2::log::error("DragonHeartExtTables: group {} has negative CHARGING value {:d}",
                             dragon_soul_names_[i], k);
                         return false;
                     }
                 }
-                for (size_t k = 0; k < vec_probs.size(); k++) {
-                    if (vec_probs[k] < 0.f) {
+                for (size_t k = 0; k < probs.size(); k++) {
+                    if (probs[k] < 0.f) {
                         metin2::log::error("DragonHeartExtTables: group {} has negative probability for grade {}, index {:d}",
                             dragon_soul_names_[i], ast_grade_name[j], k);
                         return false;
@@ -447,8 +447,8 @@ namespace metin2::game::inline items {
         for (size_t i = 0; i < dragon_soul_types_.size(); i++) {
             for (int j = 0; j < DRAGON_SOUL_GRADE_MAX; j++) {
                 float prob;
-                uint32_t by_product;
-                if (!dragon_soul_ext_values(dragon_soul_types_[i], j, prob, by_product)) {
+                uint32_t product_value;
+                if (!dragon_soul_ext_values(dragon_soul_types_[i], j, prob, product_value)) {
                     metin2::log::error("DragonSoulExtTables: group {} has an invalid row for grade {}",
                         dragon_soul_names_[i], ast_grade_name[j]);
                     return false;
@@ -458,9 +458,9 @@ namespace metin2::game::inline items {
                         dragon_soul_names_[i], ast_grade_name[j]);
                     return false;
                 }
-                if (0 != by_product && nullptr == get_item_manager().table(by_product)) {
+                if (0 != product_value && nullptr == get_item_manager().table(product_value)) {
                     metin2::log::error("DragonSoulExtTables: group {} has unknown by-product {:d} for grade {}",
-                        dragon_soul_names_[i], by_product, ast_grade_name[j]);
+                        dragon_soul_names_[i], product_value, ast_grade_name[j]);
                     return false;
                 }
             }
@@ -468,21 +468,21 @@ namespace metin2::game::inline items {
         return true;
     }
 
-    auto dragon_soul_table::basic_applys(uint8_t ds_type, vec_applys &vec_basic_applys) -> bool {
-        auto it = map_basic_applys_group_.find(ds_type);
-        if (map_basic_applys_group_.end() == it) {
+    auto dragon_soul_table::basic_applys(uint8_t ds_type, vec_applys &basic_applys) -> bool {
+        auto it = basic_applys_groups_.find(ds_type);
+        if (basic_applys_groups_.end() == it) {
             return false;
         }
-        vec_basic_applys = it->second;
+        basic_applys = it->second;
         return true;
     }
 
-    auto dragon_soul_table::additional_applys(uint8_t ds_type, vec_applys &vec_additional_applys) -> bool {
-        auto it = map_additional_applys_group_.find(ds_type);
-        if (map_additional_applys_group_.end() == it) {
+    auto dragon_soul_table::additional_applys(uint8_t ds_type, vec_applys &additional_applys) -> bool {
+        auto it = additional_applys_groups_.find(ds_type);
+        if (additional_applys_groups_.end() == it) {
             return false;
         }
-        vec_additional_applys = it->second;
+        additional_applys = it->second;
         return true;
     }
 
@@ -548,7 +548,7 @@ namespace metin2::game::inline items {
         return false;
     }
 
-    auto dragon_soul_table::refine_grade_values(uint8_t ds_type, uint8_t grade_idx, int &need_count, int &fee, std::vector<float> &vec_probs) -> bool {
+    auto dragon_soul_table::refine_grade_values(uint8_t ds_type, uint8_t grade_idx, int &need_count, int &fee, std::vector<float> &probs) -> bool {
         if (grade_idx >= DRAGON_SOUL_GRADE_MAX - 1) {
             metin2::log::error("Dragon soul grade index {:d} is out of range", grade_idx);
             return false;
@@ -577,9 +577,9 @@ namespace metin2::game::inline items {
             return false;
         }
 
-        vec_probs.resize(DRAGON_SOUL_GRADE_MAX);
+        probs.resize(DRAGON_SOUL_GRADE_MAX);
         for (int i = 0; i < DRAGON_SOUL_GRADE_MAX; i++) {
-            if (!row_value->value(ast_grade_name[i], vec_probs[i])) {
+            if (!row_value->value(ast_grade_name[i], probs[i])) {
                 metin2::log::error("Invalid value for dragon soul group {}, grade {}, column {}", dragon_soul_name, ast_grade_name[grade_idx], ast_grade_name[i]);
                 return false;
             }
@@ -588,7 +588,7 @@ namespace metin2::game::inline items {
         return true;
     }
 
-    auto dragon_soul_table::refine_step_values(uint8_t ds_type, uint8_t step_idx, int &need_count, int &fee, std::vector<float> &vec_probs) -> bool {
+    auto dragon_soul_table::refine_step_values(uint8_t ds_type, uint8_t step_idx, int &need_count, int &fee, std::vector<float> &probs) -> bool {
         if (step_idx >= DRAGON_SOUL_STEP_MAX - 1) {
             metin2::log::error("Dragon soul step index {:d} is out of range", step_idx);
             return false;
@@ -617,9 +617,9 @@ namespace metin2::game::inline items {
             return false;
         }
 
-        vec_probs.resize(DRAGON_SOUL_STEP_MAX);
+        probs.resize(DRAGON_SOUL_STEP_MAX);
         for (int i = 0; i < DRAGON_SOUL_STEP_MAX; i++) {
-            if (!row_value->value(ast_step_name[i], vec_probs[i])) {
+            if (!row_value->value(ast_step_name[i], probs[i])) {
                 metin2::log::error("Invalid value for dragon soul group {}, step {}, column {}", dragon_soul_name, ast_step_name[step_idx], ast_step_name[i]);
                 return false;
             }
@@ -657,7 +657,7 @@ namespace metin2::game::inline items {
         return true;
     }
 
-    auto dragon_soul_table::dragon_heart_ext_values(uint8_t ds_type, uint8_t grade_idx, std::vector<float> &vec_chargings, std::vector<float> &vec_probs) -> bool {
+    auto dragon_soul_table::dragon_heart_ext_values(uint8_t ds_type, uint8_t grade_idx, std::vector<float> &chargings, std::vector<float> &probs) -> bool {
         if (grade_idx >= DRAGON_SOUL_GRADE_MAX) {
             metin2::log::error("Dragon soul grade index {:d} is out of range", grade_idx);
             return false;
@@ -675,9 +675,9 @@ namespace metin2::game::inline items {
             return false;
         }
         int n = row_value->size();
-        vec_chargings.resize(n);
+        chargings.resize(n);
         for (int i = 0; i < n; i++) {
-            if (!row_value->value(i, vec_chargings[i])) {
+            if (!row_value->value(i, chargings[i])) {
                 metin2::log::error("Invalid CHARGING value for dragon soul group {}, column {:d}", dragon_soul_name, i);
                 return false;
             }
@@ -694,9 +694,9 @@ namespace metin2::game::inline items {
                 dragon_soul_name, ast_grade_name[grade_idx]);
             return false;
         }
-        vec_probs.resize(m);
+        probs.resize(m);
         for (int i = 0; i < m; i++) {
-            if (!row_value->value(i, vec_probs[i])) {
+            if (!row_value->value(i, probs[i])) {
                 metin2::log::error("Invalid value for dragon soul group {}, grade {}, column {:d}", dragon_soul_name, ast_grade_name[grade_idx], i);
                 return false;
             }
@@ -705,7 +705,7 @@ namespace metin2::game::inline items {
         return true;
     }
 
-    auto dragon_soul_table::dragon_soul_ext_values(uint8_t ds_type, uint8_t grade_idx, float &prob, uint32_t &by_product) -> bool {
+    auto dragon_soul_table::dragon_soul_ext_values(uint8_t ds_type, uint8_t grade_idx, float &prob, uint32_t &product) -> bool {
         if (grade_idx >= DRAGON_SOUL_GRADE_MAX) {
             metin2::log::error("Dragon soul grade index {:d} is out of range", grade_idx);
             return false;
@@ -724,7 +724,7 @@ namespace metin2::game::inline items {
             return false;
         }
 
-        if (!dragon_soul_ext_table_node_->group_value(dragon_soul_name, ast_grade_name[grade_idx], "byproduct", by_product)) {
+        if (!dragon_soul_ext_table_node_->group_value(dragon_soul_name, ast_grade_name[grade_idx], "byproduct", product)) {
             metin2::log::error("Invalid fee for dragon soul group {}, grade {} (index {:d})",
                 dragon_soul_name, ast_grade_name[grade_idx], grade_idx);
             return false;

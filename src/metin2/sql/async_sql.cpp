@@ -193,7 +193,7 @@ namespace metin2::sql {
     void async_sql::push_query(std::unique_ptr<sql_msg> msg) {
         {
             std::lock_guard lock(mtx_query_);
-            queue_query_.push_back(std::move(msg));
+            queries_.push_back(std::move(msg));
         }
         cv_query_.notify_one();
     }
@@ -201,12 +201,12 @@ namespace metin2::sql {
     auto async_sql::pop_result() -> std::unique_ptr<sql_msg> {
         std::lock_guard lock(mtx_result_);
 
-        if (queue_result_.empty()) {
+        if (results_.empty()) {
             return nullptr;
         }
 
-        auto msg = std::move(queue_result_.front());
-        queue_result_.pop_front();
+        auto msg = std::move(results_.front());
+        results_.pop_front();
         return msg;
     }
 
@@ -236,7 +236,7 @@ namespace metin2::sql {
         if (msg->on_result) {
             msg->store(&db_);
             std::lock_guard lock(mtx_result_);
-            queue_result_.push_back(std::move(msg));
+            results_.push_back(std::move(msg));
         }
 
         ++query_finished_;
@@ -248,14 +248,14 @@ namespace metin2::sql {
         while (true) {
             {
                 std::unique_lock lock(mtx_query_);
-                cv_query_.wait(lock, stop, [this]() -> bool { return !queue_query_.empty(); });
+                cv_query_.wait(lock, stop, [this]() -> bool { return !queries_.empty(); });
 
-                if (queue_query_.empty()) {
+                if (queries_.empty()) {
                     break;
                 }
 
-                copied_query_ += static_cast<int>(queue_query_.size());
-                batch.swap(queue_query_);
+                copied_query_ += static_cast<int>(queries_.size());
+                batch.swap(queries_);
             }
 
             while (!batch.empty()) {
@@ -287,12 +287,12 @@ namespace metin2::sql {
 
         {
             std::lock_guard lock(mtx_query_);
-            result.queued = queue_query_.size();
+            result.queued = queries_.size();
         }
 
         {
             std::lock_guard lock(mtx_result_);
-            result.results = queue_result_.size();
+            result.results = results_.size();
         }
 
         return result;

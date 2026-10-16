@@ -61,11 +61,11 @@ namespace metin2::game::inline characters {
     mob_manager::~mob_manager() = default;
 
     auto mob_manager::initialize(mob_table *table_value, int size) -> bool {
-        for (auto &[vnum, retired] : map_mob_by_vnum_)
+        for (auto &[vnum, retired] : mobs_by_vnum_)
             retired_mobs_.push_back(std::move(retired));
 
-        map_mob_by_vnum_.clear();
-        map_mob_by_name_.clear();
+        mobs_by_vnum_.clear();
+        mobs_by_name_.clear();
 
         mob_table *t = table_value;
 
@@ -75,10 +75,10 @@ namespace metin2::game::inline characters {
 
             std::memcpy(&mob_value->table, t, sizeof(mob_table));
 
-            if (!map_mob_by_vnum_.try_emplace(t->vnum, std::move(mob_owner)).second)
+            if (!mobs_by_vnum_.try_emplace(t->vnum, std::move(mob_owner)).second)
                 retired_mobs_.push_back(std::move(mob_owner));
 
-            map_mob_by_name_.insert(std::map<std::string, mob *>::value_type(t->locale_name, mob_value));
+            mobs_by_name_.insert(std::map<std::string, mob *>::value_type(t->locale_name, mob_value));
 
             int skill_count = 0;
 
@@ -122,9 +122,9 @@ namespace metin2::game::inline characters {
     }
 
     auto mob_manager::get(uint32_t vnum) -> const mob * {
-        auto it = map_mob_by_vnum_.find(vnum);
+        auto it = mobs_by_vnum_.find(vnum);
 
-        if (it == map_mob_by_vnum_.end())
+        if (it == mobs_by_vnum_.end())
             return nullptr;
 
         return it->second.get();
@@ -134,18 +134,18 @@ namespace metin2::game::inline characters {
         std::map<std::string, mob *>::iterator it;
 
         if (!is_abbrev) {
-            it = map_mob_by_name_.find(name);
+            it = mobs_by_name_.find(name);
 
-            if (it == map_mob_by_name_.end())
+            if (it == mobs_by_name_.end())
                 return nullptr;
 
             return it->second;
         }
 
         int len = strlen(name);
-        it = map_mob_by_name_.begin();
+        it = mobs_by_name_.begin();
 
-        while (it != map_mob_by_name_.end()) {
+        while (it != mobs_by_name_.end()) {
             if (!strncmp(it->first.c_str(), name, len))
                 return it->second;
 
@@ -166,29 +166,29 @@ namespace metin2::game::inline characters {
                 mob_group *group = get_mob_manager().group(vnum);
                 if (!group)
                     return;
-                const std::vector<uint32_t> &c_rdw_members = group->member_vector();
+                const std::vector<uint32_t> &members = group->member_vector();
 
-                for (uint32_t i = 0; i < c_rdw_members.size(); i++)
-                    regen_count_[c_rdw_members[i]] += count * 86400. / time;
+                for (uint32_t i = 0; i < members.size(); i++)
+                    regen_count_[members[i]] += count * 86400. / time;
             }
             break;
 
         case REGEN_TYPE_GROUP_GROUP:
             {
-                auto it = map_mob_group_group_.find(vnum);
+                auto it = mob_group_groups_.find(vnum);
 
-                if (it == map_mob_group_group_.end())
+                if (it == mob_group_groups_.end())
                     return;
 
-                std::vector<uint32_t> &v = it->second->vec_member_vnum;
+                std::vector<uint32_t> &v = it->second->member_vnums;
                 for (uint32_t i = 0; i < v.size(); i++) {
                     mob_group *group = get_mob_manager().group(v[i]);
                     if (!group)
                         return;
-                    const std::vector<uint32_t> &c_rdw_members = group->member_vector();
+                    const std::vector<uint32_t> &members = group->member_vector();
 
-                    for (uint32_t i = 0; i < c_rdw_members.size(); i++)
-                        regen_count_[c_rdw_members[i]] += count * 86400. / time / v.size();
+                    for (uint32_t i = 0; i < members.size(); i++)
+                        regen_count_[members[i]] += count * 86400. / time / v.size();
                 }
             }
             break;
@@ -212,18 +212,18 @@ namespace metin2::game::inline characters {
     }
 
     auto mob_manager::group_from_group_group(uint32_t vnum) -> uint32_t {
-        auto it = map_mob_group_group_.find(vnum);
+        auto it = mob_group_groups_.find(vnum);
 
-        if (it == map_mob_group_group_.end())
+        if (it == mob_group_groups_.end())
             return 0;
 
         return it->second->member();
     }
 
     auto mob_manager::group(uint32_t vnum) -> mob_group * {
-        auto it = map_mob_group_.find(vnum);
+        auto it = mob_groups_.find(vnum);
 
-        if (it == map_mob_group_.end())
+        if (it == mob_groups_.end())
             return nullptr;
 
         return it->second.get();
@@ -274,7 +274,7 @@ namespace metin2::game::inline characters {
 
             loader.set_parent_node();
 
-            map_mob_group_group_.try_emplace((uint32_t)vnum_value, std::move(group));
+            mob_group_groups_.try_emplace((uint32_t)vnum_value, std::move(group));
         }
 
         return true;
@@ -338,7 +338,7 @@ namespace metin2::game::inline characters {
             }
 
             loader.set_parent_node();
-            map_mob_group_.try_emplace(vnum_value, std::move(group_value));
+            mob_groups_.try_emplace(vnum_value, std::move(group_value));
         }
 
         return true;

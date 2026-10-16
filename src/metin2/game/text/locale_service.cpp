@@ -83,9 +83,9 @@ namespace metin2::game::inline text {
         }
     }
 
-    auto locale_service_init(const std::string &rst_service_name) -> bool {
-        if (rst_service_name != "english") {
-            metin2::log::error("Unsupported locale {} (only english)", rst_service_name);
+    auto locale_service_init(const std::string &service_name) -> bool {
+        if (service_name != "english") {
+            metin2::log::error("Unsupported locale {} (only english)", service_name);
             return false;
         }
 
@@ -93,7 +93,7 @@ namespace metin2::game::inline text {
         quest_object_dir.clear();
         quest_object_dir.insert(quest_dir + "/object");
 
-        fprintf(stdout, "Setting Locale \"%s\" (Path: %s)\n", rst_service_name.c_str(), service_base_path.c_str());
+        fprintf(stdout, "Setting Locale \"%s\" (Path: %s)\n", service_name.c_str(), service_base_path.c_str());
         return true;
     }
 

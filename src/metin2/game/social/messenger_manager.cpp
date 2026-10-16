@@ -48,13 +48,13 @@ namespace metin2::game::inline social {
     }
 
     void messenger_manager::login(messenger_manager::key_a account) {
-        if (set_login_account_.find(account) != set_login_account_.end())
+        if (login_accounts_.find(account) != login_accounts_.end())
             return;
 
         get_db_manager().func_query([this](sql_msg &msg) { load_list(msg); },
             sql::format("SELECT account, companion FROM messenger_list WHERE account={}", account));
 
-        set_login_account_.insert(account);
+        login_accounts_.insert(account);
     }
 
     void messenger_manager::load_list(sql_msg &msg) {
@@ -87,10 +87,10 @@ namespace metin2::game::inline social {
     }
 
     void messenger_manager::logout(messenger_manager::key_a account) {
-        if (set_login_account_.find(account) == set_login_account_.end())
+        if (login_accounts_.find(account) == login_accounts_.end())
             return;
 
-        set_login_account_.erase(account);
+        login_accounts_.erase(account);
 
         std::set<messenger_manager::key_t>::iterator it;
 
@@ -126,7 +126,7 @@ namespace metin2::game::inline social {
         const std::string buf = std::format("{}:{}", dw1, dw2);
         uint32_t complex = get_cr_c32(buf.c_str(), buf.size());
 
-        set_request_to_add_.insert(complex);
+        request_to_add_.insert(complex);
 
         target->chat_packet(CHAT_TYPE_COMMAND, "messenger_auth %s", ch->name());
     }
@@ -138,12 +138,12 @@ namespace metin2::game::inline social {
         const std::string buf = std::format("{}:{}", dw1, dw2);
         uint32_t complex = get_cr_c32(buf.c_str(), buf.size());
 
-        if (set_request_to_add_.find(complex) == set_request_to_add_.end()) {
+        if (request_to_add_.find(complex) == request_to_add_.end()) {
             metin2::log::warn("Messenger: no pending friend request between {} and {}", companion, account);
             return false;
         }
 
-        set_request_to_add_.erase(complex);
+        request_to_add_.erase(complex);
 
         if (!deny) {
             add_to_list(companion, account);
@@ -277,7 +277,7 @@ namespace metin2::game::inline social {
         auto it = relation_[account].begin(), eit = relation_[account].end();
 
         while (it != eit) {
-            if (set_login_account_.find(*it) != set_login_account_.end()) {
+            if (login_accounts_.find(*it) != login_accounts_.end()) {
                 pack_online.connected = 1;
 
                 pack_online.length = it->size();

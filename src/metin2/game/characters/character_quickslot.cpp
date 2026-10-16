@@ -33,11 +33,11 @@ namespace metin2::game::inline characters {
         }
     }
 
-    auto character::get_quickslot(uint8_t pos, quickslot **pp_slot) -> bool {
+    auto character::get_quickslot(uint8_t pos, quickslot **slot) -> bool {
         if (pos >= QUICKSLOT_MAX_NUM)
             return false;
 
-        *pp_slot = &quickslot_[pos];
+        *slot = &quickslot_[pos];
         return true;
     }
 

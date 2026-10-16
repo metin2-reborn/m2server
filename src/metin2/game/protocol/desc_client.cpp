@@ -145,10 +145,10 @@ namespace metin2::game::inline protocol {
                     p.auth_server = false;
                     map_allow_copy(p.maps, MAX_MAPS_PER_SERVER);
 
-                    const desc_manager::desc_set &c_set = get_desc_manager().client_set();
+                    const desc_manager::desc_set &descs = get_desc_manager().client_set();
                     desc_manager::desc_set::const_iterator it;
 
-                    for (it = c_set.begin(); it != c_set.end(); ++it) {
+                    for (it = descs.begin(); it != descs.end(); ++it) {
                         desc *d = *it;
 
                         if (d->get_account_table().id != 0)
@@ -160,7 +160,7 @@ namespace metin2::game::inline protocol {
                     if (p.login_count) {
                         packet_login_on_setup pck;
 
-                        for (it = c_set.begin(); it != c_set.end(); ++it) {
+                        for (it = descs.begin(); it != descs.end(); ++it) {
                             desc *d = *it;
 
                             account_table &r = d->get_account_table();

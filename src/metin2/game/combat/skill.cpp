@@ -93,7 +93,7 @@ namespace metin2::game::inline combat {
     }
 
     auto skill_manager::initialize(skill_table *tab, int size) -> bool {
-        std::map<uint32_t, std::unique_ptr<skill_proto>> map_pk_skill_proto;
+        std::map<uint32_t, std::unique_ptr<skill_proto>> skill_protos;
 
         skill_table *t = tab;
         bool error_value = false;
@@ -197,14 +197,14 @@ namespace metin2::game::inline combat {
             metin2::log::debug("Skill {:d} {}: type {:d} flag {:d} affect {:d} point poly {}",
                 proto->vnum, proto->name, proto->type, proto->flag, proto->affect_flag, t->point_poly);
 
-            map_pk_skill_proto.emplace(proto->vnum, std::move(proto));
+            skill_protos.emplace(proto->vnum, std::move(proto));
         }
 
         if (!error_value) {
-            map_skill_proto_.clear();
+            skill_protos_.clear();
 
-            for (auto &[vnum, proto] : map_pk_skill_proto)
-                map_skill_proto_.emplace(vnum, std::move(proto));
+            for (auto &[vnum, proto] : skill_protos)
+                skill_protos_.emplace(vnum, std::move(proto));
 
             send_log("Skill Prototype reloaded!");
         } else
@@ -214,16 +214,16 @@ namespace metin2::game::inline combat {
     }
 
     auto skill_manager::get(uint32_t vnum) -> skill_proto * {
-        auto it = map_skill_proto_.find(vnum);
+        auto it = skill_protos_.find(vnum);
 
-        if (it == map_skill_proto_.end())
+        if (it == skill_protos_.end())
             return nullptr;
 
         return it->second.get();
     }
 
     auto skill_manager::get(const char *skill_name) -> skill_proto * {
-        const auto it = std::ranges::find_if(map_skill_proto_, [&](const auto &entry) { return iequals(entry.second->name, skill_name); });
-        return it == map_skill_proto_.end() ? nullptr : it->second.get();
+        const auto it = std::ranges::find_if(skill_protos_, [&](const auto &entry) { return iequals(entry.second->name, skill_name); });
+        return it == skill_protos_.end() ? nullptr : it->second.get();
     }
 }

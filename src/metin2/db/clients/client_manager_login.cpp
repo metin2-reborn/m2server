@@ -30,8 +30,8 @@ namespace metin2::db::inline clients {
         char login_value[LOGIN_MAX_LEN + 1];
         trim_and_lower(login, login_value);
 
-        auto it = map_logon_account_.find(login_value);
-        if (map_logon_account_.end() != it) {
+        auto it = logon_accounts_.find(login_value);
+        if (logon_accounts_.end() != it) {
             return false;
         }
 
@@ -42,7 +42,7 @@ namespace metin2::db::inline clients {
 
         ld->set_connected_peer_handle(handle);
 
-        map_logon_account_.insert(logon_account_map::value_type(login_value, ld));
+        logon_accounts_.insert(logon_account_map::value_type(login_value, ld));
         return true;
     }
 
@@ -50,8 +50,8 @@ namespace metin2::db::inline clients {
         char login_value[LOGIN_MAX_LEN + 1];
         trim_and_lower(login, login_value);
 
-        auto it = map_logon_account_.find(login_value);
-        if (it == map_logon_account_.end()) {
+        auto it = logon_accounts_.find(login_value);
+        if (it == logon_accounts_.end()) {
             return false;
         }
 
@@ -67,7 +67,7 @@ namespace metin2::db::inline clients {
             delete ld;
         }
 
-        map_logon_account_.erase(it);
+        logon_accounts_.erase(it);
         return true;
     }
 
@@ -75,7 +75,7 @@ namespace metin2::db::inline clients {
         char login_value[LOGIN_MAX_LEN + 1];
         trim_and_lower(login, login_value);
 
-        if (map_logon_account_.end() == map_logon_account_.find(login_value)) {
+        if (logon_accounts_.end() == logon_accounts_.find(login_value)) {
             return false;
         }
 

@@ -200,19 +200,19 @@ namespace metin2::game {
 
             while (it_vec != it->second.end()) {
                 a_arg_script &arg_script = *(it_vec++);
-                const char *c_psz_arg = arg_script.arg.c_str();
+                const char *arg_value = arg_script.arg.c_str();
 
-                metin2::log::debug("Quest target: compare with {} (length {:d})", c_psz_arg, arg_script.arg.length());
+                metin2::log::debug("Quest target: compare with {} (length {:d})", arg_value, arg_script.arg.length());
 
-                if (strncmp(c_psz_arg, target_name, target_len))
+                if (strncmp(arg_value, target_name, target_len))
                     continue;
 
-                const char *c_psz_arg_verb = strchr(c_psz_arg, '.');
+                const char *arg_verb = strchr(arg_value, '.');
 
-                if (!c_psz_arg_verb)
+                if (!arg_verb)
                     continue;
 
-                if (strcmp(++c_psz_arg_verb, verb))
+                if (strcmp(++arg_verb, verb))
                     continue;
 
                 if (arg_script.when_condition.size() > 0)

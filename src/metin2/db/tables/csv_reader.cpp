@@ -19,7 +19,7 @@ namespace metin2::db::inline tables {
         }
     }
 
-    auto c_csv_table::load(const char *file_name, char separator, char quote) -> bool {
+    auto csv_table::load(const char *file_name, char separator, char quote) -> bool {
         assert(separator != quote);
 
         rows_.clear();
@@ -73,11 +73,11 @@ namespace metin2::db::inline tables {
         return true;
     }
 
-    auto c_csv_table::next() -> bool {
+    auto csv_table::next() -> bool {
         return ++cur_row_ < static_cast<int>(rows_.size());
     }
 
-    auto c_csv_table::as_string_by_index(size_t index) const -> const char * {
+    auto csv_table::as_string_by_index(size_t index) const -> const char * {
         assert(cur_row_ >= 0 && "call next() first!");
         assert(cur_row_ < static_cast<int>(rows_.size()) && "no more rows!");
         const auto &row = rows_[cur_row_];

@@ -28,11 +28,11 @@ namespace metin2::game::inline events {
 
     class ox_event_manager {
       private:
-        std::map<uint32_t, uint32_t> map_char_;
-        std::map<uint32_t, uint32_t> map_attender_;
-        std::map<uint32_t, uint32_t> map_miss_;
+        std::map<uint32_t, uint32_t> chars_;
+        std::map<uint32_t, uint32_t> attenders_;
+        std::map<uint32_t, uint32_t> misses_;
 
-        std::vector<std::vector<tag_quiz>> vec_quiz_;
+        std::vector<std::vector<tag_quiz>> quizzes_;
 
         event_ptr timed_event_;
 
@@ -65,7 +65,7 @@ namespace metin2::game::inline events {
 
         auto log_winner() -> bool;
 
-        auto attender_count() -> uint32_t { return map_attender_.size(); }
+        auto attender_count() -> uint32_t { return attenders_.size(); }
     };
 
     inline auto get_ox_event_manager() -> ox_event_manager & {

@@ -44,7 +44,7 @@ namespace metin2::game::inline guilds {
         auto mark_count() const -> uint32_t;
         auto mark_id(uint32_t guild_id) -> uint32_t;
 
-        void copy_mark_idx(char *pc_buf) const;
+        void copy_mark_idx(char *buf) const;
         auto save_mark(uint32_t guild_id, uint8_t *mark_image) -> uint32_t;
         void delete_mark(uint32_t guild_id);
         void diff_blocks(uint32_t img_idx, const uint32_t *crc_list, std::map<uint8_t, const guild_mark_block *> &diff_blocks_value);

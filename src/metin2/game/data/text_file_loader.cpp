@@ -217,7 +217,7 @@ namespace metin2::game::inline data {
         return true;
     }
 
-    auto text_file_loader::get_token_vector(const std::string &rstr_key, token_vector **pp_token_vector) -> bool {
+    auto text_file_loader::get_token_vector(const std::string &rstr_key, token_vector **token_vector_value) -> bool {
         if (!pcur_node_) {
             assert(!"Node to access has not set!");
             return false;
@@ -229,7 +229,7 @@ namespace metin2::game::inline data {
             return false;
         }
 
-        *pp_token_vector = &it->second;
+        *token_vector_value = &it->second;
 
         return true;
     }

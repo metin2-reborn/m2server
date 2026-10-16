@@ -101,7 +101,7 @@ namespace metin2::game::inline characters {
         auto get_motion(uint32_t key) const -> const motion *;
 
       protected:
-        container map_motion_;
+        container motions_;
     };
 
     class motion_manager {
@@ -121,9 +121,9 @@ namespace metin2::game::inline characters {
         auto normal_attack_duration(uint32_t vnum) -> float;
 
       protected:
-        container map_motion_set_;
+        container motion_sets_;
 
-        std::map<uint32_t, float> map_normal_attack_duration_;
+        std::map<uint32_t, float> normal_attack_durations_;
     };
 
     inline auto get_motion_manager() -> motion_manager & {

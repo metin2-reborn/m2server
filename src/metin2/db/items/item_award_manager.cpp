@@ -40,7 +40,7 @@ namespace metin2::db::inline items {
             uint32_t id = 0;
             str_to_number(id, row[col++]);
 
-            if (map_award_.find(id) != map_award_.end())
+            if (awards_.find(id) != awards_.end())
                 continue;
 
             auto owned = std::make_unique<item_award>();
@@ -60,10 +60,10 @@ namespace metin2::db::inline items {
                 get_client_manager().inform_gift_award(data->login, data->why, data->vnum);
             }
 
-            map_award_.emplace(id, std::move(owned));
+            awards_.emplace(id, std::move(owned));
 
             metin2::log::debug("Item award: loaded award {:d} for account {}, vnum {:d}, count {:d}, socket {:d}", data->id, data->login, data->vnum, data->count, data->socket0);
-            std::set<item_award *> &set = map_set_award_by_login_[data->login];
+            std::set<item_award *> &set = set_awards_by_login_[data->login];
             set.insert(data);
 
             if (id > last_cached_item_award_id)
@@ -72,18 +72,18 @@ namespace metin2::db::inline items {
     }
 
     auto item_award_manager::by_login(const char *login) -> std::set<item_award *> * {
-        auto it = map_set_award_by_login_.find(login);
+        auto it = set_awards_by_login_.find(login);
 
-        if (it == map_set_award_by_login_.end())
+        if (it == set_awards_by_login_.end())
             return nullptr;
 
         return &it->second;
     }
 
     void item_award_manager::taken(uint32_t award_id, uint32_t item_id) {
-        auto it = map_award_.find(award_id);
+        auto it = awards_.find(award_id);
 
-        if (it == map_award_.end()) {
+        if (it == awards_.end()) {
             metin2::log::warn("Item award: award {:d} taken but not found", award_id);
             return;
         }
@@ -99,13 +99,13 @@ namespace metin2::db::inline items {
     }
 
     auto item_award_manager::remove(uint32_t award_id) -> bool {
-        auto it = map_award_.find(award_id);
-        if (it == map_award_.end())
+        auto it = awards_.find(award_id);
+        if (it == awards_.end())
             return false;
 
-        if (auto set = map_set_award_by_login_.find(it->second->login); set != map_set_award_by_login_.end())
+        if (auto set = set_awards_by_login_.find(it->second->login); set != set_awards_by_login_.end())
             set->second.erase(it->second.get());
-        map_award_.erase(it);
+        awards_.erase(it);
         return true;
     }
 }

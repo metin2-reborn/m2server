@@ -15,37 +15,37 @@ namespace metin2::game::inline data {
         pst_token_vector->clear();
 
         std::string token;
-        const std::string &c_rst_line = line_string(line);
+        const std::string &line_value = line_string(line);
 
         uint32_t base_pos = 0;
 
         do {
-            int begin_pos = c_rst_line.find_first_not_of(delimeter, base_pos);
+            int begin_pos = line_value.find_first_not_of(delimeter, base_pos);
             if (begin_pos < 0)
                 return false;
 
             int end_pos;
 
-            if (c_rst_line[begin_pos] == '#' && c_rst_line.compare(begin_pos, 4, "#--#") != 0) {
+            if (line_value[begin_pos] == '#' && line_value.compare(begin_pos, 4, "#--#") != 0) {
                 return false;
-            } else if (c_rst_line[begin_pos] == '"') {
+            } else if (line_value[begin_pos] == '"') {
                 ++begin_pos;
-                end_pos = c_rst_line.find_first_of("\"", begin_pos);
+                end_pos = line_value.find_first_of("\"", begin_pos);
 
                 if (end_pos < 0)
                     return false;
 
                 base_pos = end_pos + 1;
             } else {
-                end_pos = c_rst_line.find_first_of(delimeter, begin_pos);
+                end_pos = line_value.find_first_of(delimeter, begin_pos);
                 base_pos = end_pos;
             }
 
-            pst_token_vector->push_back(c_rst_line.substr(begin_pos, end_pos - begin_pos));
+            pst_token_vector->push_back(line_value.substr(begin_pos, end_pos - begin_pos));
 
-            if (int(c_rst_line.find_first_not_of(delimeter, base_pos)) < 0)
+            if (int(line_value.find_first_not_of(delimeter, base_pos)) < 0)
                 break;
-        } while (base_pos < c_rst_line.length());
+        } while (base_pos < line_value.length());
 
         return true;
     }
@@ -69,16 +69,16 @@ namespace metin2::game::inline data {
     void memory_text_file_loader::bind(int buf_size, const void *buf) {
         line_vector_.clear();
 
-        const char *c_pc_buf = (const char *)buf;
+        const char *buf_value = (const char *)buf;
         std::string line;
         int pos = 0;
 
         while (pos < buf_size) {
-            const char c = c_pc_buf[pos++];
+            const char c = buf_value[pos++];
 
             if ('\n' == c || '\r' == c) {
                 if (pos < buf_size)
-                    if ('\n' == c_pc_buf[pos] || '\r' == c_pc_buf[pos])
+                    if ('\n' == buf_value[pos] || '\r' == buf_value[pos])
                         ++pos;
 
                 line_vector_.push_back(line);

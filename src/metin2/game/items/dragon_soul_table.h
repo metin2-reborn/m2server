@@ -32,16 +32,16 @@ namespace metin2::game::inline items {
         auto read_dragon_soul_table_file(const char *file_name) -> bool;
         auto dragon_soul_group_name(uint8_t type, std::string &group_name) const -> bool;
 
-        auto basic_applys(uint8_t ds_type, vec_applys &vec_basic_applys) -> bool;
-        auto additional_applys(uint8_t ds_type, vec_applys &vec_additional_applys) -> bool;
+        auto basic_applys(uint8_t ds_type, vec_applys &basic_applys) -> bool;
+        auto additional_applys(uint8_t ds_type, vec_applys &additional_applys) -> bool;
 
         auto apply_num_settings(uint8_t ds_type, uint8_t grade_idx, int &basis, int &add_min, int &add_max) -> bool;
         auto weight(uint8_t ds_type, uint8_t grade_idx, uint8_t step_index, uint8_t strength_idx, float &weight) -> bool;
-        auto refine_grade_values(uint8_t ds_type, uint8_t grade_idx, int &need_count, int &fee, std::vector<float> &vec_probs) -> bool;
-        auto refine_step_values(uint8_t ds_type, uint8_t step_idx, int &need_count, int &fee, std::vector<float> &vec_probs) -> bool;
+        auto refine_grade_values(uint8_t ds_type, uint8_t grade_idx, int &need_count, int &fee, std::vector<float> &probs) -> bool;
+        auto refine_step_values(uint8_t ds_type, uint8_t step_idx, int &need_count, int &fee, std::vector<float> &probs) -> bool;
         auto refine_strength_values(uint8_t ds_type, uint8_t material_type, uint8_t strength_idx, int &fee, float &prob) -> bool;
-        auto dragon_heart_ext_values(uint8_t ds_type, uint8_t grade_idx, std::vector<float> &vec_chargings, std::vector<float> &vec_probs) -> bool;
-        auto dragon_soul_ext_values(uint8_t ds_type, uint8_t grade_idx, float &prob, uint32_t &by_product) -> bool;
+        auto dragon_heart_ext_values(uint8_t ds_type, uint8_t grade_idx, std::vector<float> &chargings, std::vector<float> &probs) -> bool;
+        auto dragon_soul_ext_values(uint8_t ds_type, uint8_t grade_idx, float &prob, uint32_t &product) -> bool;
 
       private:
         std::unique_ptr<group_text_parse_tree_loader> loader_;
@@ -60,10 +60,10 @@ namespace metin2::game::inline items {
         std::vector<std::string> dragon_soul_names_;
         std::vector<uint8_t> dragon_soul_types_;
 
-        map_name_to_type map_name_to_type_;
-        map_type_to_name map_type_to_name_;
-        map_apply_group map_basic_applys_group_;
-        map_apply_group map_additional_applys_group_;
+        map_name_to_type name_to_type_;
+        map_type_to_name type_to_name_;
+        map_apply_group basic_applys_groups_;
+        map_apply_group additional_applys_groups_;
 
         auto read_vnum_mapper() -> bool;
         auto read_basic_applys() -> bool;

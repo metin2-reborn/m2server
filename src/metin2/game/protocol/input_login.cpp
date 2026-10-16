@@ -208,19 +208,19 @@ namespace metin2::game::inline protocol {
 
     void input_login::change_name(desc *d, const char *data) {
         auto *p = (packet_cg_change_name *)data;
-        const account_table &c_r = d->get_account_table();
+        const account_table &table = d->get_account_table();
 
-        if (!c_r.id) {
+        if (!table.id) {
             metin2::log::warn("Name change without a logged-in account");
             return;
         }
 
         if (p->index >= PLAYER_PER_ACCOUNT) {
-            metin2::log::warn("Name change: character slot {:d} out of range (account {})", p->index, c_r.login);
+            metin2::log::warn("Name change: character slot {:d} out of range (account {})", p->index, table.login);
             return;
         }
 
-        if (!c_r.players[p->index].change_name)
+        if (!table.players[p->index].change_name)
             return;
 
         char name[sizeof(p->name)];
@@ -236,37 +236,37 @@ namespace metin2::game::inline protocol {
 
         packet_gd_change_name pdb;
 
-        pdb.pid = c_r.players[p->index].id;
+        pdb.pid = table.players[p->index].id;
         strlcpy(pdb.name, name, sizeof(pdb.name));
         db_clientdesc->db_packet(HEADER_GD_CHANGE_NAME, d->handle(), &pdb, sizeof(packet_gd_change_name));
     }
 
     void input_login::character_select(desc *d, const char *data) {
         auto *pinfo = (struct packet_cg_player_select *)data;
-        const account_table &c_r = d->get_account_table();
+        const account_table &table = d->get_account_table();
 
-        metin2::log::info("Character select: account {}, slot {:d}", c_r.login, pinfo->index);
+        metin2::log::info("Character select: account {}, slot {:d}", table.login, pinfo->index);
 
-        if (!c_r.id) {
+        if (!table.id) {
             metin2::log::warn("Character select without a logged-in account");
             return;
         }
 
         if (pinfo->index >= PLAYER_PER_ACCOUNT) {
-            metin2::log::warn("Character select: slot {:d} out of range (account {})", pinfo->index, c_r.login);
+            metin2::log::warn("Character select: slot {:d} out of range (account {})", pinfo->index, table.login);
             return;
         }
 
-        if (c_r.players[pinfo->index].change_name) {
+        if (table.players[pinfo->index].change_name) {
             metin2::log::warn("Character select: slot {:d} of account {} needs a name change first (name {})",
-                pinfo->index, c_r.login, c_r.players[pinfo->index].name);
+                pinfo->index, table.login, table.players[pinfo->index].name);
             return;
         }
 
         player_load_packet player_load_packet;
 
-        player_load_packet.account_id = c_r.id;
-        player_load_packet.player_id = c_r.players[pinfo->index].id;
+        player_load_packet.account_id = table.id;
+        player_load_packet.player_id = table.players[pinfo->index].id;
         player_load_packet.account_index = pinfo->index;
 
         db_clientdesc->db_packet(HEADER_GD_PLAYER_LOAD, d->handle(), &player_load_packet, sizeof(proto::player_load_packet));
@@ -376,15 +376,15 @@ namespace metin2::game::inline protocol {
             pinfo->job,
             pinfo->shape);
 
-        const account_table &c_r_account_table = d->get_account_table();
+        const account_table &account_table_value = d->get_account_table();
 
-        if (!c_r_account_table.id) {
+        if (!account_table_value.id) {
             metin2::log::warn("Character create without a logged-in account");
             return;
         }
 
         if (pinfo->index >= PLAYER_PER_ACCOUNT) {
-            metin2::log::warn("Character create: slot {:d} out of range (account {})", pinfo->index, c_r_account_table.login);
+            metin2::log::warn("Character create: slot {:d} out of range (account {})", pinfo->index, account_table_value.login);
             return;
         }
 
@@ -403,7 +403,7 @@ namespace metin2::game::inline protocol {
             return;
         }
 
-        if (0 == strcmp(c_r_account_table.login, name_value)) {
+        if (0 == strcmp(account_table_value.login, name_value)) {
             packet_gc_create_failure pack;
             pack.header = HEADER_GC_CHARACTER_CREATE_FAILURE;
             pack.type = 1;
@@ -422,10 +422,10 @@ namespace metin2::game::inline protocol {
             return;
         }
 
-        trim_and_lower(c_r_account_table.login, player_create_packet.login);
-        strlcpy(player_create_packet.passwd, c_r_account_table.passwd, sizeof(player_create_packet.passwd));
+        trim_and_lower(account_table_value.login, player_create_packet.login);
+        strlcpy(player_create_packet.passwd, account_table_value.passwd, sizeof(player_create_packet.passwd));
 
-        player_create_packet.account_id = c_r_account_table.id;
+        player_create_packet.account_id = account_table_value.id;
         player_create_packet.account_index = pinfo->index;
 
         metin2::log::debug("Character create request: name {}, slot {:d}, packet size {:d}, gold {:d}",
@@ -439,9 +439,9 @@ namespace metin2::game::inline protocol {
 
     void input_login::character_delete(desc *d, const char *data) {
         auto *pinfo = (struct packet_cg_player_delete *)data;
-        const account_table &c_r_account_table = d->get_account_table();
+        const account_table &account_table_value = d->get_account_table();
 
-        if (!c_r_account_table.id) {
+        if (!account_table_value.id) {
             metin2::log::warn("Character delete without a logged-in account");
             return;
         }
@@ -449,23 +449,23 @@ namespace metin2::game::inline protocol {
         char private_code[sizeof(pinfo->private_code)];
         copy_packet_string(private_code, pinfo->private_code);
 
-        metin2::log::info("Character delete: account {}, slot {:d}, social id {}", c_r_account_table.login, pinfo->index, private_code);
+        metin2::log::info("Character delete: account {}, slot {:d}, social id {}", account_table_value.login, pinfo->index, private_code);
 
         if (pinfo->index >= PLAYER_PER_ACCOUNT) {
-            metin2::log::warn("Character delete: slot {:d} out of range (account {})", pinfo->index, c_r_account_table.login);
+            metin2::log::warn("Character delete: slot {:d} out of range (account {})", pinfo->index, account_table_value.login);
             return;
         }
 
-        if (!c_r_account_table.players[pinfo->index].id) {
-            metin2::log::warn("Character delete: empty slot {:d} (account {})", pinfo->index, c_r_account_table.login);
+        if (!account_table_value.players[pinfo->index].id) {
+            metin2::log::warn("Character delete: empty slot {:d} (account {})", pinfo->index, account_table_value.login);
             d->packet(encode_byte(HEADER_GC_CHARACTER_DELETE_WRONG_SOCIAL_ID), 1);
             return;
         }
 
         player_delete_packet player_delete_packet;
 
-        trim_and_lower(c_r_account_table.login, player_delete_packet.login);
-        player_delete_packet.player_id = c_r_account_table.players[pinfo->index].id;
+        trim_and_lower(account_table_value.login, player_delete_packet.login);
+        player_delete_packet.player_id = account_table_value.players[pinfo->index].id;
         player_delete_packet.account_index = pinfo->index;
         strlcpy(player_delete_packet.private_code, private_code, sizeof(player_delete_packet.private_code));
 

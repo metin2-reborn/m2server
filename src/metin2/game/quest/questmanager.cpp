@@ -161,107 +161,107 @@ namespace metin2::game {
         }
 
         void quest_manager::select_item(unsigned int pc, unsigned int selection) {
-            game::quest::pc *pc_value = get_pc(pc);
-            if (pc_value && pc_value->is_running() && pc_value->running_quest_state()->suspend_state == SUSPEND_STATE_SELECT_ITEM) {
-                pc_value->set_send_done_flag();
-                pc_value->running_quest_state()->args = 1;
-                lua_pushnumber(pc_value->running_quest_state()->co, selection);
+            game::quest::pc *value = get_pc(pc);
+            if (value && value->is_running() && value->running_quest_state()->suspend_state == SUSPEND_STATE_SELECT_ITEM) {
+                value->set_send_done_flag();
+                value->running_quest_state()->args = 1;
+                lua_pushnumber(value->running_quest_state()->co, selection);
 
-                if (!run_state(*pc_value->running_quest_state())) {
-                    close_state(*pc_value->running_quest_state());
-                    pc_value->end_running();
+                if (!run_state(*value->running_quest_state())) {
+                    close_state(*value->running_quest_state());
+                    value->end_running();
                 }
             }
         }
 
         void quest_manager::confirm(unsigned int pc, quest_confirm_type confirm, unsigned int pc2) {
-            game::quest::pc *pc_value = get_pc(pc);
+            game::quest::pc *value = get_pc(pc);
 
-            if (!pc_value || !pc_value->is_running()) {
+            if (!value || !value->is_running()) {
                 metin2::log::warn("Player (pid {:d}) sent quest input but no quest is running", pc);
                 return;
             }
 
-            if (pc_value->running_quest_state()->suspend_state != SUSPEND_STATE_CONFIRM) {
-                metin2::log::warn("Player (pid {:d}) sent a confirm but quest is not waiting for one (state {:d})", pc, pc_value->running_quest_state()->suspend_state);
+            if (value->running_quest_state()->suspend_state != SUSPEND_STATE_CONFIRM) {
+                metin2::log::warn("Player (pid {:d}) sent a confirm but quest is not waiting for one (state {:d})", pc, value->running_quest_state()->suspend_state);
                 return;
             }
 
-            if (pc2 && !pc_value->is_confirm_wait(pc2)) {
-                metin2::log::warn("Player (pid {:d}) sent a confirm but quest is not waiting for one (state {:d})", pc, pc_value->running_quest_state()->suspend_state);
+            if (pc2 && !value->is_confirm_wait(pc2)) {
+                metin2::log::warn("Player (pid {:d}) sent a confirm but quest is not waiting for one (state {:d})", pc, value->running_quest_state()->suspend_state);
                 return;
             }
 
-            pc_value->clear_confirm_wait();
+            value->clear_confirm_wait();
 
-            pc_value->set_send_done_flag();
+            value->set_send_done_flag();
 
-            pc_value->running_quest_state()->args = 1;
-            lua_pushnumber(pc_value->running_quest_state()->co, confirm);
+            value->running_quest_state()->args = 1;
+            lua_pushnumber(value->running_quest_state()->co, confirm);
 
             add_script("[END_CONFIRM_WAIT]");
             set_skin_style(QUEST_SKIN_NOWINDOW);
             send_script();
 
-            if (!run_state(*pc_value->running_quest_state())) {
-                close_state(*pc_value->running_quest_state());
-                pc_value->end_running();
+            if (!run_state(*value->running_quest_state())) {
+                close_state(*value->running_quest_state());
+                value->end_running();
             }
         }
 
         void quest_manager::input(unsigned int pc, const char *msg) {
-            game::quest::pc *pc_value = get_pc(pc);
-            if (!pc_value) {
+            game::quest::pc *value = get_pc(pc);
+            if (!value) {
                 metin2::log::warn("Player (pid {:d}) has no quest state", pc);
                 return;
             }
 
-            if (!pc_value->is_running()) {
+            if (!value->is_running()) {
                 metin2::log::warn("Player (pid {:d}) sent quest input but no quest is running", pc);
                 return;
             }
 
-            if (pc_value->running_quest_state()->suspend_state != SUSPEND_STATE_INPUT) {
-                metin2::log::warn("Player (pid {:d}) sent input but quest is not waiting for it (state {:d})", pc, pc_value->running_quest_state()->suspend_state);
+            if (value->running_quest_state()->suspend_state != SUSPEND_STATE_INPUT) {
+                metin2::log::warn("Player (pid {:d}) sent input but quest is not waiting for it (state {:d})", pc, value->running_quest_state()->suspend_state);
                 return;
             }
 
-            pc_value->set_send_done_flag();
+            value->set_send_done_flag();
 
-            pc_value->running_quest_state()->args = 1;
-            lua_pushstring(pc_value->running_quest_state()->co, msg);
+            value->running_quest_state()->args = 1;
+            lua_pushstring(value->running_quest_state()->co, msg);
 
-            if (!run_state(*pc_value->running_quest_state())) {
-                close_state(*pc_value->running_quest_state());
-                pc_value->end_running();
+            if (!run_state(*value->running_quest_state())) {
+                close_state(*value->running_quest_state());
+                value->end_running();
             }
         }
 
         void quest_manager::select(unsigned int pc, unsigned int selection) {
-            game::quest::pc *pc_value;
+            game::quest::pc *value;
 
-            if ((pc_value = get_pc(pc)) && pc_value->is_running() && pc_value->running_quest_state()->suspend_state == SUSPEND_STATE_SELECT) {
-                pc_value->set_send_done_flag();
+            if ((value = get_pc(pc)) && value->is_running() && value->running_quest_state()->suspend_state == SUSPEND_STATE_SELECT) {
+                value->set_send_done_flag();
 
-                if (!pc_value->running_quest_state()->chat_scripts.empty()) {
-                    quest_state &old_qs = *pc_value->running_quest_state();
+                if (!value->running_quest_state()->chat_scripts.empty()) {
+                    quest_state &old_qs = *value->running_quest_state();
                     close_state(old_qs);
 
-                    if (selection >= pc_value->running_quest_state()->chat_scripts.size()) {
-                        pc_value->set_send_done_flag();
+                    if (selection >= value->running_quest_state()->chat_scripts.size()) {
+                        value->set_send_done_flag();
                         goto_end_state(old_qs);
-                        pc_value->end_running();
+                        value->end_running();
                     } else {
-                        a_arg_script *pas = pc_value->running_quest_state()->chat_scripts[selection];
-                        execute_quest_script(*pc_value, pas->quest_index, pas->state_index, pas->script.get_code(), pas->script.size());
+                        a_arg_script *pas = value->running_quest_state()->chat_scripts[selection];
+                        execute_quest_script(*value, pas->quest_index, pas->state_index, pas->script.get_code(), pas->script.size());
                     }
                 } else {
-                    pc_value->running_quest_state()->args = 1;
-                    lua_pushnumber(pc_value->running_quest_state()->co, selection + 1);
+                    value->running_quest_state()->args = 1;
+                    lua_pushnumber(value->running_quest_state()->co, selection + 1);
 
-                    if (!run_state(*pc_value->running_quest_state())) {
-                        close_state(*pc_value->running_quest_state());
-                        pc_value->end_running();
+                    if (!run_state(*value->running_quest_state())) {
+                        close_state(*value->running_quest_state());
+                        value->end_running();
                     }
                 }
             } else {
@@ -270,15 +270,15 @@ namespace metin2::game {
         }
 
         void quest_manager::resume(unsigned int pc) {
-            game::quest::pc *pc_value;
+            game::quest::pc *value;
 
-            if ((pc_value = get_pc(pc)) && pc_value->is_running() && pc_value->running_quest_state()->suspend_state == SUSPEND_STATE_PAUSE) {
-                pc_value->set_send_done_flag();
-                pc_value->running_quest_state()->args = 0;
+            if ((value = get_pc(pc)) && value->is_running() && value->running_quest_state()->suspend_state == SUSPEND_STATE_PAUSE) {
+                value->set_send_done_flag();
+                value->running_quest_state()->args = 0;
 
-                if (!run_state(*pc_value->running_quest_state())) {
-                    close_state(*pc_value->running_quest_state());
-                    pc_value->end_running();
+                if (!run_state(*value->running_quest_state())) {
+                    close_state(*value->running_quest_state());
+                    value->end_running();
                 }
             } else {
                 metin2::log::warn("Player (pid {:d}) sent an unexpected quest wait reply", pc);
@@ -286,34 +286,34 @@ namespace metin2::game {
         }
 
         void quest_manager::enter_state(uint32_t pc, uint32_t quest_index, int state) {
-            game::quest::pc *pc_value;
-            if ((pc_value = get_pc(pc))) {
-                if (!check_quest_loaded(pc_value))
+            game::quest::pc *value;
+            if ((value = get_pc(pc))) {
+                if (!check_quest_loaded(value))
                     return;
 
-                npc_[QUEST_NO_NPC].on_enter_state(*pc_value, quest_index, state);
+                npc_[QUEST_NO_NPC].on_enter_state(*value, quest_index, state);
             } else
                 metin2::log::error("No quest state for player (pid {:d})", pc);
         }
 
         void quest_manager::leave_state(uint32_t pc, uint32_t quest_index, int state) {
-            game::quest::pc *pc_value;
-            if ((pc_value = get_pc(pc))) {
-                if (!check_quest_loaded(pc_value))
+            game::quest::pc *value;
+            if ((value = get_pc(pc))) {
+                if (!check_quest_loaded(value))
                     return;
 
-                npc_[QUEST_NO_NPC].on_leave_state(*pc_value, quest_index, state);
+                npc_[QUEST_NO_NPC].on_leave_state(*value, quest_index, state);
             } else
                 metin2::log::error("No quest state for player (pid {:d})", pc);
         }
 
         void quest_manager::letter(uint32_t pc, uint32_t quest_index, int state) {
-            game::quest::pc *pc_value;
-            if ((pc_value = get_pc(pc))) {
-                if (!check_quest_loaded(pc_value))
+            game::quest::pc *value;
+            if ((value = get_pc(pc))) {
+                if (!check_quest_loaded(value))
                     return;
 
-                npc_[QUEST_NO_NPC].on_letter(*pc_value, quest_index, state);
+                npc_[QUEST_NO_NPC].on_letter(*value, quest_index, state);
             } else
                 metin2::log::error("No quest state for player (pid {:d})", pc);
         }
@@ -335,41 +335,41 @@ namespace metin2::game {
         }
 
         void quest_manager::login(unsigned int pc, const char *quest) {
-            game::quest::pc *pc_value;
+            game::quest::pc *value;
 
-            if ((pc_value = get_pc(pc))) {
-                if (!check_quest_loaded(pc_value))
+            if ((value = get_pc(pc))) {
+                if (!check_quest_loaded(value))
                     return;
 
-                npc_[QUEST_NO_NPC].on_login(*pc_value, quest);
+                npc_[QUEST_NO_NPC].on_login(*value, quest);
             } else {
                 metin2::log::error("No quest state for player (pid {:d})", pc);
             }
         }
 
         void quest_manager::logout(unsigned int pc) {
-            game::quest::pc *pc_value;
+            game::quest::pc *value;
 
-            if ((pc_value = get_pc(pc))) {
-                if (!check_quest_loaded(pc_value))
+            if ((value = get_pc(pc))) {
+                if (!check_quest_loaded(value))
                     return;
 
-                npc_[QUEST_NO_NPC].on_logout(*pc_value);
+                npc_[QUEST_NO_NPC].on_logout(*value);
             } else
                 metin2::log::error("No quest state for player (pid {:d})", pc);
         }
 
         void quest_manager::kill(unsigned int pc, unsigned int npc) {
-            game::quest::pc *pc_value;
+            game::quest::pc *value;
 
             metin2::log::debug("Quest: kill event, pid {:d}, npc {:d}", pc, npc);
 
-            if ((pc_value = get_pc(pc))) {
-                if (!check_quest_loaded(pc_value))
+            if ((value = get_pc(pc))) {
+                if (!check_quest_loaded(value))
                     return;
 
                 if (npc > 0) {
-                    npc_[npc].on_kill(*pc_value);
+                    npc_[npc].on_kill(*value);
                 }
 
                 character *ch = current_character_ptr();
@@ -382,10 +382,10 @@ namespace metin2::game {
                     if (npc_[npc].on_party_kill(*get_pc(leader->player_id())))
                         return;
 
-                    pc_value = get_pc(pc);
+                    value = get_pc(pc);
                 }
 
-                if (npc_[QUEST_NO_NPC].on_kill(*pc_value))
+                if (npc_[QUEST_NO_NPC].on_kill(*value))
                     return;
 
                 if (leader) {
@@ -406,13 +406,13 @@ namespace metin2::game {
         }
 
         auto quest_manager::timer(unsigned int pc, unsigned int npc) -> bool {
-            game::quest::pc *pc_value;
+            game::quest::pc *value;
 
-            if ((pc_value = get_pc(pc))) {
-                if (!check_quest_loaded(pc_value)) {
+            if ((value = get_pc(pc))) {
+                if (!check_quest_loaded(value)) {
                     return false;
                 }
-                return npc_[npc].on_timer(*pc_value);
+                return npc_[npc].on_timer(*value);
             } else {
                 metin2::log::error("No quest state for player (pid {:d})", pc);
                 return false;
@@ -420,63 +420,63 @@ namespace metin2::game {
         }
 
         void quest_manager::level_up(unsigned int pc) {
-            game::quest::pc *pc_value;
+            game::quest::pc *value;
 
-            if ((pc_value = get_pc(pc))) {
-                if (!check_quest_loaded(pc_value))
+            if ((value = get_pc(pc))) {
+                if (!check_quest_loaded(value))
                     return;
 
-                npc_[QUEST_NO_NPC].on_level_up(*pc_value);
+                npc_[QUEST_NO_NPC].on_level_up(*value);
             } else {
                 metin2::log::error("No quest state for player (pid {:d})", pc);
             }
         }
 
         void quest_manager::attr_in(unsigned int pc, character *ch, int attr) {
-            game::quest::pc *pc_value;
-            if ((pc_value = get_pc(pc))) {
+            game::quest::pc *value;
+            if ((value = get_pc(pc))) {
                 current_party_member_ = ch;
-                if (!check_quest_loaded(pc_value))
+                if (!check_quest_loaded(value))
                     return;
 
-                npc_[attr + QUEST_ATTR_NPC_START].on_attr_in(*pc_value);
+                npc_[attr + QUEST_ATTR_NPC_START].on_attr_in(*value);
             } else {
                 metin2::log::error("No quest state for player (pid {:d})", pc);
             }
         }
 
         void quest_manager::attr_out(unsigned int pc, character *ch, int attr) {
-            game::quest::pc *pc_value;
-            if ((pc_value = get_pc(pc))) {
+            game::quest::pc *value;
+            if ((value = get_pc(pc))) {
                 current_party_member_ = ch;
-                if (!check_quest_loaded(pc_value))
+                if (!check_quest_loaded(value))
                     return;
 
-                npc_[attr + QUEST_ATTR_NPC_START].on_attr_out(*pc_value);
+                npc_[attr + QUEST_ATTR_NPC_START].on_attr_out(*value);
             } else {
                 metin2::log::error("No quest state for player (pid {:d})", pc);
             }
         }
 
         auto quest_manager::target(unsigned int pc, uint32_t quest_index, const char *target_name, const char *verb) -> bool {
-            game::quest::pc *pc_value;
+            game::quest::pc *value;
 
-            if ((pc_value = get_pc(pc))) {
-                if (!check_quest_loaded(pc_value))
+            if ((value = get_pc(pc))) {
+                if (!check_quest_loaded(value))
                     return false;
 
                 bool ret;
-                return npc_[QUEST_NO_NPC].on_target(*pc_value, quest_index, target_name, verb, ret);
+                return npc_[QUEST_NO_NPC].on_target(*value, quest_index, target_name, verb, ret);
             }
 
             return false;
         }
 
         void quest_manager::quest_info(unsigned int pc, unsigned int quest_index) {
-            game::quest::pc *pc_value;
+            game::quest::pc *value;
 
-            if ((pc_value = get_pc(pc))) {
-                if (!check_quest_loaded(pc_value)) {
+            if ((value = get_pc(pc))) {
+                if (!check_quest_loaded(value)) {
                     character *ch = get_character_manager().find_by_pid(pc);
 
                     if (ch)
@@ -485,33 +485,33 @@ namespace metin2::game {
                     return;
                 }
 
-                npc_[QUEST_NO_NPC].on_info(*pc_value, quest_index);
+                npc_[QUEST_NO_NPC].on_info(*value, quest_index);
             } else {
                 metin2::log::error("No quest state for player (pid {:d})", pc);
             }
         }
 
         void quest_manager::quest_button(unsigned int pc, unsigned int quest_index) {
-            game::quest::pc *pc_value;
-            if ((pc_value = get_pc(pc))) {
-                if (!check_quest_loaded(pc_value)) {
+            game::quest::pc *value;
+            if ((value = get_pc(pc))) {
+                if (!check_quest_loaded(value)) {
                     character *ch = get_character_manager().find_by_pid(pc);
                     if (ch) {
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("퀘스트를 로드하는 중입니다. 잠시만 기다려 주십시오."));
                     }
                     return;
                 }
-                npc_[QUEST_NO_NPC].on_button(*pc_value, quest_index);
+                npc_[QUEST_NO_NPC].on_button(*value, quest_index);
             } else {
                 metin2::log::error("No quest state for player (pid {:d})", pc);
             }
         }
 
         auto quest_manager::take_item(unsigned int pc, unsigned int npc, item *item) -> bool {
-            game::quest::pc *pc_value;
+            game::quest::pc *value;
 
-            if ((pc_value = get_pc(pc))) {
-                if (!check_quest_loaded(pc_value)) {
+            if ((value = get_pc(pc))) {
+                if (!check_quest_loaded(value)) {
                     character *ch = get_character_manager().find_by_pid(pc);
                     if (ch) {
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("퀘스트를 로드하는 중입니다. 잠시만 기다려 주십시오."));
@@ -519,7 +519,7 @@ namespace metin2::game {
                     return false;
                 }
                 set_current_item(item);
-                return npc_[npc].on_take_item(*pc_value);
+                return npc_[npc].on_take_item(*value);
             } else {
                 metin2::log::error("No quest state for player (pid {:d})", pc);
                 return false;
@@ -529,9 +529,9 @@ namespace metin2::game {
         auto quest_manager::use_item(unsigned int pc, item *item, bool receive_all) -> bool {
             if (metin2::config::test_server())
                 metin2::log::info("Quest: use item (vnum {:d}) by pid {:d}", item->original_vnum(), pc);
-            game::quest::pc *pc_value;
-            if ((pc_value = get_pc(pc))) {
-                if (!check_quest_loaded(pc_value)) {
+            game::quest::pc *value;
+            if ((value = get_pc(pc))) {
+                if (!check_quest_loaded(value)) {
                     character *ch = get_character_manager().find_by_pid(pc);
                     if (ch) {
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("퀘스트를 로드하는 중입니다. 잠시만 기다려 주십시오."));
@@ -540,7 +540,7 @@ namespace metin2::game {
                 }
                 set_current_item(item);
 
-                return npc_[item->vnum()].on_use_item(*pc_value, receive_all);
+                return npc_[item->vnum()].on_use_item(*value, receive_all);
             } else {
                 metin2::log::error("No quest state for player (pid {:d})", pc);
                 return false;
@@ -550,9 +550,9 @@ namespace metin2::game {
         auto quest_manager::sig_use(unsigned int pc, uint32_t sig_vnum, item *item, bool receive_all) -> bool {
             if (metin2::config::test_server())
                 metin2::log::info("Quest: sig use item (vnum {:d}) by pid {:d}", item->original_vnum(), pc);
-            game::quest::pc *pc_value;
-            if ((pc_value = get_pc(pc))) {
-                if (!check_quest_loaded(pc_value)) {
+            game::quest::pc *value;
+            if ((value = get_pc(pc))) {
+                if (!check_quest_loaded(value)) {
                     character *ch = get_character_manager().find_by_pid(pc);
                     if (ch) {
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("퀘스트를 로드하는 중입니다. 잠시만 기다려 주십시오."));
@@ -561,7 +561,7 @@ namespace metin2::game {
                 }
                 set_current_item(item);
 
-                return npc_[sig_vnum].on_sig_use(*pc_value, receive_all);
+                return npc_[sig_vnum].on_sig_use(*value, receive_all);
             } else {
                 metin2::log::error("No quest state for player (pid {:d})", pc);
                 return false;
@@ -572,10 +572,10 @@ namespace metin2::game {
             if (!chr->is_pc())
                 return false;
 
-            game::quest::pc *pc_value = get_pc(pc);
+            game::quest::pc *value = get_pc(pc);
 
-            if (pc_value) {
-                if (!check_quest_loaded(pc_value))
+            if (value) {
+                if (!check_quest_loaded(value))
                     return false;
 
                 target_info *info = get_target_manager().get_target_info(pc, TARGET_TYPE_VID, chr->get_vid());
@@ -583,7 +583,7 @@ namespace metin2::game {
                 if (info) {
                     bool ret;
 
-                    if (npc_[QUEST_NO_NPC].on_target(*pc_value, info->quest_index, info->target_name, "click", ret))
+                    if (npc_[QUEST_NO_NPC].on_target(*value, info->quest_index, info->target_name, "click", ret))
                         return true;
                 }
             }
@@ -592,10 +592,10 @@ namespace metin2::game {
         }
 
         auto quest_manager::click(unsigned int pc, character *chr_target) -> bool {
-            game::quest::pc *pc_value = get_pc(pc);
+            game::quest::pc *value = get_pc(pc);
 
-            if (pc_value) {
-                if (!check_quest_loaded(pc_value)) {
+            if (value) {
+                if (!check_quest_loaded(value)) {
                     character *ch = get_character_manager().find_by_pid(pc);
 
                     if (ch)
@@ -611,7 +611,7 @@ namespace metin2::game {
 
                 if (info_value) {
                     bool ret;
-                    if (npc_[QUEST_NO_NPC].on_target(*pc_value, info_value->quest_index, info_value->target_name, "click", ret))
+                    if (npc_[QUEST_NO_NPC].on_target(*value, info_value->quest_index, info_value->target_name, "click", ret))
                         return ret;
                 }
 
@@ -632,16 +632,16 @@ namespace metin2::game {
                         if (metin2::config::test_server())
                             metin2::log::info("Quest: click opens chat");
 
-                        if (!it->second.on_chat(*pc_value)) {
+                        if (!it->second.on_chat(*value)) {
                             if (metin2::config::test_server())
                                 metin2::log::info("Quest: click chat found nothing");
 
-                            return it->second.on_click(*pc_value);
+                            return it->second.on_click(*value);
                         }
 
                         return true;
                     } else {
-                        return it->second.on_click(*pc_value);
+                        return it->second.on_click(*value);
                     }
                 }
                 return false;
@@ -652,22 +652,22 @@ namespace metin2::game {
         }
 
         void quest_manager::unmount(unsigned int pc) {
-            game::quest::pc *pc_value;
+            game::quest::pc *value;
 
-            if ((pc_value = get_pc(pc))) {
-                if (!check_quest_loaded(pc_value))
+            if ((value = get_pc(pc))) {
+                if (!check_quest_loaded(value))
                     return;
 
-                npc_[QUEST_NO_NPC].on_unmount(*pc_value);
+                npc_[QUEST_NO_NPC].on_unmount(*value);
             } else
                 metin2::log::error("No quest state for player (pid {:d})", pc);
         }
         void quest_manager::item_informer(unsigned int pc, unsigned int vnum) {
 
-            game::quest::pc *pc_value;
-            pc_value = get_pc(pc);
+            game::quest::pc *value;
+            value = get_pc(pc);
 
-            npc_[QUEST_NO_NPC].on_item_informer(*pc_value, vnum);
+            npc_[QUEST_NO_NPC].on_item_informer(*value, vnum);
         }
 
         void quest_manager::load_start_quest(const std::string &quest_name, unsigned int idx) {
@@ -961,9 +961,9 @@ namespace metin2::game {
             } else if (!name.compare(0, 5, "xmas_")) {
                 xmas::process_event_flag(name, prev_value, value);
             } else if (name == "newyear_boom") {
-                const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
+                const desc_manager::desc_set &descs = get_desc_manager().client_set();
 
-                for (auto it = c_ref_set.begin(); it != c_ref_set.end(); ++it) {
+                for (auto it = descs.begin(); it != descs.end(); ++it) {
                     character *ch = (*it)->get_character();
 
                     if (!ch)
@@ -980,9 +980,9 @@ namespace metin2::game {
                     mode = "light";
                 }
 
-                const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
+                const desc_manager::desc_set &descs = get_desc_manager().client_set();
 
-                for (auto it = c_ref_set.begin(); it != c_ref_set.end(); ++it) {
+                for (auto it = descs.begin(); it != descs.end(); ++it) {
                     character *ch = (*it)->get_character();
                     if (!ch)
                         continue;
@@ -990,9 +990,9 @@ namespace metin2::game {
                     ch->chat_packet(CHAT_TYPE_COMMAND, "DayMode %s", mode.c_str());
                 }
             } else if (name == "day") {
-                const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
+                const desc_manager::desc_set &descs = get_desc_manager().client_set();
 
-                for (auto it = c_ref_set.begin(); it != c_ref_set.end(); ++it) {
+                for (auto it = descs.begin(); it != descs.end(); ++it) {
                     character *ch = (*it)->get_character();
                     if (!ch)
                         continue;
@@ -1362,9 +1362,9 @@ namespace metin2::game {
         auto quest_manager::pickup_item(unsigned int pc, item *item) -> bool {
             if (metin2::config::test_server())
                 metin2::log::info("Quest: pick up item (vnum {:d}) by pid {:d}", item->original_vnum(), pc);
-            game::quest::pc *pc_value;
-            if ((pc_value = get_pc(pc))) {
-                if (!check_quest_loaded(pc_value)) {
+            game::quest::pc *value;
+            if ((value = get_pc(pc))) {
+                if (!check_quest_loaded(value)) {
                     character *ch = get_character_manager().find_by_pid(pc);
                     if (ch) {
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("퀘스트를 로드하는 중입니다. 잠시만 기다려 주십시오."));
@@ -1373,7 +1373,7 @@ namespace metin2::game {
                 }
                 set_current_item(item);
 
-                return npc_[item->vnum()].on_pickup_item(*pc_value);
+                return npc_[item->vnum()].on_pickup_item(*value);
             } else {
                 metin2::log::error("No quest state for player (pid {:d})", pc);
                 return false;

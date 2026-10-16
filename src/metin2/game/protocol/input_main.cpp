@@ -570,7 +570,7 @@ namespace metin2::game::inline protocol {
         switch (pinfo->type) {
         case CHAT_TYPE_TALKING:
             {
-                const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
+                const desc_manager::desc_set &descs = get_desc_manager().client_set();
 
                 const uint8_t empire = (ch->gm_level() > GM_PLAYER ||
                                            ch->is_equip_unique_group(UNIQUE_GROUP_RING_OF_LANGUAGE))
@@ -580,7 +580,7 @@ namespace metin2::game::inline protocol {
                 const int namelen = strlen(ch->name());
                 char converted_msg[CHAT_MAX_LEN + 1] = {};
 
-                for (desc *d : c_ref_set) {
+                for (desc *d : descs) {
                     if (!d->get_character())
                         continue;
 
@@ -649,8 +649,8 @@ namespace metin2::game::inline protocol {
         ch->use_item(((struct packet_cg_item_use *)data)->cell);
     }
 
-    void input_main::item_to_item(character *ch, const char *pc_data) {
-        auto *p = (packet_cg_item_use_to_item *)pc_data;
+    void input_main::item_to_item(character *ch, const char *data) {
+        auto *p = (packet_cg_item_use_to_item *)data;
         if (ch)
             ch->use_item(p->cell, p->target_cell);
     }
@@ -1311,8 +1311,8 @@ namespace metin2::game::inline protocol {
         }
     }
 
-    auto input_main::sync_position(character *ch, const char *pc_data, size_t bytes) -> int {
-        const auto *pinfo = reinterpret_cast<const packet_cg_sync_position *>(pc_data);
+    auto input_main::sync_position(character *ch, const char *data_value, size_t bytes) -> int {
+        const auto *pinfo = reinterpret_cast<const packet_cg_sync_position *>(data_value);
 
         if (bytes < pinfo->size)
             return -1;
@@ -1346,7 +1346,7 @@ namespace metin2::game::inline protocol {
         synced.reserve(count);
 
         const auto *e =
-            reinterpret_cast<const packet_cg_sync_position_element *>(pc_data + sizeof(packet_cg_sync_position));
+            reinterpret_cast<const packet_cg_sync_position_element *>(data_value + sizeof(packet_cg_sync_position));
 
         timeval tv_cur_time;
         gettimeofday(&tv_cur_time, nullptr);
@@ -1437,13 +1437,13 @@ namespace metin2::game::inline protocol {
         return extra_len;
     }
 
-    void input_main::fly_target(character *ch, const char *pc_data, uint8_t header) {
-        auto *p = (packet_cg_fly_targeting *)pc_data;
+    void input_main::fly_target(character *ch, const char *data, uint8_t header) {
+        auto *p = (packet_cg_fly_targeting *)data;
         ch->fly_target(p->target_vid, p->x, p->y, header);
     }
 
-    void input_main::use_skill(character *ch, const char *pc_data) {
-        auto *p = (packet_cg_use_skill *)pc_data;
+    void input_main::use_skill(character *ch, const char *data) {
+        auto *p = (packet_cg_use_skill *)data;
         ch->use_skill(p->vnum, get_character_manager().find(p->vid));
     }
 
@@ -1498,8 +1498,8 @@ namespace metin2::game::inline protocol {
         }
     }
 
-    void input_main::target(character *ch, const char *pc_data) {
-        auto *p = (packet_cg_target *)pc_data;
+    void input_main::target(character *ch, const char *data) {
+        auto *p = (packet_cg_target *)data;
 
         building::object *obj = building::get_manager().find_object_by_vid(p->vid);
 
@@ -1512,7 +1512,7 @@ namespace metin2::game::inline protocol {
             ch->set_target(get_character_manager().find(p->vid));
     }
 
-    void input_main::warp(character *ch, const char *pc_data) {
+    void input_main::warp(character *ch, const char *data) {
         ch->warp_end();
     }
 

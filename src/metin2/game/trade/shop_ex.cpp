@@ -31,14 +31,14 @@ namespace metin2::game::inline trade {
     }
 
     auto shop_ex::add_shop_table(shop_table_ex &shop_table) -> bool {
-        for (auto it = vec_shop_tabs_.begin(); it != vec_shop_tabs_.end(); it++) {
+        for (auto it = shop_tabs_.begin(); it != shop_tabs_.end(); it++) {
             const shop_table_ex &shop_table_value = *it;
             if (0 != shop_table_value.vnum && shop_table_value.vnum == shop_table.vnum)
                 return false;
             if (0 != shop_table_value.npc_vnum && shop_table_value.npc_vnum == shop_table.vnum)
                 return false;
         }
-        vec_shop_tabs_.push_back(shop_table);
+        shop_tabs_.push_back(shop_table);
         return true;
     }
 
@@ -54,7 +54,7 @@ namespace metin2::game::inline trade {
 
         ch->set_shop(this);
 
-        map_guest_.insert(guest_map_type::value_type(ch, other_empire));
+        guests_.insert(guest_map_type::value_type(ch, other_empire));
 
         packet_gc_shop pack;
 
@@ -66,11 +66,11 @@ namespace metin2::game::inline trade {
         memset(&pack2, 0, sizeof(pack2));
 
         pack2.owner_vid = owner_vid;
-        pack2.shop_tab_count = vec_shop_tabs_.size();
+        pack2.shop_tab_count = shop_tabs_.size();
         char temp[8096];
         char *buf = &temp[0];
         size_t size = 0;
-        for (auto it = vec_shop_tabs_.begin(); it != vec_shop_tabs_.end(); it++) {
+        for (auto it = shop_tabs_.begin(); it != shop_tabs_.end(); it++) {
             const shop_table_ex &shop_tab = *it;
             packet_gc_shop_start_ex::sub_packet_shop_tab pack_tab;
             pack_tab.coin_type = shop_tab.coin_type;
@@ -118,20 +118,20 @@ namespace metin2::game::inline trade {
 
         metin2::log::debug("Shop: player {} buys slot {:d}", ch->name(), pos);
 
-        auto it = map_guest_.find(ch);
+        auto it = guests_.find(ch);
 
-        if (it == map_guest_.end())
+        if (it == guests_.end())
             return SHOP_SUBHEADER_GC_END;
 
-        shop_table_ex &shop_tab = vec_shop_tabs_[tab_idx];
-        shop_item_table &r_item = shop_tab.items[slot_pos];
+        shop_table_ex &shop_tab = shop_tabs_[tab_idx];
+        shop_item_table &item_value = shop_tab.items[slot_pos];
 
-        if (r_item.price <= 0) {
+        if (item_value.price <= 0) {
             get_log_manager().hack_log("SHOP_BUY_GOLD_OVERFLOW", ch);
             return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY;
         }
 
-        uint32_t price_value = r_item.price;
+        uint32_t price_value = item_value.price;
 
         switch (shop_tab.coin_type) {
         case SHOP_COIN_TYPE_GOLD:
@@ -156,7 +156,7 @@ namespace metin2::game::inline trade {
 
         item *item;
 
-        item = get_item_manager().create_item(r_item.vnum, r_item.count);
+        item = get_item_manager().create_item(item_value.vnum, item_value.count);
 
         if (!item)
             return SHOP_SUBHEADER_GC_SOLD_OUT;

@@ -51,9 +51,9 @@ namespace metin2::game::inline trade {
 
         guest_map_type::iterator it;
 
-        it = map_guest_.begin();
+        it = guests_.begin();
 
-        while (it != map_guest_.end()) {
+        while (it != guests_.end()) {
             character *ch = it->first;
             ch->set_shop(nullptr);
             ++it;
@@ -175,19 +175,19 @@ namespace metin2::game::inline trade {
 
         metin2::log::debug("Shop: player {} buys slot {:d}", ch->name(), pos);
 
-        auto it = map_guest_.find(ch);
+        auto it = guests_.find(ch);
 
-        if (it == map_guest_.end())
+        if (it == guests_.end())
             return SHOP_SUBHEADER_GC_END;
 
-        shop_item &r_item = item_vector_[pos];
+        shop_item &item_value = item_vector_[pos];
 
-        if (r_item.price < 0) {
+        if (item_value.price < 0) {
             get_log_manager().hack_log("SHOP_BUY_GOLD_OVERFLOW", ch);
             return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY;
         }
 
-        item *selected_item = get_item_manager().find(r_item.itemid);
+        item *selected_item = get_item_manager().find(item_value.itemid);
 
         if (is_pc_shop()) {
             if (!selected_item) {
@@ -207,7 +207,7 @@ namespace metin2::game::inline trade {
             }
         }
 
-        const int64_t ll_price = static_cast<int64_t>(r_item.price) * (it->second ? 3 : 1);
+        const int64_t ll_price = static_cast<int64_t>(item_value.price) * (it->second ? 3 : 1);
 
         if (ll_price > GOLD_MAX) {
             metin2::log::warn("Player {} tried to buy for {:d} gold, above the gold limit", ch->name(), static_cast<long long>(ll_price));
@@ -224,9 +224,9 @@ namespace metin2::game::inline trade {
         item *item;
 
         if (pc_)
-            item = r_item.item;
+            item = item_value.item;
         else
-            item = get_item_manager().create_item(r_item.vnum, r_item.count);
+            item = get_item_manager().create_item(item_value.vnum, item_value.count);
 
         if (!item)
             return SHOP_SUBHEADER_GC_SOLD_OUT;
@@ -303,7 +303,7 @@ namespace metin2::game::inline trade {
             buf = std::format("{} {}({}) {} {}", item->name(), ch->player_id(), ch->name(), price_value, item->count());
             get_log_manager().item_log(pc_, item, "SHOP_SELL", buf.c_str());
 
-            r_item.item = nullptr;
+            item_value.item = nullptr;
             broadcast_update_item(pos);
 
             pc_->point_change(POINT_GOLD, price_value, false);
@@ -347,7 +347,7 @@ namespace metin2::game::inline trade {
 
         ch->set_shop(this);
 
-        map_guest_.insert(guest_map_type::value_type(ch, other_empire));
+        guests_.insert(guest_map_type::value_type(ch, other_empire));
 
         packet_gc_shop pack;
 
@@ -396,7 +396,7 @@ namespace metin2::game::inline trade {
         if (ch->get_shop() != this)
             return;
 
-        map_guest_.erase(ch);
+        guests_.erase(ch);
         ch->set_shop(nullptr);
 
         packet_gc_shop pack;
@@ -413,9 +413,9 @@ namespace metin2::game::inline trade {
 
         guest_map_type::iterator it;
 
-        it = map_guest_.begin();
+        it = guests_.begin();
 
-        while (it != map_guest_.end()) {
+        while (it != guests_.end()) {
             character *ch = it->first;
 
             if (ch->get_desc())

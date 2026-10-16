@@ -211,7 +211,7 @@ namespace metin2::db::inline guilds {
         static auto make_war_key(uint32_t gid1, uint32_t gid2) -> war_key { return std::minmax(gid1, gid2); }
         auto find_war(uint32_t gid1, uint32_t gid2) -> guild_war_info *;
 
-        std::map<uint32_t, guild> map_guild_;
+        std::map<uint32_t, guild> guilds_;
         std::map<war_key, time_t> guild_war_end_time_;
 
         std::set<guild_declare_info> declare_map_;
@@ -228,11 +228,11 @@ namespace metin2::db::inline guilds {
         std::priority_queue<st_pair_skill_used, std::vector<st_pair_skill_used>, std::greater<st_pair_skill_used>>
             pq_skill_;
 
-        std::map<uint32_t, std::unique_ptr<guild_war_reservation>> map_war_reserve_;
+        std::map<uint32_t, std::unique_ptr<guild_war_reservation>> war_reserves_;
         expression poly_power_;
         expression poly_handicap_;
 
-        std::map<uint32_t, int> map_ladder_point_ranking_by_gid_;
+        std::map<uint32_t, int> ladder_point_rankings_by_gid_;
     };
 
     inline auto get_guild_manager() -> guild_manager & {

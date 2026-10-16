@@ -21,8 +21,8 @@ namespace metin2::game::inline text {
             std::string orig(src);
             std::erase_if(orig, is_space);
 
-            for (size_t i = 0; i < vec_word_.size(); ++i) {
-                std::pair<std::string, unsigned int> &r = vec_word_[i];
+            for (size_t i = 0; i < words_.size(); ++i) {
+                std::pair<std::string, unsigned int> &r = words_[i];
 
                 if (true == wild_case_cmp(r.first.c_str(), orig.c_str())) {
                     word = r.first.c_str();
@@ -34,16 +34,16 @@ namespace metin2::game::inline text {
         }
 
         inline void clear() {
-            vec_word_.clear();
+            words_.clear();
         }
 
         inline void insert(const char *str, unsigned int score = 10) {
-            vec_word_.push_back(std::make_pair(str, score));
+            words_.push_back(std::make_pair(str, score));
             metin2::log::debug("Spam word \"{}\" (score {:d})", str, score);
         }
 
       private:
-        std::vector<std::pair<std::string, unsigned int>> vec_word_;
+        std::vector<std::pair<std::string, unsigned int>> words_;
     };
 
     inline auto get_spam_manager() -> spam_manager & {
