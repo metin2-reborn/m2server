@@ -4,7 +4,7 @@
 #include <metin2/game/quest/questmanager.h>
 #include <metin2/game/text/locale.hpp>
 
-#include <metin2/proto/length.h>
+#include <metin2/proto/chat_types.h>
 
 namespace metin2::game::inline admin {
 

@@ -10,7 +10,7 @@
 #include <metin2/game/quest/questmanager.h>
 
 #include <metin2/log/log.h>
-#include <metin2/proto/length.h>
+#include <metin2/proto/guild_types.h>
 #include <metin2/proto/tables.h>
 
 #include <cstdint>

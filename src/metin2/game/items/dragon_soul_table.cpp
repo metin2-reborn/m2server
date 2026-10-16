@@ -5,7 +5,8 @@
 #include <metin2/game/items/item_manager.h>
 
 #include <metin2/log/log.h>
-#include <metin2/proto/length.h>
+#include <metin2/proto/apply_types.h>
+#include <metin2/proto/item_types.h>
 
 #include <cstdint>
 #include <memory>

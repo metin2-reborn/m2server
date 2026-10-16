@@ -7,7 +7,7 @@
 #include <metin2/game/social/marriage.h>
 #include <metin2/game/social/wedding.h>
 
-#include <metin2/proto/length.h>
+#include <metin2/proto/chat_types.h>
 
 #include <cstdint>
 

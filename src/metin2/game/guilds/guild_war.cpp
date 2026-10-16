@@ -19,7 +19,8 @@
 #include <metin2/game/world/sectree_manager.h>
 
 #include <metin2/log/log.h>
-#include <metin2/proto/length.h>
+#include <metin2/proto/chat_types.h>
+#include <metin2/proto/guild_types.h>
 #include <metin2/proto/tables.h>
 
 #include <cstdint>

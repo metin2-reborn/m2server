@@ -4,7 +4,9 @@
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/world/entity.h>
 
-#include <metin2/proto/length.h>
+#include <metin2/proto/inventory.h>
+#include <metin2/proto/item_types.h>
+#include <metin2/proto/limits.h>
 #include <metin2/proto/tables.h>
 
 #include <cstdint>

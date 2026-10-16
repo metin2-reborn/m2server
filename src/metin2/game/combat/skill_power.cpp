@@ -2,7 +2,7 @@
 
 #include <metin2/game/combat/skill_power.h>
 
-#include <metin2/proto/length.h>
+#include <metin2/proto/character_types.h>
 
 #include <cstdio>
 #include <cstring>

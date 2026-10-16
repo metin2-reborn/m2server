@@ -7,7 +7,7 @@
 
 #include <metin2/config/config.h>
 #include <metin2/log/log.h>
-#include <metin2/proto/length.h>
+#include <metin2/proto/shop_types.h>
 #include <metin2/proto/tables.h>
 #include <metin2/sql/query.h>
 

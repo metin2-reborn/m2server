@@ -1,4 +1,5 @@
-#include <metin2/proto/length.h>
+#include <metin2/proto/item_types.h>
+#include <metin2/proto/mob_types.h>
 
 #include <cstdint>
 #include <vector>

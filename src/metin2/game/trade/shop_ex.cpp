@@ -13,7 +13,10 @@
 #include <metin2/game/trade/shop.h>
 
 #include <metin2/log/log.h>
-#include <metin2/proto/length.h>
+#include <metin2/proto/inventory.h>
+#include <metin2/proto/item_types.h>
+#include <metin2/proto/log_types.h>
+#include <metin2/proto/shop_types.h>
 #include <metin2/proto/tables.h>
 
 #include <cstddef>

@@ -11,7 +11,10 @@
 #include <metin2/common/utils.h>
 #include <metin2/config/config.h>
 #include <metin2/log/log.h>
-#include <metin2/proto/length.h>
+#include <metin2/proto/character_types.h>
+#include <metin2/proto/inventory.h>
+#include <metin2/proto/item_types.h>
+#include <metin2/proto/limits.h>
 #include <metin2/proto/tables.h>
 #include <metin2/sql/async_sql.h>
 #include <metin2/sql/query.h>

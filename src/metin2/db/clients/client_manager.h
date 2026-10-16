@@ -7,7 +7,7 @@
 #include <metin2/net/io.h>
 #include <metin2/net/listener.h>
 #include <metin2/proto/building.h>
-#include <metin2/proto/length.h>
+#include <metin2/proto/limits.h>
 #include <metin2/proto/tables.h>
 #include <metin2/sql/async_sql.h>
 

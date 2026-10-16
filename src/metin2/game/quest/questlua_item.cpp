@@ -8,7 +8,8 @@
 #include <metin2/game/quest/questlua.h>
 #include <metin2/game/quest/questmanager.h>
 
-#include <metin2/proto/length.h>
+#include <metin2/proto/inventory.h>
+#include <metin2/proto/item_types.h>
 #include <metin2/proto/tables.h>
 
 #include <cstdint>

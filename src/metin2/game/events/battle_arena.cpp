@@ -15,7 +15,7 @@
 #include <metin2/game/world/sectree_manager.h>
 
 #include <metin2/core/utils.h>
-#include <metin2/proto/length.h>
+#include <metin2/proto/character_types.h>
 
 #include <cstdint>
 #include <cstdio>

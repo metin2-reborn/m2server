@@ -4,7 +4,8 @@
 #include <metin2/game/protocol/desc.h>
 #include <metin2/game/protocol/packet.h>
 
-#include <metin2/proto/length.h>
+#include <metin2/proto/character_types.h>
+#include <metin2/proto/inventory.h>
 #include <metin2/proto/tables.h>
 
 #include <cstdint>

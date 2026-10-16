@@ -2,7 +2,7 @@
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/trade/shop.h>
 
-#include <metin2/proto/length.h>
+#include <metin2/proto/shop_types.h>
 #include <metin2/proto/tables.h>
 
 #include <cstddef>

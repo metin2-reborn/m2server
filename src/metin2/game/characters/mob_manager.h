@@ -3,7 +3,7 @@
 
 #include <metin2/common/singleton.h>
 #include <metin2/core/utils.h>
-#include <metin2/proto/length.h>
+#include <metin2/proto/mob_types.h>
 #include <metin2/proto/tables.h>
 
 #include <algorithm>

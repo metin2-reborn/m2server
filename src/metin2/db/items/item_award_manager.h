@@ -1,6 +1,7 @@
 #pragma once
 #include <metin2/common/singleton.h>
-#include <metin2/proto/length.h>
+#include <metin2/proto/item_types.h>
+#include <metin2/proto/limits.h>
 #include <metin2/sql/async_sql.h>
 
 #include <cstdint>

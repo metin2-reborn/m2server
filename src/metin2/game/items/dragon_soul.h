@@ -3,7 +3,7 @@
 #include <metin2/game/app/typedef.h>
 
 #include <metin2/common/singleton.h>
-#include <metin2/proto/length.h>
+#include <metin2/proto/inventory.h>
 
 #include <cstdint>
 #include <memory>

@@ -3,10 +3,8 @@
 #include <cstdint>
 
 namespace metin2::inline proto {
-    inline constexpr int ITEM_NAME_MAX_LEN = 24;
     inline constexpr int PROTO_NAME_MAX_LEN = 63;
     inline constexpr int ITEM_VALUES_MAX_NUM = 6;
-    inline constexpr int ITEM_SMALL_DESCR_MAX_LEN = 256;
     inline constexpr int ITEM_LIMIT_MAX_NUM = 2;
     inline constexpr int ITEM_APPLY_MAX_NUM = 3;
     inline constexpr int ITEM_SOCKET_MAX_NUM = 3;
@@ -14,18 +12,14 @@ namespace metin2::inline proto {
     inline constexpr int ITEM_ATTRIBUTE_MAX_NUM = 7;
     inline constexpr int ITEM_ATTRIBUTE_MAX_LEVEL = 5;
     inline constexpr int ITEM_AWARD_WHY_MAX_LEN = 50;
-
     inline constexpr int REFINE_MATERIAL_MAX_NUM = 5;
-
     inline constexpr int ITEM_ELK_VNUM = 50026;
-
     inline constexpr uint8_t ITEM_SOCKET_REMAIN_SEC = 0;
     inline constexpr int ITEM_VALUE_DRAGON_SOUL_POLL_OUT_BONUS_IDX = 0;
     inline constexpr int ITEM_VALUE_CHARGING_AMOUNT_IDX = 0;
     inline constexpr int ITEM_VALUE_SECONDARY_COIN_UNIT_IDX = 0;
     inline constexpr int ITEM_SOCKET_DRAGON_SOUL_ACTIVE_IDX = 2;
     inline constexpr int ITEM_SOCKET_CHARGING_AMOUNT_IDX = 2;
-
     inline constexpr int ITEM_SOCKET_UNIQUE_SAVE_TIME = ITEM_SOCKET_MAX_NUM - 2;
     inline constexpr int ITEM_SOCKET_UNIQUE_REMAIN_TIME = ITEM_SOCKET_MAX_NUM - 1;
 
@@ -129,9 +123,8 @@ namespace metin2::inline proto {
         DRAGON_SOUL_STEP_HIGHEST,
         DRAGON_SOUL_STEP_MAX,
     };
-    inline constexpr int DRAGON_SOUL_STRENGTH_MAX = 7;
 
-    inline constexpr int DRAGON_SOUL_INVENTORY_MAX_NUM = static_cast<int>(DS_SLOT_MAX) * static_cast<int>(DRAGON_SOUL_GRADE_MAX) * DRAGON_SOUL_BOX_SIZE;
+    inline constexpr int DRAGON_SOUL_STRENGTH_MAX = 7;
 
     enum fish_sub_types {
         FISH_ALIVE,

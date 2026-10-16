@@ -2,7 +2,13 @@
 
 #include <metin2/game/characters/character.h>
 
-#include <metin2/proto/length.h>
+#include <metin2/proto/apply_types.h>
+#include <metin2/proto/character_types.h>
+#include <metin2/proto/guild_types.h>
+#include <metin2/proto/item_types.h>
+#include <metin2/proto/limits.h>
+#include <metin2/proto/log_types.h>
+#include <metin2/proto/mob_types.h>
 
 #include <cstdint>
 

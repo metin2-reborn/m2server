@@ -1,5 +1,5 @@
 #pragma once
-#include <metin2/proto/length.h>
+#include <metin2/proto/apply_types.h>
 
 #include <cstdint>
 #include <map>

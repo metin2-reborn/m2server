@@ -17,7 +17,8 @@
 #include <metin2/core/utils.h>
 #include <metin2/log/log.h>
 #include <metin2/net/connection.h>
-#include <metin2/proto/length.h>
+#include <metin2/proto/chat_types.h>
+#include <metin2/proto/limits.h>
 #include <metin2/proto/tables.h>
 
 #include <asio/error.hpp>

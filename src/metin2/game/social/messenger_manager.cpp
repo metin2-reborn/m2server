@@ -15,7 +15,8 @@
 #include <metin2/game/text/locale.hpp>
 
 #include <metin2/log/log.h>
-#include <metin2/proto/length.h>
+#include <metin2/proto/character_types.h>
+#include <metin2/proto/chat_types.h>
 #include <metin2/sql/async_sql.h>
 #include <metin2/sql/query.h>
 

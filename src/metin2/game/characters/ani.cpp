@@ -6,7 +6,8 @@
 #include <metin2/game/items/item.h>
 
 #include <metin2/log/log.h>
-#include <metin2/proto/length.h>
+#include <metin2/proto/inventory.h>
+#include <metin2/proto/item_types.h>
 
 #include <algorithm>
 #include <cstdint>

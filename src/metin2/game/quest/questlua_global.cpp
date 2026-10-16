@@ -34,7 +34,9 @@
 
 #include <metin2/core/utils.h>
 #include <metin2/log/log.h>
-#include <metin2/proto/length.h>
+#include <metin2/proto/character_types.h>
+#include <metin2/proto/chat_types.h>
+#include <metin2/proto/log_types.h>
 #include <metin2/proto/tables.h>
 
 #include <algorithm>

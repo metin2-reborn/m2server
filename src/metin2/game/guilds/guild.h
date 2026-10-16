@@ -5,7 +5,8 @@
 #include <metin2/game/characters/character.h>
 #include <metin2/game/combat/skill.h>
 
-#include <metin2/proto/length.h>
+#include <metin2/proto/guild_types.h>
+#include <metin2/proto/limits.h>
 #include <metin2/proto/tables.h>
 #include <metin2/sql/async_sql.h>
 

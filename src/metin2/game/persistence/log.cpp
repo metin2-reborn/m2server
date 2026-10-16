@@ -9,7 +9,7 @@
 #include <metin2/game/protocol/desc.h>
 #include <metin2/game/text/locale_service.h>
 
-#include <metin2/proto/length.h>
+#include <metin2/proto/log_types.h>
 #include <metin2/sql/query.h>
 
 #include <cstdint>
