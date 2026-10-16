@@ -8,7 +8,7 @@ namespace metin2::game {
     namespace quest {
         auto ba_start(lua_State *lua) -> int {
             if (lua_isnumber(lua, 1)) {
-                battle_arena::instance().start((int)lua_tonumber(lua, 1));
+                get_battle_arena().start((int)lua_tonumber(lua, 1));
             }
 
             return 0;
@@ -22,7 +22,7 @@ namespace metin2::game {
                     {nullptr, nullptr }
             };
 
-            quest_manager::instance().add_lua_function_table("ba", ba_functions);
+            get_quest_manager().add_lua_function_table("ba", ba_functions);
         }
     }
 }

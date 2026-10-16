@@ -3,7 +3,6 @@
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/world/vid.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/proto/character_types.h>
 
 #include <cstdint>
@@ -21,12 +20,12 @@ namespace metin2::game::inline characters {
     class character;
     class character_vector_interactor;
 
-    class character_manager : public singleton<character_manager> {
+    class character_manager {
       public:
         using name_map = std::unordered_map<std::string, character *>;
 
         character_manager();
-        ~character_manager() override;
+        ~character_manager();
 
         void destroy();
 
@@ -132,6 +131,11 @@ namespace metin2::game::inline characters {
         bool use_pending_destroy_;
         character_set set_chr_pending_destroy_;
     };
+
+    inline auto get_character_manager() -> character_manager & {
+        static character_manager instance;
+        return instance;
+    }
 
     template <class Func>
     auto character_manager::for_each_pc(Func f) -> Func {

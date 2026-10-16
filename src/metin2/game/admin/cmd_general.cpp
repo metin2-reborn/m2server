@@ -113,10 +113,10 @@ namespace metin2::game::inline admin {
             ch->remove_specify_item(food, 1);
             ch->feed_horse();
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("말에게 %s%s 주었습니다."),
-                item_manager::instance().table(food)->locale_name,
+                get_item_manager().table(food)->locale_name,
                 "");
         } else {
-            ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 아이템이 필요합니다"), item_manager::instance().table(food)->locale_name);
+            ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 아이템이 필요합니다"), get_item_manager().table(food)->locale_name);
         }
     }
 
@@ -155,7 +155,7 @@ namespace metin2::game::inline admin {
             metin2::log::debug("Shutdown countdown at {:d}", *sec);
 
             if (--*sec == -10) {
-                const desc_manager::desc_set &c_set_desc = desc_manager::instance().client_set();
+                const desc_manager::desc_set &c_set_desc = get_desc_manager().client_set();
                 for (desc *d : c_set_desc) {
                     if (d->type() == DESC_TYPE_CONNECTOR)
                         continue;
@@ -174,7 +174,7 @@ namespace metin2::game::inline admin {
 
             return metin2::config::server().passes_per_sec;
         } else if (*sec == 0) {
-            const desc_manager::desc_set &c_set_desc = desc_manager::instance().client_set();
+            const desc_manager::desc_set &c_set_desc = get_desc_manager().client_set();
             for (desc *d : c_set_desc) {
                 if (d->get_character()) {
                     if (d->get_character()->gm_level() == GM_PLAYER)
@@ -200,7 +200,7 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        war_map_manager::instance().on_shutdown();
+        get_war_map_manager().on_shutdown();
 
         char buf[64];
         snprintf(buf, sizeof(buf), lc_text("%d초 후 게임이 셧다운 됩니다."), sec);
@@ -219,7 +219,7 @@ namespace metin2::game::inline admin {
         }
         packet_gg_shutdown p;
         p.header = HEADER_GG_SHUTDOWN;
-        p2p_manager::instance().send(&p, sizeof(packet_gg_shutdown));
+        get_p2p_manager().send(&p, sizeof(packet_gg_shutdown));
 
         shutdown(10);
     }
@@ -251,7 +251,7 @@ namespace metin2::game::inline admin {
 
                     db_clientdesc->db_packet(HEADER_GD_VALID_LOGOUT, 0, &acc_info, sizeof(acc_info));
 
-                    log_manager::instance().detail_login_log(false, ch);
+                    get_log_manager().detail_login_log(false, ch);
                 }
                 break;
             }
@@ -311,7 +311,7 @@ namespace metin2::game::inline admin {
         int exit_limit_time = 10;
 
         if (ch->is_hack(false, true, exit_limit_time) &&
-            false == three_way_war::instance().is_sung_zi_map_index(ch->map_index()) &&
+            false == get_three_way_war().is_sung_zi_map_index(ch->map_index()) &&
             (!ch->get_war_map() || ch->get_war_map()->type() == GUILD_WAR_TYPE_FLAG)) {
             return;
         }
@@ -362,7 +362,7 @@ namespace metin2::game::inline admin {
         if (subcmd != SCMD_RESTART_TOWN && (!ch->get_war_map() || ch->get_war_map()->type() == GUILD_WAR_TYPE_FLAG)) {
             if (!metin2::config::test_server()) {
                 if (ch->is_hack()) {
-                    if (false == three_way_war::instance().is_sung_zi_map_index(ch->map_index())) {
+                    if (false == get_three_way_war().is_sung_zi_map_index(ch->map_index())) {
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("아직 재시작 할 수 없습니다. (%d초 남음)"), time_to_dead - (180 - portal_limit_time));
                         return;
                     }
@@ -378,7 +378,7 @@ namespace metin2::game::inline admin {
         if (subcmd == SCMD_RESTART_TOWN) {
             if (ch->is_hack()) {
                 if ((!ch->get_war_map() || ch->get_war_map()->type() == GUILD_WAR_TYPE_FLAG) ||
-                    false == three_way_war::instance().is_sung_zi_map_index(ch->map_index())) {
+                    false == get_three_way_war().is_sung_zi_map_index(ch->map_index())) {
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("아직 재시작 할 수 없습니다. (%d초 남음)"), time_to_dead - (180 - portal_limit_time));
                     return;
                 }
@@ -396,10 +396,10 @@ namespace metin2::game::inline admin {
         ch->set_position(POS_STANDING);
         ch->start_recovery_event();
 
-        if (1 == quest::quest_manager::instance().event_flag("threeway_war")) {
+        if (1 == quest::get_quest_manager().event_flag("threeway_war")) {
             if (subcmd == SCMD_RESTART_TOWN || subcmd == SCMD_RESTART_HERE) {
-                if (true == three_way_war::instance().is_three_way_war_map_index(ch->map_index()) &&
-                    false == three_way_war::instance().is_sung_zi_map_index(ch->map_index())) {
+                if (true == get_three_way_war().is_three_way_war_map_index(ch->map_index()) &&
+                    false == get_three_way_war().is_sung_zi_map_index(ch->map_index())) {
                     ch->warp_set(empire_start_x(ch->empire()), empire_start_y(ch->empire()));
 
                     ch->revive_invisible(5);
@@ -409,8 +409,8 @@ namespace metin2::game::inline admin {
                     return;
                 }
 
-                if (true == three_way_war::instance().is_sung_zi_map_index(ch->map_index())) {
-                    if (three_way_war::instance().revive_token_for_player(ch->player_id()) <= 0) {
+                if (true == get_three_way_war().is_sung_zi_map_index(ch->map_index())) {
+                    if (get_three_way_war().revive_token_for_player(ch->player_id()) <= 0) {
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("성지에서 부활 기회를 모두 잃었습니다! 마을로 이동합니다!"));
                         ch->warp_set(empire_start_x(ch->empire()), empire_start_y(ch->empire()));
                     } else {
@@ -439,7 +439,7 @@ namespace metin2::game::inline admin {
                     metin2::log::debug("Player {} restarts in town", ch->name());
                     pixel_position pos;
 
-                    if (war_map_manager::instance().start_position(ch->map_index(), ch->get_guild()->id() < guild_opponent ? 0 : 1, pos))
+                    if (get_war_map_manager().start_position(ch->map_index(), ch->get_guild()->id() < guild_opponent ? 0 : 1, pos))
                         ch->show(ch->map_index(), pos.x, pos.y);
                     else
                         ch->exit_to_saved_location();
@@ -467,7 +467,7 @@ namespace metin2::game::inline admin {
             metin2::log::debug("Player {} restarts in town", ch->name());
             pixel_position pos;
 
-            if (sectree_manager::instance().recall_position_by_empire(ch->map_index(), ch->empire(), pos))
+            if (get_sectree_manager().recall_position_by_empire(ch->map_index(), ch->empire(), pos))
                 ch->warp_set(pos.x, pos.y);
             else
                 ch->warp_set(empire_start_x(ch->empire()), empire_start_y(ch->empire()));
@@ -595,7 +595,7 @@ namespace metin2::game::inline admin {
     }
 
     ACMD(do_pvp) {
-        if (ch->get_arena() != nullptr || arena_manager::instance().is_arena_map(ch->map_index()) == true) {
+        if (ch->get_arena() != nullptr || get_arena_manager().is_arena_map(ch->map_index()) == true) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("대련장에서 사용하실 수 없습니다."));
             return;
         }
@@ -605,7 +605,7 @@ namespace metin2::game::inline admin {
 
         uint32_t vid = 0;
         str_to_number(vid, arg1);
-        character *victim = character_manager::instance().find(vid);
+        character *victim = get_character_manager().find(vid);
 
         if (!victim)
             return;
@@ -618,7 +618,7 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        pvp_manager::instance().insert(ch, victim);
+        get_pvp_manager().insert(ch, victim);
     }
 
     ACMD(do_guildskillup) {
@@ -759,7 +759,7 @@ namespace metin2::game::inline admin {
         if (!ch->get_party())
             return;
 
-        if (!party_manager::instance().is_enable_pc_party()) {
+        if (!get_party_manager().is_enable_pc_party()) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("<파티> 서버 문제로 파티 관련 처리를 할 수 없습니다."));
             return;
         }
@@ -772,7 +772,7 @@ namespace metin2::game::inline admin {
         party *party = ch->get_party();
 
         if (party->member_count() == 2) {
-            party_manager::instance().delete_party(party);
+            get_party_manager().delete_party(party);
         } else {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("<파티> 파티에서 나가셨습니다."));
             party->quit(ch->player_id());
@@ -831,7 +831,7 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        guild *opp_g = guild_manager::instance().find_guild_by_name(arg1);
+        guild *opp_g = get_guild_manager().find_guild_by_name(arg1);
 
         if (!opp_g) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 그런 길드가 없습니다."));
@@ -918,7 +918,7 @@ namespace metin2::game::inline admin {
             if (g->master_character() != nullptr)
                 break;
 
-            cci *cci = p2p_manager::instance().find_by_pid(g->master_pid());
+            cci *cci = get_p2p_manager().find_by_pid(g->master_pid());
 
             if (cci != nullptr)
                 break;
@@ -933,7 +933,7 @@ namespace metin2::game::inline admin {
             if (opp_g->master_character() != nullptr)
                 break;
 
-            cci *cci = p2p_manager::instance().find_by_pid(opp_g->master_pid());
+            cci *cci = get_p2p_manager().find_by_pid(opp_g->master_pid());
 
             if (cci != nullptr)
                 break;
@@ -965,7 +965,7 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        guild *opp_g = guild_manager::instance().find_guild_by_name(arg1);
+        guild *opp_g = get_guild_manager().find_guild_by_name(arg1);
 
         if (!opp_g) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 그런 길드가 없습니다."));
@@ -1016,11 +1016,11 @@ namespace metin2::game::inline admin {
 
         char answer = std::tolower(static_cast<unsigned char>(*arg1));
 
-        if (!messenger_manager::instance().auth_to_add(ch->name(), arg2, answer == 'y' ? false : true))
+        if (!get_messenger_manager().auth_to_add(ch->name(), arg2, answer == 'y' ? false : true))
             return;
 
         if (answer != 'y') {
-            character *tch = character_manager::instance().find_pc(arg2);
+            character *tch = get_character_manager().find_pc(arg2);
 
             if (tch)
                 tch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님으로 부터 친구 등록을 거부 당했습니다."), ch->name());
@@ -1081,7 +1081,7 @@ namespace metin2::game::inline admin {
         if (*arg1) {
             uint32_t vid = 0;
             str_to_number(vid, arg1);
-            character *tch = character_manager::instance().find(vid);
+            character *tch = get_character_manager().find(vid);
 
             if (!tch)
                 return;
@@ -1111,7 +1111,7 @@ namespace metin2::game::inline admin {
 
         uint32_t vid = 0;
         str_to_number(vid, arg1);
-        character *tch = character_manager::instance().find(vid);
+        character *tch = get_character_manager().find(vid);
 
         if (tch)
             if (!ch->request_to_party(tch))
@@ -1127,7 +1127,7 @@ namespace metin2::game::inline admin {
 
         uint32_t vid = 0;
         str_to_number(vid, arg1);
-        character *tch = character_manager::instance().find(vid);
+        character *tch = get_character_manager().find(vid);
 
         if (tch)
             ch->accept_to_party(tch);
@@ -1142,7 +1142,7 @@ namespace metin2::game::inline admin {
 
         uint32_t vid = 0;
         str_to_number(vid, arg1);
-        character *tch = character_manager::instance().find(vid);
+        character *tch = get_character_manager().find(vid);
 
         if (tch)
             ch->deny_to_party(tch);
@@ -1150,7 +1150,7 @@ namespace metin2::game::inline admin {
 
     ACMD(do_monarch_warpto) {
 
-        if (!monarch::instance().is_monarch(ch->player_id(), ch->empire())) {
+        if (!get_monarch().is_monarch(ch->player_id(), ch->empire())) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("군주만이 사용 가능한 기능입니다"));
             return;
         }
@@ -1162,8 +1162,8 @@ namespace metin2::game::inline admin {
 
         const int warp_price = 10000;
 
-        if (!monarch::instance().is_money_ok(warp_price, ch->empire())) {
-            int nation_money = monarch::instance().money(ch->empire());
+        if (!get_monarch().is_money_ok(warp_price, ch->empire())) {
+            int nation_money = get_monarch().money(ch->empire());
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), nation_money, warp_price);
             return;
         }
@@ -1178,10 +1178,10 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        character *tch = character_manager::instance().find_pc(arg1);
+        character *tch = get_character_manager().find_pc(arg1);
 
         if (!tch) {
-            cci *cci = p2p_manager::instance().find(arg1);
+            cci *cci = get_p2p_manager().find(arg1);
 
             if (cci) {
                 if (cci->empire != ch->empire()) {
@@ -1200,17 +1200,17 @@ namespace metin2::game::inline admin {
 
                 pixel_position pos;
 
-                if (!sectree_manager::instance().center_position_of_map(cci->map_index, pos))
+                if (!get_sectree_manager().center_position_of_map(cci->map_index, pos))
                     ch->chat_packet(CHAT_TYPE_INFO, "Cannot find map (index %d)", cci->map_index);
                 else {
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 에게로 이동합니다"), arg1);
                     ch->warp_set(pos.x, pos.y);
 
-                    monarch::instance().sendto_db_dec_money(warp_price, ch->empire(), ch);
+                    get_monarch().sendto_db_dec_money(warp_price, ch->empire(), ch);
 
                     ch->set_mc(character::MI_WARP);
                 }
-            } else if (nullptr == character_manager::instance().find_pc(arg1)) {
+            } else if (nullptr == get_character_manager().find_pc(arg1)) {
                 ch->chat_packet(CHAT_TYPE_INFO, "There is no one by that name");
             }
 
@@ -1232,7 +1232,7 @@ namespace metin2::game::inline admin {
         ch->warp_set(x, y);
         ch->stop();
 
-        monarch::instance().sendto_db_dec_money(warp_price, ch->empire(), ch);
+        get_monarch().sendto_db_dec_money(warp_price, ch->empire(), ch);
 
         ch->set_mc(character::MI_WARP);
     }
@@ -1247,7 +1247,7 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        if (!monarch::instance().is_monarch(ch->player_id(), ch->empire())) {
+        if (!get_monarch().is_monarch(ch->player_id(), ch->empire())) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("군주만이 사용 가능한 기능입니다"));
             return;
         }
@@ -1259,16 +1259,16 @@ namespace metin2::game::inline admin {
 
         const int warp_price = 10000;
 
-        if (!monarch::instance().is_money_ok(warp_price, ch->empire())) {
-            int nation_money = monarch::instance().money(ch->empire());
+        if (!get_monarch().is_money_ok(warp_price, ch->empire())) {
+            int nation_money = get_monarch().money(ch->empire());
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), nation_money, warp_price);
             return;
         }
 
-        character *tch = character_manager::instance().find_pc(arg1);
+        character *tch = get_character_manager().find_pc(arg1);
 
         if (!tch) {
-            cci *cci = p2p_manager::instance().find(arg1);
+            cci *cci = get_p2p_manager().find(arg1);
 
             if (cci) {
                 if (cci->empire != ch->empire()) {
@@ -1295,10 +1295,10 @@ namespace metin2::game::inline admin {
                 pgg.x = ch->x();
                 pgg.y = ch->y();
 
-                p2p_manager::instance().send(&pgg, sizeof(packet_gg_transfer));
+                get_p2p_manager().send(&pgg, sizeof(packet_gg_transfer));
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님을 소환하였습니다."), arg1);
 
-                monarch::instance().sendto_db_dec_money(warp_price, ch->empire(), ch);
+                get_monarch().sendto_db_dec_money(warp_price, ch->empire(), ch);
                 ch->set_mc(character::MI_TRANSFER);
             } else {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("입력하신 이름을 가진 사용자가 없습니다."));
@@ -1327,14 +1327,14 @@ namespace metin2::game::inline admin {
 
         tch->warp_set(ch->x(), ch->y(), ch->map_index());
 
-        monarch::instance().sendto_db_dec_money(warp_price, ch->empire(), ch);
+        get_monarch().sendto_db_dec_money(warp_price, ch->empire(), ch);
         ch->set_mc(character::MI_TRANSFER);
     }
 
     ACMD(do_monarch_info) {
-        if (monarch::instance().is_monarch(ch->player_id(), ch->empire())) {
+        if (get_monarch().is_monarch(ch->player_id(), ch->empire())) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("나의 군주 정보"));
-            monarch_info *p = monarch::instance().get_monarch();
+            monarch_info *p = get_monarch().info();
             for (int n = 1; n < 4; ++n) {
                 if (n == ch->empire())
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("[%s군주] : %s  보유금액 %lld "), empire_name(n), p->name[n], p->money[n]);
@@ -1343,7 +1343,7 @@ namespace metin2::game::inline admin {
             }
         } else {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("군주 정보"));
-            monarch_info *p = monarch::instance().get_monarch();
+            monarch_info *p = get_monarch().info();
             for (int n = 1; n < 4; ++n) {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("[%s군주] : %s  "), empire_name(n), p->name[n]);
             }
@@ -1391,7 +1391,7 @@ namespace metin2::game::inline admin {
         if (tax < 1 || tax > 50)
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("1-50 사이의 수치를 선택해주세요"));
 
-        quest::quest_manager::instance().set_event_flag("trade_tax", tax);
+        quest::get_quest_manager().set_event_flag("trade_tax", tax);
 
         ch->chat_packet(CHAT_TYPE_INFO, lc_text("세금이 %d %로 설정되었습니다"));
 
@@ -1450,8 +1450,8 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        if (!monarch::instance().is_money_ok(summon_price, ch->empire())) {
-            int nation_money = monarch::instance().money(ch->empire());
+        if (!get_monarch().is_money_ok(summon_price, ch->empire())) {
+            int nation_money = get_monarch().money(ch->empire());
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), nation_money, summon_price);
             return;
         }
@@ -1462,10 +1462,10 @@ namespace metin2::game::inline admin {
         if (is_digit(*arg1)) {
             str_to_number(vnum, arg1);
 
-            if ((mob = mob_manager::instance().get(vnum)) == nullptr)
+            if ((mob = get_mob_manager().get(vnum)) == nullptr)
                 vnum = 0;
         } else {
-            mob = mob_manager::instance().get(arg1, true);
+            mob = get_mob_manager().get(arg1, true);
 
             if (mob)
                 vnum = mob->table.vnum;
@@ -1482,7 +1482,7 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        tch = character_manager::instance().spawn_mob_range(vnum,
+        tch = get_character_manager().spawn_mob_range(vnum,
             ch->map_index(),
             ch->x() - number(200, 750),
             ch->y() - number(200, 750),
@@ -1493,7 +1493,7 @@ namespace metin2::game::inline admin {
             true);
 
         if (tch) {
-            monarch::instance().sendto_db_dec_money(summon_price, ch->empire(), ch);
+            get_monarch().sendto_db_dec_money(summon_price, ch->empire(), ch);
 
             ch->set_mc(character::MI_SUMMON);
         }

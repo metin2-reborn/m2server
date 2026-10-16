@@ -47,15 +47,15 @@ namespace metin2::game::inline world {
                     metin2::log::error("Sectree destroyed with character {} still in it (is_pc {:d})", ch->name(), ch->is_pc() ? 1 : 0);
 
                     if (ch->get_desc())
-                        desc_manager::instance().destroy_desc(ch->get_desc());
+                        get_desc_manager().destroy_desc(ch->get_desc());
                     else
-                        character_manager::instance().destroy_character(ch);
+                        get_character_manager().destroy_character(ch);
                 } else if (ent->is_type(ENTITY_ITEM)) {
                     item *item = (game::items::item *)ent;
 
                     metin2::log::error("Sectree destroyed with item {} still in it", item->name());
 
-                    item_manager::instance().destroy_item(item);
+                    get_item_manager().destroy_item(item);
                 } else
                     metin2::log::error("Sectree destroyed with entity of unknown type {:d} still in it", ent->type());
             }

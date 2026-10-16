@@ -20,7 +20,7 @@ namespace metin2::game {
                 return 0;
             }
 
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             auto apply_on = (uint8_t)lua_tonumber(lua, 1);
 
@@ -43,7 +43,7 @@ namespace metin2::game {
         }
 
         auto affect_remove(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             int type;
 
             if (lua_isnumber(lua, 1)) {
@@ -60,13 +60,13 @@ namespace metin2::game {
         }
 
         auto affect_remove_bad(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             ch->remove_bad_affect();
             return 0;
         }
 
         auto affect_remove_good(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             ch->remove_good_affect();
             return 0;
         }
@@ -77,7 +77,7 @@ namespace metin2::game {
                 return 0;
             }
 
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             auto apply_on = (uint8_t)lua_tonumber(lua, 1);
 
@@ -97,7 +97,7 @@ namespace metin2::game {
         }
 
         auto affect_remove_hair(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             affect *aff = ch->find_affect(AFFECT_HAIR);
 
@@ -112,7 +112,7 @@ namespace metin2::game {
         }
 
         auto affect_get_apply_on(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (!lua_isnumber(lua, 1)) {
                 metin2::log::error("Invalid arguments");
@@ -137,7 +137,7 @@ namespace metin2::game {
                 return 0;
             }
 
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             auto apply_on = (uint8_t)lua_tonumber(lua, 1);
 
@@ -162,7 +162,7 @@ namespace metin2::game {
                 return 0;
             }
 
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             auto point_type = (uint8_t)lua_tonumber(lua, 1);
 
@@ -182,7 +182,7 @@ namespace metin2::game {
         }
 
         auto affect_remove_collect(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch != nullptr) {
                 auto apply = (uint8_t)lua_tonumber(lua, 1);
@@ -216,7 +216,7 @@ namespace metin2::game {
         }
 
         auto affect_remove_all_collect(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch != nullptr) {
                 ch->remove_affect(AFFECT_COLLECT);
@@ -243,7 +243,7 @@ namespace metin2::game {
                     {nullptr,              nullptr                  }
             };
 
-            quest_manager::instance().add_lua_function_table("affect", affect_functions);
+            get_quest_manager().add_lua_function_table("affect", affect_functions);
         }
     };
 }

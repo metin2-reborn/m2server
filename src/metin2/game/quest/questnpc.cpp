@@ -43,7 +43,7 @@ namespace metin2::game {
                     return true;
 
                 if (metin2::config::test_server()) {
-                    quest_manager &mgr = quest_manager::instance();
+                    quest_manager &mgr = get_quest_manager();
 
                     metin2::log::warn("Cannot start a quest while quest {} is suspended for player {}",
                         pc.current_quest_name(),
@@ -66,7 +66,7 @@ namespace metin2::game {
         void npc::set(unsigned int vnum, const std::string &script_name) {
             vnum_ = vnum;
 
-            for (const auto &[event_name, event_index] : quest_manager::instance().event_name) {
+            for (const auto &[event_name, event_index] : get_quest_manager().event_name) {
                 for (const std::string &object_dir : quest_object_dir) {
                     const std::string event_dir = std::format("{}/{}/{}/", object_dir, script_name, event_name);
 
@@ -87,7 +87,7 @@ namespace metin2::game {
 
             size_t i = s.find('.');
 
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             const std::string quest_name = s.substr(0, i);
 
@@ -322,13 +322,13 @@ namespace metin2::game {
                         matched.push_back({quest_map->first, state, &quest_script->second}); }, [&](auto &, auto &quest_map) {
                     uint32_t quest_index_value = quest_map->first;
 
-                    if (has_start_state(quest_map->second) && quest_manager::instance().can_start_quest(quest_index_value)) {
+                    if (has_start_state(quest_map->second) && get_quest_manager().can_start_quest(quest_index_value)) {
                         new_start_quest_indices.push_back(quest_index_value);
                     } });
 
             for (size_t i = 0; i < matched.size(); i++) {
                 if (i != 0)
-                    quest_manager::instance().get_pc(pc.id());
+                    get_quest_manager().get_pc(pc.id());
 
                 const matched_script &m = matched[i];
                 quest_manager::execute_quest_script(pc, m.quest_index, m.state, m.script->get_code(), m.script->size());
@@ -359,7 +359,7 @@ namespace metin2::game {
                         match_handled = true;
 
                         quest_manager::execute_quest_script(
-                            *quest_manager::instance().current_pc(),
+                            *get_quest_manager().current_pc(),
                             quest_map->first,
                             pc_state,
                             quest_script_value->second.get_code(),
@@ -367,14 +367,14 @@ namespace metin2::game {
                     } }, [&](auto &, auto &quest_map) {
                     uint32_t quest_index = quest_map->first;
 
-                    if (has_start_state(quest_map->second) && quest_manager::instance().can_start_quest(quest_index)) {
+                    if (has_start_state(quest_map->second) && get_quest_manager().can_start_quest(quest_index)) {
                         const a_quest_script_type &quest_script = quest_map->second;
                         auto it = quest_script.find(QUEST_START_STATE_INDEX);
 
                         if (it != quest_script.end()) {
                             miss_handled = true;
                             quest_manager::execute_quest_script(
-                                *quest_manager::instance().current_pc(),
+                                *get_quest_manager().current_pc(),
                                 quest_index,
                                 QUEST_START_STATE_INDEX,
                                 it->second.get_code(),
@@ -398,7 +398,7 @@ namespace metin2::game {
                     auto quest_script_value = quest_script.find(pc_state);
 
                     if (quest_script_value != quest_script.end()) {
-                        auto *pc = quest_manager::instance().current_pc();
+                        auto *pc = get_quest_manager().current_pc();
 
                         if (quest_manager::execute_quest_script(
                                 *pc,
@@ -407,22 +407,22 @@ namespace metin2::game {
                                 quest_script_value->second.get_code(),
                                 quest_script_value->second.size())) {
                             metin2::log::error("Quest {} did not finish its login/logout script",
-                                quest_manager::instance().quest_name_by_index(quest_map->first));
+                                get_quest_manager().quest_name_by_index(quest_map->first));
 
                             quest_state &rqs = *pc->running_quest_state();
-                            quest_manager::instance().close_state(rqs);
+                            get_quest_manager().close_state(rqs);
                             pc->end_running();
                         }
                         match_handled = true;
                     } }, [&](auto &, auto &quest_map) {
                     uint32_t quest_index = quest_map->first;
 
-                    if (has_start_state(quest_map->second) && quest_manager::instance().can_start_quest(quest_index)) {
+                    if (has_start_state(quest_map->second) && get_quest_manager().can_start_quest(quest_index)) {
                         const a_quest_script_type &quest_script = quest_map->second;
                         auto it = quest_script.find(QUEST_START_STATE_INDEX);
                         if (it != quest_script.end()) {
                             miss_handled = true;
-                            auto *pc = quest_manager::instance().current_pc();
+                            auto *pc = get_quest_manager().current_pc();
                             if (quest_manager::execute_quest_script(
                                     *pc,
                                     quest_index,
@@ -430,10 +430,10 @@ namespace metin2::game {
                                     it->second.get_code(),
                                     it->second.size())) {
                                 metin2::log::error("Quest {} did not finish its login/logout script",
-                                    quest_manager::instance().quest_name_by_index(quest_map->first));
+                                    get_quest_manager().quest_name_by_index(quest_map->first));
 
                                 quest_state &rqs = *pc->running_quest_state();
-                                quest_manager::instance().close_state(rqs);
+                                get_quest_manager().close_state(rqs);
                                 pc->end_running();
                             }
                         }
@@ -458,7 +458,7 @@ namespace metin2::game {
             quest_map_type &rmap_event_own_quest = own_quest_[event_index];
             auto quest_map = rmap_event_own_quest.find(quest_index);
 
-            const char *quest_name = quest_manager::instance().quest_name_by_index(quest_index).c_str();
+            const char *quest_name = get_quest_manager().quest_name_by_index(quest_index).c_str();
 
             if (quest_map == rmap_event_own_quest.end()) {
                 metin2::log::error("Quest {} has no info event", quest_name);
@@ -495,7 +495,7 @@ namespace metin2::game {
             if (pc_quest != pc.quest_end()) {
                 state = pc_quest->second.st;
             } else {
-                if (quest_manager::instance().can_start_quest(quest_map->first, pc) && has_start_state(quest_map->second))
+                if (get_quest_manager().can_start_quest(quest_map->first, pc) && has_start_state(quest_map->second))
                     state = 0;
                 else
                     return false;
@@ -526,7 +526,7 @@ namespace metin2::game {
                                 avail_script.push_back(&quest_map->second[state][i]);
                         }
                     } }, [&](auto &, auto &quest_map) {
-                    if (quest_manager::instance().can_start_quest(quest_map->first) && has_start_state(quest_map->second)) {
+                    if (get_quest_manager().can_start_quest(quest_map->first) && has_start_state(quest_map->second)) {
                         for (size_t i = 0; i < quest_map->second[QUEST_START_STATE_INDEX].size(); ++i) {
                             if (quest_map->second[QUEST_START_STATE_INDEX][i].when_condition.size() == 0 ||
                                 is_script_true(&quest_map->second[QUEST_START_STATE_INDEX][i].when_condition[0], quest_map->second[QUEST_START_STATE_INDEX][i].when_condition.size()))
@@ -575,7 +575,7 @@ namespace metin2::game {
             }
 
             metin2::log::debug("Quest: run event {:d}, quest {:d}, state {:d}", event_index, quest_index, state);
-            quest_manager::instance().set_current_event_index(event_index);
+            get_quest_manager().set_current_event_index(event_index);
             return quest_manager::execute_quest_script(pc, quest_index, state, state_value->second.get_code(), state_value->second.size());
         }
 

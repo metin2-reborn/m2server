@@ -2,8 +2,6 @@
 
 #include <metin2/db/clients/peer.h>
 
-#include <metin2/common/singleton.h>
-
 #include <cstdint>
 #include <functional>
 #include <map>
@@ -69,7 +67,7 @@ namespace metin2::db::inline social {
             }
         };
 
-        class manager : public singleton<manager> {
+        class manager {
           public:
             manager();
 
@@ -101,5 +99,10 @@ namespace metin2::db::inline social {
 
             std::map<std::pair<uint32_t, uint32_t>, wedding> running_wedding_;
         };
+
+        inline auto get_manager() -> manager & {
+            static manager instance;
+            return instance;
+        }
     }
 }

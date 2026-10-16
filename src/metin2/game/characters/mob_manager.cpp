@@ -90,9 +90,9 @@ namespace metin2::game::inline characters {
                 t->vnum, t->locale_name, t->level, t->max_hp, t->def, t->exp, t->drop_item_vnum, skill_count);
 
             if (t->type == CHAR_TYPE_NPC || t->type == CHAR_TYPE_WARP || t->type == CHAR_TYPE_GOTO)
-                character_manager::instance().register_race_num(t->vnum);
+                get_character_manager().register_race_num(t->vnum);
 
-            quest::quest_manager::instance().register_npc_vnum(t->vnum);
+            quest::get_quest_manager().register_npc_vnum(t->vnum);
         }
 
         const std::string group_file_name = std::format("{}/group.txt", locale_service_get_base_path());
@@ -107,7 +107,7 @@ namespace metin2::game::inline characters {
             thecore_shutdown();
         }
 
-        character_manager::instance().for_each_pc([this](character *ch) { rebind_mob_proto(ch); });
+        get_character_manager().for_each_pc([this](character *ch) { rebind_mob_proto(ch); });
         return true;
     }
 
@@ -163,7 +163,7 @@ namespace metin2::game::inline characters {
 
         case REGEN_TYPE_GROUP:
             {
-                mob_group *group = mob_manager::instance().group(vnum);
+                mob_group *group = get_mob_manager().group(vnum);
                 if (!group)
                     return;
                 const std::vector<uint32_t> &c_rdw_members = group->member_vector();
@@ -182,7 +182,7 @@ namespace metin2::game::inline characters {
 
                 std::vector<uint32_t> &v = it->second->vec_member_vnum;
                 for (uint32_t i = 0; i < v.size(); i++) {
-                    mob_group *group = mob_manager::instance().group(v[i]);
+                    mob_group *group = get_mob_manager().group(v[i]);
                     if (!group)
                         return;
                     const std::vector<uint32_t> &c_rdw_members = group->member_vector();

@@ -196,7 +196,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character::is_learnable_skill(uint32_t skill_vnum) const -> bool {
-        const skill_proto *skill = skill_manager::instance().get(skill_vnum);
+        const skill_proto *skill = get_skill_manager().get(skill_vnum);
 
         if (!skill)
             return false;
@@ -253,7 +253,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character::learn_grand_master_skill(uint32_t skill_vnum) -> bool {
-        skill_proto *sk = skill_manager::instance().get(skill_vnum);
+        skill_proto *sk = get_skill_manager().get(skill_vnum);
 
         if (!sk)
             return false;
@@ -331,14 +331,14 @@ namespace metin2::game::inline characters {
         if (last_level == skill_level(skill_vnum)) {
             chat_packet(CHAT_TYPE_TALKING, lc_text("크윽, 기가 역류하고 있어! 이거 설마 주화입마인가!? 젠장!"));
             chat_packet(CHAT_TYPE_INFO, lc_text("수련이 실패로 끝났습니다. 다시 도전해주시기 바랍니다."));
-            log_manager::instance().char_log(this, skill_vnum, "GM_READ_FAIL", "");
+            get_log_manager().char_log(this, skill_vnum, "GM_READ_FAIL", "");
             return false;
         }
 
         chat_packet(CHAT_TYPE_TALKING, lc_text("몸에서 뭔가 힘이 터져 나오는 기분이야!"));
         chat_packet(CHAT_TYPE_TALKING, lc_text("뜨거운 무엇이 계속 용솟음치고 있어! 이건, 이것은!"));
         chat_packet(CHAT_TYPE_INFO, lc_text("더 높은 경지의 수련을 성공적으로 끝내셨습니다."));
-        log_manager::instance().char_log(this, skill_vnum, "GM_READ_SUCCESS", "");
+        get_log_manager().char_log(this, skill_vnum, "GM_READ_SUCCESS", "");
         return true;
     }
 
@@ -350,7 +350,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character::learn_skill_by_book(uint32_t skill_vnum, uint8_t prob) -> bool {
-        const skill_proto *sk = skill_manager::instance().get(skill_vnum);
+        const skill_proto *sk = get_skill_manager().get(skill_vnum);
 
         if (!sk)
             return false;
@@ -382,7 +382,7 @@ namespace metin2::game::inline characters {
         }
 
         if (get_global_time() < skill_next_read_time(skill_vnum)) {
-            if (!(metin2::config::test_server() && quest::quest_manager::instance().event_flag("no_read_delay"))) {
+            if (!(metin2::config::test_server() && quest::get_quest_manager().event_flag("no_read_delay"))) {
                 if (find_affect(AFFECT_SKILL_NO_BOOK_DELAY)) {
                     remove_affect(AFFECT_SKILL_NO_BOOK_DELAY);
                     chat_packet(CHAT_TYPE_INFO, lc_text("주안술서를 통해 주화입마에서 빠져나왔습니다."));
@@ -421,7 +421,7 @@ namespace metin2::game::inline characters {
 
             point_change(POINT_EXP, -need_exp);
 
-            quest::quest_manager &q = quest::quest_manager::instance();
+            quest::quest_manager &q = quest::get_quest_manager();
             quest::pc *pc = q.get_pc(player_id());
 
             if (pc) {
@@ -441,7 +441,7 @@ namespace metin2::game::inline characters {
                         pc->set_flag(flag, 0);
 
                         chat_packet(CHAT_TYPE_INFO, lc_text("책으로 더 높은 경지의 수련을 성공적으로 끝내셨습니다."));
-                        log_manager::instance().char_log(this, skill_vnum, "READ_SUCCESS", "");
+                        get_log_manager().char_log(this, skill_vnum, "READ_SUCCESS", "");
                         return true;
                     } else {
                         pc->set_flag(flag, read_count + 1);
@@ -473,11 +473,11 @@ namespace metin2::game::inline characters {
             chat_packet(CHAT_TYPE_TALKING, lc_text("몸에서 뭔가 힘이 터져 나오는 기분이야!"));
             chat_packet(CHAT_TYPE_TALKING, lc_text("뜨거운 무엇이 계속 용솟음치고 있어! 이건, 이것은!"));
             chat_packet(CHAT_TYPE_INFO, lc_text("책으로 더 높은 경지의 수련을 성공적으로 끝내셨습니다."));
-            log_manager::instance().char_log(this, skill_vnum, "READ_SUCCESS", "");
+            get_log_manager().char_log(this, skill_vnum, "READ_SUCCESS", "");
         } else {
             chat_packet(CHAT_TYPE_TALKING, lc_text("크윽, 기가 역류하고 있어! 이거 설마 주화입마인가!? 젠장!"));
             chat_packet(CHAT_TYPE_INFO, lc_text("수련이 실패로 끝났습니다. 다시 도전해주시기 바랍니다."));
-            log_manager::instance().char_log(this, skill_vnum, "READ_FAIL", "");
+            get_log_manager().char_log(this, skill_vnum, "READ_FAIL", "");
         }
 
         return true;
@@ -493,7 +493,7 @@ namespace metin2::game::inline characters {
         if (is_polymorphed())
             return false;
 
-        skill_proto *sk = skill_manager::instance().get(vnum_value);
+        skill_proto *sk = get_skill_manager().get(vnum_value);
 
         if (!sk) {
             metin2::log::error("No skill with vnum {:d}", vnum_value);
@@ -563,7 +563,7 @@ namespace metin2::game::inline characters {
                 return;
         }
 
-        const skill_proto *sk = skill_manager::instance().get(vnum_value);
+        const skill_proto *sk = get_skill_manager().get(vnum_value);
 
         if (!sk) {
             metin2::log::error("No skill with vnum {:d}", vnum_value);
@@ -681,7 +681,7 @@ namespace metin2::game::inline characters {
 
         metin2::log::info("{}", skill_up);
 
-        log_manager::instance().char_log(this, sk->vnum, "SKILLUP", skill_up.c_str());
+        get_log_manager().char_log(this, sk->vnum, "SKILLUP", skill_up.c_str());
         save();
 
         compute_points();
@@ -775,8 +775,8 @@ namespace metin2::game::inline characters {
             return 0;
         }
 
-        character *chr_victim = character_manager::instance().find(info->victim);
-        character *chr = character_manager::instance().find(info->chr);
+        character *chr_victim = get_character_manager().find(info->victim);
+        character *chr = get_character_manager().find(info->chr);
         character *target = nullptr;
 
         if (!chr || !chr_victim) {
@@ -1069,7 +1069,7 @@ namespace metin2::game::inline characters {
                 uint8_t anti_skill_level = chr_victim->skill_level(anti_skill_id);
 
                 if (0 != anti_skill_level) {
-                    skill_proto *sk_value = skill_manager::instance().get(anti_skill_id);
+                    skill_proto *sk_value = get_skill_manager().get(anti_skill_id);
                     if (!sk_value) {
                         metin2::log::error("Anti skill {:d} is not in the skill proto", anti_skill_id);
                     } else {
@@ -1333,7 +1333,7 @@ namespace metin2::game::inline characters {
         if (metin2::config::game().skill_disable)
             return BATTLE_NONE;
 
-        skill_proto *sk = skill_manager::instance().get(vnum_value);
+        skill_proto *sk = get_skill_manager().get(vnum_value);
 
         if (!sk)
             return BATTLE_NONE;
@@ -1483,7 +1483,7 @@ namespace metin2::game::inline characters {
         if (metin2::config::game().skill_disable)
             return BATTLE_NONE;
 
-        skill_proto *sk = skill_manager::instance().get(vnum_value);
+        skill_proto *sk = get_skill_manager().get(vnum_value);
 
         if (!sk)
             return BATTLE_NONE;
@@ -1731,7 +1731,7 @@ namespace metin2::game::inline characters {
             return false;
 
         if (metin2::config::test_server()) {
-            if (quest::quest_manager::instance().event_flag("no_grand_master")) {
+            if (quest::get_quest_manager().event_flag("no_grand_master")) {
                 use_grand_master = false;
             }
         }
@@ -1765,7 +1765,7 @@ namespace metin2::game::inline characters {
         if (false == can_use_horse_skill_value && true == is_riding())
             return false;
 
-        skill_proto *sk = skill_manager::instance().get(vnum_value);
+        skill_proto *sk = get_skill_manager().get(vnum_value);
         metin2::log::debug("{} uses skill {:d} on {}", name(), vnum_value, static_cast<const void *>(victim));
 
         if (!sk)
@@ -2139,7 +2139,7 @@ namespace metin2::game::inline characters {
             return false;
 
         uint32_t vnum_value = info_value->skill_vnum;
-        skill_proto *sk = skill_manager::instance().get(vnum_value);
+        skill_proto *sk = get_skill_manager().get(vnum_value);
 
         if (!sk)
             return false;
@@ -2613,7 +2613,7 @@ namespace metin2::game::inline characters {
 
         point_change(POINT_SKILL, level);
 
-        log_manager::instance().char_log(this, vnum, "ONE_SKILL_RESET_BY_SCROLL", "");
+        get_log_manager().char_log(this, vnum, "ONE_SKILL_RESET_BY_SCROLL", "");
 
         compute_points();
         skill_level_packet();

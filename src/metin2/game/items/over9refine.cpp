@@ -46,7 +46,7 @@ namespace metin2::game::inline items {
 
         uint32_t vnum = iter->second;
 
-        game::items::item *over9 = item_manager::instance().create_item(vnum, 1);
+        game::items::item *over9 = get_item_manager().create_item(vnum, 1);
 
         if (over9 == nullptr)
             return false;
@@ -64,7 +64,7 @@ namespace metin2::game::inline items {
         over9->add_to_character(ch, item_pos(INVENTORY, empty_cell));
 
         const std::string buf = std::format("SUCCESS {} {} {}", over9->id(), over9->name(), over9->original_vnum());
-        log_manager::instance().item_log(ch, item, "REFINE OVER9", buf.c_str());
+        get_log_manager().item_log(ch, item, "REFINE OVER9", buf.c_str());
         return true;
     }
 
@@ -74,7 +74,7 @@ namespace metin2::game::inline items {
         if (vnum == 0)
             return false;
 
-        game::items::item *over9 = item_manager::instance().create_item(vnum, 1);
+        game::items::item *over9 = get_item_manager().create_item(vnum, 1);
 
         if (over9 == nullptr)
             return false;
@@ -92,7 +92,7 @@ namespace metin2::game::inline items {
         over9->add_to_character(ch, item_pos(INVENTORY, empty_cell));
 
         const std::string buf = std::format("SUCCESS {} {} {}", over9->id(), over9->name(), over9->original_vnum());
-        log_manager::instance().item_log(ch, item, "REFINE OVER9", buf.c_str());
+        get_log_manager().item_log(ch, item, "REFINE OVER9", buf.c_str());
         return true;
     }
 

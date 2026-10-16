@@ -1,7 +1,6 @@
 #pragma once
 #include <metin2/game/app/typedef.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/proto/tables.h>
 
 #include <cstdint>
@@ -13,14 +12,14 @@ namespace metin2::game::inline trade {
 
     class shop;
 
-    class shop_manager : public singleton<shop_manager> {
+    class shop_manager {
       public:
         using shop_map = std::map<uint32_t, shop *>;
         using owned_shop_map = std::map<uint32_t, std::unique_ptr<shop>>;
 
       public:
         shop_manager();
-        ~shop_manager() override;
+        ~shop_manager();
 
         auto initialize(shop_table *table, int size) -> bool;
         void destroy();
@@ -46,4 +45,9 @@ namespace metin2::game::inline trade {
 
         auto read_shop_table_ex(const char *file_name) -> bool;
     };
+
+    inline auto get_shop_manager() -> shop_manager & {
+        static shop_manager instance;
+        return instance;
+    }
 }

@@ -221,7 +221,7 @@ namespace metin2::game::inline parties {
         }
 
         uint32_t pid = info->pid;
-        character *leader = character_manager::instance().find_by_pid(pid);
+        character *leader = get_character_manager().find_by_pid(pid);
 
         if (leader && leader->get_desc()) {
             party *party = leader->get_party();
@@ -279,7 +279,7 @@ namespace metin2::game::inline parties {
 
         if (pc_party_) {
             for (auto it = member_map_.begin(); it != member_map_.end(); ++it)
-                party_manager::instance().set_party_member(it->first, nullptr);
+                get_party_manager().set_party_member(it->first, nullptr);
         }
 
         event_cancel(&event_update_);
@@ -364,7 +364,7 @@ namespace metin2::game::inline parties {
                 member_value.role = PARTY_ROLE_NORMAL;
 
             if (pc_party_) {
-                character *ch = character_manager::instance().find_by_pid(pid);
+                character *ch = get_character_manager().find_by_pid(pid);
 
                 if (ch) {
                     metin2::log::info("Party: {} (pid {:d}) joined the party of leader pid {:d}", ch->name(), pid, leader_pid_);
@@ -373,7 +373,7 @@ namespace metin2::game::inline parties {
                     if (member_value.role == PARTY_ROLE_LEADER)
                         leadership_ = ch->leadership_skill_level();
                 } else {
-                    cci *pcci = p2p_manager::instance().find_by_pid(pid);
+                    cci *pcci = get_p2p_manager().find_by_pid(pid);
 
                     if (!pcci)
                         ;
@@ -392,10 +392,10 @@ namespace metin2::game::inline parties {
                 next_owner_ = member_map_.begin();
 
             if (pc_party_) {
-                party_manager::instance().set_party_member(pid, this);
+                get_party_manager().set_party_member(pid, this);
                 send_party_join_one_to_all(pid);
 
-                character *ch = character_manager::instance().find_by_pid(pid);
+                character *ch = get_character_manager().find_by_pid(pid);
 
                 if (ch)
                     send_parameter(ch);
@@ -453,10 +453,10 @@ namespace metin2::game::inline parties {
         }
 
         if (pc_party_)
-            party_manager::instance().set_party_member(pid, nullptr);
+            get_party_manager().set_party_member(pid, nullptr);
 
         if (role_value == PARTY_ROLE_LEADER)
-            party_manager::instance().delete_party(this);
+            get_party_manager().delete_party(this);
 
         // The party is deleted above; nothing may follow.
     }
@@ -763,7 +763,7 @@ namespace metin2::game::inline parties {
 
         case PM_AGGRO_INCREASE:
             {
-                character *victim = character_manager::instance().find(arg2);
+                character *victim = get_character_manager().find(arg2);
 
                 if (!victim)
                     return;
@@ -909,7 +909,7 @@ namespace metin2::game::inline parties {
         int n = 0;
         int x[12], y[12];
 
-        sectree_manager &s = sectree_manager::instance();
+        sectree_manager &s = get_sectree_manager();
         character *l = leader_character();
 
         if (member_map_.find(pid) == member_map_.end()) {

@@ -2,7 +2,6 @@
 
 #include <metin2/game/app/typedef.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/proto/tables.h>
 
 #include <cstdint>
@@ -10,10 +9,10 @@
 
 namespace metin2::game::inline empire {
 
-    class monarch : public singleton<monarch> {
+    class monarch {
       public:
         monarch();
-        ~monarch() override;
+        ~monarch();
 
         auto initialize() -> bool;
 
@@ -29,7 +28,7 @@ namespace metin2::game::inline empire {
         auto dec_money(int money_value, uint8_t empire) -> bool;
         auto money(uint8_t empire) -> int;
 
-        auto get_monarch() -> monarch_info *;
+        auto info() -> monarch_info *;
 
         auto monarch_pid(uint8_t empire) -> uint32_t;
 
@@ -59,6 +58,11 @@ namespace metin2::game::inline empire {
         int power_up_ct_[4];
         int defense_up_ct_[4];
     };
+
+    inline auto get_monarch() -> monarch & {
+        static monarch instance;
+        return instance;
+    }
 
     auto is_monarch_warp_zone(int map_idx) -> bool;
 }

@@ -357,7 +357,7 @@ namespace metin2::game::inline world {
         fread(&width, sizeof(int), 1, fp);
         fread(&height, sizeof(int), 1, fp);
 
-        int max_mem_size = lzo_manager::instance().max_compressed_size(sizeof(uint32_t) * (SECTREE_SIZE / CELL_SIZE) * (SECTREE_SIZE / CELL_SIZE));
+        int max_mem_size = get_lzo_manager().max_compressed_size(sizeof(uint32_t) * (SECTREE_SIZE / CELL_SIZE) * (SECTREE_SIZE / CELL_SIZE));
 
         unsigned int size_value;
         lzo_uint dest_size;
@@ -402,7 +402,7 @@ namespace metin2::game::inline world {
                 fread(ab_comp.data(), sizeof(char), size_value, fp);
 
                 dest_size = sizeof(uint32_t) * max_mem_size;
-                lzo_manager::instance().decompress(ab_comp.data(), size_value, (uint8_t *)attr.get(), &dest_size);
+                get_lzo_manager().decompress(ab_comp.data(), size_value, (uint8_t *)attr.get(), &dest_size);
 
                 if (dest_size != sizeof(uint32_t) * (SECTREE_SIZE / CELL_SIZE) * (SECTREE_SIZE / CELL_SIZE)) {
                     metin2::log::error("Map attribute file {}: sectree {:d}x{:d} decompressed to wrong size {:d}",
@@ -579,7 +579,7 @@ namespace metin2::game::inline world {
     }
 
     auto sectree_manager::is_movable_position(int32_t map_index, int32_t x, int32_t y) -> bool {
-        sectree *tree = sectree_manager::instance().get(map_index, x, y);
+        sectree *tree = get_sectree_manager().get(map_index, x, y);
 
         if (!tree)
             return false;
@@ -594,7 +594,7 @@ namespace metin2::game::inline world {
             int32_t dx = x + arround_coords[i].x;
             int32_t dy = y + arround_coords[i].y;
 
-            sectree *tree = sectree_manager::instance().get(map_index, dx, dy);
+            sectree *tree = get_sectree_manager().get(map_index, dx, dy);
 
             if (!tree)
                 continue;
@@ -758,14 +758,14 @@ namespace metin2::game::inline world {
                 metin2::log::info("Private map: removing character {}", ch->name());
 
                 if (ch->get_desc())
-                    desc_manager::instance().destroy_desc(ch->get_desc());
+                    get_desc_manager().destroy_desc(ch->get_desc());
                 else
-                    character_manager::instance().destroy_character(ch);
+                    get_character_manager().destroy_character(ch);
             } else if (ent->is_type(ENTITY_ITEM)) {
                 item *item = (game::items::item *)ent;
                 metin2::log::info("Private map: removing item {}", item->name());
 
-                item_manager::instance().destroy_item(item);
+                get_item_manager().destroy_item(item);
             } else
                 metin2::log::error("Private map: cannot remove entity of unknown type {:d}", ent->type());
         });
@@ -1080,7 +1080,7 @@ namespace metin2::game::inline world {
     }
 
     void sectree_manager::purge_monsters_in_map(int32_t map_index) {
-        sectree_map *sectree = sectree_manager::instance().map(map_index);
+        sectree_map *sectree = get_sectree_manager().map(map_index);
 
         if (sectree != nullptr) {
             sectree->for_each([](entity *ent) {
@@ -1088,7 +1088,7 @@ namespace metin2::game::inline world {
                     auto *ch = (character *)ent;
 
                     if (ch->is_monster() == true && !ch->is_pet()) {
-                        character_manager::instance().destroy_character(ch);
+                        get_character_manager().destroy_character(ch);
                     }
                 }
             });
@@ -1096,7 +1096,7 @@ namespace metin2::game::inline world {
     }
 
     void sectree_manager::purge_stones_in_map(int32_t map_index) {
-        sectree_map *sectree = sectree_manager::instance().map(map_index);
+        sectree_map *sectree = get_sectree_manager().map(map_index);
 
         if (sectree != nullptr) {
             sectree->for_each([](entity *ent) {
@@ -1104,7 +1104,7 @@ namespace metin2::game::inline world {
                     auto *ch = (character *)ent;
 
                     if (ch->is_stone() == true) {
-                        character_manager::instance().destroy_character(ch);
+                        get_character_manager().destroy_character(ch);
                     }
                 }
             });
@@ -1112,7 +1112,7 @@ namespace metin2::game::inline world {
     }
 
     auto sectree_manager::monster_count_in_map(int32_t map_index) -> size_t {
-        sectree_map *sectree = sectree_manager::instance().map(map_index);
+        sectree_map *sectree = get_sectree_manager().map(map_index);
 
         if (sectree != nullptr) {
             size_t count = 0;
@@ -1129,7 +1129,7 @@ namespace metin2::game::inline world {
     }
 
     auto sectree_manager::monster_count_in_map(int32_t map_index, uint32_t vnum) -> size_t {
-        sectree_map *sectree = sectree_manager::instance().map(map_index);
+        sectree_map *sectree = get_sectree_manager().map(map_index);
 
         if (nullptr != sectree) {
             size_t count = 0;

@@ -64,7 +64,7 @@ namespace metin2::game::inline empire {
 
         int map_index = ch->map_index();
 
-        sectree_manager::instance().for_each(map_index, [empire_value](entity *ent) {
+        get_sectree_manager().for_each(map_index, [empire_value](entity *ent) {
             if (ent->is_type(ENTITY_CHARACTER)) {
                 auto *ch = (character *)ent;
 
@@ -161,7 +161,7 @@ namespace metin2::game::inline empire {
         return monarch_info_.money[empire];
     }
 
-    auto monarch::get_monarch() -> monarch_info * {
+    auto monarch::info() -> monarch_info * {
         return &monarch_info_;
     }
 

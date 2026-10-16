@@ -2,7 +2,6 @@
 
 #include <metin2/game/app/typedef.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/sql/async_sql.h>
 
 #include <cstddef>
@@ -19,10 +18,10 @@ namespace metin2::game::inline protocol {
 
 namespace metin2::game::inline persistence {
 
-    class db_manager : public singleton<db_manager> {
+    class db_manager {
       public:
         db_manager();
-        ~db_manager() override;
+        ~db_manager();
 
         auto is_connected() -> bool;
 
@@ -61,7 +60,12 @@ namespace metin2::game::inline persistence {
         std::map<uint32_t, std::unique_ptr<login_data>> map_login_data_;
     };
 
-    class account_db : public singleton<account_db> {
+    inline auto get_db_manager() -> db_manager & {
+        static db_manager instance;
+        return instance;
+    }
+
+    class account_db {
       public:
         account_db();
 
@@ -84,6 +88,11 @@ namespace metin2::game::inline persistence {
         async_sql sql_;
         bool is_connect_;
     };
+
+    inline auto get_account_db() -> account_db & {
+        static account_db instance;
+        return instance;
+    }
 
     extern void cancel_reload_spam_event();
     extern void load_spam_db();

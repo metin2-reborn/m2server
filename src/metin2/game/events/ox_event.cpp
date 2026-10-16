@@ -51,7 +51,7 @@ namespace metin2::game::inline events {
     }
 
     auto ox_event_manager::status() -> ox_event_status {
-        uint8_t ret = quest::quest_manager::instance().event_flag("oxevent_status");
+        uint8_t ret = quest::get_quest_manager().event_flag("oxevent_status");
 
         switch (ret) {
         case 0:
@@ -95,7 +95,7 @@ namespace metin2::game::inline events {
             val = 0;
             break;
         }
-        quest::quest_manager::instance().request_set_event_flag("oxevent_status", val);
+        quest::get_quest_manager().request_set_event_flag("oxevent_status", val);
     }
 
     auto ox_event_manager::enter(character *ch) -> bool {
@@ -197,10 +197,10 @@ namespace metin2::game::inline events {
             send_notice_map(lc_text("정답은"), OXEVENT_MAP_INDEX, true);
 
             if (info->answer == true) {
-                ox_event_manager::instance().check_answer(true);
+                get_ox_event_manager().check_answer(true);
                 send_notice_map(lc_text("O 입니다"), OXEVENT_MAP_INDEX, true);
             } else {
-                ox_event_manager::instance().check_answer(false);
+                get_ox_event_manager().check_answer(false);
                 send_notice_map(lc_text("X 입니다"), OXEVENT_MAP_INDEX, true);
             }
 
@@ -210,8 +210,8 @@ namespace metin2::game::inline events {
             return passes_per_sec(5);
 
         case 2:
-            ox_event_manager::instance().warp_to_audience();
-            ox_event_manager::instance().set_status(OXEVENT_CLOSE);
+            get_ox_event_manager().warp_to_audience();
+            get_ox_event_manager().set_status(OXEVENT_CLOSE);
             send_notice_map(lc_text("다음 문제 준비해주세요."), OXEVENT_MAP_INDEX, true);
             flag = 0;
             break;
@@ -273,7 +273,7 @@ namespace metin2::game::inline events {
         character *ch = nullptr;
         pixel_position pos;
         for (; iter != map_attender_.end();) {
-            ch = character_manager::instance().find_by_pid(iter->second);
+            ch = get_character_manager().find_by_pid(iter->second);
             if (ch != nullptr) {
                 pos = ch->xyz();
 
@@ -327,7 +327,7 @@ namespace metin2::game::inline events {
         character *ch = nullptr;
 
         for (; iter != map_miss_.end(); ++iter) {
-            ch = character_manager::instance().find_by_pid(iter->second);
+            ch = get_character_manager().find_by_pid(iter->second);
 
             if (ch != nullptr) {
                 switch (number(0, 3)) {
@@ -352,7 +352,7 @@ namespace metin2::game::inline events {
 
         character *ch = nullptr;
         for (; iter != map_char_.end(); ++iter) {
-            ch = character_manager::instance().find_by_pid(iter->second);
+            ch = get_character_manager().find_by_pid(iter->second);
 
             if (ch != nullptr)
                 ch->warp_set(empire_start_x(ch->empire()), empire_start_y(ch->empire()));
@@ -367,10 +367,10 @@ namespace metin2::game::inline events {
         auto iter = map_attender_.begin();
 
         for (; iter != map_attender_.end(); ++iter) {
-            character *ch = character_manager::instance().find_by_pid(iter->second);
+            character *ch = get_character_manager().find_by_pid(iter->second);
 
             if (ch)
-                log_manager::instance().char_log(ch, 0, "OXEVENT", "LastManStanding");
+                get_log_manager().char_log(ch, 0, "OXEVENT", "LastManStanding");
         }
 
         return true;
@@ -380,11 +380,11 @@ namespace metin2::game::inline events {
         auto iter = map_attender_.begin();
 
         for (; iter != map_attender_.end(); ++iter) {
-            character *ch = character_manager::instance().find_by_pid(iter->second);
+            character *ch = get_character_manager().find_by_pid(iter->second);
 
             if (ch) {
                 ch->auto_give_item(item_vnum, count);
-                log_manager::instance().item_log(ch->player_id(), 0, count, item_vnum, "OXEVENT_REWARD", "", ch->get_desc()->host_name(), item_vnum);
+                get_log_manager().item_log(ch->player_id(), 0, count, item_vnum, "OXEVENT_REWARD", "", ch->get_desc()->host_name(), item_vnum);
             }
         }
 

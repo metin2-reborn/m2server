@@ -127,7 +127,7 @@ namespace metin2::game::inline trade {
         shop_item_table &r_item = shop_tab.items[slot_pos];
 
         if (r_item.price <= 0) {
-            log_manager::instance().hack_log("SHOP_BUY_GOLD_OVERFLOW", ch);
+            get_log_manager().hack_log("SHOP_BUY_GOLD_OVERFLOW", ch);
             return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY;
         }
 
@@ -156,7 +156,7 @@ namespace metin2::game::inline trade {
 
         item *item;
 
-        item = item_manager::instance().create_item(r_item.vnum, r_item.count);
+        item = get_item_manager().create_item(r_item.vnum, r_item.count);
 
         if (!item)
             return SHOP_SUBHEADER_GC_SOLD_OUT;
@@ -170,7 +170,7 @@ namespace metin2::game::inline trade {
 
         if (empty_pos < 0) {
             metin2::log::debug("Shop: inventory of {} is full (item size {:d})", ch->name(), item->size());
-            item_manager::instance().destroy_item(item);
+            get_item_manager().destroy_item(item);
             return SHOP_SUBHEADER_GC_INVENTORY_FULL;
         }
 
@@ -188,14 +188,14 @@ namespace metin2::game::inline trade {
         else
             item->add_to_character(ch, item_pos(INVENTORY, empty_pos));
 
-        item_manager::instance().flush_delayed_save(item);
-        log_manager::instance().item_log(ch, item, "BUY", item->name());
+        get_item_manager().flush_delayed_save(item);
+        get_log_manager().item_log(ch, item, "BUY", item->name());
 
         if (item->vnum() >= 80003 && item->vnum() <= 80007) {
-            log_manager::instance().gold_bar_log(ch->player_id(), item->id(), PERSONAL_SHOP_BUY, "");
+            get_log_manager().gold_bar_log(ch->player_id(), item->id(), PERSONAL_SHOP_BUY, "");
         }
 
-        db_manager::instance().send_money_log(MONEY_LOG_SHOP, item->vnum(), -price_value);
+        get_db_manager().send_money_log(MONEY_LOG_SHOP, item->vnum(), -price_value);
 
         if (item)
             metin2::log::info("Shop: {} bought {} (count {:d}, id {:d}) for {:d}", ch->name(), item->name(), item->count(), item->id(), price_value);

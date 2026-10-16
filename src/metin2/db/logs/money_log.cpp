@@ -14,7 +14,7 @@ namespace metin2::db::inline logs {
     money_log::money_log() = default;
 
     void money_log::save() {
-        peer *peer = client_manager::instance().any_peer();
+        peer *peer = get_client_manager().any_peer();
         if (!peer)
             return;
         for (uint8_t type = 0; type < MONEY_LOG_TYPE_MAX_NUM; type++) {

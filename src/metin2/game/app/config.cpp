@@ -161,9 +161,9 @@ namespace metin2::game::inline app {
             exit(1);
         }
 
-        account_db::instance().connect(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), db.common.c_str());
+        get_account_db().connect(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), db.common.c_str());
 
-        if (false == account_db::instance().is_connected()) {
+        if (false == get_account_db().is_connected()) {
             metin2::log::error("Cannot connect to the common database");
             exit(1);
         }
@@ -174,7 +174,7 @@ namespace metin2::game::inline app {
         {
             const std::string query = sql::format("SELECT mKey, mValue FROM locale");
 
-            auto msg = account_db::instance().direct_query(query);
+            auto msg = get_account_db().direct_query(query);
 
             if (msg->get()->num_rows == 0) {
                 metin2::log::error("Common database locale table is empty or unreadable: {}", query);
@@ -193,14 +193,14 @@ namespace metin2::game::inline app {
             }
         }
 
-        account_db::instance().set_locale(db_charset);
+        get_account_db().set_locale(db_charset);
 
-        account_db::instance().connect_async(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), db.common.c_str(), db_charset.c_str());
+        get_account_db().connect_async(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), db.common.c_str(), db_charset.c_str());
 
         const std::string &player_db = metin2::config::is_auth() ? db.account : db.player;
-        db_manager::instance().connect(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), player_db.c_str());
+        get_db_manager().connect(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), player_db.c_str());
 
-        if (!db_manager::instance().is_connected()) {
+        if (!get_db_manager().is_connected()) {
             metin2::log::error("Cannot connect to the player database {}", player_db);
             exit(1);
         }
@@ -208,21 +208,21 @@ namespace metin2::game::inline app {
         metin2::log::info("Player database connected");
 
         if (!metin2::config::is_auth()) {
-            log_manager::instance().connect(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), db.log.c_str());
+            get_log_manager().connect(db.host.c_str(), db.port, db.user.c_str(), db.password.c_str(), db.log.c_str());
 
-            if (!log_manager::instance().is_connected()) {
+            if (!get_log_manager().is_connected()) {
                 metin2::log::error("Cannot connect to the log database {}", db.log);
                 exit(1);
             }
 
             metin2::log::info("Log database connected");
 
-            log_manager::instance().boot_log(server.hostname.c_str(), server.channel);
+            get_log_manager().boot_log(server.hostname.c_str(), server.channel);
         }
 
         {
             const std::string query = sql::format("SELECT mValue FROM locale WHERE mKey='SKILL_POWER_BY_LEVEL'");
-            auto msg = account_db::instance().direct_query(query);
+            auto msg = get_account_db().direct_query(query);
 
             if (msg->get()->num_rows == 0) {
                 metin2::log::error("Locale table has no SKILL_POWER_BY_LEVEL: {}", query);
@@ -256,10 +256,10 @@ namespace metin2::game::inline app {
 
             for (int job = 0; job < JOB_MAX_NUM * 2; ++job) {
                 const std::string type_query = sql::format("SELECT mValue from locale where mKey='SKILL_POWER_BY_LEVEL_TYPE{}' ORDER BY CAST(mValue AS unsigned)", job);
-                auto msg = account_db::instance().direct_query(type_query);
+                auto msg = get_account_db().direct_query(type_query);
 
                 if (msg->get()->num_rows == 0) {
-                    table_by_skill::instance().set_skill_power_by_level_from_type(job, ai_base_skill_power_by_level_table);
+                    get_table_by_skill().set_skill_power_by_level_from_type(job, ai_base_skill_power_by_level_table);
                     continue;
                 }
 
@@ -284,7 +284,7 @@ namespace metin2::game::inline app {
                     }
                 }
 
-                table_by_skill::instance().set_skill_power_by_level_from_type(job, ai_skill_table);
+                get_table_by_skill().set_skill_power_by_level_from_type(job, ai_skill_table);
             }
         }
 
@@ -335,13 +335,13 @@ namespace metin2::game::inline app {
 
         load_state_user_count();
 
-        war_map_manager::instance().load_war_map_info(nullptr);
+        get_war_map_manager().load_war_map_info(nullptr);
     }
 
     void check_client_version() {
         check_client_version_enabled = true;
 
-        const desc_manager::desc_set &set = desc_manager::instance().client_set();
+        const desc_manager::desc_set &set = get_desc_manager().client_set();
         auto it = set.begin();
 
         while (it != set.end()) {

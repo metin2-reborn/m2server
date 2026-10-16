@@ -3,8 +3,6 @@
 
 #include <metin2/game/app/typedef.h>
 
-#include <metin2/common/singleton.h>
-
 #include <cstdint>
 #include <set>
 #include <string>
@@ -26,10 +24,10 @@ namespace metin2::game::inline empire {
         std::string map_name[3];
     };
 
-    class three_way_war : public singleton<three_way_war> {
+    class three_way_war {
       public:
         three_way_war();
-        ~three_way_war() override;
+        ~three_way_war();
 
         void initialize();
         auto load_setting(const char *file_name) -> bool;
@@ -70,6 +68,11 @@ namespace metin2::game::inline empire {
         std::unordered_map<uint32_t, uint32_t> register_user_map_;
         std::unordered_map<uint32_t, int> revive_token_map_;
     };
+
+    inline auto get_three_way_war() -> three_way_war & {
+        static three_way_war instance;
+        return instance;
+    }
 
     auto get_sungzi_map_path() -> const char *;
     auto get_pass_map_path(uint8_t empire) -> const char *;

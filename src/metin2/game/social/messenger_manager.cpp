@@ -51,7 +51,7 @@ namespace metin2::game::inline social {
         if (set_login_account_.find(account) != set_login_account_.end())
             return;
 
-        db_manager::instance().func_query([this](sql_msg &msg) { load_list(msg); },
+        get_db_manager().func_query([this](sql_msg &msg) { load_list(msg); },
             sql::format("SELECT account, companion FROM messenger_list WHERE account={}", account));
 
         set_login_account_.insert(account);
@@ -112,12 +112,12 @@ namespace metin2::game::inline social {
         if (!ch->is_pc() || !target->is_pc())
             return;
 
-        if (quest::quest_manager::instance().pc_force(ch->player_id())->is_running() == true) {
+        if (quest::get_quest_manager().pc_force(ch->player_id())->is_running() == true) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("상대방이 친구 추가를 받을 수 없는 상태입니다."));
             return;
         }
 
-        if (quest::quest_manager::instance().pc_force(target->player_id())->is_running() == true)
+        if (quest::get_quest_manager().pc_force(target->player_id())->is_running() == true)
             return;
 
         uint32_t dw1 = get_cr_c32(ch->name(), strlen(ch->name()));
@@ -157,14 +157,14 @@ namespace metin2::game::inline social {
         relation_[account].insert(companion);
         inverse_relation_[companion].insert(account);
 
-        character *ch = character_manager::instance().find_pc(account.c_str());
+        character *ch = get_character_manager().find_pc(account.c_str());
         desc *d = ch ? ch->get_desc() : nullptr;
 
         if (d) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("<메신져> %s 님을 친구로 추가하였습니다."), companion.c_str());
         }
 
-        character *tch = character_manager::instance().find_pc(companion.c_str());
+        character *tch = get_character_manager().find_pc(companion.c_str());
 
         if (tch)
             send_login(account, companion);
@@ -180,7 +180,7 @@ namespace metin2::game::inline social {
             return;
 
         metin2::log::info("Messenger: {} added {} as a friend", account, companion);
-        db_manager::instance().query(sql::format("INSERT INTO messenger_list VALUES ({}, {})", account, companion));
+        get_db_manager().query(sql::format("INSERT INTO messenger_list VALUES ({}, {})", account, companion));
 
         apply_add_to_list(account, companion);
 
@@ -189,14 +189,14 @@ namespace metin2::game::inline social {
         p2ppck.header = HEADER_GG_MESSENGER_ADD;
         strlcpy(p2ppck.account, account.c_str(), sizeof(p2ppck.account));
         strlcpy(p2ppck.companion, companion.c_str(), sizeof(p2ppck.companion));
-        p2p_manager::instance().send(&p2ppck, sizeof(packet_gg_messenger));
+        get_p2p_manager().send(&p2ppck, sizeof(packet_gg_messenger));
     }
 
     void messenger_manager::apply_remove_from_list(messenger_manager::key_a account, messenger_manager::key_a companion) {
         relation_[account].erase(companion);
         inverse_relation_[companion].erase(account);
 
-        character *ch = character_manager::instance().find_pc(account.c_str());
+        character *ch = get_character_manager().find_pc(account.c_str());
         desc *d = ch ? ch->get_desc() : nullptr;
 
         if (d)
@@ -225,7 +225,7 @@ namespace metin2::game::inline social {
 
         metin2::log::debug("Messenger: {} removed {} as a friend", account, companion);
 
-        db_manager::instance().query(sql::format("DELETE FROM messenger_list WHERE account={} AND companion = {}", account, companion));
+        get_db_manager().query(sql::format("DELETE FROM messenger_list WHERE account={} AND companion = {}", account, companion));
 
         apply_remove_from_list(account, companion);
 
@@ -234,20 +234,20 @@ namespace metin2::game::inline social {
         p2ppck.header = HEADER_GG_MESSENGER_REMOVE;
         strlcpy(p2ppck.account, account.c_str(), sizeof(p2ppck.account));
         strlcpy(p2ppck.companion, companion.c_str(), sizeof(p2ppck.companion));
-        p2p_manager::instance().send(&p2ppck, sizeof(packet_gg_messenger));
+        get_p2p_manager().send(&p2ppck, sizeof(packet_gg_messenger));
     }
 
     void messenger_manager::remove_all_list(key_a account) {
         std::set<key_t> company(relation_[account]);
 
-        db_manager::instance().query(sql::format("DELETE FROM messenger_list WHERE account={} OR companion={}", account, account));
+        get_db_manager().query(sql::format("DELETE FROM messenger_list WHERE account={} OR companion={}", account, account));
 
         for (const key_t &companion : company)
             remove_from_list(account, companion);
     }
 
     void messenger_manager::send_list(messenger_manager::key_a account) {
-        character *ch = character_manager::instance().find_pc(account.c_str());
+        character *ch = get_character_manager().find_pc(account.c_str());
 
         if (!ch)
             return;
@@ -303,7 +303,7 @@ namespace metin2::game::inline social {
     }
 
     void messenger_manager::send_login(messenger_manager::key_a account, messenger_manager::key_a companion) {
-        character *ch = character_manager::instance().find_pc(account.c_str());
+        character *ch = get_character_manager().find_pc(account.c_str());
         desc *d = ch ? ch->get_desc() : nullptr;
 
         if (!d)
@@ -332,7 +332,7 @@ namespace metin2::game::inline social {
         if (!companion.size())
             return;
 
-        character *ch = character_manager::instance().find_pc(account.c_str());
+        character *ch = get_character_manager().find_pc(account.c_str());
         desc *d = ch ? ch->get_desc() : nullptr;
 
         if (!d)

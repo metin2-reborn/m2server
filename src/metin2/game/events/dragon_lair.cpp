@@ -53,7 +53,7 @@ namespace metin2::game::inline events {
 
             return passes_per_sec(30);
         } else if (1 == info_value->step) {
-            sectree_map *map = sectree_manager::instance().map(info_value->instance_map_index);
+            sectree_map *map = get_sectree_manager().map(info_value->instance_map_index);
 
             if (nullptr != map) {
                 map->for_each([](entity *ent) {
@@ -73,7 +73,7 @@ namespace metin2::game::inline events {
 
             return passes_per_sec(30);
         } else {
-            sectree_manager::instance().destroy_private_map(info_value->instance_map_index);
+            get_sectree_manager().destroy_private_map(info_value->instance_map_index);
             info_value->lair.reset();
         }
 
@@ -94,7 +94,7 @@ namespace metin2::game::inline events {
     void dragon_lair::on_dragon_dead(character *dragon) {
         metin2::log::info("Dragon lair: dragon of guild {:d} killed", guild_id_);
 
-        log_manager::instance().dragon_slay_log(guild_id_, dragon->get_mob_table().vnum, start_time_, get_global_time());
+        get_log_manager().dragon_slay_log(guild_id_, dragon->get_mob_table().vnum, start_time_, get_global_time());
     }
 
     dragon_lair_manager::dragon_lair_manager() = default;
@@ -102,22 +102,22 @@ namespace metin2::game::inline events {
     dragon_lair_manager::~dragon_lair_manager() = default;
 
     auto dragon_lair_manager::start(int32_t map_index_from, int32_t base_map_index, uint32_t guild_id) -> bool {
-        int32_t instance_map_index = sectree_manager::instance().create_private_map(base_map_index);
+        int32_t instance_map_index = get_sectree_manager().create_private_map(base_map_index);
         if (instance_map_index == 0) {
             metin2::log::error("Cannot start dragon lair, no private map index available");
             return false;
         }
 
-        sectree_map *map = sectree_manager::instance().map(map_index_from);
+        sectree_map *map = get_sectree_manager().map(map_index_from);
 
         if (nullptr != map) {
-            sectree_map *target_map = sectree_manager::instance().map(base_map_index);
+            sectree_map *target_map = get_sectree_manager().map(base_map_index);
 
             if (nullptr == target_map) {
                 return false;
             }
 
-            const map_region *region_info = sectree_manager::instance().get_map_region(target_map->setting.index);
+            const map_region *region_info = get_sectree_manager().get_map_region(target_map->setting.index);
 
             if (nullptr != region_info) {
                 map->for_each([guild_id, instance_map_index](entity *ent) {
@@ -164,7 +164,7 @@ namespace metin2::game::inline events {
             return;
         }
 
-        sectree_map *map = sectree_manager::instance().map(dragon->map_index());
+        sectree_map *map = get_sectree_manager().map(dragon->map_index());
 
         if (nullptr == iter->second || nullptr == map) {
             lair_map_.erase(iter);

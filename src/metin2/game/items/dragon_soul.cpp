@@ -263,7 +263,7 @@ namespace metin2::game::inline items {
         if (nullptr == item_value || !item_value->is_dragon_soul())
             return false;
         put_attributes(item_value);
-        int time = ds_manager::instance().duration(item_value);
+        int time = get_ds_manager().duration(item_value);
         if (time > 0)
             item_value->set_socket(ITEM_SOCKET_REMAIN_SEC, time);
         return true;
@@ -316,7 +316,7 @@ namespace metin2::game::inline items {
         charge = std::clamp(charge, 0.f, 100.f);
 
         if (charge < FLT_EPSILON) {
-            log_manager::instance().item_log(ch, item_value, "DS_HEART_EXTRACT_FAIL", "");
+            get_log_manager().item_log(ch, item_value, "DS_HEART_EXTRACT_FAIL", "");
             item_value->set_count(item_value->count() - 1);
             if (nullptr != extractor) {
                 extractor->set_count(extractor->count() - 1);
@@ -325,7 +325,7 @@ namespace metin2::game::inline items {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("용심 추출에 실패하였습니다."));
             return false;
         } else {
-            item *dh = item_manager::instance().create_item(DRAGON_HEART_VNUM);
+            item *dh = get_item_manager().create_item(DRAGON_HEART_VNUM);
 
             if (nullptr == dh) {
                 metin2::log::error("Cannot create dragon heart (vnum {:d})", DRAGON_HEART_VNUM);
@@ -336,7 +336,7 @@ namespace metin2::game::inline items {
 
             std::string s = std::to_string(charge_value);
             s += "%s";
-            log_manager::instance().item_log(ch, item_value, "DS_HEART_EXTRACT_SUCCESS", s.c_str());
+            get_log_manager().item_log(ch, item_value, "DS_HEART_EXTRACT_SUCCESS", s.c_str());
 
             item_value->set_count(item_value->count() - 1);
             if (nullptr != extractor) {
@@ -402,7 +402,7 @@ namespace metin2::game::inline items {
                 } else {
                     buf = std::format("dice({:g}) prob({:g})", dice_value, prob_value);
                 }
-                log_manager::instance().item_log(ch, item_value, "DS_PULL_OUT_SUCCESS", buf.c_str());
+                get_log_manager().item_log(ch, item_value, "DS_PULL_OUT_SUCCESS", buf.c_str());
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("용혼석 추출에 성공하였습니다."));
                 item_value->add_to_character(ch, dest_cell);
                 return true;
@@ -412,8 +412,8 @@ namespace metin2::game::inline items {
                 } else {
                     buf = std::format("dice({}) prob({}) ByProd(VNUM:{})", (int)dice_value, (int)prob_value, by_product);
                 }
-                log_manager::instance().item_log(ch, item_value, "DS_PULL_OUT_FAILED", buf.c_str());
-                item_manager::instance().destroy_item(item_value);
+                get_log_manager().item_log(ch, item_value, "DS_PULL_OUT_FAILED", buf.c_str());
+                get_item_manager().destroy_item(item_value);
                 item_value = nullptr;
                 if (by_product) {
                     item *by_product_value = ch->auto_give_item(by_product, true);
@@ -534,7 +534,7 @@ namespace metin2::game::inline items {
         }
 
         const uint32_t result_vnum = by_grade ? make_dragon_soul_vnum(ds_type, (uint8_t)result, 0, 0) : make_dragon_soul_vnum(ds_type, grade_idx, (uint8_t)result, 0);
-        item *result_item = item_manager::instance().create_item(result_vnum);
+        item *result_item = get_item_manager().create_item(result_vnum);
 
         if (nullptr == result_item) {
             metin2::log::error("Cannot create dragon soul (vnum {:d})", result_vnum);
@@ -548,7 +548,7 @@ namespace metin2::game::inline items {
             int n = item_value->count();
             if (left_count > n) {
                 item_value->remove_from_character();
-                item_manager::instance().destroy_item(item_value);
+                get_item_manager().destroy_item(item_value);
                 left_count -= n;
             } else {
                 item_value->set_count(n - left_count);
@@ -561,7 +561,7 @@ namespace metin2::game::inline items {
         const bool succeeded = result > previous;
         const char *kind = by_grade ? "GRADE" : "STEP";
         const std::string buf = std::format("{} : {} -> {}", kind, previous, result);
-        log_manager::instance().item_log(ch, result_item, std::format("DS_{}_REFINE_{}", kind, succeeded ? "SUCCESS" : "FAIL").c_str(), buf.c_str());
+        get_log_manager().item_log(ch, result_item, std::format("DS_{}_REFINE_{}", kind, succeeded ? "SUCCESS" : "FAIL").c_str(), buf.c_str());
 
         if (by_grade)
             ch->chat_packet(CHAT_TYPE_INFO, lc_text(succeeded ? "등급 개량에 성공했습니다." : "등급 개량에 실패했습니다."));
@@ -653,7 +653,7 @@ namespace metin2::game::inline items {
         uint8_t sub_header;
 
         if (fnumber(0.f, 100.f) <= prob) {
-            result = item_manager::instance().create_item(make_dragon_soul_vnum(type, grade, step, strength + 1));
+            result = get_item_manager().create_item(make_dragon_soul_vnum(type, grade, step, strength + 1));
             if (nullptr == result) {
                 metin2::log::error("Cannot create dragon soul (vnum {:d})", make_dragon_soul_vnum(type, grade, step, strength + 1));
                 return false;
@@ -667,13 +667,13 @@ namespace metin2::game::inline items {
             refine_stone->set_count(refine_stone->count() - 1);
 
             const std::string buf = std::format("STRENGTH : {} -> {}", strength, strength + 1);
-            log_manager::instance().item_log(ch, dragon_soul, "DS_STRENGTH_REFINE_SUCCESS", buf.c_str());
+            get_log_manager().item_log(ch, dragon_soul, "DS_STRENGTH_REFINE_SUCCESS", buf.c_str());
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("강화에 성공했습니다."));
             ch->auto_give_item(result, true);
             sub_header = DS_SUB_HEADER_REFINE_SUCCEED;
         } else {
             if (strength != 0) {
-                result = item_manager::instance().create_item(make_dragon_soul_vnum(type, grade, step, strength - 1));
+                result = get_item_manager().create_item(make_dragon_soul_vnum(type, grade, step, strength - 1));
                 if (nullptr == result) {
                     metin2::log::error("Cannot create dragon soul (vnum {:d})", make_dragon_soul_vnum(type, grade, step, strength - 1));
                     return false;
@@ -684,7 +684,7 @@ namespace metin2::game::inline items {
             sub_header = DS_SUB_HEADER_REFINE_FAIL;
 
             const std::string buf = std::format("STRENGTH : {} -> {}", strength, strength - 1);
-            log_manager::instance().item_log(ch, dragon_soul, "DS_STRENGTH_REFINE_FAIL", buf.c_str());
+            get_log_manager().item_log(ch, dragon_soul, "DS_STRENGTH_REFINE_FAIL", buf.c_str());
 
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("강화에 실패했습니다."));
             dragon_soul->set_count(dragon_soul->count() - 1);
@@ -755,7 +755,7 @@ namespace metin2::game::inline items {
             item_value->cell() < INVENTORY_MAX_NUM + WEAR_MAX_NUM + DS_SLOT_MAX * (deck_idx + 1)) {
             if (is_time_left_dragon_soul(item_value) && !is_active_dragon_soul(item_value)) {
                 const std::string buf = std::format("LEFT TIME({})", left_time(item_value));
-                log_manager::instance().item_log(owner, item_value, "DS_ACTIVATE", buf.c_str());
+                get_log_manager().item_log(owner, item_value, "DS_ACTIVATE", buf.c_str());
                 item_value->modify_points(true);
                 item_value->set_socket(ITEM_SOCKET_DRAGON_SOUL_ACTIVE_IDX, 1);
 
@@ -782,7 +782,7 @@ namespace metin2::game::inline items {
         item_value->modify_points(false);
 
         const std::string buf = std::format("LEFT TIME({})", left_time(item_value));
-        log_manager::instance().item_log(owner, item_value, "DS_DEACTIVATE", buf.c_str());
+        get_log_manager().item_log(owner, item_value, "DS_DEACTIVATE", buf.c_str());
 
         if (false == skip_refresh_owner_active_state)
             refresh_dragon_soul_state(owner);

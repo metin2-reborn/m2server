@@ -123,9 +123,9 @@ namespace metin2::game::inline characters {
     auto dynamic_character_ptr::get() const -> character * {
         character *p = nullptr;
         if (is_pc) {
-            p = character_manager::instance().find_by_pid(id);
+            p = get_character_manager().find_by_pid(id);
         } else {
-            p = character_manager::instance().find(id);
+            p = get_character_manager().find(id);
         }
         return p;
     }
@@ -173,7 +173,7 @@ namespace metin2::game::inline characters {
         last_victim_set_time_ = get_dword_time() - 3000;
         last_skill_time_ = get_dword_time();
 
-        potion_limit_ = quest::quest_manager::instance().event_flag("arena_potion_limit_count");
+        potion_limit_ = quest::get_quest_manager().event_flag("arena_potion_limit_count");
 
         init_mc();
 
@@ -304,7 +304,7 @@ namespace metin2::game::inline characters {
             get_sectree()->remove_entity(this);
 
         if (monster_log_)
-            character_manager::instance().unregister_for_monster_log(this);
+            get_character_manager().unregister_for_monster_log(this);
     }
 
     auto character::name() const -> const char * {
@@ -322,7 +322,7 @@ namespace metin2::game::inline characters {
             return;
         }
 
-        quest::pc *pc = quest::quest_manager::instance().pc_force(player_id());
+        quest::pc *pc = quest::get_quest_manager().pc_force(player_id());
 
         if (pc->is_running())
             return;
@@ -352,7 +352,7 @@ namespace metin2::game::inline characters {
         if (shop_sign_.length() == 0)
             return;
 
-        if (banword_manager::instance().check_string(shop_sign_.c_str(), shop_sign_.length())) {
+        if (get_banword_manager().check_string(shop_sign_.c_str(), shop_sign_.length())) {
             chat_packet(CHAT_TYPE_INFO, lc_text("비속어나 은어가 포함된 상점 이름으로 상점을 열 수 없습니다."));
             return;
         }
@@ -424,7 +424,7 @@ namespace metin2::game::inline characters {
 
         packet_around(&p, sizeof(packet_gc_shop_sign));
 
-        my_shop_ = shop_manager::instance().create_pc_shop(this, table, item_count);
+        my_shop_ = get_shop_manager().create_pc_shop(this, table, item_count);
 
         if (is_polymorphed() == true) {
             remove_affect(AFFECT_POLYMORPH);
@@ -442,7 +442,7 @@ namespace metin2::game::inline characters {
     void character::close_my_shop() {
         if (my_shop()) {
             shop_sign_.clear();
-            shop_manager::instance().destroy_pc_shop(this);
+            get_shop_manager().destroy_pc_shop(this);
             my_shop_ = nullptr;
 
             packet_gc_shop_sign p;
@@ -720,7 +720,7 @@ namespace metin2::game::inline characters {
 
     void character::save() {
         if (!skip_save_)
-            character_manager::instance().delayed_save(this);
+            get_character_manager().delayed_save(this);
     }
 
     void character::create_player_proto(player_table &tab) {
@@ -835,7 +835,7 @@ namespace metin2::game::inline characters {
 
         db_clientdesc->db_packet(HEADER_GD_PLAYER_SAVE, get_desc()->handle(), &table, sizeof(player_table));
 
-        quest::pc *quest_pc = quest::quest_manager::instance().pc_force(player_id());
+        quest::pc *quest_pc = quest::get_quest_manager().pc_force(player_id());
 
         if (!quest_pc)
             metin2::log::error("Cannot save quest state of {}: no quest pc", name());
@@ -843,7 +843,7 @@ namespace metin2::game::inline characters {
             quest_pc->save();
         }
 
-        marriage::marriage *marriage = marriage::manager::instance().get(player_id());
+        marriage::marriage *marriage = marriage::get_manager().get(player_id());
         if (marriage)
             marriage->save();
     }
@@ -853,7 +853,7 @@ namespace metin2::game::inline characters {
 
         for (int i = 0; i < INVENTORY_AND_EQUIP_SLOT_MAX; ++i)
             if ((item = inventory_item(i)))
-                item_manager::instance().flush_delayed_save(item);
+                get_item_manager().flush_delayed_save(item);
     }
 
     void character::disconnect(const char *reason) {
@@ -874,16 +874,16 @@ namespace metin2::game::inline characters {
             get_party()->update_offline_state(player_id());
         }
 
-        marriage::manager::instance().logout(this);
+        marriage::get_manager().logout(this);
 
         packet_gg_logout p;
         p.header = HEADER_GG_LOGOUT;
         strlcpy(p.name, name(), sizeof(p.name));
-        p2p_manager::instance().send(&p, sizeof(packet_gg_logout));
+        get_p2p_manager().send(&p, sizeof(packet_gg_logout));
         const std::string buf = std::format("{} {} {} {} {}",
             get_desc()->host_name(), gold(), metin2::config::server().channel, map_index(), alignment());
 
-        log_manager::instance().char_log(this, 0, "LOGOUT", buf.c_str());
+        get_log_manager().char_log(this, 0, "LOGOUT", buf.c_str());
 
         if (war_map_)
             set_war_map(nullptr);
@@ -895,7 +895,7 @@ namespace metin2::game::inline characters {
         if (get_guild())
             get_guild()->logout_member(this);
 
-        quest::quest_manager::instance().logout_pc(this);
+        quest::get_quest_manager().logout_pc(this);
 
         if (get_party())
             get_party()->unlink(this);
@@ -905,7 +905,7 @@ namespace metin2::game::inline characters {
             point_change(POINT_HP, 50 - hp());
         }
 
-        if (!character_manager::instance().flush_delayed_save(this)) {
+        if (!get_character_manager().flush_delayed_save(this)) {
             save_real();
         }
 
@@ -915,27 +915,27 @@ namespace metin2::game::inline characters {
 
         skip_save_ = true; // Nothing may be saved after this point.
 
-        quest::quest_manager::instance().disconnect_pc(this);
+        quest::get_quest_manager().disconnect_pc(this);
 
         close_safebox();
 
         close_mall();
 
-        pvp_manager::instance().disconnect(this);
+        get_pvp_manager().disconnect(this);
 
-        target_manager::instance().logout(player_id());
+        get_target_manager().logout(player_id());
 
-        messenger_manager::instance().logout(name());
+        get_messenger_manager().logout(name());
 
         if (get_desc()) {
             get_desc()->bind_character(nullptr);
         }
 
-        character_manager::instance().destroy_character(this);
+        get_character_manager().destroy_character(this);
     }
 
     auto character::show(int32_t map_index, int32_t x, int32_t y, int32_t z, bool show_spawn_motion) -> bool {
-        sectree *sectree = sectree_manager::instance().get(map_index, x, y);
+        sectree *sectree = get_sectree_manager().get(map_index, x, y);
 
         if (!sectree) {
             metin2::log::warn("Cannot show character: no sectree at {:d}x{:d} (map {:d})", x, y, map_index);
@@ -1299,7 +1299,7 @@ namespace metin2::game::inline characters {
         metin2::log::info("Player {} loaded: premium {:d} {:d}, logoff interval {:d} ({})", t->name, premium_times_[0], premium_times_[1], t->logoff_interval, static_cast<const void *>(this));
 
         if (gm_level() != GM_PLAYER) {
-            log_manager::instance().char_log(this, gm_level(), "GM_LOGIN", "");
+            get_log_manager().char_log(this, gm_level(), "GM_LOGIN", "");
             metin2::log::info("GM {} (pid {:d}, level {:d}) logged in at {:d} {:d}", name(), player_id(), gm_level(), x(), y());
         }
 
@@ -1323,7 +1323,7 @@ namespace metin2::game::inline characters {
         }
 
         ch->mining_event = nullptr;
-        character_manager::instance().destroy_character(ch);
+        get_character_manager().destroy_character(ch);
         return 0;
     }
 
@@ -1366,7 +1366,7 @@ namespace metin2::game::inline characters {
             start_warp_npc_event();
         }
 
-        character_manager::instance().register_race_num_map(this);
+        get_character_manager().register_race_num_map(this);
 
         if (race_num() == xmas::MOB_SANTA_VNUM) {
             set_point(POINT_ATT_GRADE_BONUS, 10);
@@ -1485,7 +1485,7 @@ namespace metin2::game::inline characters {
     void character::compute_battle_points() {
         if (is_polymorphed()) {
             uint32_t mob_vnum = polymorph_vnum();
-            const mob *mob = mob_manager::instance().get(mob_vnum);
+            const mob *mob = get_mob_manager().get(mob_vnum);
             int att = 0;
             int def = 0;
 
@@ -1563,7 +1563,7 @@ namespace metin2::game::inline characters {
                 if (armor < horse_armor())
                     armor = horse_armor();
 
-                const char *horse_name = horse_name_manager::instance().horse_name(player_id());
+                const char *horse_name = get_horse_name_manager().horse_name(player_id());
 
                 if (horse_name != nullptr && strlen(horse_name)) {
                     armor += 20;
@@ -1650,7 +1650,7 @@ namespace metin2::game::inline characters {
             max_stamina = job_initial_points[job()].max_stamina + point(POINT_HT) * job_initial_points[job()].stamina_per_con;
 
             {
-                skill_proto *sk = skill_manager::instance().get(SKILL_ADD_HP);
+                skill_proto *sk = get_skill_manager().get(SKILL_ADD_HP);
 
                 if (nullptr != sk) {
                     sk->set_point_var("k", 1.0f * skill_power(SKILL_ADD_HP) / 100.0f);
@@ -1721,7 +1721,7 @@ namespace metin2::game::inline characters {
                 i < WEAR_MAX_NUM + DS_SLOT_MAX * (dragon_soul_get_active_deck() + 1); i++) {
                 item *item = wear(i);
                 if (item) {
-                    if (ds_manager::instance().is_time_left_dragon_soul(item))
+                    if (get_ds_manager().is_time_left_dragon_soul(item))
                         item->modify_points(true);
                 }
             }
@@ -1779,7 +1779,7 @@ namespace metin2::game::inline characters {
                     if (REGEN_PECT_BONUS == blue_dragon_get_index_factor("DragonStone", i, "effect_type")) {
                         uint32_t dragon_stone_id = blue_dragon_get_index_factor("DragonStone", i, "vnum");
                         size_t val = blue_dragon_get_index_factor("DragonStone", i, "val");
-                        size_t cnt = sectree_manager::instance().monster_count_in_map(ch->map_index(), dragon_stone_id);
+                        size_t cnt = get_sectree_manager().monster_count_in_map(ch->map_index(), dragon_stone_id);
 
                         regen_pct += (val * cnt);
 
@@ -1803,7 +1803,7 @@ namespace metin2::game::inline characters {
                     if (REGEN_TIME_BONUS == blue_dragon_get_index_factor("DragonStone", i, "effect_type")) {
                         uint32_t dragon_stone_id = blue_dragon_get_index_factor("DragonStone", i, "vnum");
                         size_t val = blue_dragon_get_index_factor("DragonStone", i, "val");
-                        size_t cnt = sectree_manager::instance().monster_count_in_map(ch->map_index(), dragon_stone_id);
+                        size_t cnt = get_sectree_manager().monster_count_in_map(ch->map_index(), dragon_stone_id);
 
                         return passes_per_sec(std::max<int>(1, (ch->get_mob_table().regen_cycle - (val * cnt))));
                     }
@@ -1919,7 +1919,7 @@ namespace metin2::game::inline characters {
         if (!get_sectree())
             return false;
 
-        sectree *new_tree = sectree_manager::instance().get(map_index(), x, y);
+        sectree *new_tree = get_sectree_manager().get(map_index(), x, y);
 
         if (!new_tree) {
             if (get_desc()) {
@@ -1942,11 +1942,11 @@ namespace metin2::game::inline characters {
 
             if (event_attr_ != last_event_attr) {
                 if (get_party()) {
-                    quest::quest_manager::instance().attr_out(get_party()->leader_pid(), this, last_event_attr);
-                    quest::quest_manager::instance().attr_in(get_party()->leader_pid(), this, event_attr_);
+                    quest::get_quest_manager().attr_out(get_party()->leader_pid(), this, last_event_attr);
+                    quest::get_quest_manager().attr_in(get_party()->leader_pid(), this, event_attr_);
                 } else {
-                    quest::quest_manager::instance().attr_out(player_id(), this, last_event_attr);
-                    quest::quest_manager::instance().attr_in(player_id(), this, event_attr_);
+                    quest::get_quest_manager().attr_out(player_id(), this, last_event_attr);
+                    quest::get_quest_manager().attr_in(player_id(), this, event_attr_);
                 }
             }
         }
@@ -2056,12 +2056,12 @@ namespace metin2::game::inline characters {
         const motion *motion_value = nullptr;
 
         if (!get_mount_vnum())
-            motion_value = motion_manager::instance().get_motion(race_num(), make_motion_key(mode_value, (is_walking() && is_pc()) ? MOTION_WALK : MOTION_RUN));
+            motion_value = get_motion_manager().get_motion(race_num(), make_motion_key(mode_value, (is_walking() && is_pc()) ? MOTION_WALK : MOTION_RUN));
         else {
-            motion_value = motion_manager::instance().get_motion(get_mount_vnum(), make_motion_key(MOTION_MODE_GENERAL, (is_walking() && is_pc()) ? MOTION_WALK : MOTION_RUN));
+            motion_value = get_motion_manager().get_motion(get_mount_vnum(), make_motion_key(MOTION_MODE_GENERAL, (is_walking() && is_pc()) ? MOTION_WALK : MOTION_RUN));
 
             if (!motion_value)
-                motion_value = motion_manager::instance().get_motion(race_num(), make_motion_key(MOTION_MODE_HORSE, (is_walking() && is_pc()) ? MOTION_WALK : MOTION_RUN));
+                motion_value = get_motion_manager().get_motion(race_num(), make_motion_key(MOTION_MODE_HORSE, (is_walking() && is_pc()) ? MOTION_WALK : MOTION_RUN));
         }
 
         if (motion_value)
@@ -2131,7 +2131,7 @@ namespace metin2::game::inline characters {
     auto character::polymorph_point(uint8_t type) const -> int {
         if (is_polymorphed() && !is_poly_maintain_stat()) {
             uint32_t mob_vnum = polymorph_vnum();
-            const mob *mob = mob_manager::instance().get(mob_vnum);
+            const mob *mob = get_mob_manager().get(mob_vnum);
             int power = polymorph_power();
 
             if (mob) {
@@ -2288,9 +2288,9 @@ namespace metin2::game::inline characters {
             point_change(POINT_NEXT_EXP, next_exp(), false);
 
             if (amount) {
-                quest::quest_manager::instance().level_up(player_id());
+                quest::get_quest_manager().level_up(player_id());
 
-                log_manager::instance().level_log(this, val, real_point(POINT_PLAYTIME) + (get_dword_time() - play_start_time_) / 60000);
+                get_log_manager().level_log(this, val, real_point(POINT_PLAYTIME) + (get_dword_time() - play_start_time_) / 60000);
 
                 if (get_guild()) {
                     get_guild()->level_change(player_id(), level());
@@ -2529,7 +2529,7 @@ namespace metin2::game::inline characters {
 
                 if (GOLD_MAX <= total_money) {
                     metin2::log::error("Gold overflow for {} (pid {:d}): has {:d}, adding {:d}", name(), player_id(), gold(), amount);
-                    log_manager::instance().char_log(this, gold() + amount, "OVERFLOW_GOLD", "");
+                    get_log_manager().char_log(this, gold() + amount, "OVERFLOW_GOLD", "");
                     return;
                 }
 
@@ -2884,7 +2884,7 @@ namespace metin2::game::inline characters {
         buf.write(&pack_chat, sizeof(packet_gc_chat));
         buf.write(chatbuf, len);
 
-        character_manager::instance().packet_monster_log(this, buf.read_peek(), buf.size());
+        get_character_manager().packet_monster_log(this, buf.read_peek(), buf.size());
     }
 
     void character::chat_packet(uint8_t type, const char *format, ...) {
@@ -2977,7 +2977,7 @@ namespace metin2::game::inline characters {
         }
 
         {
-            sectree_map *sectree_map = sectree_manager::instance().map(map_index());
+            sectree_map *sectree_map = get_sectree_manager().map(map_index());
 
             int x_value = x();
             int y_value = y();
@@ -3027,7 +3027,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character::start_state_machine(int next_pulse) -> bool {
-        if (character_manager::instance().add_to_state_list(this)) {
+        if (get_character_manager().add_to_state_list(this)) {
             next_state_pulse_ = thecore_pulse() + next_pulse;
             return true;
         }
@@ -3036,7 +3036,7 @@ namespace metin2::game::inline characters {
     }
 
     void character::stop_state_machine() {
-        character_manager::instance().remove_from_state_list(this);
+        get_character_manager().remove_from_state_list(this);
     }
 
     void character::update_state_machine(uint32_t pulse) {
@@ -3051,7 +3051,7 @@ namespace metin2::game::inline characters {
     }
 
     void character::set_next_state_pulse(int next_pulse) {
-        character_manager::instance().add_to_state_list(this);
+        get_character_manager().add_to_state_list(this);
         next_state_pulse_ = next_pulse;
 
         if (next_pulse < 10)
@@ -3225,7 +3225,7 @@ namespace metin2::game::inline characters {
             return 0;
         }
 
-        character *ch = character_manager::instance().find_by_pid(info->guest_pid);
+        character *ch = get_character_manager().find_by_pid(info->guest_pid);
 
         if (ch) {
             metin2::log::debug("Party request by {} expired", ch->name());
@@ -3394,7 +3394,7 @@ namespace metin2::game::inline characters {
             return 0;
         }
 
-        character *pch_inviter = character_manager::instance().find_by_pid(info_value->leader_pid);
+        character *pch_inviter = get_character_manager().find_by_pid(info_value->leader_pid);
 
         if (pch_inviter) {
             metin2::log::debug("Party invite from {} expired", pch_inviter->name());
@@ -3539,7 +3539,7 @@ namespace metin2::game::inline characters {
         if (get_party())
             pch_invitee->party_join(this);
         else {
-            party *party = party_manager::instance().create_party(this);
+            party *party = get_party_manager().create_party(this);
 
             party->join(pch_invitee->player_id());
             party->link(pch_invitee);
@@ -3558,7 +3558,7 @@ namespace metin2::game::inline characters {
         event_cancel(&find->second);
         party_invite_event_map_.erase(find);
 
-        character *pch_invitee = character_manager::instance().find_by_pid(pid);
+        character *pch_invitee = get_character_manager().find_by_pid(pid);
         if (pch_invitee)
             chat_packet(CHAT_TYPE_INFO, lc_text("<파티> %s님이 파티 초대를 거절하셨습니다."), pch_invitee->name());
     }
@@ -3587,7 +3587,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character::is_party_joinable_mutable_condition(character *const pch_leader, character *const pch_guest) -> character::party_join_err_code {
-        if (!party_manager::instance().is_enable_pc_party())
+        if (!get_party_manager().is_enable_pc_party())
             return PERR_SERVER;
         else if (pch_leader->get_dungeon())
             return PERR_DUNGEON;
@@ -3712,7 +3712,7 @@ namespace metin2::game::inline characters {
         }
 
         if (is_pc()) {
-            if (!target_manager::instance().get_target_info(chr_causer->player_id(), TARGET_TYPE_VID, get_vid())) {
+            if (!get_target_manager().get_target_info(chr_causer->player_id(), TARGET_TYPE_VID, get_vid())) {
                 if (my_shop()) {
                     if (chr_causer->is_dead() == true) return;
 
@@ -3752,7 +3752,7 @@ namespace metin2::game::inline characters {
 
         chr_causer->set_quest_npcid(get_vid());
 
-        if (quest::quest_manager::instance().click(chr_causer->player_id(), this)) {
+        if (quest::get_quest_manager().click(chr_causer->player_id(), this)) {
             return;
         }
 
@@ -3960,7 +3960,7 @@ namespace metin2::game::inline characters {
         int32_t map_index_value;
         uint16_t port;
 
-        if (!map_locations::instance().get(x, y, map_index_value, addr, port)) {
+        if (!get_map_locations().get(x, y, map_index_value, addr, port)) {
             metin2::log::error("Cannot find map {:d} at {:d} {:d} for {}", map_index_value, x, y, name());
             return false;
         }
@@ -4006,7 +4006,7 @@ namespace metin2::game::inline characters {
 
         {
             const std::string buf = std::format("{} MapIdx {} DestMapIdx{} DestX{} DestY{} Empire{}", name(), map_index(), private_map_index, x, y, empire());
-            log_manager::instance().char_log(this, 0, "WARP", buf.c_str());
+            get_log_manager().char_log(this, 0, "WARP", buf.c_str());
         }
 
         return true;
@@ -4045,10 +4045,10 @@ namespace metin2::game::inline characters {
             strlcpy(p.name, name(), sizeof(p.name));
             p.pid = player_id();
             p.empire = empire();
-            p.map_index = sectree_manager::instance().map_index(x(), y());
+            p.map_index = get_sectree_manager().map_index(x(), y());
             p.channel = metin2::config::server().channel;
 
-            p2p_manager::instance().send(&p, sizeof(packet_gg_login));
+            get_p2p_manager().send(&p, sizeof(packet_gg_login));
         }
     }
 
@@ -4173,7 +4173,7 @@ namespace metin2::game::inline characters {
                 dx = x_value + (int)fx;
                 dy = y_value + (int)fy;
 
-                sectree *tree = sectree_manager::instance().get(map_index(), dx, dy);
+                sectree *tree = get_sectree_manager().get(map_index(), dx, dy);
 
                 if (nullptr == tree)
                     break;
@@ -4268,7 +4268,7 @@ namespace metin2::game::inline characters {
                 if (!safebox_->is_valid_position(items->pos))
                     continue;
 
-                item *item = item_manager::instance().create_item(items->vnum, items->count, items->id);
+                item *item = get_item_manager().create_item(items->vnum, items->count, items->id);
 
                 if (!item) {
                     metin2::log::error("Cannot create item vnum {:d} id {:d} for {}", items->vnum, items->id, name());
@@ -4280,7 +4280,7 @@ namespace metin2::game::inline characters {
                 item->set_attributes(items->attr);
 
                 if (!safebox_->add(items->pos, item)) {
-                    item_manager::instance().destroy_item(item);
+                    get_item_manager().destroy_item(item);
                 } else
                     item->set_skip_save(false);
             }
@@ -4349,7 +4349,7 @@ namespace metin2::game::inline characters {
                 if (!mall_->is_valid_position(items->pos))
                     continue;
 
-                item *item = item_manager::instance().create_item(items->vnum, items->count, items->id);
+                item *item = get_item_manager().create_item(items->vnum, items->count, items->id);
 
                 if (!item) {
                     metin2::log::error("Cannot create item vnum {:d} id {:d} for {}", items->vnum, items->id, name());
@@ -4361,7 +4361,7 @@ namespace metin2::game::inline characters {
                 item->set_attributes(items->attr);
 
                 if (!mall_->add(items->pos, item))
-                    item_manager::instance().destroy_item(item);
+                    get_item_manager().destroy_item(item);
                 else
                     item->set_skip_save(false);
             }
@@ -4413,8 +4413,8 @@ namespace metin2::game::inline characters {
 
     void character::query_safebox_size() {
         if (safebox_size_ == -1) {
-            db_manager::instance().func_query([pid = player_id()](sql_msg &msg) {
-                character *ch = character_manager::instance().find_by_pid(pid);
+            get_db_manager().func_query([pid = player_id()](sql_msg &msg) {
+                character *ch = get_character_manager().find_by_pid(pid);
 
                 if (ch) {
                     if (msg.get()->num_rows > 0) {
@@ -4432,7 +4432,7 @@ namespace metin2::game::inline characters {
     void character::set_safebox_size(int size) {
         metin2::log::debug("{}: safebox size set to {:d}", name(), size);
         safebox_size_ = size;
-        db_manager::instance().query(sql::format("UPDATE safebox SET size = {} WHERE account_id = {}", size / SAFEBOX_PAGE_SIZE, get_desc()->get_account_table().id));
+        get_db_manager().query(sql::format("UPDATE safebox SET size = {} WHERE account_id = {}", size / SAFEBOX_PAGE_SIZE, get_desc()->get_account_table().id));
     }
 
     auto character::safebox_size() const -> int {
@@ -4533,7 +4533,7 @@ namespace metin2::game::inline characters {
 
         points_packet();
 
-        log_manager::instance().char_log(this, 0, "RESET_POINT", "");
+        get_log_manager().char_log(this, 0, "RESET_POINT", "");
     }
 
     auto character::is_change_attack_position(character *target) const -> bool {
@@ -4562,7 +4562,7 @@ namespace metin2::game::inline characters {
 
             do {
                 skill_vnum = number(1, 111);
-                const skill_proto *sk = skill_manager::instance().get(skill_vnum);
+                const skill_proto *sk = get_skill_manager().get(skill_vnum);
 
                 if (nullptr == sk)
                     continue;
@@ -4585,9 +4585,9 @@ namespace metin2::game::inline characters {
         monster_log_ = !monster_log_;
 
         if (monster_log_) {
-            character_manager::instance().register_for_monster_log(this);
+            get_character_manager().register_for_monster_log(this);
         } else {
-            character_manager::instance().unregister_for_monster_log(this);
+            get_character_manager().unregister_for_monster_log(this);
         }
     }
 
@@ -4599,7 +4599,7 @@ namespace metin2::game::inline characters {
     }
 
     void character::send_greet_message() {
-        __typeof(db_manager::instance().greet_message()) v = db_manager::instance().greet_message();
+        __typeof(get_db_manager().greet_message()) v = get_db_manager().greet_message();
 
         for (auto it = v.begin(); it != v.end(); ++it) {
             chat_packet(CHAT_TYPE_NOTICE, it->c_str());
@@ -4682,7 +4682,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character::quest_npc() const -> character * {
-        return character_manager::instance().find(quest_npcvid_);
+        return get_character_manager().find(quest_npcvid_);
     }
 
     void character::set_quest_item_ptr(item *item) {
@@ -4699,7 +4699,7 @@ namespace metin2::game::inline characters {
 
     auto character::dungeon_force() const -> dungeon * {
         if (warp_map_index_ > 10000)
-            return dungeon_manager::instance().find_by_map_index(warp_map_index_);
+            return get_dungeon_manager().find_by_map_index(warp_map_index_);
 
         return dungeon_;
     }
@@ -4728,7 +4728,7 @@ namespace metin2::game::inline characters {
 
     auto character::polymorph_power() const -> int {
         if (metin2::config::test_server()) {
-            int value = quest::quest_manager::instance().event_flag("poly");
+            int value = quest::get_quest_manager().event_flag("poly");
             if (value)
                 return value;
         }
@@ -4773,13 +4773,13 @@ namespace metin2::game::inline characters {
     }
 
     auto character::quest_flag(const std::string &flag) const -> int {
-        quest::quest_manager &q = quest::quest_manager::instance();
+        quest::quest_manager &q = quest::get_quest_manager();
         quest::pc *pc = q.get_pc(player_id());
         return pc->flag(flag);
     }
 
     void character::set_quest_flag(const std::string &flag, int value) {
-        quest::quest_manager &q = quest::quest_manager::instance();
+        quest::quest_manager &q = quest::get_quest_manager();
         quest::pc *pc = q.get_pc(player_id());
         pc->set_flag(flag, value);
     }
@@ -4918,7 +4918,7 @@ namespace metin2::game::inline characters {
         bool use_warp = true;
 
         if (ch->is_goto()) {
-            sectree_map *sectree_map = sectree_manager::instance().map(ch->map_index());
+            sectree_map *sectree_map = get_sectree_manager().map(ch->map_index());
             target_x += sectree_map->setting.base_x;
             target_y += sectree_map->setting.base_y;
             use_warp = false;
@@ -5004,7 +5004,7 @@ namespace metin2::game::inline characters {
         if (is_npc())
             return 0;
 
-        marriage::marriage *marriage = marriage::manager::instance().get(player_id());
+        marriage::marriage *marriage = marriage::get_manager().get(player_id());
 
         if (!marriage)
             return 0;
@@ -5035,7 +5035,7 @@ namespace metin2::game::inline characters {
 
     auto character::warp_to_pid(uint32_t pid) -> bool {
         character *victim;
-        if ((victim = (character_manager::instance().find_by_pid(pid)))) {
+        if ((victim = (get_character_manager().find_by_pid(pid)))) {
             int map_idx = victim->map_index();
             if (is_summonable_zone(map_idx)) {
                 if (can_enter_zone(this, map_idx)) {
@@ -5049,7 +5049,7 @@ namespace metin2::game::inline characters {
                 return false;
             }
         } else {
-            cci *pcci = p2p_manager::instance().find_by_pid(pid);
+            cci *pcci = get_p2p_manager().find_by_pid(pid);
 
             if (!pcci) {
                 chat_packet(CHAT_TYPE_INFO, lc_text("상대방이 온라인 상태가 아닙니다."));
@@ -5082,7 +5082,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character::refine_guild() const -> guild * {
-        character *ch_refine_npc = character_manager::instance().find(refine_npcvid_);
+        character *ch_refine_npc = get_character_manager().find(refine_npcvid_);
 
         return (ch_refine_npc ? ch_refine_npc->get_guild() : nullptr);
     }
@@ -5097,7 +5097,7 @@ namespace metin2::game::inline characters {
             if (guild == get_guild())
                 return cost * multiply * 9 / 10;
 
-            character *ch_refine_npc = character_manager::instance().find(refine_npcvid_);
+            character *ch_refine_npc = get_character_manager().find(refine_npcvid_);
             if (ch_refine_npc && ch_refine_npc->empire() != empire())
                 return cost * multiply * 3;
 
@@ -5175,7 +5175,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character::is_monarch() const -> bool {
-        if (monarch::instance().is_monarch(player_id(), empire()))
+        if (get_monarch().is_monarch(player_id(), empire()))
             return true;
 
         return false;
@@ -5363,7 +5363,7 @@ namespace metin2::game::inline characters {
             return 0;
 
         if (is_speed_hack_player(ch)) {
-            log_manager::instance().speed_hack_log(ch->player_id(), ch->x(), ch->y(), ch->speed_hack_count);
+            get_log_manager().speed_hack_log(ch->player_id(), ch->x(), ch->y(), ch->speed_hack_count);
         }
 
         ch->speed_hack_count = 0;
@@ -5410,7 +5410,7 @@ namespace metin2::game::inline characters {
     }
 
     void character::send_guild_name(uint32_t guild_id) {
-        send_guild_name(guild_manager::instance().find_guild(guild_id));
+        send_guild_name(get_guild_manager().find_guild(guild_id));
     }
 
     EVENTFUNC(destroy_when_idle_event) {
@@ -5432,7 +5432,7 @@ namespace metin2::game::inline characters {
         metin2::log::debug("Destroying idle {}", ch->name());
 
         ch->destroy_when_idle_event = nullptr;
-        character_manager::instance().destroy_character(ch);
+        get_character_manager().destroy_character(ch);
         return 0;
     }
 
@@ -5482,7 +5482,7 @@ namespace metin2::game::inline characters {
             if (get_desc())
                 if (get_desc()->delayed_disconnect(number(2, 7))) {
                     metin2::log::warn("{} disconnected for combo hacking (count {:d})", name(), combo_hack_count_);
-                    log_manager::instance().hack_log("Combo", this);
+                    get_log_manager().hack_log("Combo", this);
                 }
         }
     }
@@ -5545,7 +5545,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character::skill_power_by_level(int level, bool mob) const -> int {
-        return table_by_skill::instance().skill_power_by_level_from_type(job(), skill_group(), std::clamp(level, 0, SKILL_MAX_LEVEL), mob);
+        return get_table_by_skill().skill_power_by_level_from_type(job(), skill_group(), std::clamp(level, 0, SKILL_MAX_LEVEL), mob);
     }
 
     void character::set_last_pm_pulse(void) {

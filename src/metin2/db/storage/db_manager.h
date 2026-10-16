@@ -1,6 +1,5 @@
 #pragma once
 
-#include <metin2/common/singleton.h>
 #include <metin2/sql/async_sql.h>
 
 #include <cstdint>
@@ -16,7 +15,7 @@ namespace metin2::db::inline storage {
         SQL_MAX_NUM,
     };
 
-    class db_manager : public singleton<db_manager> {
+    class db_manager {
         std::unique_ptr<async_sql> main_sql_[SQL_MAX_NUM];
         std::unique_ptr<async_sql> direct_sql_[SQL_MAX_NUM];
         std::unique_ptr<async_sql> async_sql_[SQL_MAX_NUM];
@@ -24,7 +23,7 @@ namespace metin2::db::inline storage {
       public:
         db_manager() = default;
 
-        ~db_manager() override;
+        ~db_manager();
 
         void clear();
         void quit();
@@ -52,4 +51,9 @@ namespace metin2::db::inline storage {
             }
         }
     };
+
+    inline auto get_db_manager() -> db_manager & {
+        static db_manager instance;
+        return instance;
+    }
 }

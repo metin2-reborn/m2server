@@ -143,7 +143,7 @@ namespace metin2::db::inline clients {
             return false;
         }
 
-        guild_manager::instance().boot_reserve_war();
+        get_guild_manager().boot_reserve_war();
 
         const auto &db = metin2::config::db();
 
@@ -167,7 +167,7 @@ namespace metin2::db::inline clients {
 
     void client_manager::main_loop() {
         while (!shutdowned_) {
-            while (auto msg = db_manager::instance().pop_result()) {
+            while (auto msg = get_db_manager().pop_result()) {
                 if (msg->on_result)
                     msg->on_result(*msg);
             }
@@ -225,7 +225,7 @@ namespace metin2::db::inline clients {
             sizeof(uint16_t) + sizeof(uint16_t) + 16 * v_host.size() +
             sizeof(uint16_t) + sizeof(uint16_t) + sizeof(t_admin_info) * v_admin.size() +
             sizeof(uint16_t) + sizeof(uint16_t) + sizeof(monarch_info) +
-            sizeof(uint16_t) + sizeof(uint16_t) + sizeof(monarch_candidacy) * monarch::instance().monarch_candidacy_size() +
+            sizeof(uint16_t) + sizeof(uint16_t) + sizeof(monarch_candidacy) * get_monarch().monarch_candidacy_size() +
             sizeof(uint16_t);
 
         peer->encode_header(HEADER_DG_BOOT, 0, packet_size);
@@ -300,8 +300,8 @@ namespace metin2::db::inline clients {
         int32_t now = time(nullptr);
         peer->encode(&now, sizeof(int32_t));
 
-        item_id_range_table item_range = item_id_range_manager::instance().range();
-        item_id_range_table item_range_spare = item_id_range_manager::instance().range();
+        item_id_range_table item_range = get_item_id_range_manager().range();
+        item_id_range_table item_range_spare = get_item_id_range_manager().range();
 
         peer->encode_word(sizeof(item_id_range_table));
         peer->encode_word(1);
@@ -329,11 +329,11 @@ namespace metin2::db::inline clients {
 
         peer->encode_word(sizeof(monarch_info));
         peer->encode_word(1);
-        peer->encode(monarch::instance().get_monarch(), sizeof(monarch_info));
+        peer->encode(get_monarch().info(), sizeof(monarch_info));
 
-        monarch::vec_monarchcandidacy &vec_monarch_candidacy = monarch::instance().vec_monarch_candidacy();
+        monarch::vec_monarchcandidacy &vec_monarch_candidacy = get_monarch().vec_monarch_candidacy();
 
-        size_t num_monarch_candidacy = monarch::instance().monarch_candidacy_size();
+        size_t num_monarch_candidacy = get_monarch().monarch_candidacy_size();
         peer->encode_word(sizeof(monarch_candidacy));
         peer->encode_word(num_monarch_candidacy);
         if (num_monarch_candidacy != 0) {
@@ -341,7 +341,7 @@ namespace metin2::db::inline clients {
         }
 
         if (metin2::config::test_server())
-            metin2::log::debug("Boot: {:d} monarch candidates", monarch::instance().monarch_candidacy_size());
+            metin2::log::debug("Boot: {:d} monarch candidates", get_monarch().monarch_candidacy_size());
 
         peer->encode_word(0xffff);
     }
@@ -388,7 +388,7 @@ namespace metin2::db::inline clients {
                     "REPLACE INTO quest (dwPID, szName, szState, lValue) VALUES({}, {}, {}, {})", table->pid, table->name, table->state, table->value);
             }
 
-            db_manager::instance().return_query(query, [](sql_msg &) {});
+            get_db_manager().return_query(query, [](sql_msg &) {});
         }
     }
 
@@ -406,7 +406,7 @@ namespace metin2::db::inline clients {
         if (metin2::config::db().login_log)
             metin2::log::debug("Safebox: load request, handle {:d}, account {:d}, mall {:d}", handle_value, packet->id, mall ? 1 : 0);
 
-        db_manager::instance().return_query(query, [this, handle = peer_value->handle(), pi = std::move(pi)](sql_msg &msg) mutable {
+        get_db_manager().return_query(query, [this, handle = peer_value->handle(), pi = std::move(pi)](sql_msg &msg) mutable {
             if (auto *peer_value = get_peer(handle))
                 result_safebox_load(peer_value, msg, std::move(pi));
         });
@@ -467,7 +467,7 @@ namespace metin2::db::inline clients {
 
             pi->account_index = 1;
 
-            db_manager::instance().return_query(query, [this, handle = peer_value->handle(), pi = std::move(pi)](sql_msg &msg) mutable {
+            get_db_manager().return_query(query, [this, handle = peer_value->handle(), pi = std::move(pi)](sql_msg &msg) mutable {
                 if (auto *peer_value = get_peer(handle))
                     result_safebox_load(peer_value, msg, std::move(pi));
             });
@@ -487,7 +487,7 @@ namespace metin2::db::inline clients {
             std::vector<player_item> s_items;
             create_item_table_from_res(msg.get()->res.get(), &s_items, pi->account_id);
 
-            std::set<db::items::item_award *> *set = item_award_manager::instance().by_login(pi->login);
+            std::set<db::items::item_award *> *set = get_item_award_manager().by_login(pi->login);
 
             if (set && !vec_item_table_.empty()) {
 
@@ -632,7 +632,7 @@ namespace metin2::db::inline clients {
                                 item_award->vnum, item_award->count, item_award->socket0, item_award->socket1, socket2_value);
                         }
 
-                        auto pmsg = db_manager::instance().direct_query(query);
+                        auto pmsg = get_db_manager().direct_query(query);
                         sql_result *res = pmsg->get();
                         metin2::log::debug("Item award: {}", query);
 
@@ -654,7 +654,7 @@ namespace metin2::db::inline clients {
                     }
 
                     for (uint32_t i = 0; i < vec_dw_finished_award_id.size(); ++i)
-                        item_award_manager::instance().taken(vec_dw_finished_award_id[i].first, vec_dw_finished_award_id[i].second);
+                        get_item_award_manager().taken(vec_dw_finished_award_id[i].first, vec_dw_finished_award_id[i].second);
                 }
             }
 
@@ -677,7 +677,7 @@ namespace metin2::db::inline clients {
                                       ? sql::format("INSERT INTO safebox (account_id, size) VALUES({}, {})", p->id, p->size)
                                       : sql::format("UPDATE safebox SET size={} WHERE account_id={}", p->size, p->id);
 
-        db_manager::instance().return_query(query, [this, handle = peer_value->handle(), pi = std::move(pi)](sql_msg &msg) {
+        get_db_manager().return_query(query, [this, handle = peer_value->handle(), pi = std::move(pi)](sql_msg &msg) {
             if (auto *peer_value = get_peer(handle))
                 result_safebox_change_size(peer_value, msg, *pi);
         });
@@ -703,7 +703,7 @@ namespace metin2::db::inline clients {
 
         const std::string query = sql::format("SELECT password FROM safebox WHERE account_id={}", p->id);
 
-        db_manager::instance().return_query(query, [this, handle = peer_value->handle(), pi = std::move(pi)](sql_msg &msg) mutable {
+        get_db_manager().return_query(query, [this, handle = peer_value->handle(), pi = std::move(pi)](sql_msg &msg) mutable {
             if (auto *peer_value = get_peer(handle))
                 result_safebox_change_password(peer_value, msg, std::move(pi));
         });
@@ -720,7 +720,7 @@ namespace metin2::db::inline clients {
             if ((row[0] && *row[0] && !strcasecmp(row[0], p->login)) || ((!row[0] || !*row[0]) && !strcmp("000000", p->login))) {
                 const std::string query = sql::format("UPDATE safebox SET password={} WHERE account_id={}", p->safebox_password, p->account_id);
 
-                db_manager::instance().return_query(query, [this, handle = peer_value->handle(), p = std::move(p)](sql_msg &msg) {
+                get_db_manager().return_query(query, [this, handle = peer_value->handle(), p = std::move(p)](sql_msg &msg) {
                     if (auto *peer_value = get_peer(handle))
                         result_safebox_change_password_second(peer_value, msg, *p);
                 });
@@ -792,7 +792,7 @@ namespace metin2::db::inline clients {
         const std::string query = sql::format(
             "UPDATE safebox SET gold='{}' WHERE account_id={}", table->gold, table->id);
 
-        db_manager::instance().return_query(query, [](sql_msg &) {});
+        get_db_manager().return_query(query, [](sql_msg &) {});
     }
 
     void client_manager::query_empire_select(peer *peer_value, uint32_t handle, empire_select_packet *p) {
@@ -802,14 +802,14 @@ namespace metin2::db::inline clients {
         }
 
         const std::string query = sql::format("UPDATE player_index SET empire={} WHERE id={}", p->empire, p->account_id);
-        db_manager::instance().direct_query(query);
+        get_db_manager().direct_query(query);
 
         metin2::log::debug("Empire select: {}", query);
         {
             const std::string select_query = sql::format(
                 "SELECT pid1, pid2, pid3, pid4 FROM player_index WHERE id={}", p->account_id);
 
-            auto pmsg = db_manager::instance().direct_query(select_query);
+            auto pmsg = get_db_manager().direct_query(select_query);
 
             sql_result *res = pmsg->get();
 
@@ -848,7 +848,7 @@ namespace metin2::db::inline clients {
                             g_start_position[p->empire][1],
                             pids[i]);
 
-                        auto pmsg2 = db_manager::instance().direct_query(move_query);
+                        auto pmsg2 = get_db_manager().direct_query(move_query);
                     }
                 }
             }
@@ -964,10 +964,10 @@ namespace metin2::db::inline clients {
         }
 
         send_party_on_setup(peer);
-        guild_manager::instance().on_setup(peer);
-        priv_manager::instance().send_priv_on_setup(peer);
+        get_guild_manager().on_setup(peer);
+        get_priv_manager().send_priv_on_setup(peer);
         send_event_flags_on_setup(peer);
-        marriage::manager::instance().on_setup(peer);
+        marriage::get_manager().on_setup(peer);
     }
 
     void client_manager::query_item_flush(peer *peer_value, const char *data) {
@@ -1004,7 +1004,7 @@ namespace metin2::db::inline clients {
             }
             const std::string query = create_item_save_query(*p);
 
-            db_manager::instance().return_query(query, [](sql_msg &) {});
+            get_db_manager().return_query(query, [](sql_msg &) {});
         } else {
             if (metin2::config::test_server())
                 metin2::log::debug("Item cache: caching item {1:d} (vnum {2:d}) of owner {0:d}", p->owner, p->id, p->vnum);
@@ -1211,9 +1211,9 @@ namespace metin2::db::inline clients {
                 metin2::log::info("Item cache: deleting item {1:d} of pid {0:d}", pid_value, id_value);
 
             if (pid_value == 0)
-                db_manager::instance().async_query(query);
+                get_db_manager().async_query(query);
             else
-                db_manager::instance().return_query(query, [](sql_msg &) {});
+                get_db_manager().return_query(query, [](sql_msg &) {});
         }
     }
 
@@ -1238,7 +1238,7 @@ namespace metin2::db::inline clients {
             "INSERT INTO sms_pool (server, sender, receiver, mobile, msg) VALUES({}, {}, {}, {}, {})",
             (player_id_start_ + 2) / 3, pack->from, pack->to, pack->mobile, pack->msg);
 
-        db_manager::instance().async_query(query);
+        get_db_manager().async_query(query);
     }
 
     void client_manager::query_reload_proto() {
@@ -1274,19 +1274,19 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::add_guild_priv(packet_give_guild_priv *p) {
-        priv_manager::instance().add_guild_priv(p->guild_id, p->type, p->value, p->duration_sec);
+        get_priv_manager().add_guild_priv(p->guild_id, p->type, p->value, p->duration_sec);
     }
 
     void client_manager::add_empire_priv(packet_give_empire_priv *p) {
-        priv_manager::instance().add_empire_priv(p->empire, p->type, p->value, p->duration_sec);
+        get_priv_manager().add_empire_priv(p->empire, p->type, p->value, p->duration_sec);
     }
 
     void client_manager::add_character_priv(packet_give_character_priv *p) {
-        priv_manager::instance().add_char_priv(p->pid, p->type, p->value);
+        get_priv_manager().add_char_priv(p->pid, p->type, p->value);
     }
 
     void client_manager::money_log(packet_money_log *p) {
-        db::logs::money_log::instance().add_log(p->type, p->vnum, p->gold);
+        db::logs::get_money_log().add_log(p->type, p->vnum, p->gold);
     }
 
     auto client_manager::get_login_data(uint32_t key) -> login_data * {
@@ -1384,19 +1384,19 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::guild_deposit_money(packet_gd_guild_money *p) {
-        guild_manager::instance().deposit_money(p->guild, p->gold);
+        get_guild_manager().deposit_money(p->guild, p->gold);
     }
 
     void client_manager::guild_withdraw_money(peer *peer, packet_gd_guild_money *p) {
-        guild_manager::instance().withdraw_money(peer, p->guild, p->gold);
+        get_guild_manager().withdraw_money(peer, p->guild, p->gold);
     }
 
     void client_manager::guild_withdraw_money_give_reply(packet_gd_guild_money_withdraw_give_reply *p) {
-        guild_manager::instance().withdraw_money_reply(p->guild, p->give_success, p->change_gold);
+        get_guild_manager().withdraw_money_reply(p->guild, p->give_success, p->change_gold);
     }
 
     void client_manager::guild_war_bet(packet_gd_guild_war_bet *p) {
-        guild_manager::instance().bet(p->war_id, p->login, p->gold, p->guild);
+        get_guild_manager().bet(p->war_id, p->login, p->gold, p->guild);
     }
 
     void client_manager::create_object(packet_gd_create_object *p) {
@@ -1405,7 +1405,7 @@ namespace metin2::db::inline clients {
         const std::string query = sql::format(
             "INSERT INTO object (land_id, vnum, map_index, x, y, x_rot, y_rot, z_rot) VALUES({}, {}, {}, {}, {}, {:f}, {:f}, {:f})", p->land_id, p->vnum, p->map_index, p->x, p->y, p->x_rot, p->y_rot, p->z_rot);
 
-        auto pmsg = db_manager::instance().direct_query(query);
+        auto pmsg = get_db_manager().direct_query(query);
 
         if (pmsg->get()->insert_id == 0) {
             metin2::log::error("Cannot insert building object (vnum {:d}, land {:d})", p->vnum, p->land_id);
@@ -1435,7 +1435,7 @@ namespace metin2::db::inline clients {
     void client_manager::delete_object(uint32_t id) {
         const std::string query = sql::format("DELETE FROM object WHERE id={}", id);
 
-        auto pmsg = db_manager::instance().direct_query(query);
+        auto pmsg = get_db_manager().direct_query(query);
 
         if (pmsg->get()->affected_rows == 0 || pmsg->get()->affected_rows == (uint32_t)-1) {
             metin2::log::warn("Cannot delete building object {:d}, not found", id);
@@ -1460,7 +1460,7 @@ namespace metin2::db::inline clients {
             return;
 
         const std::string query = sql::format("UPDATE land SET guild_id={} WHERE id={}", guild, id_value);
-        db_manager::instance().async_query(query);
+        get_db_manager().async_query(query);
 
         p->guild_id = guild;
         forward_packet(HEADER_DG_UPDATE_LAND, &*p, sizeof(building::land_table));
@@ -1468,7 +1468,7 @@ namespace metin2::db::inline clients {
 
     void client_manager::block_chat(packet_block_chat *p) {
         const std::string query = sql::format("SELECT id FROM player WHERE name = {}", p->name);
-        auto pmsg = db_manager::instance().direct_query(query);
+        auto pmsg = get_db_manager().direct_query(query);
         sql_result *res = pmsg->get();
 
         if (res->num_rows) {
@@ -1489,17 +1489,17 @@ namespace metin2::db::inline clients {
 
     void client_manager::marriage_add(packet_marriage_add *p) {
         metin2::log::info("Marriage: add pid {:d} and pid {:d} ({} and {})", p->pid1, p->pid2, p->name1, p->name2);
-        marriage::manager::instance().add(p->pid1, p->pid2, p->name1, p->name2);
+        marriage::get_manager().add(p->pid1, p->pid2, p->name1, p->name2);
     }
 
     void client_manager::marriage_update(packet_marriage_update *p) {
         metin2::log::info("Marriage: update pid {:d} and pid {:d}, love points {:d}, married {:d}", p->pid1, p->pid2, p->love_point, p->married);
-        marriage::manager::instance().update(p->pid1, p->pid2, p->love_point, p->married);
+        marriage::get_manager().update(p->pid1, p->pid2, p->love_point, p->married);
     }
 
     void client_manager::marriage_remove(packet_marriage_remove *p) {
         metin2::log::info("Marriage: remove pid {:d} and pid {:d}", p->pid1, p->pid2);
-        marriage::manager::instance().remove(p->pid1, p->pid2);
+        marriage::get_manager().remove(p->pid1, p->pid2);
     }
 
     void client_manager::wedding_request(packet_wedding_request *p) {
@@ -1510,12 +1510,12 @@ namespace metin2::db::inline clients {
     void client_manager::wedding_ready(packet_wedding_ready *p) {
         metin2::log::info("Marriage: wedding of pid {:d} and pid {:d} is ready", p->pid1, p->pid2);
         forward_packet(HEADER_DG_WEDDING_READY, p, sizeof(packet_wedding_ready));
-        marriage::manager::instance().ready_wedding(p->map_index, p->pid1, p->pid2);
+        marriage::get_manager().ready_wedding(p->map_index, p->pid1, p->pid2);
     }
 
     void client_manager::wedding_end(packet_wedding_end *p) {
         metin2::log::info("Marriage: wedding of pid {:d} and pid {:d} ended", p->pid1, p->pid2);
-        marriage::manager::instance().end_wedding(p->pid1, p->pid2);
+        marriage::get_manager().end_wedding(p->pid1, p->pid2);
     }
 
     void client_manager::myshop_pricelist_update(const item_price_list_table *packet) {
@@ -1544,7 +1544,7 @@ namespace metin2::db::inline clients {
             std::memcpy(update_table_value->price_info, packet->price_info, sizeof(item_price_info) * packet->count);
 
             const std::string query = sql::format("SELECT item_vnum, price FROM myshop_pricelist WHERE owner_id={}", packet->owner_id);
-            db_manager::instance().return_query(query, [this, update_table = std::move(update_table_value)](sql_msg &msg) {
+            get_db_manager().return_query(query, [this, update_table = std::move(update_table_value)](sql_msg &msg) {
                 result_pricelist_load_for_update(msg, *update_table);
             });
         }
@@ -1571,7 +1571,7 @@ namespace metin2::db::inline clients {
             metin2::log::debug("Price list: loading list for handle {:d}, pid {:d}", handle_value, player_id);
 
             const std::string query = sql::format("SELECT item_vnum, price FROM myshop_pricelist WHERE owner_id={}", player_id);
-            db_manager::instance().return_query(query, [this, handle = peer->handle(), req_info = item_pricelist_req_info(handle_value, player_id)](sql_msg &msg) {
+            get_db_manager().return_query(query, [this, handle = peer->handle(), req_info = item_pricelist_req_info(handle_value, player_id)](sql_msg &msg) {
                 if (auto *peer_value = get_peer(handle))
                     result_pricelist_load(peer_value, msg, req_info);
             });
@@ -2060,8 +2060,8 @@ namespace metin2::db::inline clients {
             const int per_sec = thecore_passes_per_sec();
 
             if (!(pulse % per_sec)) {
-                const sql_stats ret_stats = db_manager::instance().return_stats(SQL_PLAYER);
-                const sql_stats async_stats = db_manager::instance().async_stats(SQL_PLAYER);
+                const sql_stats ret_stats = get_db_manager().return_stats(SQL_PLAYER);
+                const sql_stats async_stats = get_db_manager().async_stats(SQL_PLAYER);
 
                 if (!metin2::config::test_server() || !(pulse % (per_sec * 10))) {
                     metin2::log::debug("Perf: pulse {:d}, return queries {:d}/{:d}/{:d}/{:d}, async queries {:d}/{:d}/{:d}/{:d}",
@@ -2086,9 +2086,9 @@ namespace metin2::db::inline clients {
                             async_stats.finished);
                 }
 
-                db_manager::instance().reset_counter();
+                get_db_manager().reset_counter();
 
-                uint32_t count = client_manager::instance().user_count();
+                uint32_t count = get_client_manager().user_count();
 
                 usage_avg += count;
                 usage_max = std::max<int>(usage_max, count);
@@ -2106,13 +2106,13 @@ namespace metin2::db::inline clients {
 
                 update_item_price_list_cache();
 
-                guild_manager::instance().update();
-                priv_manager::instance().update();
-                marriage::manager::instance().update();
+                get_guild_manager().update();
+                get_priv_manager().update();
+                marriage::get_manager().update();
             }
 
             if (!(pulse % (per_sec * 5))) {
-                item_award_manager::instance().request_load();
+                get_item_award_manager().request_load();
             }
 
             if (!(pulse % (per_sec * 10))) {
@@ -2125,11 +2125,11 @@ namespace metin2::db::inline clients {
             }
 
             if (!(pulse % (per_sec * 60))) {
-                client_manager::instance().send_time();
+                get_client_manager().send_time();
             }
 
             if (!(pulse % (per_sec * 3600))) {
-                db::logs::money_log::instance().save();
+                db::logs::get_money_log().save();
             }
         }
 
@@ -2185,7 +2185,7 @@ namespace metin2::db::inline clients {
 
         metin2::log::info("Item id range from config: {:d} to {:d}", min, max);
 
-        if (item_id_range_manager::instance().build_range(min, max, item_range_) == false) {
+        if (get_item_id_range_manager().build_range(min, max, item_range_) == false) {
             metin2::log::error("Cannot build item id range");
             return false;
         }
@@ -2205,7 +2205,7 @@ namespace metin2::db::inline clients {
 
     auto client_manager::initialize_localization() -> bool {
         const std::string query = "SELECT mValue, mKey FROM locale";
-        auto msg = db_manager::instance().direct_query(query, SQL_COMMON);
+        auto msg = get_db_manager().direct_query(query, SQL_COMMON);
 
         if (msg->get()->num_rows == 0) {
             metin2::log::error("Locale table is empty or cannot be read ({})", query);
@@ -2247,7 +2247,7 @@ namespace metin2::db::inline clients {
             "SELECT mID,mAccount,mName,mContactIP,mServerIP,mAuthority FROM gmlist WHERE mServerIP='ALL' or mServerIP={}",
             ip ? ip : "ALL");
 
-        auto msg = db_manager::instance().direct_query(query, SQL_COMMON);
+        auto msg = get_db_manager().direct_query(query, SQL_COMMON);
 
         if (msg->get()->num_rows == 0) {
             metin2::log::info("No gm accounts found ({})", query);
@@ -2292,7 +2292,7 @@ namespace metin2::db::inline clients {
 
     auto client_manager::host_info(std::vector<std::string> &ip_vec) -> bool {
         const std::string query = "SELECT mIP FROM gmhost";
-        auto msg = db_manager::instance().direct_query(query, SQL_COMMON);
+        auto msg = get_db_manager().direct_query(query, SQL_COMMON);
 
         if (msg->get()->num_rows == 0) {
             metin2::log::info("No gm hosts configured ({})", query);
@@ -2357,7 +2357,7 @@ namespace metin2::db::inline clients {
         data += sizeof(int);
 
         metin2::log::info("Marriage: breaking off engagement of pid {:d} and pid {:d}", pid1, pid2);
-        marriage::manager::instance().remove(pid1, pid2);
+        marriage::get_manager().remove(pid1, pid2);
     }
 
     void client_manager::update_item_cache_set(uint32_t pid) {
@@ -2391,7 +2391,7 @@ namespace metin2::db::inline clients {
         selectingpid = *(uint32_t *)data;
         data += sizeof(uint32_t);
 
-        const int success = monarch::instance().vote_monarch(selectingpid, idx);
+        const int success = get_monarch().vote_monarch(selectingpid, idx);
 
         if (metin2::config::test_server()) {
             if (success)
@@ -2410,7 +2410,7 @@ namespace metin2::db::inline clients {
         pid = *(uint32_t *)data;
         data += sizeof(uint32_t);
 
-        if (!monarch::instance().add_candidacy(pid, data)) {
+        if (!get_monarch().add_candidacy(pid, data)) {
             if (metin2::config::test_server())
                 metin2::log::debug("Monarch election: candidacy of pid {:d} ({}) rejected", pid, data);
 
@@ -2440,7 +2440,7 @@ namespace metin2::db::inline clients {
         if (metin2::config::test_server())
             metin2::log::debug("Monarch: add {1:d} money to empire {0:d}", empire_value, money_value);
 
-        monarch::instance().add_money(empire_value, money_value);
+        get_monarch().add_money(empire_value, money_value);
 
         broadcast_to_game_peers(peer_list_, HEADER_DG_ADD_MONARCH_MONEY, peer, handle, 0, {
                                                                                               {&empire_value, sizeof(int)},
@@ -2457,7 +2457,7 @@ namespace metin2::db::inline clients {
         if (metin2::config::test_server())
             metin2::log::debug("Monarch: remove {1:d} money from empire {0:d}", empire_value, money_value);
 
-        monarch::instance().dec_money(empire_value, money_value);
+        get_monarch().dec_money(empire_value, money_value);
 
         broadcast_to_game_peers(peer_list_, HEADER_DG_DEC_MONARCH_MONEY, peer, handle, 0, {
                                                                                               {&empire_value, sizeof(int)},
@@ -2478,7 +2478,7 @@ namespace metin2::db::inline clients {
         if (metin2::config::test_server())
             metin2::log::debug("Monarch: take {1:d} money from empire {0:d}", empire_value, money_value);
 
-        if (!monarch::instance().take_money(empire_value, pid, money_value))
+        if (!get_monarch().take_money(empire_value, pid, money_value))
             money_value = 0;
 
         peer->encode_header(HEADER_DG_TAKE_MONARCH_MONEY, handle, sizeof(int) + sizeof(int));
@@ -2487,7 +2487,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::come_to_vote(peer *peer, uint32_t handle, const char *data) {
-        monarch::instance().elect_monarch();
+        get_monarch().elect_monarch();
     }
 
     void client_manager::rm_candidacy(peer *peer, uint32_t handle, const char *data) {
@@ -2496,7 +2496,7 @@ namespace metin2::db::inline clients {
         strlcpy(name, data, sizeof(name));
         metin2::log::info("Monarch: gm removed candidacy of {}", name);
 
-        int ret = monarch::instance().del_candidacy(name) ? 1 : 0;
+        int ret = get_monarch().del_candidacy(name) ? 1 : 0;
 
         peer->encode_header(HEADER_DG_RMCANDIDACY, handle, sizeof(int) + sizeof(name));
         peer->encode(&ret, sizeof(int));
@@ -2511,7 +2511,7 @@ namespace metin2::db::inline clients {
         if (metin2::config::test_server())
             metin2::log::debug("Monarch: gm set {} as monarch", name);
 
-        int ret = monarch::instance().set_monarch(name) ? 1 : 0;
+        int ret = get_monarch().set_monarch(name) ? 1 : 0;
 
         peer->encode_header(HEADER_DG_SETMONARCH, handle, sizeof(int) + sizeof(name));
         peer->encode(&ret, sizeof(int));
@@ -2520,7 +2520,7 @@ namespace metin2::db::inline clients {
         if (ret == 1)
             for (db::clients::peer *p : peer_list_) {
                 p->encode_header(HEADER_DG_UPDATE_MONARCH_INFO, 0, sizeof(monarch_info));
-                p->encode(monarch::instance().get_monarch(), sizeof(monarch_info));
+                p->encode(get_monarch().info(), sizeof(monarch_info));
             }
     }
 
@@ -2532,7 +2532,7 @@ namespace metin2::db::inline clients {
         if (metin2::config::test_server())
             metin2::log::debug("Monarch: gm removed monarch {}", name);
 
-        int ret = monarch::instance().del_monarch(name) ? 1 : 0;
+        int ret = get_monarch().del_monarch(name) ? 1 : 0;
 
         peer->encode_header(HEADER_DG_RMMONARCH, handle, sizeof(int) + sizeof(name));
         peer->encode(&ret, sizeof(int));
@@ -2541,7 +2541,7 @@ namespace metin2::db::inline clients {
         if (ret == 1)
             for (db::clients::peer *p : peer_list_) {
                 p->encode_header(HEADER_DG_UPDATE_MONARCH_INFO, 0, sizeof(monarch_info));
-                p->encode(monarch::instance().get_monarch(), sizeof(monarch_info));
+                p->encode(get_monarch().info(), sizeof(monarch_info));
             }
     }
 
@@ -2551,7 +2551,7 @@ namespace metin2::db::inline clients {
             "(b.pid1={0} OR b.pid2={0} OR b.pid3={0} OR b.pid4={0})",
             info->pid, info->empire);
 
-        auto msg = db_manager::instance().direct_query(query, SQL_PLAYER);
+        auto msg = get_db_manager().direct_query(query, SQL_PLAYER);
 
         if (msg->get()->num_rows != 0) {
             packet_change_monarch_lord_ack ack;
@@ -2563,12 +2563,12 @@ namespace metin2::db::inline clients {
             strlcpy(ack.date, row[1], sizeof(ack.date));
 
             const std::string update_query = sql::format("UPDATE monarch SET pid={}, windate=NOW() WHERE empire={}", ack.pid, ack.empire);
-            auto msg2 = db_manager::instance().direct_query(update_query, SQL_PLAYER);
+            auto msg2 = get_db_manager().direct_query(update_query, SQL_PLAYER);
 
             if (msg2->get()->affected_rows > 0) {
-                monarch::instance().load_monarch();
+                get_monarch().load_monarch();
 
-                monarch_info *new_info = monarch::instance().get_monarch();
+                monarch_info *new_info = get_monarch().info();
 
                 for (auto it = peer_list_.begin(); it != peer_list_.end(); it++) {
                     db::clients::peer *client = *it;
@@ -2602,7 +2602,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::delete_award_id(packet_delete_award_id *data) {
-        if (item_award_manager::instance().remove(data->id))
+        if (get_item_award_manager().remove(data->id))
             metin2::log::debug("Item award: removed award {:d} from cache", data->id);
         else
             metin2::log::warn("Item award: cannot delete award {:d}, not found", data->id);
@@ -2649,6 +2649,6 @@ namespace metin2::db::inline clients {
 
         metin2::log::info("Charging account: type {:d}, amount {:d}, account {:d}", packet->charge_type, packet->amount, packet->aid);
 
-        db_manager::instance().async_query(query, SQL_ACCOUNT);
+        get_db_manager().async_query(query, SQL_ACCOUNT);
     }
 }

@@ -85,7 +85,7 @@ namespace metin2::game::inline characters {
 
                 bool is_way_blocked = false;
                 for (int j = 1; j <= 100; ++j) {
-                    if (!sectree_manager::instance().is_movable_position(map_index(), x() + (int)fx * j / 100, y() + (int)fy * j / 100)) {
+                    if (!get_sectree_manager().is_movable_position(map_index(), x() + (int)fx * j / 100, y() + (int)fy * j / 100)) {
                         is_way_blocked = true;
                         break;
                     }
@@ -153,84 +153,84 @@ namespace metin2::game::inline characters {
             set_max_sp(10);
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
-            character_manager::instance().select_stone(this);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 1500, y() - 1500, x() + 1500, y() + 1500);
-            character_manager::instance().select_stone(nullptr);
+            get_character_manager().select_stone(this);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 1500, y() - 1500, x() + 1500, y() + 1500);
+            get_character_manager().select_stone(nullptr);
         } else if (percent <= 20 && max_sp() < 9) {
             set_max_sp(9);
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
-            character_manager::instance().select_stone(this);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 1500, y() - 1500, x() + 1500, y() + 1500);
-            character_manager::instance().select_stone(nullptr);
+            get_character_manager().select_stone(this);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 1500, y() - 1500, x() + 1500, y() + 1500);
+            get_character_manager().select_stone(nullptr);
         } else if (percent <= 30 && max_sp() < 8) {
             set_max_sp(8);
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
-            character_manager::instance().select_stone(this);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().select_stone(nullptr);
+            get_character_manager().select_stone(this);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            get_character_manager().select_stone(nullptr);
         } else if (percent <= 40 && max_sp() < 7) {
             set_max_sp(7);
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
-            character_manager::instance().select_stone(this);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().select_stone(nullptr);
+            get_character_manager().select_stone(this);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            get_character_manager().select_stone(nullptr);
         } else if (percent <= 50 && max_sp() < 6) {
             set_max_sp(6);
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
-            character_manager::instance().select_stone(this);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().select_stone(nullptr);
+            get_character_manager().select_stone(this);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            get_character_manager().select_stone(nullptr);
         } else if (percent <= 60 && max_sp() < 5) {
             set_max_sp(5);
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
-            character_manager::instance().select_stone(this);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
-            character_manager::instance().select_stone(nullptr);
+            get_character_manager().select_stone(this);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
+            get_character_manager().select_stone(nullptr);
         } else if (percent <= 70 && max_sp() < 4) {
             set_max_sp(4);
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
-            character_manager::instance().select_stone(this);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().select_stone(nullptr);
+            get_character_manager().select_stone(this);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            get_character_manager().select_stone(nullptr);
         } else if (percent <= 80 && max_sp() < 3) {
             set_max_sp(3);
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
-            character_manager::instance().select_stone(this);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().select_stone(nullptr);
+            get_character_manager().select_stone(this);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            get_character_manager().select_stone(nullptr);
         } else if (percent <= 90 && max_sp() < 2) {
             set_max_sp(2);
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
-            character_manager::instance().select_stone(this);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
-            character_manager::instance().select_stone(nullptr);
+            get_character_manager().select_stone(this);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 500, y() - 500, x() + 500, y() + 500);
+            get_character_manager().select_stone(nullptr);
         } else if (percent <= 99 && max_sp() < 1) {
             set_max_sp(1);
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0);
 
-            character_manager::instance().select_stone(this);
-            character_manager::instance().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
-            character_manager::instance().select_stone(nullptr);
+            get_character_manager().select_stone(this);
+            get_character_manager().spawn_group(vnum, map_index(), x() - 1000, y() - 1000, x() + 1000, y() + 1000);
+            get_character_manager().select_stone(nullptr);
         } else
             return;
 
@@ -245,7 +245,7 @@ namespace metin2::game::inline characters {
         if (is_pet())
             return;
         else if (is_guard_npc()) {
-            if (!quest::quest_manager::instance().event_flag("noguard")) {
+            if (!quest::get_quest_manager().event_flag("noguard")) {
                 int min_distance = INT_MAX;
                 const int max_distance = 50000;
                 const int32_t lx = x();
@@ -305,7 +305,7 @@ namespace metin2::game::inline characters {
                     next_map_index = c_l_warp_map_indexs[number(1, warp_map_index_num) - 1];
 
                     if (map_allow_find(next_map_index)) {
-                        character_manager::instance().destroy_character(this);
+                        get_character_manager().destroy_character(this);
                         int next_spawn_delay = 0;
                         next_spawn_delay = 50 * 60;
 
@@ -315,7 +315,7 @@ namespace metin2::game::inline characters {
                         p.header = HEADER_GG_XMAS_WARP_SANTA;
                         p.channel = metin2::config::server().channel;
                         p.map_index = next_map_index;
-                        p2p_manager::instance().send(&p, sizeof(packet_gg_xmas_warp_santa));
+                        get_p2p_manager().send(&p, sizeof(packet_gg_xmas_warp_santa));
                     }
                     return;
                 }
@@ -339,7 +339,7 @@ namespace metin2::game::inline characters {
 
                     get_delta_by_degree(rotation(), dist, &fx, &fy);
 
-                    if (!(sectree_manager::instance().is_movable_position(map_index(), x() + (int)fx, y() + (int)fy) && sectree_manager::instance().is_movable_position(map_index(), x() + (int)fx / 2, y() + (int)fy / 2)))
+                    if (!(get_sectree_manager().is_movable_position(map_index(), x() + (int)fx, y() + (int)fy) && get_sectree_manager().is_movable_position(map_index(), x() + (int)fx / 2, y() + (int)fy / 2)))
                         return;
 
                     set_now_walking(true);
@@ -387,7 +387,7 @@ namespace metin2::game::inline characters {
             if (chr_stone_) {
                 victim_value = chr_stone_->nearest_victim(chr_stone_);
             } else if (!metin2::config::game().no_wander && is_aggressive()) {
-                if (map_index() == 61 && quest::quest_manager::instance().event_flag("xmas_tree"))
+                if (map_index() == 61 && quest::get_quest_manager().event_flag("xmas_tree"))
                     ;
                 else
                     victim_value = find_victim(this, mob_data->table.aggressive_sight);
@@ -426,7 +426,7 @@ namespace metin2::game::inline characters {
 
                 get_delta_by_degree(rotation(), dist, &fx, &fy);
 
-                if (!(sectree_manager::instance().is_movable_position(map_index(), x() + (int)fx, y() + (int)fy) && sectree_manager::instance().is_movable_position(map_index(), x() + (int)fx / 2, y() + (int)fy / 2)))
+                if (!(get_sectree_manager().is_movable_position(map_index(), x() + (int)fx, y() + (int)fy) && get_sectree_manager().is_movable_position(map_index(), x() + (int)fx / 2, y() + (int)fy / 2)))
                     return;
 
                 if (metin2::config::test_server()) {
@@ -628,10 +628,10 @@ namespace metin2::game::inline characters {
 
                             get_delta_by_degree(number(0, 359), dist, &fx, &fy);
 
-                            if (sectree_manager::instance().is_movable_position(victim_value->map_index(),
+                            if (get_sectree_manager().is_movable_position(victim_value->map_index(),
                                     victim_value->x() + (int)fx,
                                     victim_value->y() + (int)fy) &&
-                                sectree_manager::instance().is_movable_position(victim_value->map_index(),
+                                get_sectree_manager().is_movable_position(victim_value->map_index(),
                                     victim_value->x() + (int)fx / 2,
                                     victim_value->y() + (int)fy / 2)) {
                                 float dx = victim_value->x() + fx;
@@ -661,7 +661,7 @@ namespace metin2::game::inline characters {
 
         if (is_summon_monster() && !is_dead() && !is_stun()) {
             if (!get_party()) {
-                party_manager::instance().create_party(this);
+                get_party_manager().create_party(this);
             }
 
             party *party = get_party();
@@ -674,7 +674,7 @@ namespace metin2::game::inline characters {
                 int ex = x() + 300;
                 int ey = y() + 300;
 
-                character *tch = character_manager::instance().spawn_mob_range(summon_vnum(), map_index(), sx, sy, ex, ey, true, true);
+                character *tch = get_character_manager().spawn_mob_range(summon_vnum(), map_index(), sx, sy, ex, ey, true, true);
 
                 if (tch) {
                     party->join(tch->get_vid());
@@ -737,7 +737,7 @@ namespace metin2::game::inline characters {
                     if (use_mob_skill(skill_idx)) {
                         send_move_packet(FUNC_MOB_SKILL, skill_idx, x(), y(), 0, cur_time);
 
-                        float f_duration = motion_manager::instance().motion_duration(race_num(), make_motion_key(MOTION_MODE_GENERAL, MOTION_SPECIAL_1 + skill_idx));
+                        float f_duration = get_motion_manager().motion_duration(race_num(), make_motion_key(MOTION_MODE_GENERAL, MOTION_SPECIAL_1 + skill_idx));
                         state_duration_ = (uint32_t)(f_duration == 0.0f ? passes_per_sec(2) : passes_per_sec(f_duration));
 
                         if (metin2::config::test_server())
@@ -756,7 +756,7 @@ namespace metin2::game::inline characters {
 
             send_move_packet(FUNC_ATTACK, 0, x(), y(), 0, cur_time);
 
-            float f_duration = motion_manager::instance().motion_duration(race_num(), make_motion_key(MOTION_MODE_GENERAL, MOTION_NORMAL_ATTACK));
+            float f_duration = get_motion_manager().motion_duration(race_num(), make_motion_key(MOTION_MODE_GENERAL, MOTION_NORMAL_ATTACK));
             state_duration_ = (uint32_t)(f_duration == 0.0f ? passes_per_sec(2) : passes_per_sec(f_duration));
         }
     }
@@ -912,7 +912,7 @@ namespace metin2::game::inline characters {
         character *victim = rider();
 
         if (!victim) {
-            character_manager::instance().destroy_character(this);
+            get_character_manager().destroy_character(this);
             return;
         }
 
@@ -937,7 +937,7 @@ namespace metin2::game::inline characters {
 
             get_delta_by_degree(rotation(), dist, &fx, &fy);
 
-            if (!(sectree_manager::instance().is_movable_position(map_index(), x() + (int)fx, y() + (int)fy) && sectree_manager::instance().is_movable_position(map_index(), x() + (int)fx / 2, y() + (int)fy / 2)))
+            if (!(get_sectree_manager().is_movable_position(map_index(), x() + (int)fx, y() + (int)fy) && get_sectree_manager().is_movable_position(map_index(), x() + (int)fx / 2, y() + (int)fy / 2)))
                 return;
 
             set_now_walking(true);

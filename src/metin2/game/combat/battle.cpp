@@ -78,10 +78,10 @@ namespace metin2::game::inline combat {
         if (is_castle_map(ch->map_index()) && false == castle_can_attack(ch, victim))
             return false;
 
-        if (arena_manager::instance().can_attack(ch, victim) == true)
+        if (get_arena_manager().can_attack(ch, victim) == true)
             return true;
 
-        return pvp_manager::instance().can_attack(ch, victim);
+        return get_pvp_manager().can_attack(ch, victim);
     }
 
     auto battle_melee_attack(character *ch, character *victim) -> int {
@@ -201,7 +201,7 @@ namespace metin2::game::inline combat {
         }
 
         if (attacker->is_npc() && victim->is_pc()) {
-            atk = (atk * character_manager::instance().mob_damage_rate(attacker)) / 100;
+            atk = (atk * get_character_manager().mob_damage_rate(attacker)) / 100;
         }
 
         if (victim->is_npc()) {
@@ -314,7 +314,7 @@ namespace metin2::game::inline combat {
             item_get_damage(weapon, &dam_min, &dam_max);
 
             uint32_t mob_vnum = attacker->polymorph_vnum();
-            const mob *mob = mob_manager::instance().get(mob_vnum);
+            const mob *mob = get_mob_manager().get(mob_vnum);
 
             if (mob) {
                 int power = attacker->polymorph_power();

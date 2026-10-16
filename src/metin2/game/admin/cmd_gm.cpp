@@ -87,9 +87,9 @@ namespace metin2::game::inline admin {
             if (is_digit(*arg)) {
                 uint32_t vnum = 0;
                 str_to_number(vnum, arg);
-                mob = mob_manager::instance().get(vnum);
+                mob = get_mob_manager().get(vnum);
             } else
-                mob = mob_manager::instance().get(arg, true);
+                mob = get_mob_manager().get(arg, true);
 
             return mob && mob->table.vnum ? mob : nullptr;
         }
@@ -107,7 +107,7 @@ namespace metin2::game::inline admin {
 
         void spawn_around(character *ch, const mob *proto, int count, void (character::*on_spawn)() = nullptr) {
             while (count--) {
-                character *tch = character_manager::instance().spawn_mob_range(proto->table.vnum,
+                character *tch = get_character_manager().spawn_mob_range(proto->table.vnum,
                     ch->map_index(),
                     ch->x() - number(200, 750),
                     ch->y() - number(200, 750),
@@ -125,7 +125,7 @@ namespace metin2::game::inline admin {
             if (!*name)
                 return ch;
 
-            character *tch = character_manager::instance().find_pc(name);
+            character *tch = get_character_manager().find_pc(name);
 
             if (!tch)
                 ch->chat_packet(CHAT_TYPE_INFO, "There is no such character.");
@@ -155,7 +155,7 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        character *tch = character_manager::instance().find_pc(arg1);
+        character *tch = get_character_manager().find_pc(arg1);
         if (!tch) {
             ch->chat_packet(CHAT_TYPE_INFO, "%s is not in same map", arg1);
             return;
@@ -192,9 +192,9 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        character *tch = character_manager::instance().find_pc(arg1);
+        character *tch = get_character_manager().find_pc(arg1);
         if (!tch) {
-            cci *cci = p2p_manager::instance().find(arg1);
+            cci *cci = get_p2p_manager().find(arg1);
 
             if (cci) {
                 if (cci->channel != metin2::config::server().channel) {
@@ -209,7 +209,7 @@ namespace metin2::game::inline admin {
                 pgg.x = ch->x();
                 pgg.y = ch->y();
 
-                p2p_manager::instance().send(&pgg, sizeof(packet_gg_transfer));
+                get_p2p_manager().send(&pgg, sizeof(packet_gg_transfer));
                 ch->chat_packet(CHAT_TYPE_INFO, "Transfer requested.");
             } else {
                 ch->chat_packet(CHAT_TYPE_INFO, "There is no character(%s) by that name", arg1);
@@ -342,7 +342,7 @@ namespace metin2::game::inline admin {
 
             pixel_position p;
 
-            if (sectree_manager::instance().map_base_position(ch->x(), ch->y(), p)) {
+            if (get_sectree_manager().map_base_position(ch->x(), ch->y(), p)) {
                 x += p.x / 100;
                 y += p.y / 100;
             }
@@ -392,10 +392,10 @@ namespace metin2::game::inline admin {
             str_to_number(x, arg1);
             str_to_number(y, arg2);
         } else {
-            character *tch = character_manager::instance().find_pc(arg1);
+            character *tch = get_character_manager().find_pc(arg1);
 
             if (nullptr == tch) {
-                const cci *cci = p2p_manager::instance().find(arg1);
+                const cci *cci = get_p2p_manager().find(arg1);
 
                 if (nullptr != cci) {
                     if (cci->channel != metin2::config::server().channel) {
@@ -444,13 +444,13 @@ namespace metin2::game::inline admin {
         if (is_digit(*arg1))
             str_to_number(vnum_value, arg1);
         else {
-            if (!item_manager::instance().vnum(arg1, vnum_value)) {
+            if (!get_item_manager().vnum(arg1, vnum_value)) {
                 ch->chat_packet(CHAT_TYPE_INFO, "#%u item not exist by that vnum.", vnum_value);
                 return;
             }
         }
 
-        item *item = item_manager::instance().create_item(vnum_value, count, 0, true);
+        item *item = get_item_manager().create_item(vnum_value, count, 0, true);
 
         if (item) {
             if (item->is_dragon_soul()) {
@@ -458,9 +458,9 @@ namespace metin2::game::inline admin {
 
                 if (empty_pos != -1) {
                     item->add_to_character(ch, item_pos(DRAGON_SOUL_INVENTORY, empty_pos));
-                    log_manager::instance().item_log(ch, item, "GM", item->name());
+                    get_log_manager().item_log(ch, item, "GM", item->name());
                 } else {
-                    item_manager::instance().destroy_item(item);
+                    get_item_manager().destroy_item(item);
                     if (!ch->dragon_soul_is_qualified()) {
                         ch->chat_packet(CHAT_TYPE_INFO, "인벤이 활성화 되지 않음.");
                     } else
@@ -471,9 +471,9 @@ namespace metin2::game::inline admin {
 
                 if (empty_pos != -1) {
                     item->add_to_character(ch, item_pos(INVENTORY, empty_pos));
-                    log_manager::instance().item_log(ch, item, "GM", item->name());
+                    get_log_manager().item_log(ch, item, "GM", item->name());
                 } else {
-                    item_manager::instance().destroy_item(item);
+                    get_item_manager().destroy_item(item);
                     ch->chat_packet(CHAT_TYPE_INFO, "Not enough inventory space.");
                 }
             }
@@ -493,7 +493,7 @@ namespace metin2::game::inline admin {
 
         uint32_t vnum = 0;
         str_to_number(vnum, arg1);
-        character_manager::instance().spawn_group_group(vnum, ch->map_index(), ch->x() - 500, ch->y() - 500, ch->x() + 500, ch->y() + 500);
+        get_character_manager().spawn_group_group(vnum, ch->map_index(), ch->x() - 500, ch->y() - 500, ch->x() + 500, ch->y() + 500);
     }
 
     ACMD(do_group) {
@@ -511,7 +511,7 @@ namespace metin2::game::inline admin {
         if (metin2::config::test_server())
             metin2::log::debug("Gm spawns group {:d} on map {:d} at {:d}x{:d}", vnum, ch->map_index(), ch->x(), ch->y());
 
-        character_manager::instance().spawn_group(vnum, ch->map_index(), ch->x() - 500, ch->y() - 500, ch->x() + 500, ch->y() + 500);
+        get_character_manager().spawn_group(vnum, ch->map_index(), ch->x() - 500, ch->y() - 500, ch->x() + 500, ch->y() + 500);
     }
 
     ACMD(do_mob_coward) {
@@ -545,7 +545,7 @@ namespace metin2::game::inline admin {
 
         uint32_t vnum = 0;
         str_to_number(vnum, arg1);
-        character *tch = character_manager::instance().spawn_mob_random_position(vnum, ch->map_index());
+        character *tch = get_character_manager().spawn_mob_random_position(vnum, ch->map_index());
 
         if (tch)
             ch->chat_packet(CHAT_TYPE_INFO, "%s spawned in %dx%d", tch->name(), tch->x(), tch->y());
@@ -621,7 +621,7 @@ namespace metin2::game::inline admin {
         if (*arg4)
             str_to_number(dir, arg4);
 
-        character_manager::instance().spawn_mob(mob_value->table.vnum,
+        get_character_manager().spawn_mob(mob_value->table.vnum,
             ch->map_index(),
             x * 100,
             y * 100,
@@ -652,7 +652,7 @@ namespace metin2::game::inline admin {
                 metin2::log::debug("Purge: {} at distance {:d}", chr->name(), dist);
 
                 if (chr->is_npc() && !chr->is_pet() && chr->rider() == nullptr) {
-                    character_manager::instance().destroy_character(chr);
+                    get_character_manager().destroy_character(chr);
                 }
             });
         } else
@@ -665,13 +665,13 @@ namespace metin2::game::inline admin {
 
         for (i = 0; i < INVENTORY_AND_EQUIP_SLOT_MAX; ++i) {
             if ((item = ch->inventory_item(i))) {
-                item_manager::instance().remove_item(item, "PURGE");
+                get_item_manager().remove_item(item, "PURGE");
                 ch->sync_quickslot(QUICKSLOT_TYPE_ITEM, i, 255);
             }
         }
         for (i = 0; i < DRAGON_SOUL_INVENTORY_MAX_NUM; ++i) {
             if ((item = ch->get_item(item_pos(DRAGON_SOUL_INVENTORY, i)))) {
-                item_manager::instance().remove_item(item, "PURGE");
+                get_item_manager().remove_item(item, "PURGE");
             }
         }
     }
@@ -684,9 +684,9 @@ namespace metin2::game::inline admin {
 
         if (*arg1) {
             if (arg1[0] == '#') {
-                tch = character_manager::instance().find(strtoul(arg1 + 1, nullptr, 10));
+                tch = get_character_manager().find(strtoul(arg1 + 1, nullptr, 10));
             } else {
-                desc *d = desc_manager::instance().find_by_character_name(arg1);
+                desc *d = get_desc_manager().find_by_character_name(arg1);
 
                 if (!d)
                     tch = nullptr;
@@ -719,10 +719,10 @@ namespace metin2::game::inline admin {
         text = std::format("Coordinate {}x{} ({}x{})",
             tch->x(), tch->y(), tch->x() / 100, tch->y() / 100);
 
-        sectree *sec = sectree_manager::instance().get(tch->map_index(), tch->x(), tch->y());
+        sectree *sec = get_sectree_manager().get(tch->map_index(), tch->x(), tch->y());
 
         if (sec) {
-            map_setting &map_setting = sectree_manager::instance().map(tch->map_index())->setting;
+            map_setting &map_setting = get_sectree_manager().map(tch->map_index())->setting;
             std::format_to(std::back_inserter(text), " MapIndex {} Attribute {:08X} Local Position ({} x {})",
                 tch->map_index(), sec->get_attribute(tch->x(), tch->y()), (tch->x() - map_setting.base_x) / 100, (tch->y() - map_setting.base_y) / 100);
         }
@@ -810,14 +810,14 @@ namespace metin2::game::inline admin {
             tch->point(POINT_ATTBONUS_SHAMAN));
 
         for (int i = 0; i < MAX_PRIV_NUM; ++i)
-            if (priv_manager::instance().priv(tch, i)) {
-                int by_empire = priv_manager::instance().priv_by_empire(tch->empire(), i);
+            if (get_priv_manager().priv(tch, i)) {
+                int by_empire = get_priv_manager().priv_by_empire(tch->empire(), i);
                 int by_guild = 0;
 
                 if (tch->get_guild())
-                    by_guild = priv_manager::instance().priv_by_guild(tch->get_guild()->id(), i);
+                    by_guild = get_priv_manager().priv_by_guild(tch->get_guild()->id(), i);
 
-                int by_player = priv_manager::instance().priv_by_character(tch->player_id(), i);
+                int by_player = get_priv_manager().priv_by_character(tch->player_id(), i);
 
                 if (by_empire)
                     ch->chat_packet(CHAT_TYPE_INFO, "%s for empire : %d", lc_text(apsz_priv_names[i]), by_empire);
@@ -831,7 +831,7 @@ namespace metin2::game::inline admin {
     }
 
     void send_notice(const char *buf) {
-        const desc_manager::desc_set &c_ref_set = desc_manager::instance().client_set();
+        const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
         for (desc *d : c_ref_set) {
             if (!d->get_character())
                 continue;
@@ -841,7 +841,7 @@ namespace metin2::game::inline admin {
     }
 
     void send_monarch_notice(uint8_t empire, const char *buf) {
-        const desc_manager::desc_set &c_ref_set = desc_manager::instance().client_set();
+        const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
         for (desc *d : c_ref_set) {
             if (!d->get_character())
                 continue;
@@ -853,7 +853,7 @@ namespace metin2::game::inline admin {
     }
 
     void send_notice_map(const char *buf, int map_index, bool big_font) {
-        const desc_manager::desc_set &c_ref_set = desc_manager::instance().client_set();
+        const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
         for (desc *d : c_ref_set) {
             if (d->get_character() == nullptr) continue;
             if (d->get_character()->map_index() != map_index) continue;
@@ -863,7 +863,7 @@ namespace metin2::game::inline admin {
     }
 
     void send_log(const char *buf) {
-        const desc_manager::desc_set &c_ref_set = desc_manager::instance().client_set();
+        const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
         for (desc *d : c_ref_set) {
             if (!d->get_character())
                 continue;
@@ -882,7 +882,7 @@ namespace metin2::game::inline admin {
         buf.write(&p, sizeof(p));
         buf.write(buf_value, p.size);
 
-        p2p_manager::instance().send(buf.read_peek(), buf.size());
+        get_p2p_manager().send(buf.read_peek(), buf.size());
 
         send_notice(buf_value);
     }
@@ -897,7 +897,7 @@ namespace metin2::game::inline admin {
         buf.write(&p, sizeof(p));
         buf.write(buf_value, p.size);
 
-        p2p_manager::instance().send(buf.read_peek(), buf.size());
+        get_p2p_manager().send(buf.read_peek(), buf.size());
 
         send_monarch_notice(empire_value, buf_value);
     }
@@ -927,14 +927,14 @@ namespace metin2::game::inline admin {
         int *pai_empire_user_count;
         int local;
 
-        desc_manager::instance().user_count(total, &pai_empire_user_count, local);
+        get_desc_manager().user_count(total, &pai_empire_user_count, local);
 
         ch->chat_packet(CHAT_TYPE_INFO, "Total [%d] %d / %d / %d (this server %d)",
             total, pai_empire_user_count[1], pai_empire_user_count[2], pai_empire_user_count[3], local);
     }
 
     ACMD(do_user) {
-        const desc_manager::desc_set &c_ref_set = desc_manager::instance().client_set();
+        const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
         int count = 0;
         std::string str;
 
@@ -967,7 +967,7 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        desc *d = desc_manager::instance().find_by_character_name(arg1);
+        desc *d = get_desc_manager().find_by_character_name(arg1);
         character *tch = d ? d->get_character() : nullptr;
 
         if (!tch) {
@@ -980,7 +980,7 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        desc_manager::instance().destroy_desc(d);
+        get_desc_manager().destroy_desc(d);
     }
 
     ACMD(do_kill) {
@@ -992,7 +992,7 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        desc *d = desc_manager::instance().find_by_character_name(arg1);
+        desc *d = get_desc_manager().find_by_character_name(arg1);
         character *tch = d ? d->get_character() : nullptr;
 
         if (!tch) {
@@ -1038,7 +1038,7 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        tch = character_manager::instance().find_pc(arg1);
+        tch = get_character_manager().find_pc(arg1);
 
         if (!tch) {
             ch->chat_packet(CHAT_TYPE_INFO, "%s not exist", arg1);
@@ -1056,12 +1056,12 @@ namespace metin2::game::inline admin {
             {
                 int gold = 0;
                 str_to_number(gold, arg3);
-                db_manager::instance().send_money_log(MONEY_LOG_MISC, 3, gold);
+                get_db_manager().send_money_log(MONEY_LOG_MISC, 3, gold);
                 int before_gold = tch->gold();
                 tch->point_change(POINT_GOLD, gold, true);
                 int after_gold = tch->gold();
                 if (0 == after_gold && 0 != before_gold) {
-                    log_manager::instance().char_log(tch, gold, "ZERO_GOLD", "GM");
+                    get_log_manager().char_log(tch, gold, "ZERO_GOLD", "GM");
                 }
             }
             break;
@@ -1136,7 +1136,7 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        character *tch = character_manager::instance().find_pc(arg1);
+        character *tch = get_character_manager().find_pc(arg1);
 
         if (!tch) {
             ch->chat_packet(CHAT_TYPE_INFO, "%s not exist", arg1);
@@ -1183,7 +1183,7 @@ namespace metin2::game::inline admin {
         if (ch->get_guild())
             return;
 
-        guild_manager &gm = guild_manager::instance();
+        guild_manager &gm = get_guild_manager();
 
         char arg1[256];
         one_argument(argument, arg1, sizeof(arg1));
@@ -1305,13 +1305,13 @@ namespace metin2::game::inline admin {
             !strcmp(arg1, "mob_gold_pct_buyer"))
             value = std::clamp(value, 0, 1000);
 
-        quest::quest_manager::instance().request_set_event_flag(arg1, value);
+        quest::get_quest_manager().request_set_event_flag(arg1, value);
         ch->chat_packet(CHAT_TYPE_INFO, "RequestSetEventFlag %s %d", arg1, value);
         metin2::log::info("Gm {} set event flag {} to {:d}", ch->name(), arg1, value);
     }
 
     ACMD(do_get_event_flag) {
-        quest::quest_manager::instance().send_event_flag_list(ch);
+        quest::get_quest_manager().send_event_flag_list(ch);
     }
 
     ACMD(do_private) {
@@ -1326,10 +1326,10 @@ namespace metin2::game::inline admin {
         int32_t map_index_value;
         int32_t map_index = 0;
         str_to_number(map_index, arg1);
-        if ((map_index_value = sectree_manager::instance().create_private_map(map_index))) {
+        if ((map_index_value = get_sectree_manager().create_private_map(map_index))) {
             ch->save_exit_location();
 
-            sectree_map *sectree_map = sectree_manager::instance().map(map_index_value);
+            sectree_map *sectree_map = get_sectree_manager().map(map_index_value);
             ch->warp_set(sectree_map->setting.pos_spawn.x, sectree_map->setting.pos_spawn.y, map_index_value);
         } else
             ch->chat_packet(CHAT_TYPE_INFO, "Can't find map by index %d", map_index);
@@ -1343,17 +1343,17 @@ namespace metin2::game::inline admin {
         if (!*arg1)
             return;
 
-        quest::pc *pc = quest::quest_manager::instance().pc_force(ch->player_id());
+        quest::pc *pc = quest::get_quest_manager().pc_force(ch->player_id());
         std::string questname = pc->current_quest_name();
 
         if (!questname.empty()) {
-            int value = quest::quest_manager::instance().quest_state_index(questname, arg1);
+            int value = quest::get_quest_manager().quest_state_index(questname, arg1);
 
             pc->set_flag(questname + ".__status", value);
             pc->clear_timer();
 
             auto it = pc->quest_begin();
-            unsigned int questindex = quest::quest_manager::instance().quest_index_by_name(questname);
+            unsigned int questindex = quest::get_quest_manager().quest_index_by_name(questname);
 
             while (it != pc->quest_end()) {
                 if (it->first == questindex) {
@@ -1380,9 +1380,9 @@ namespace metin2::game::inline admin {
         if (is_digit(*arg1)) {
             uint32_t vnum = 0;
             str_to_number(vnum, arg1);
-            proto = skill_manager::instance().get(vnum);
+            proto = get_skill_manager().get(vnum);
         } else
-            proto = skill_manager::instance().get(arg1);
+            proto = get_skill_manager().get(arg1);
 
         if (!proto) {
             ch->chat_packet(CHAT_TYPE_INFO, "There is no such a skill.");
@@ -1413,9 +1413,9 @@ namespace metin2::game::inline admin {
         if (is_digit(*arg2)) {
             uint32_t vnum = 0;
             str_to_number(vnum, arg2);
-            pk = skill_manager::instance().get(vnum);
+            pk = get_skill_manager().get(vnum);
         } else
-            pk = skill_manager::instance().get(arg2);
+            pk = get_skill_manager().get(arg2);
 
         if (!pk) {
             ch->chat_packet(CHAT_TYPE_INFO, "No such a skill by that name.");
@@ -1443,11 +1443,11 @@ namespace metin2::game::inline admin {
         if (is_digit(*arg1)) {
             uint32_t vnum = 0;
             str_to_number(vnum, arg1);
-            pk = skill_manager::instance().get(vnum);
+            pk = get_skill_manager().get(vnum);
         }
 
         else
-            pk = skill_manager::instance().get(arg1);
+            pk = get_skill_manager().get(arg1);
 
         if (!pk) {
             ch->chat_packet(CHAT_TYPE_INFO, "No such a skill by that name.");
@@ -1506,12 +1506,12 @@ namespace metin2::game::inline admin {
 
             case 's':
                 ch->chat_packet(CHAT_TYPE_INFO, "Reloading notice string.");
-                db_manager::instance().load_db_string();
+                get_db_manager().load_db_string();
                 break;
 
             case 'q':
                 ch->chat_packet(CHAT_TYPE_INFO, "Reloading quest.");
-                quest::quest_manager::instance().reload();
+                quest::get_quest_manager().reload();
                 break;
 
             case 'f':
@@ -1535,7 +1535,7 @@ namespace metin2::game::inline admin {
             db_clientdesc->db_packet(HEADER_GD_RELOAD_PROTO, 0, nullptr, 0);
 
             ch->chat_packet(CHAT_TYPE_INFO, "Reloading notice string.");
-            db_manager::instance().load_db_string();
+            get_db_manager().load_db_string();
         }
     }
 
@@ -1562,7 +1562,7 @@ namespace metin2::game::inline admin {
 
     ACMD(do_gwlist) {
         ch->chat_packet(CHAT_TYPE_NOTICE, lc_text("현재 전쟁중인 길드 입니다"));
-        guild_manager::instance().show_guild_war_list(ch);
+        get_guild_manager().show_guild_war_list(ch);
     }
 
     ACMD(do_stop_guild_war) {
@@ -1585,7 +1585,7 @@ namespace metin2::game::inline admin {
         }
 
         ch->chat_packet(CHAT_TYPE_TALKING, "%d %d", id1, id2);
-        guild_manager::instance().request_end_war(id1, id2);
+        get_guild_manager().request_end_war(id1, id2);
     }
 
     ACMD(do_cancel_guild_war) {
@@ -1599,14 +1599,14 @@ namespace metin2::game::inline admin {
         if (id1 > id2)
             std::swap(id1, id2);
 
-        guild_manager::instance().request_cancel_war(id1, id2);
+        get_guild_manager().request_cancel_war(id1, id2);
     }
 
     ACMD(do_guild_state) {
         char arg1[256];
         one_argument(argument, arg1, sizeof(arg1));
 
-        guild *guild = guild_manager::instance().find_guild_by_name(arg1);
+        guild *guild = get_guild_manager().find_guild_by_name(arg1);
         if (guild != nullptr) {
             ch->chat_packet(CHAT_TYPE_INFO, "GuildID: %d", guild->id());
             ch->chat_packet(CHAT_TYPE_INFO, "GuildMasterPID: %d", guild->master_pid());
@@ -1648,7 +1648,7 @@ namespace metin2::game::inline admin {
         if (!tch)
             return;
 
-        quest::pc *pc = quest::quest_manager::instance().get_pc(tch->player_id());
+        quest::pc *pc = quest::get_quest_manager().get_pc(tch->player_id());
 
         if (pc)
             pc->send_flag_list(ch);
@@ -1663,18 +1663,18 @@ namespace metin2::game::inline admin {
         if (!*arg1 || !*arg2)
             return;
 
-        quest::pc *pc = quest::quest_manager::instance().pc_force(ch->player_id());
+        quest::pc *pc = quest::get_quest_manager().pc_force(ch->player_id());
         std::string questname = arg1;
         std::string statename = arg2;
 
         if (!questname.empty()) {
-            int value = quest::quest_manager::instance().quest_state_index(questname, statename);
+            int value = quest::get_quest_manager().quest_state_index(questname, statename);
 
             pc->set_flag(questname + ".__status", value);
             pc->clear_timer();
 
             auto it = pc->quest_begin();
-            unsigned int questindex = quest::quest_manager::instance().quest_index_by_name(questname);
+            unsigned int questindex = quest::get_quest_manager().quest_index_by_name(questname);
 
             while (it != pc->quest_end()) {
                 if (it->first == questindex) {
@@ -1708,7 +1708,7 @@ namespace metin2::game::inline admin {
         if (!tch)
             return;
 
-        quest::pc *pc = quest::quest_manager::instance().get_pc(tch->player_id());
+        quest::pc *pc = quest::get_quest_manager().get_pc(tch->player_id());
 
         if (pc) {
             int value = 0;
@@ -1734,7 +1734,7 @@ namespace metin2::game::inline admin {
         if (!tch)
             return;
 
-        quest::pc *pc = quest::quest_manager::instance().get_pc(tch->player_id());
+        quest::pc *pc = quest::get_quest_manager().get_pc(tch->player_id());
 
         if (pc) {
             if (pc->delete_flag(arg1))
@@ -1787,16 +1787,16 @@ namespace metin2::game::inline admin {
             uint32_t vnum_value = 0;
             str_to_number(vnum_value, arg1);
 
-            item *item = item_manager::instance().create_item(70104, 1, 0, true);
+            item *item = get_item_manager().create_item(70104, 1, 0, true);
             if (item) {
                 item->set_socket(0, vnum_value);
                 int empty_pos = ch->empty_inventory(item->size());
 
                 if (empty_pos != -1) {
                     item->add_to_character(ch, item_pos(INVENTORY, empty_pos));
-                    log_manager::instance().item_log(ch, item, "GM", item->name());
+                    get_log_manager().item_log(ch, item, "GM", item->name());
                 } else {
-                    item_manager::instance().destroy_item(item);
+                    get_item_manager().destroy_item(item);
                     ch->chat_packet(CHAT_TYPE_INFO, "Not enough inventory space.");
                 }
             } else {
@@ -1850,7 +1850,7 @@ namespace metin2::game::inline admin {
 
         metin2::log::info("Gm {} grants empire {:d} privilege type {:d}, value {:d}, for {:d} seconds", ch->name(),
             empire, type, value, duration);
-        priv_manager::instance().request_give_empire_priv(empire, type, value, duration);
+        get_priv_manager().request_give_empire_priv(empire, type, value, duration);
         return;
 
     USAGE:
@@ -1866,12 +1866,12 @@ namespace metin2::game::inline admin {
         one_argument(argument, arg1, sizeof(arg1));
 
         if (*arg1) {
-            guild *g = guild_manager::instance().find_guild_by_name(arg1);
+            guild *g = get_guild_manager().find_guild_by_name(arg1);
 
             if (!g) {
                 uint32_t guild_id = 0;
                 str_to_number(guild_id, arg1);
-                g = guild_manager::instance().find_guild(guild_id);
+                g = get_guild_manager().find_guild(guild_id);
             }
 
             if (!g)
@@ -1880,15 +1880,15 @@ namespace metin2::game::inline admin {
                 const char buf[] = "";
 
                 using namespace quest;
-                pc *pc = quest_manager::instance().get_pc(ch->player_id());
-                quest_state qs = quest_manager::instance().open_state("ADMIN_QUEST", QUEST_FISH_REFINE_STATE_INDEX);
+                pc *pc = get_quest_manager().get_pc(ch->player_id());
+                quest_state qs = get_quest_manager().open_state("ADMIN_QUEST", QUEST_FISH_REFINE_STATE_INDEX);
                 luaL_loadbuffer(qs.co, buf, strlen(buf), "ADMIN_QUEST");
                 pc->set_quest("ADMIN_QUEST", qs);
 
                 quest_state &rqs = *pc->running_quest_state();
 
-                if (!quest_manager::instance().run_state(rqs)) {
-                    quest_manager::instance().close_state(rqs);
+                if (!get_quest_manager().run_state(rqs)) {
+                    get_quest_manager().close_state(rqs);
                     pc->end_running();
                     return;
                 }
@@ -1927,7 +1927,7 @@ namespace metin2::game::inline admin {
                 socket_count = 3;
 
             if (!vnum_value) {
-                if (!item_manager::instance().vnum(arg1, vnum_value)) {
+                if (!get_item_manager().vnum(arg1, vnum_value)) {
                     ch->chat_packet(CHAT_TYPE_INFO, "#%d item not exist by that vnum.", vnum_value);
                     return;
                 }
@@ -1955,15 +1955,15 @@ namespace metin2::game::inline admin {
 
         switch (subcmd) {
         case SCMD_XMAS_SNOW:
-            quest::quest_manager::instance().request_set_event_flag("xmas_snow", flag);
+            quest::get_quest_manager().request_set_event_flag("xmas_snow", flag);
             break;
 
         case SCMD_XMAS_BOOM:
-            quest::quest_manager::instance().request_set_event_flag("xmas_boom", flag);
+            quest::get_quest_manager().request_set_event_flag("xmas_boom", flag);
             break;
 
         case SCMD_XMAS_SANTA:
-            quest::quest_manager::instance().request_set_event_flag("xmas_santa", flag);
+            quest::get_quest_manager().request_set_event_flag("xmas_santa", flag);
             break;
         }
     }
@@ -1974,8 +1974,8 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        db_manager::instance().func_query([pid = ch->player_id()](sql_msg &msg) {
-            character *ch = character_manager::instance().find_by_pid(pid);
+        get_db_manager().func_query([pid = ch->player_id()](sql_msg &msg) {
+            character *ch = get_character_manager().find_by_pid(pid);
 
             if (ch == nullptr)
                 return;
@@ -2006,10 +2006,10 @@ namespace metin2::game::inline admin {
         int32_t block_duration = 10;
         metin2::log::info("Vote chat block of player {} for {:d} seconds", name, block_duration);
 
-        character *tch = character_manager::instance().find_pc(name);
+        character *tch = get_character_manager().find_pc(name);
 
         if (!tch) {
-            cci *cci = p2p_manager::instance().find(name);
+            cci *cci = get_p2p_manager().find(name);
 
             if (cci) {
                 packet_gg_block_chat p;
@@ -2017,7 +2017,7 @@ namespace metin2::game::inline admin {
                 p.header = HEADER_GG_BLOCK_CHAT;
                 strlcpy(p.name, name, sizeof(p.name));
                 p.block_duration = block_duration;
-                p2p_manager::instance().send(&p, sizeof(packet_gg_block_chat));
+                get_p2p_manager().send(&p, sizeof(packet_gg_block_chat));
             } else {
                 packet_block_chat p;
 
@@ -2065,10 +2065,10 @@ namespace metin2::game::inline admin {
 
         metin2::log::info("Chat block of player {} for {:d} seconds", name, block_duration);
 
-        character *tch = character_manager::instance().find_pc(name);
+        character *tch = get_character_manager().find_pc(name);
 
         if (!tch) {
-            cci *cci = p2p_manager::instance().find(name);
+            cci *cci = get_p2p_manager().find(name);
 
             if (cci) {
                 packet_gg_block_chat p;
@@ -2076,7 +2076,7 @@ namespace metin2::game::inline admin {
                 p.header = HEADER_GG_BLOCK_CHAT;
                 strlcpy(p.name, name, sizeof(p.name));
                 p.block_duration = block_duration;
-                p2p_manager::instance().send(&p, sizeof(packet_gg_block_chat));
+                get_p2p_manager().send(&p, sizeof(packet_gg_block_chat));
             } else {
                 packet_block_chat p;
 
@@ -2102,7 +2102,7 @@ namespace metin2::game::inline admin {
         const char *line = one_argument(argument, arg1, sizeof(arg1));
         uint8_t gm_level = ch->gm_level();
 
-        land *land_value = manager::instance().find_land(ch->map_index(), ch->x(), ch->y());
+        land *land_value = get_manager().find_land(ch->map_index(), ch->x(), ch->y());
 
         if (!land_value) {
             metin2::log::warn("Player {} tried to build outside a building area", ch->name());
@@ -2143,7 +2143,7 @@ namespace metin2::game::inline admin {
 
                 using namespace building;
 
-                const object_proto *t = manager::instance().object_proto(vnum);
+                const object_proto *t = get_manager().object_proto(vnum);
                 if (!t) {
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("존재하지 않는 건물입니다."));
                     return;
@@ -2338,7 +2338,7 @@ namespace metin2::game::inline admin {
         if (!*arg1)
             return;
 
-        quest::pc *pc = quest::quest_manager::instance().pc_force(ch->player_id());
+        quest::pc *pc = quest::get_quest_manager().pc_force(ch->player_id());
         pc->clear_quest(arg1);
     }
 
@@ -2362,7 +2362,7 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        victim = character_manager::instance().find_pc(arg1);
+        victim = get_character_manager().find_pc(arg1);
 
         if (nullptr == victim) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("존재하지 않는 캐릭터 입니다."));
@@ -2426,7 +2426,7 @@ namespace metin2::game::inline admin {
         int32_t map_index = 0;
         str_to_number(map_index, map_index_value);
 
-        if (sectree_manager::instance().save_attribute_to_image(map_index, file_name))
+        if (get_sectree_manager().save_attribute_to_image(map_index, file_name))
             ch->chat_packet(CHAT_TYPE_INFO, "Save done.");
         else
             ch->chat_packet(CHAT_TYPE_INFO, "Save failed.");
@@ -2445,7 +2445,7 @@ namespace metin2::game::inline admin {
             character *tch = ch;
 
             if (*arg1)
-                if (!(tch = character_manager::instance().find_pc(arg1)))
+                if (!(tch = get_character_manager().find_pc(arg1)))
                     tch = ch;
 
             ch->chat_packet(CHAT_TYPE_INFO, "-- Affect List of %s -------------------------------", tch->name());
@@ -2496,11 +2496,11 @@ namespace metin2::game::inline admin {
     }
 
     ACMD(do_show_arena_list) {
-        arena_manager::instance().send_arena_map_list_to(ch);
+        get_arena_manager().send_arena_map_list_to(ch);
     }
 
     ACMD(do_end_all_duel) {
-        arena_manager::instance().end_all_duel();
+        get_arena_manager().end_all_duel();
     }
 
     ACMD(do_end_duel) {
@@ -2508,13 +2508,13 @@ namespace metin2::game::inline admin {
 
         one_argument(argument, name, sizeof(name));
 
-        character *ch_value = character_manager::instance().find_pc(name);
+        character *ch_value = get_character_manager().find_pc(name);
         if (ch_value == nullptr) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("존재하지 않는 캐릭터 입니다."));
             return;
         }
 
-        if (arena_manager::instance().end_duel(ch_value->player_id()) == false) {
+        if (get_arena_manager().end_duel(ch_value->player_id()) == false) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("대련 강제 종료 실패"));
         } else {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("대련 강제 종료 성공"));
@@ -2543,8 +2543,8 @@ namespace metin2::game::inline admin {
         if (minute < 5)
             minute = 5;
 
-        character *char1 = character_manager::instance().find_pc(name1);
-        character *char2 = character_manager::instance().find_pc(name2);
+        character *char1 = get_character_manager().find_pc(name1);
+        character *char2 = get_character_manager().find_pc(name2);
 
         if (char1 != nullptr && char2 != nullptr) {
             char1->remove_good_affect();
@@ -2556,7 +2556,7 @@ namespace metin2::game::inline admin {
             party *party = char1->get_party();
             if (party != nullptr) {
                 if (party->member_count() == 2) {
-                    party_manager::instance().delete_party(party);
+                    get_party_manager().delete_party(party);
                 } else {
                     char1->chat_packet(CHAT_TYPE_INFO, lc_text("<파티> 파티에서 나가셨습니다."));
                     party->quit(char1->player_id());
@@ -2566,14 +2566,14 @@ namespace metin2::game::inline admin {
             party = char2->get_party();
             if (party != nullptr) {
                 if (party->member_count() == 2) {
-                    party_manager::instance().delete_party(party);
+                    get_party_manager().delete_party(party);
                 } else {
                     char2->chat_packet(CHAT_TYPE_INFO, lc_text("<파티> 파티에서 나가셨습니다."));
                     party->quit(char2->player_id());
                 }
             }
 
-            if (arena_manager::instance().start_duel(char1, char2, set, minute) == true) {
+            if (get_arena_manager().start_duel(char1, char2, set, minute) == true) {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("대련이 성공적으로 시작 되었습니다."));
             } else {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("대련 시작에 문제가 있습니다."));
@@ -2689,10 +2689,10 @@ namespace metin2::game::inline admin {
     ACMD(do_threeway_war_info) {
         ch->chat_packet(CHAT_TYPE_INFO, lc_text("각제국 진행 정보"));
         ch->chat_packet(CHAT_TYPE_INFO, lc_text("선택 맵 정보 성지 %d 통로 %d %d %d"), get_sungzi_map_index(), get_pass_map_index(1), get_pass_map_index(2), get_pass_map_index(3));
-        ch->chat_packet(CHAT_TYPE_INFO, "ThreewayPhase %d", three_way_war::instance().regen_flag());
+        ch->chat_packet(CHAT_TYPE_INFO, "ThreewayPhase %d", get_three_way_war().regen_flag());
 
         for (int n = 1; n < 4; ++n) {
-            sectree_map *sec_map = sectree_manager::instance().map(get_sungzi_map_index());
+            sectree_map *sec_map = get_sectree_manager().map(get_sungzi_map_index());
 
             int count[4] = {};
 
@@ -2708,7 +2708,7 @@ namespace metin2::game::inline admin {
 
             ch->chat_packet(CHAT_TYPE_INFO, "%s killscore %d usercount %d",
                 empire_name(n),
-                three_way_war::instance().kill_score(n),
+                get_three_way_war().kill_score(n),
                 count[n]);
         }
     }
@@ -2716,7 +2716,7 @@ namespace metin2::game::inline admin {
     ACMD(do_threeway_war_myinfo) {
         ch->chat_packet(CHAT_TYPE_INFO, lc_text("나의 삼거리 진행정보"));
         ch->chat_packet(CHAT_TYPE_INFO, "Deadcount %d",
-            three_way_war::instance().revive_token_for_player(ch->player_id()));
+            get_three_way_war().revive_token_for_player(ch->player_id()));
     }
 
     ACMD(do_rmcandidacy) {
@@ -2729,10 +2729,10 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        character *tch = character_manager::instance().find_pc(arg1);
+        character *tch = get_character_manager().find_pc(arg1);
 
         if (!tch) {
-            cci *cci = p2p_manager::instance().find(arg1);
+            cci *cci = get_p2p_manager().find(arg1);
 
             if (cci) {
                 if (cci->channel != metin2::config::server().channel) {
@@ -2784,7 +2784,7 @@ namespace metin2::game::inline admin {
 
         int empire = 0;
         str_to_number(empire, arg1);
-        int nation_money = monarch::instance().money(empire);
+        int nation_money = get_monarch().money(empire);
 
         ch->chat_packet(CHAT_TYPE_INFO, "국고: %d 원", nation_money);
     }
@@ -2799,7 +2799,7 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        character *tch = character_manager::instance().find_pc(arg1);
+        character *tch = get_character_manager().find_pc(arg1);
 
         if (tch == nullptr)
             return;
@@ -2823,7 +2823,7 @@ namespace metin2::game::inline admin {
         packet.empire = empire;
         packet.tower_count = tower_count;
 
-        p2p_manager::instance().send(&packet, sizeof(packet_gg_siege));
+        get_p2p_manager().send(&packet, sizeof(packet_gg_siege));
 
         switch (castle_siege(empire, tower_count)) {
         case 0:
@@ -2855,7 +2855,7 @@ namespace metin2::game::inline admin {
         int money = 0;
         str_to_number(money, arg2);
 
-        monarch::instance().sendto_db_add_money(money, empire, ch);
+        get_monarch().sendto_db_add_money(money, empire, ch);
     }
 
     ACMD(do_frog) {
@@ -2907,9 +2907,9 @@ namespace metin2::game::inline admin {
         one_argument(argument, arg1, sizeof(arg1));
 
         if (strtol(arg1, nullptr, 10) == 1) {
-            quest::quest_manager::instance().request_set_event_flag("eclipse", 1);
+            quest::get_quest_manager().request_set_event_flag("eclipse", 1);
         } else {
-            quest::quest_manager::instance().request_set_event_flag("eclipse", 0);
+            quest::get_quest_manager().request_set_event_flag("eclipse", 0);
         }
     }
 
@@ -2917,19 +2917,19 @@ namespace metin2::game::inline admin {
         char arg1[256];
         int empire = 0;
 
-        if (battle_arena::instance().is_running() == false) {
+        if (get_battle_arena().is_running() == false) {
             one_argument(argument, arg1, sizeof(arg1));
 
             empire = strtol(arg1, nullptr, 10);
 
             if (empire == 1 || empire == 2 || empire == 3) {
-                battle_arena::instance().start(empire);
+                get_battle_arena().start(empire);
             } else {
-                battle_arena::instance().start(number(1, 3));
+                get_battle_arena().start(number(1, 3));
             }
             ch->chat_packet(CHAT_TYPE_INFO, "Weekly Event Start");
         } else {
-            battle_arena::instance().force_end();
+            get_battle_arena().force_end();
             ch->chat_packet(CHAT_TYPE_INFO, "Weekly Event End");
         }
     }
@@ -2951,7 +2951,7 @@ namespace metin2::game::inline admin {
     }
 
     ACMD(do_get_mob_count) {
-        sectree_map *sectree = sectree_manager::instance().map(ch->map_index());
+        sectree_map *sectree = get_sectree_manager().map(ch->map_index());
 
         if (sectree == nullptr)
             return;
@@ -2972,7 +2972,7 @@ namespace metin2::game::inline admin {
     }
 
     ACMD(do_clear_land) {
-        const building::land *land = building::manager::instance().find_land(ch->map_index(), ch->x(), ch->y());
+        const building::land *land = building::get_manager().find_land(ch->map_index(), ch->x(), ch->y());
 
         if (nullptr == land) {
             return;
@@ -2980,11 +2980,11 @@ namespace metin2::game::inline admin {
 
         ch->chat_packet(CHAT_TYPE_INFO, "Guild Land(%d) Cleared", land->id());
 
-        building::manager::instance().clear_land(land->id());
+        building::get_manager().clear_land(land->id());
     }
 
     ACMD(do_special_item) {
-        item_manager::instance().conv_special_drop_item_file();
+        get_item_manager().conv_special_drop_item_file();
     }
 
     ACMD(do_set_stat) {
@@ -2998,10 +2998,10 @@ namespace metin2::game::inline admin {
             return;
         }
 
-        character *tch = character_manager::instance().find_pc(name);
+        character *tch = get_character_manager().find_pc(name);
 
         if (!tch) {
-            cci *cci = p2p_manager::instance().find(name);
+            cci *cci = get_p2p_manager().find(name);
 
             if (cci) {
                 ch->chat_packet(CHAT_TYPE_INFO, "Cannot find player(%s). %s is not in your game server.", name, name);
@@ -3101,7 +3101,7 @@ namespace metin2::game::inline admin {
         if (!str_to_number(item_id, arg1) || !str_to_number(socket_num, arg2) || !str_to_number(value, arg3))
             return;
 
-        item *item = item_manager::instance().find(item_id);
+        item *item = get_item_manager().find(item_id);
         if (item)
             item->set_socket(socket_num, value);
     }
@@ -3155,117 +3155,117 @@ namespace metin2::game::inline admin {
         case JOB_SURA:
             {
 
-                item = item_manager::instance().create_item(11699);
+                item = get_item_manager().create_item(11699);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(13049);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(13049);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(15189);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(15189);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(189);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(189);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(12529);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(12529);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(14109);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(14109);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(17209);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(17209);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(16209);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(16209);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
+                    get_item_manager().destroy_item(item);
             }
             break;
         case JOB_WARRIOR:
             {
 
-                item = item_manager::instance().create_item(11299);
+                item = get_item_manager().create_item(11299);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(13049);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(13049);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(15189);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(15189);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(3159);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(3159);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(12249);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(12249);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(14109);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(14109);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(17109);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(17109);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(16109);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(16109);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
+                    get_item_manager().destroy_item(item);
             }
             break;
         case JOB_SHAMAN:
             {
 
-                item = item_manager::instance().create_item(11899);
+                item = get_item_manager().create_item(11899);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(13049);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(13049);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(15189);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(15189);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(7159);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(7159);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(12669);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(12669);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(14109);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(14109);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(17209);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(17209);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(16209);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(16209);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
+                    get_item_manager().destroy_item(item);
             }
             break;
         case JOB_ASSASSIN:
             {
 
-                item = item_manager::instance().create_item(11499);
+                item = get_item_manager().create_item(11499);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(13049);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(13049);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(15189);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(15189);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(1139);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(1139);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(12389);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(12389);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(14109);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(14109);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(17189);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(17189);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
-                item = item_manager::instance().create_item(16189);
+                    get_item_manager().destroy_item(item);
+                item = get_item_manager().create_item(16189);
                 if (!item || !item->equip_to(ch, item->find_equip_cell(ch)))
-                    item_manager::instance().destroy_item(item);
+                    get_item_manager().destroy_item(item);
             }
             break;
         }

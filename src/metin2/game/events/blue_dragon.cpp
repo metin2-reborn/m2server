@@ -20,7 +20,7 @@
 namespace metin2::game::inline events {
 
     auto use_blue_dragon_skill(character *ch, unsigned int idx) -> time_t {
-        sectree_map *sec_map = sectree_manager::instance().map(ch->map_index());
+        sectree_map *sec_map = get_sectree_manager().map(ch->map_index());
 
         if (nullptr == sec_map)
             return 0;
@@ -103,7 +103,7 @@ namespace metin2::game::inline events {
 
             if (time_skill_can_use_time[skill_index] < time_now) {
                 int skill_using_duration =
-                    static_cast<int>(motion_manager::instance().motion_duration(ch->race_num(), make_motion_key(MOTION_MODE_GENERAL, MOTION_SPECIAL_1 + skill_index)));
+                    static_cast<int>(get_motion_manager().motion_duration(ch->race_num(), make_motion_key(MOTION_MODE_GENERAL, MOTION_SPECIAL_1 + skill_index)));
 
                 time_skill_can_use_time[skill_index] = time_now + (use_blue_dragon_skill(ch, skill_index) * 1000) + skill_using_duration + 3000;
 
@@ -125,7 +125,7 @@ namespace metin2::game::inline events {
                 if (ATK_BONUS == blue_dragon_get_index_factor("DragonStone", i, "effect_type")) {
                     uint32_t dragon_stone_id = blue_dragon_get_index_factor("DragonStone", i, "vnum");
                     size_t val = blue_dragon_get_index_factor("DragonStone", i, "val");
-                    size_t cnt = sectree_manager::instance().monster_count_in_map(attacker->map_index(), dragon_stone_id);
+                    size_t cnt = get_sectree_manager().monster_count_in_map(attacker->map_index(), dragon_stone_id);
 
                     dam += (dam * (val * cnt)) / 100;
 
@@ -139,7 +139,7 @@ namespace metin2::game::inline events {
                 if (DEF_BONUS == blue_dragon_get_index_factor("DragonStone", i, "effect_type")) {
                     uint32_t dragon_stone_id = blue_dragon_get_index_factor("DragonStone", i, "vnum");
                     size_t val = blue_dragon_get_index_factor("DragonStone", i, "val");
-                    size_t cnt = sectree_manager::instance().monster_count_in_map(me->map_index(), dragon_stone_id);
+                    size_t cnt = get_sectree_manager().monster_count_in_map(me->map_index(), dragon_stone_id);
 
                     dam -= (dam * (val * cnt)) / 100;
 

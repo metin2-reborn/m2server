@@ -61,7 +61,7 @@ namespace metin2::game::inline guilds {
 
     void object::destroy() {
         if (proto_) {
-            sectree_manager::instance().for_attr_region(map_index(),
+            get_sectree_manager().for_attr_region(map_index(),
                 x() + proto_->region[0],
                 y() + proto_->region[1],
                 x() + proto_->region[2],
@@ -80,7 +80,7 @@ namespace metin2::game::inline guilds {
     }
 
     void object::reconstruct(uint32_t vnum) {
-        const map_region *r = sectree_manager::instance().get_map_region(data_.map_index);
+        const map_region *r = get_sectree_manager().get_map_region(data_.map_index);
         if (!r)
             return;
 
@@ -141,7 +141,7 @@ namespace metin2::game::inline guilds {
     }
 
     auto object::show(int32_t map_index_value, int32_t x, int32_t y) -> bool {
-        sectree *tree = sectree_manager::instance().get(map_index_value, x, y);
+        sectree *tree = get_sectree_manager().get(map_index_value, x, y);
 
         if (!tree) {
             metin2::log::error("No sectree at {:d}x{:d} on map {:d}", x, y, map_index_value);
@@ -165,7 +165,7 @@ namespace metin2::game::inline guilds {
         tree->insert_entity(this);
         update_sectree();
 
-        sectree_manager::instance().for_attr_region(map_index_value,
+        get_sectree_manager().for_attr_region(map_index_value,
             x + proto_->region[0],
             y + proto_->region[1],
             x + proto_->region[2],
@@ -189,7 +189,7 @@ namespace metin2::game::inline guilds {
                 uint32_t guild_id = 0;
                 if (land)
                     guild_id = land->owner();
-                guild *guild = guild_manager::instance().find_guild(guild_id);
+                guild *guild = get_guild_manager().find_guild(guild_id);
                 if (guild) {
                     switch (proto_->vnum) {
                     case BUILDING_INCREASE_GUILD_MEMBER_COUNT_SMALL:
@@ -219,7 +219,7 @@ namespace metin2::game::inline guilds {
                 uint32_t guild_id = 0;
                 if (land)
                     guild_id = land->owner();
-                guild *guild = guild_manager::instance().find_guild(guild_id);
+                guild *guild = get_guild_manager().find_guild(guild_id);
                 if (guild) {
                     guild->set_member_count_bonus(0);
                     if (map_allow_find(land->map_index()))
@@ -240,7 +240,7 @@ namespace metin2::game::inline guilds {
             return;
 
         uint32_t guild_id = land_->owner();
-        guild *guild_value = guild_manager::instance().find_guild(guild_id);
+        guild *guild_value = get_guild_manager().find_guild(guild_id);
 
         if (!guild_value)
             return;
@@ -254,7 +254,7 @@ namespace metin2::game::inline guilds {
         new_x = (int)((x_value * cosf(rot)) + (y_value * sinf(rot)));
         new_y = (int)((y_value * cosf(rot)) - (x_value * sinf(rot)));
 
-        ch_npc_ = character_manager::instance().spawn_mob(proto_->npc_vnum,
+        ch_npc_ = get_character_manager().spawn_mob(proto_->npc_vnum,
             map_index(),
             x() + new_x,
             y() + new_y,
@@ -270,7 +270,7 @@ namespace metin2::game::inline guilds {
         ch_npc_->set_guild(guild_value);
 
         if (proto_->vnum == 14061 || proto_->vnum == 14062 || proto_->vnum == 14063) {
-            quest::pc *pc = quest::quest_manager::instance().get_pc(guild_value->master_pid());
+            quest::pc *pc = quest::get_quest_manager().get_pc(guild_value->master_pid());
 
             if (pc != nullptr) {
                 pc->set_flag("alter_of_power.build_level", guild_value->level());
@@ -291,7 +291,7 @@ namespace metin2::game::inline guilds {
 
         while (it != map_object_.end()) {
             auto &obj = (it++)->second;
-            manager::instance().unregister_object(obj.get());
+            get_manager().unregister_object(obj.get());
             obj.reset();
         }
 
@@ -307,12 +307,12 @@ namespace metin2::game::inline guilds {
         memcpy(&data_, data, sizeof(land_table));
 
         if (data_.guild_id) {
-            const map_region *r = sectree_manager::instance().get_map_region(data_.map_index);
+            const map_region *r = get_sectree_manager().get_map_region(data_.map_index);
 
             if (r) {
                 character_vector_interactor i;
 
-                if (character_manager::instance().characters_by_race_num(20040, i)) {
+                if (get_character_manager().characters_by_race_num(20040, i)) {
                     auto it = i.begin();
 
                     while (it != i.end()) {
@@ -330,7 +330,7 @@ namespace metin2::game::inline guilds {
                         if (y > data_.y + data_.height || y < data_.y)
                             continue;
 
-                        character_manager::instance().destroy_character(ch);
+                        get_character_manager().destroy_character(ch);
                     }
                 }
             }
@@ -393,8 +393,8 @@ namespace metin2::game::inline guilds {
             return;
 
         metin2::log::info("Building: deleting object {:d} from land", id);
-        manager::instance().unregister_object(obj);
-        character_manager::instance().destroy_character(obj->npc());
+        get_manager().unregister_object(obj);
+        get_character_manager().destroy_character(obj->npc());
 
         auto owned = std::move(map_object_.find(id)->second);
         map_object_.erase(id);
@@ -402,8 +402,8 @@ namespace metin2::game::inline guilds {
     }
 
     auto land::request_create_object(uint32_t vnum_value, int32_t map_index_value, int32_t x, int32_t y, float x_rot_value, float y_rot_value, float z_rot_value, bool check_another) -> bool {
-        sectree_manager &sec_tree_mgr = sectree_manager::instance();
-        object_proto *proto = manager::instance().object_proto(vnum_value);
+        sectree_manager &sec_tree_mgr = get_sectree_manager();
+        object_proto *proto = get_manager().object_proto(vnum_value);
 
         if (!proto) {
             metin2::log::warn("Cannot create building object, unknown vnum {:d}", vnum_value);
@@ -545,7 +545,7 @@ namespace metin2::game::inline guilds {
                 if (!r.materials[j].item_vnum)
                     break;
 
-                if (nullptr == item_manager::instance().table(r.materials[j].item_vnum)) {
+                if (nullptr == get_item_manager().table(r.materials[j].item_vnum)) {
                     metin2::log::error("Building object proto {:d} needs unknown material item vnum {:d}", r.vnum, r.materials[j].item_vnum);
                     return false;
                 }
@@ -590,7 +590,7 @@ namespace metin2::game::inline guilds {
 
         land_value->put_data(table);
 
-        const desc_manager::desc_set &cont = desc_manager::instance().client_set();
+        const desc_manager::desc_set &cont = get_desc_manager().client_set();
 
         auto it = cont.begin();
 
@@ -610,7 +610,7 @@ namespace metin2::game::inline guilds {
 
         metin2::log::info("Building: land {:d} at {:d}x{:d} updated, guild {:d}", e.id, e.x, e.y, e.guild_id);
 
-        guild *guild = guild_manager::instance().find_guild(table->guild_id);
+        guild *guild = get_guild_manager().find_guild(table->guild_id);
         while (it != cont.end()) {
             desc *d = *(it++);
 
@@ -636,7 +636,7 @@ namespace metin2::game::inline guilds {
     auto manager::find_land(int32_t map_index_value, int32_t x, int32_t y) -> land * {
         metin2::log::debug("Building: looking up land on map {:d} at {:d}x{:d}", map_index_value, x, y);
 
-        const map_region *r = sectree_manager::instance().get_map_region(map_index_value);
+        const map_region *r = get_sectree_manager().get_map_region(map_index_value);
 
         if (!r)
             return nullptr;
@@ -701,7 +701,7 @@ namespace metin2::game::inline guilds {
         auto owned = std::make_unique<object>(table, proto_value);
         object *obj = owned.get();
 
-        uint32_t vid = character_manager::instance().alloc_vid();
+        uint32_t vid = get_character_manager().alloc_vid();
         obj->set_vid(vid);
 
         map_obj_by_vid_.insert(std::make_pair(vid, obj));
@@ -754,11 +754,11 @@ namespace metin2::game::inline guilds {
             if (!map_allow_find(r.map_index))
                 continue;
 
-            const map_region *region = sectree_manager::instance().get_map_region(r.map_index);
+            const map_region *region = get_sectree_manager().get_map_region(r.map_index);
             if (!region)
                 continue;
 
-            character_manager::instance().spawn_mob(20040, r.map_index, region->sx + r.x + (r.width / 2), region->sy + r.y + (r.height / 2), 0);
+            get_character_manager().spawn_mob(20040, r.map_index, region->sx + r.x + (r.width / 2), region->sy + r.y + (r.height / 2), 0);
         }
     }
 
@@ -805,7 +805,7 @@ namespace metin2::game::inline guilds {
 
             character *ch = d->get_character();
             if (ch) {
-                guild *guild = guild_manager::instance().find_guild(r.guild_id);
+                guild *guild = get_guild_manager().find_guild(r.guild_id);
                 ch->send_guild_name(guild);
             }
 
@@ -870,9 +870,9 @@ namespace metin2::game::inline guilds {
         set_owner(0);
 
         const land_table &r = data();
-        const map_region *region = sectree_manager::instance().get_map_region(r.map_index);
+        const map_region *region = get_sectree_manager().get_map_region(r.map_index);
 
-        character_manager::instance().spawn_mob(20040, r.map_index, region->sx + r.x + (r.width / 2), region->sy + r.y + (r.height / 2), 0);
+        get_character_manager().spawn_mob(20040, r.map_index, region->sx + r.x + (r.width / 2), region->sy + r.y + (r.height / 2), 0);
     }
 
     void land::draw_wall(uint32_t vnum, int32_t map_index, int32_t &x, int32_t &y, char length, float z_rot) {

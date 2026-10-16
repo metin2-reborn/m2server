@@ -1,6 +1,5 @@
 #pragma once
 
-#include <metin2/common/singleton.h>
 #include <metin2/poly/expression.h>
 #include <metin2/proto/tables.h>
 
@@ -201,10 +200,10 @@ namespace metin2::game::inline combat {
         void set_sp_cost_var(const std::string &name, double var);
     };
 
-    class skill_manager : public singleton<skill_manager> {
+    class skill_manager {
       public:
         skill_manager();
-        ~skill_manager() override;
+        ~skill_manager();
 
         auto initialize(skill_table *tab, int size) -> bool;
         auto get(uint32_t vnum) -> skill_proto *;
@@ -213,4 +212,9 @@ namespace metin2::game::inline combat {
       protected:
         std::map<uint32_t, std::unique_ptr<skill_proto>> map_skill_proto_;
     };
+
+    inline auto get_skill_manager() -> skill_manager & {
+        static skill_manager instance;
+        return instance;
+    }
 }

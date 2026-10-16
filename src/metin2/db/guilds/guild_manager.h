@@ -2,7 +2,6 @@
 
 #include <metin2/db/clients/peer.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/poly/expression.h>
 #include <metin2/proto/tables.h>
 #include <metin2/sql/async_sql.h>
@@ -142,10 +141,10 @@ namespace metin2::db::inline guilds {
         int last_notice_min_;
     };
 
-    class guild_manager : public singleton<guild_manager> {
+    class guild_manager {
       public:
         guild_manager();
-        ~guild_manager() override;
+        ~guild_manager();
 
         void initialize();
 
@@ -235,4 +234,9 @@ namespace metin2::db::inline guilds {
 
         std::map<uint32_t, int> map_ladder_point_ranking_by_gid_;
     };
+
+    inline auto get_guild_manager() -> guild_manager & {
+        static guild_manager instance;
+        return instance;
+    }
 }

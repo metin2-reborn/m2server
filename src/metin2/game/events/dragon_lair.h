@@ -2,8 +2,6 @@
 
 #include <metin2/game/app/typedef.h>
 
-#include <metin2/common/singleton.h>
-
 #include <cstdint>
 #include <memory>
 #include <unordered_map>
@@ -24,10 +22,10 @@ namespace metin2::game::inline events {
         uint32_t guild_id_;
     };
 
-    class dragon_lair_manager : public singleton<dragon_lair_manager> {
+    class dragon_lair_manager {
       public:
         dragon_lair_manager();
-        ~dragon_lair_manager() override;
+        ~dragon_lair_manager();
 
         auto start(int32_t map_index_from, int32_t base_map_index, uint32_t guild_id) -> bool;
         void on_dragon_dead(character *dragon, uint32_t killer_guild_id);
@@ -35,4 +33,9 @@ namespace metin2::game::inline events {
       private:
         std::unordered_map<uint32_t, std::unique_ptr<dragon_lair>> lair_map_;
     };
+
+    inline auto get_dragon_lair_manager() -> dragon_lair_manager & {
+        static dragon_lair_manager instance;
+        return instance;
+    }
 }

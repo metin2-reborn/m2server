@@ -20,7 +20,7 @@ namespace metin2::game {
 
     namespace quest {
         auto horse_is_riding(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch->is_horse_riding())
                 lua_pushnumber(lua, 1);
@@ -31,7 +31,7 @@ namespace metin2::game {
         }
 
         auto horse_is_summon(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (nullptr != ch) {
                 lua_pushboolean(lua, (ch->horse() != nullptr) ? true : false);
@@ -43,19 +43,19 @@ namespace metin2::game {
         }
 
         auto horse_ride(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             ch->start_riding();
             return 0;
         }
 
         auto horse_unride(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             ch->stop_riding();
             return 0;
         }
 
         auto horse_summon(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             bool from_far = lua_isboolean(lua, 1) ? lua_toboolean(lua, 1) : false;
 
@@ -67,21 +67,21 @@ namespace metin2::game {
         }
 
         auto horse_unsummon(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             ch->horse_summon(false);
             return 0;
         }
 
         auto horse_is_mine(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
-            character *horse = quest_manager::instance().current_npc_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
+            character *horse = get_quest_manager().current_npc_character_ptr();
 
             lua_pushboolean(lua, horse && horse->rider() == ch);
             return 1;
         }
 
         auto horse_set_level(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (!lua_isnumber(lua, 1))
                 return 0;
@@ -94,13 +94,13 @@ namespace metin2::game {
         }
 
         auto horse_get_level(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushnumber(lua, ch->horse_level());
             return 1;
         }
 
         auto horse_advance(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch->horse_level() >= HORSE_MAX_LEVEL)
                 return 0;
@@ -112,7 +112,7 @@ namespace metin2::game {
         }
 
         auto horse_get_health(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch->horse_level())
                 lua_pushnumber(lua, ch->horse_health());
@@ -123,7 +123,7 @@ namespace metin2::game {
         }
 
         auto horse_get_health_pct(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             int pct = std::clamp(ch->horse_health() * 100 / ch->horse_max_health(), 0, 100);
             metin2::log::debug("Horse: health {:d}%", pct);
@@ -137,7 +137,7 @@ namespace metin2::game {
         }
 
         auto horse_get_stamina(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch->horse_level())
                 lua_pushnumber(lua, ch->horse_stamina());
@@ -148,7 +148,7 @@ namespace metin2::game {
         }
 
         auto horse_get_stamina_pct(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             int pct = std::clamp(ch->horse_stamina() * 100 / ch->horse_max_stamina(), 0, 100);
             metin2::log::debug("Horse: stamina {:d}%", pct);
 
@@ -161,19 +161,19 @@ namespace metin2::game {
         }
 
         auto horse_get_grade(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushnumber(lua, ch->horse_grade());
             return 1;
         }
 
         auto horse_is_dead(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushboolean(lua, ch->horse_health() <= 0);
             return 1;
         }
 
         auto horse_revive(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             if (ch->horse_level() > 0 && ch->horse_health() <= 0) {
                 ch->revive_horse();
             }
@@ -181,7 +181,7 @@ namespace metin2::game {
         }
 
         auto horse_feed(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             if (ch->horse_level() > 0 && ch->horse_health() > 0) {
                 ch->feed_horse();
             }
@@ -192,7 +192,7 @@ namespace metin2::game {
 
             if (lua_isstring(lua, -1) != true) return 0;
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch->horse_level() > 0) {
                 const char *horse_name_value = lua_tostring(lua, -1);
@@ -205,7 +205,7 @@ namespace metin2::game {
                     ch->set_quest_flag("horse_name.valid_till", get_global_time() + horse_name_duration);
                     ch->add_affect(AFFECT_HORSE_NAME, 0, 0, 0, passes_per_sec(horse_name_duration), 0, true);
 
-                    horse_name_manager::instance().update_horse_name(ch->player_id(), lua_tostring(lua, -1), true);
+                    get_horse_name_manager().update_horse_name(ch->player_id(), lua_tostring(lua, -1), true);
 
                     ch->horse_summon(false, true);
                     ch->horse_summon(true, true);
@@ -220,10 +220,10 @@ namespace metin2::game {
         }
 
         auto horse_get_name(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch != nullptr) {
-                const char *horse_name = horse_name_manager::instance().horse_name(ch->player_id());
+                const char *horse_name = get_horse_name_manager().horse_name(ch->player_id());
 
                 if (horse_name != nullptr) {
                     lua_pushstring(lua, horse_name);
@@ -263,7 +263,7 @@ namespace metin2::game {
                     {nullptr,           nullptr              }
             };
 
-            quest_manager::instance().add_lua_function_table("horse", horse_functions);
+            get_quest_manager().add_lua_function_table("horse", horse_functions);
         }
     }
 }

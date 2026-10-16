@@ -283,22 +283,22 @@ namespace metin2::game::inline trade {
         if (val > 0)
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("판매금액의 %d %% 가 세금으로 나가게됩니다"), val);
 
-        db_manager::instance().send_money_log(MONEY_LOG_SHOP, item->vnum(), price);
+        get_db_manager().send_money_log(MONEY_LOG_SHOP, item->vnum(), price);
 
         if (count_value == item->count()) {
 
-            item_manager::instance().remove_item(item, "SELL");
+            get_item_manager().remove_item(item, "SELL");
         } else
             item->set_count(item->count() - count_value);
 
-        monarch::instance().sendto_db_add_money(tax, ch->empire(), ch);
+        get_monarch().sendto_db_add_money(tax, ch->empire(), ch);
 
         ch->point_change(POINT_GOLD, price, false);
     }
 
     auto compare_shop_item_name(const shop_item_table &lhs, const shop_item_table &rhs) -> bool {
-        item_table *item = item_manager::instance().table(lhs.vnum);
-        item_table *item_value = item_manager::instance().table(rhs.vnum);
+        item_table *item = get_item_manager().table(lhs.vnum);
+        item_table *item_value = get_item_manager().table(rhs.vnum);
         if (item && item_value)
             return strcmp(item->locale_name, item_value->locale_name) < 0;
         else
@@ -380,7 +380,7 @@ namespace metin2::game::inline trade {
         std::fill(std::begin(shop_table.items), std::end(shop_table.items), shop_item_table());
 
         for (size_t i = 0; i < shop_items.size(); i++) {
-            item_table *item_table = item_manager::instance().table(shop_items[i].vnum);
+            item_table *item_table = get_item_manager().table(shop_items[i].vnum);
             if (!item_table) {
                 metin2::log::error("Unknown item vnum {:d} in shop group {}", shop_items[i].vnum, node->node_name());
                 return false;

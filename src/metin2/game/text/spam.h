@@ -2,7 +2,6 @@
 
 #include <metin2/game/app/utils.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/core/utils.h>
 #include <metin2/log/log.h>
 
@@ -13,7 +12,7 @@
 
 namespace metin2::game::inline text {
 
-    class spam_manager : public singleton<spam_manager> {
+    class spam_manager {
       public:
         inline auto spam_score(const char *src, size_t len, unsigned int &score) -> const char * {
             const char *word = nullptr;
@@ -46,4 +45,9 @@ namespace metin2::game::inline text {
       private:
         std::vector<std::pair<std::string, unsigned int>> vec_word_;
     };
+
+    inline auto get_spam_manager() -> spam_manager & {
+        static spam_manager instance;
+        return instance;
+    }
 }

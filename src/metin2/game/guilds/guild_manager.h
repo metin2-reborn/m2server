@@ -1,7 +1,6 @@
 #pragma once
 #include <metin2/game/app/typedef.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/proto/tables.h>
 
 #include <cstddef>
@@ -25,10 +24,10 @@ namespace metin2::game::inline guilds {
         std::map<std::string, std::pair<uint32_t, uint32_t>> bet;
     };
 
-    class guild_manager : public singleton<guild_manager> {
+    class guild_manager {
       public:
         guild_manager();
-        ~guild_manager() override;
+        ~guild_manager();
 
         auto create_guild(guild_create_parameter &gcp) -> uint32_t;
         auto find_guild(uint32_t guild_id) -> guild *;
@@ -106,6 +105,11 @@ namespace metin2::game::inline guilds {
 
         friend class guild;
     };
+
+    inline auto get_guild_manager() -> guild_manager & {
+        static guild_manager instance;
+        return instance;
+    }
 
     template <typename Func>
     void guild_manager::for_each_war(Func &&f) {

@@ -1,6 +1,5 @@
 #pragma once
 
-#include <metin2/common/singleton.h>
 #include <metin2/proto/tables.h>
 
 #include <cstdint>
@@ -23,12 +22,12 @@ namespace metin2::game::inline items {
         BLACKSMITH2_MOB = 20091,
     };
 
-    class refine_manager : public singleton<refine_manager> {
+    class refine_manager {
         using refine_recipe_map = std::map<uint32_t, refine_table>;
 
       public:
         refine_manager();
-        ~refine_manager() override;
+        ~refine_manager();
 
         auto initialize(refine_table *table, int size) -> bool;
         auto refine_recipe(uint32_t vnum) -> const refine_table *;
@@ -36,4 +35,9 @@ namespace metin2::game::inline items {
       private:
         refine_recipe_map map_refine_recipe_;
     };
+
+    inline auto get_refine_manager() -> refine_manager & {
+        static refine_manager instance;
+        return instance;
+    }
 }

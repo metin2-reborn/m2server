@@ -4,7 +4,6 @@
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/world/sectree_manager.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/log/log.h>
 
 #include <cstddef>
@@ -180,13 +179,13 @@ namespace metin2::game::inline world {
         void set_party_null();
     };
 
-    class dungeon_manager : public singleton<dungeon_manager> {
+    class dungeon_manager {
         using dungeon_map = std::map<dungeon::id_type, std::unique_ptr<dungeon>>;
         using map_dungeon = std::map<int32_t, dungeon *>;
 
       public:
         dungeon_manager();
-        ~dungeon_manager() override;
+        ~dungeon_manager();
 
         auto create(int32_t original_map_index) -> dungeon *;
         void destroy(dungeon::id_type dungeon_id);
@@ -199,4 +198,9 @@ namespace metin2::game::inline world {
 
         dungeon::id_type next_id_;
     };
+
+    inline auto get_dungeon_manager() -> dungeon_manager & {
+        static dungeon_manager instance;
+        return instance;
+    }
 }

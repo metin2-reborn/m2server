@@ -1,5 +1,4 @@
 #pragma once
-#include <metin2/common/singleton.h>
 #include <metin2/proto/item_types.h>
 #include <metin2/proto/limits.h>
 #include <metin2/sql/async_sql.h>
@@ -25,7 +24,7 @@ namespace metin2::db::inline items {
         bool mall;
     };
 
-    class item_award_manager : public singleton<item_award_manager> {
+    class item_award_manager {
       public:
         item_award_manager();
 
@@ -40,4 +39,9 @@ namespace metin2::db::inline items {
         std::map<uint32_t, std::unique_ptr<item_award>> map_award_;
         std::map<std::string, std::set<item_award *>> map_set_award_by_login_;
     };
+
+    inline auto get_item_award_manager() -> item_award_manager & {
+        static item_award_manager instance;
+        return instance;
+    }
 }

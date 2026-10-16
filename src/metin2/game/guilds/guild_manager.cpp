@@ -53,11 +53,11 @@ namespace metin2::game::inline guilds {
     }
 
     auto guild_manager::disband_delay() -> int {
-        return quest::quest_manager::instance().event_flag("guild_disband_delay") * (metin2::config::test_server() ? 60 : 86400);
+        return quest::get_quest_manager().event_flag("guild_disband_delay") * (metin2::config::test_server() ? 60 : 86400);
     }
 
     auto guild_manager::withdraw_delay() -> int {
-        return quest::quest_manager::instance().event_flag("guild_withdraw_delay") * (metin2::config::test_server() ? 60 : 86400);
+        return quest::get_quest_manager().event_flag("guild_withdraw_delay") * (metin2::config::test_server() ? 60 : 86400);
     }
 
     auto guild_manager::create_guild(guild_create_parameter &gcp) -> uint32_t {
@@ -69,7 +69,7 @@ namespace metin2::game::inline guilds {
             return 0;
         }
 
-        std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(sql::format("SELECT COUNT(*) FROM guild WHERE name = {}", gcp.name)));
+        std::unique_ptr<sql_msg> pmsg(get_db_manager().direct_query(sql::format("SELECT COUNT(*) FROM guild WHERE name = {}", gcp.name)));
 
         if (pmsg->get()->num_rows > 0) {
             MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res.get());
@@ -169,7 +169,7 @@ namespace metin2::game::inline guilds {
             return;
         }
 
-        auto pmsg = db_manager::instance().direct_query(sql::format("SELECT id FROM guild"));
+        auto pmsg = get_db_manager().direct_query(sql::format("SELECT id FROM guild"));
 
         for (uint i = 0; i < pmsg->get()->num_rows; i++) {
             MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res.get());
@@ -177,7 +177,7 @@ namespace metin2::game::inline guilds {
             load_guild(guild_id);
         }
 
-        guild_mark_manager &mark_mgr = guild_mark_manager::instance();
+        guild_mark_manager &mark_mgr = get_guild_mark_manager();
 
         mark_mgr.set_mark_path_prefix("mark");
         mkdir("mark", S_IRWXU);
@@ -205,7 +205,7 @@ namespace metin2::game::inline guilds {
 
         guild_.erase(it);
 
-        guild_mark_manager::instance().delete_mark(guild_id);
+        get_guild_mark_manager().delete_mark(guild_id);
     }
 
     void guild_manager::skill_recharge() {
@@ -425,7 +425,7 @@ namespace metin2::game::inline guilds {
             p.size = sizeof(p) + sizeof(uint32_t) * 2;
             p.subheader = subheader;
 
-            character_manager::instance().for_each_pc([&p, guild_id1, guild_id2](character *ch) {
+            get_character_manager().for_each_pc([&p, guild_id1, guild_id2](character *ch) {
                 desc *d = ch->get_desc();
 
                 if (d) {
@@ -652,8 +652,8 @@ namespace metin2::game::inline guilds {
 
     void guild_manager::stop_all_guild_war() {
         for (auto it = guild_war_.begin(); it != guild_war_.end(); ++it) {
-            guild *g = guild_manager::instance().touch_guild(it->first);
-            guild *pg = guild_manager::instance().touch_guild(it->second);
+            guild *g = get_guild_manager().touch_guild(it->first);
+            guild *pg = get_guild_manager().touch_guild(it->second);
             g->end_war(it->second);
             pg->end_war(it->first);
         }
@@ -732,8 +732,8 @@ namespace metin2::game::inline guilds {
 
         iter->second->load(gid);
 
-        db_manager::instance().func_query([gid](sql_msg &msg) {
-            if (guild *g = guild_manager::instance().find_guild(gid))
+        get_db_manager().func_query([gid](sql_msg &msg) {
+            if (guild *g = get_guild_manager().find_guild(gid))
                 g->send_guild_data_update_to_all_member(msg);
         },
             "SELECT 1");

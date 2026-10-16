@@ -56,14 +56,14 @@ namespace metin2::game::inline empire {
         std::string filename;
         std::string filename_value(get_sungzi_map_path());
 
-        int choice = quest::quest_manager::instance().event_flag("threeway_war_choice");
+        int choice = quest::get_quest_manager().event_flag("threeway_war_choice");
         if (0 == choice)
             filename = filename_value + "regen00.txt";
         else {
             filename = filename_value + "regen00_" + std::to_string(choice) + ".txt";
         }
 
-        sectree_map *map = sectree_manager::instance().map(map_index);
+        sectree_map *map = get_sectree_manager().map(map_index);
 
         if (nullptr != map) {
             if (!regen_load_in_file(filename.c_str(), map_index, map->setting.base_x, map->setting.base_y) && 0 != choice) {
@@ -191,13 +191,13 @@ namespace metin2::game::inline empire {
     }
 
     auto three_way_war::event_pass_map_info() const -> const forked_pass_map_info & {
-        const size_t idx = quest::quest_manager::instance().event_flag("threeway_war_pass_idx");
+        const size_t idx = quest::get_quest_manager().event_flag("threeway_war_pass_idx");
 
         return pass_info_map_[idx];
     }
 
     auto three_way_war::event_sung_zi_map_info() const -> const forked_sungzi_map_info & {
-        const size_t idx = quest::quest_manager::instance().event_flag("threeway_war_sungzi_idx");
+        const size_t idx = quest::get_quest_manager().event_flag("threeway_war_sungzi_idx");
 
         return sung_zi_info_map_[idx];
     }
@@ -222,8 +222,8 @@ namespace metin2::game::inline empire {
         const size_t pass_idx = number(0, pass_info_map_.size() - 1);
         const size_t sung_idx = number(0, sung_zi_info_map_.size() - 1);
 
-        quest::quest_manager::instance().request_set_event_flag("threeway_war_sungzi_idx", sung_idx);
-        quest::quest_manager::instance().request_set_event_flag("threeway_war_pass_idx", pass_idx);
+        quest::get_quest_manager().request_set_event_flag("threeway_war_sungzi_idx", sung_idx);
+        quest::get_quest_manager().request_set_event_flag("threeway_war_pass_idx", pass_idx);
     }
 
     auto three_way_war::is_registered_user(uint32_t player_id) const -> bool {
@@ -304,7 +304,7 @@ namespace metin2::game::inline empire {
             send_notice_map(buf_value, get_sungzi_map_index(), false);
         }
 
-        const int victory_score = quest::quest_manager::instance().event_flag("threeway_war_kill_count");
+        const int victory_score = quest::get_quest_manager().event_flag("threeway_war_kill_count");
 
         if (0 == regen_flag()) {
             int eliminated_empire_count = 0;
@@ -354,14 +354,14 @@ namespace metin2::game::inline empire {
                 lc_text("녀석들은 이곳 성지에 있을 자격을 잃었다. 모두 성지에서 물러나거라~~[ENTER][ENTER] 10초 후에 모두 마을로 이동하게 됩니다. ") +
                 "[ENTER][DONE]");
 
-            character_manager::instance().send_script_to_map(dead->map_index(), script);
+            get_character_manager().send_script_to_map(dead->map_index(), script);
 
             char notice[512 + 1];
             snprintf(notice, sizeof(notice), lc_text("삼거리 전투에서 %s 국가가 가장먼저 탈락을 하였습니다"), nation.c_str());
             broadcast_notice(notice);
 
             const std::string log_text = std::format("First Step: {} exclusion", nation);
-            log_manager::instance().char_log(0, 0, 0, 0, "THREEWAY", log_text.c_str(), nullptr);
+            get_log_manager().char_log(0, 0, 0, 0, "THREEWAY", log_text.c_str(), nullptr);
 
             auto *regen_info = alloc_event_info<regen_mob_event_info>();
 
@@ -423,7 +423,7 @@ namespace metin2::game::inline empire {
                 send_notice_map(buf_value, get_sungzi_map_index(), false);
             }
 
-            sectree_map *sec_map = sectree_manager::instance().map(dead->map_index());
+            sectree_map *sec_map = get_sectree_manager().map(dead->map_index());
 
             if (nullptr != sec_map) {
                 const std::string empire_name_value(empire_name(victory_empire_index));
@@ -446,10 +446,10 @@ namespace metin2::game::inline empire {
                 quest::send_buffer_to_map(sec_map, buf, victory_empire_index);
 
                 const std::string log_text = std::format("Second Step: {} remain", empire_name(victory_empire_index));
-                log_manager::instance().char_log(0, 0, 0, 0, "THREEWAY", log_text.c_str(), nullptr);
+                get_log_manager().char_log(0, 0, 0, 0, "THREEWAY", log_text.c_str(), nullptr);
             }
 
-            for (int n = 0; n < quest::quest_manager::instance().event_flag("threeway_war_boss_count");) {
+            for (int n = 0; n < quest::get_quest_manager().event_flag("threeway_war_boss_count");) {
                 int x = dead->x();
                 int y = dead->y();
 
@@ -462,7 +462,7 @@ namespace metin2::game::inline empire {
                 if (y < 0)
                     y = dead->y();
 
-                character *ch = character_manager::instance().spawn_mob(
+                character *ch = get_character_manager().spawn_mob(
                     event_sung_zi_map_info().boss_mob_vnum,
                     dead->map_index(),
                     x, y, 0, false);
@@ -481,7 +481,7 @@ namespace metin2::game::inline empire {
         auto iter = map_index_set_.begin();
 
         while (iter != map_index_set_.end()) {
-            sectree_map *sec_map = sectree_manager::instance().map(*iter);
+            sectree_map *sec_map = get_sectree_manager().map(*iter);
 
             if (nullptr != sec_map) {
                 sec_map->for_each([](entity *ent) {
@@ -504,7 +504,7 @@ namespace metin2::game::inline empire {
 
         map_path = std::format("{}/map/{}/",
             locale_service_get_base_path(),
-            three_way_war::instance().event_sung_zi_map_info().map_name);
+            get_three_way_war().event_sung_zi_map_info().map_name);
 
         return map_path.c_str();
     }
@@ -515,7 +515,7 @@ namespace metin2::game::inline empire {
 
             map_path = std::format("{}/map/{}/",
                 locale_service_get_base_path(),
-                three_way_war::instance().event_pass_map_info().map_name[empire - 1]);
+                get_three_way_war().event_pass_map_info().map_name[empire - 1]);
 
             return map_path.c_str();
         }
@@ -525,19 +525,19 @@ namespace metin2::game::inline empire {
 
     auto get_pass_map_index(uint8_t empire) -> int {
         if (empire > 0 && empire < EMPIRE_MAX_NUM) {
-            return three_way_war::instance().event_pass_map_info().forked_pass[empire - 1];
+            return get_three_way_war().event_pass_map_info().forked_pass[empire - 1];
         }
 
         return 0;
     }
 
     auto get_sungzi_map_index() -> int {
-        return three_way_war::instance().event_sung_zi_map_info().forked_sung;
+        return get_three_way_war().event_sung_zi_map_info().forked_sung;
     }
 
     auto get_sungzi_start_x(uint8_t empire) -> int {
         if (empire > 0 && empire < EMPIRE_MAX_NUM) {
-            return three_way_war::instance().event_sung_zi_map_info().forked_sungzi_start_position[empire - 1][0];
+            return get_three_way_war().event_sung_zi_map_info().forked_sungzi_start_position[empire - 1][0];
         }
 
         return 0;
@@ -545,7 +545,7 @@ namespace metin2::game::inline empire {
 
     auto get_sungzi_start_y(uint8_t empire) -> int {
         if (empire > 0 && empire < EMPIRE_MAX_NUM) {
-            return three_way_war::instance().event_sung_zi_map_info().forked_sungzi_start_position[empire - 1][1];
+            return get_three_way_war().event_sung_zi_map_info().forked_sungzi_start_position[empire - 1][1];
         }
 
         return 0;

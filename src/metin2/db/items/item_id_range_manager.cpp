@@ -34,8 +34,8 @@ namespace metin2::db::inline items {
             if (max == max_item_id_)
                 break;
 
-            if (client_manager::instance().item_range().min <= min &&
-                client_manager::instance().item_range().max >= max) {
+            if (get_client_manager().item_range().min <= min &&
+                get_client_manager().item_range().max >= max) {
                 continue;
             }
 
@@ -57,7 +57,7 @@ namespace metin2::db::inline items {
                 data_.pop_front();
 
                 bool collides = false;
-                client_manager::instance().for_each_peer([&](peer *p) {
+                get_client_manager().for_each_peer([&](peer *p) {
                     collides = collides || !p->is_item_id_range_free(ret);
                 });
 
@@ -78,7 +78,7 @@ namespace metin2::db::inline items {
 
         const std::string max_query = sql::format("SELECT MAX(id) FROM item WHERE id >= {} and id <= {}", min_value, max_value);
 
-        msg = db_manager::instance().direct_query(max_query);
+        msg = get_db_manager().direct_query(max_query);
 
         if (msg != nullptr) {
             if (msg->get()->num_rows > 0) {
@@ -102,7 +102,7 @@ namespace metin2::db::inline items {
 
             const std::string count_query = sql::format("SELECT COUNT(*) FROM item WHERE id >= {} AND id <= {}", range.usable_item_id_min, range.max);
 
-            msg = db_manager::instance().direct_query(count_query);
+            msg = get_db_manager().direct_query(count_query);
 
             if (msg != nullptr) {
                 if (msg->get()->num_rows > 0) {

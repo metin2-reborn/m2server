@@ -13,9 +13,9 @@ namespace metin2::game {
     namespace quest {
 
         auto pet_summon(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             pet_system *pet_system = ch->get_pet_system();
-            item *item = quest_manager::instance().current_item();
+            item *item = get_quest_manager().current_item();
             if (!ch || !pet_system || !item) {
                 lua_pushnumber(lua, 0);
                 return 1;
@@ -43,7 +43,7 @@ namespace metin2::game {
         }
 
         auto pet_unsummon(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             pet_system *pet_system = ch->get_pet_system();
 
             if (nullptr == pet_system)
@@ -56,7 +56,7 @@ namespace metin2::game {
         }
 
         auto pet_count_summoned(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             pet_system *pet_system = ch->get_pet_system();
 
             lua_Number count = 0;
@@ -70,7 +70,7 @@ namespace metin2::game {
         }
 
         auto pet_is_summon(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             pet_system *pet_system = ch->get_pet_system();
 
             if (nullptr == pet_system)
@@ -89,7 +89,7 @@ namespace metin2::game {
         }
 
         auto pet_spawn_effect(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             pet_system *pet_system = ch->get_pet_system();
 
             if (nullptr == pet_system)
@@ -121,7 +121,7 @@ namespace metin2::game {
                     {nullptr,          nullptr           }
             };
 
-            quest_manager::instance().add_lua_function_table("pet", pet_functions);
+            get_quest_manager().add_lua_function_table("pet", pet_functions);
         }
 
     }

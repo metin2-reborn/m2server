@@ -224,7 +224,7 @@ namespace metin2::game::inline world {
 
     static void regen_spawn(regen *regen, bool once, dungeon *dungeon_value = nullptr) {
         const uint32_t num = regen->max_count - regen->count;
-        auto &chars = character_manager::instance();
+        auto &chars = get_character_manager();
 
         for (uint32_t i = 0; i < num; ++i) {
             character *ch = nullptr;
@@ -265,7 +265,7 @@ namespace metin2::game::inline world {
     }
 
     static auto find_regen_mob(const regen &entry) -> const mob * {
-        const mob *p = mob_manager::instance().get(entry.vnum);
+        const mob *p = get_mob_manager().get(entry.vnum);
 
         if (!p)
             metin2::log::error("Regen refers to unknown mob vnum {:d}", entry.vnum);
@@ -313,7 +313,7 @@ namespace metin2::game::inline world {
             return 0;
         }
 
-        dungeon *dungeon = dungeon_manager::instance().find(info->dungeon_id);
+        dungeon *dungeon = get_dungeon_manager().find(info->dungeon_id);
         if (dungeon == nullptr) {
             return 0;
         }
@@ -395,14 +395,14 @@ namespace metin2::game::inline world {
 
         return load_regen_file(filename, map_index_value, base_x, base_y, false, [&](regen &entry) {
             if (metin2::config::test_server()) {
-                mob_manager::instance().inc_regen_count(entry.type, entry.vnum, entry.max_count, entry.time);
+                get_mob_manager().inc_regen_count(entry.type, entry.vnum, entry.max_count, entry.time);
             }
 
             regen *r = regen_list.emplace_back(std::make_unique<regen>(entry)).get();
 
             if (r->type == REGEN_TYPE_MOB) {
                 if (const mob *p = find_regen_mob(*r); p && (p->table.type == CHAR_TYPE_NPC || p->table.type == CHAR_TYPE_WARP || p->table.type == CHAR_TYPE_GOTO)) {
-                    sectree_manager::instance().insert_npc_position(map_index_value,
+                    get_sectree_manager().insert_npc_position(map_index_value,
                         p->table.type,
                         p->table.locale_name,
                         (r->sx + r->ex) / 2 - base_x,

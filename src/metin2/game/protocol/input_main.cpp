@@ -149,7 +149,7 @@ namespace metin2::game::inline protocol {
             }
 
             unsigned int score;
-            const char *word = spam_manager::instance().spam_score(buf, buflen, score);
+            const char *word = get_spam_manager().spam_score(buf, buflen, score);
 
             it->second.first += score;
 
@@ -163,7 +163,7 @@ namespace metin2::game::inline protocol {
                 it->second.second = event_create(block_chat_by_ip_event, info, passes_per_sec(metin2::config::game().spam.block_duration));
                 metin2::log::info("Spam: chat blocked for host {} for {:d} seconds", info->host, metin2::config::game().spam.block_duration);
 
-                log_manager::instance().char_log(ch, 0, "SPAM", word);
+                get_log_manager().char_log(ch, 0, "SPAM", word);
 
                 send_block_chat_info(ch, event_time(it->second.second) / metin2::config::server().passes_per_sec);
 
@@ -294,7 +294,7 @@ namespace metin2::game::inline protocol {
         char name_to[CHARACTER_NAME_MAX_LEN + 1];
         copy_packet_string(name_to, sizeof(name_to), pinfo->name_to, sizeof(pinfo->name_to));
 
-        character *chr = character_manager::instance().find_pc(name_to);
+        character *chr = get_character_manager().find_pc(name_to);
 
         if (chr == ch)
             return (extra_len);
@@ -326,7 +326,7 @@ namespace metin2::game::inline protocol {
         }
 
         if (!chr) {
-            cci *cci = p2p_manager::instance().find(name_to);
+            cci *cci = get_p2p_manager().find(name_to);
 
             if (cci) {
                 desc = cci->desc;
@@ -380,7 +380,7 @@ namespace metin2::game::inline protocol {
 
                 if (true == spam_block_check(ch, buf, buflen)) {
                     if (!chr) {
-                        cci *cci = p2p_manager::instance().find(name_to);
+                        cci *cci = get_p2p_manager().find(name_to);
 
                         if (cci) {
                             desc->set_relay("");
@@ -389,7 +389,7 @@ namespace metin2::game::inline protocol {
                     return extra_len;
                 }
 
-                banword_manager::instance().convert_string(buf, buflen);
+                get_banword_manager().convert_string(buf, buflen);
 
                 if (metin2::config::game().empire_whisper)
                     if (!ch->is_equip_unique_group(UNIQUE_GROUP_RING_OF_LANGUAGE))
@@ -405,7 +405,7 @@ namespace metin2::game::inline protocol {
                 int process_return = process_text_tag(ch, buf, buflen);
                 if (0 != process_return) {
                     if (ch->get_desc()) {
-                        item_table *table = item_manager::instance().table(ITEM_PRISM);
+                        item_table *table = get_item_manager().table(ITEM_PRISM);
 
                         if (table) {
                             char buf[128];
@@ -510,10 +510,10 @@ namespace metin2::game::inline protocol {
         std::string chat = std::format("{} : {}", ch->name(), buf);
 
         if (CHAT_TYPE_SHOUT == pinfo->type) {
-            log_manager::instance().shout_log(metin2::config::server().channel, ch->empire(), chat.c_str());
+            get_log_manager().shout_log(metin2::config::server().channel, ch->empire(), chat.c_str());
         }
 
-        banword_manager::instance().convert_string(chat.data() + (chat.size() - buflen), buflen);
+        get_banword_manager().convert_string(chat.data() + (chat.size() - buflen), buflen);
 
         if (chat.size() > CHAT_MAX_LEN)
             chat.resize(CHAT_MAX_LEN);
@@ -522,7 +522,7 @@ namespace metin2::game::inline protocol {
 
         int process_return = process_text_tag(ch, chat.c_str(), len);
         if (0 != process_return) {
-            const item_table *table = item_manager::instance().table(ITEM_PRISM);
+            const item_table *table = get_item_manager().table(ITEM_PRISM);
 
             if (nullptr != table) {
                 if (3 == process_return)
@@ -553,7 +553,7 @@ namespace metin2::game::inline protocol {
             p.empire = ch->empire();
             utf8_strlcpy(p.text, chat.c_str());
 
-            p2p_manager::instance().send(&p, sizeof(packet_gg_shout));
+            get_p2p_manager().send(&p, sizeof(packet_gg_shout));
 
             send_shout(chat.c_str(), ch->empire());
 
@@ -570,7 +570,7 @@ namespace metin2::game::inline protocol {
         switch (pinfo->type) {
         case CHAT_TYPE_TALKING:
             {
-                const desc_manager::desc_set &c_ref_set = desc_manager::instance().client_set();
+                const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
 
                 const uint8_t empire = (ch->gm_level() > GM_PLAYER ||
                                            ch->is_equip_unique_group(UNIQUE_GROUP_RING_OF_LANGUAGE))
@@ -723,7 +723,7 @@ namespace metin2::game::inline protocol {
                     return -1;
 
                 auto *p2 = (packet_cg_messenger_add_by_vid *)data;
-                character *ch_companion = character_manager::instance().find(p2->vid);
+                character *ch_companion = get_character_manager().find(p2->vid);
 
                 if (!ch_companion)
                     return sizeof(packet_cg_messenger_add_by_vid);
@@ -749,7 +749,7 @@ namespace metin2::game::inline protocol {
                 if (ch->get_desc() == d)
                     return sizeof(packet_cg_messenger_add_by_vid);
 
-                messenger_manager::instance().request_to_add(ch, ch_companion);
+                get_messenger_manager().request_to_add(ch, ch_companion);
             }
             return sizeof(packet_cg_messenger_add_by_vid);
 
@@ -765,7 +765,7 @@ namespace metin2::game::inline protocol {
                     return CHARACTER_NAME_MAX_LEN;
                 }
 
-                character *tch = character_manager::instance().find_pc(name.c_str());
+                character *tch = get_character_manager().find_pc(name.c_str());
 
                 if (!tch)
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님은 접속되 있지 않습니다."), name.c_str());
@@ -776,7 +776,7 @@ namespace metin2::game::inline protocol {
                     if (tch->is_block_mode(BLOCK_MESSENGER_INVITE) == true) {
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("상대방이 메신져 추가 거부 상태입니다."));
                     } else {
-                        messenger_manager::instance().request_to_add(ch, tch);
+                        get_messenger_manager().request_to_add(ch, tch);
                     }
                 }
             }
@@ -788,7 +788,7 @@ namespace metin2::game::inline protocol {
                     return -1;
 
                 const std::string char_name(data, strnlen(data, CHARACTER_NAME_MAX_LEN));
-                messenger_manager::instance().remove_from_list(ch->name(), char_name);
+                get_messenger_manager().remove_from_list(ch->name(), char_name);
             }
             return CHARACTER_NAME_MAX_LEN;
 
@@ -815,7 +815,7 @@ namespace metin2::game::inline protocol {
         switch (p->subheader) {
         case SHOP_SUBHEADER_CG_END:
             metin2::log::debug("Shop: player {} stopped shopping", ch->name());
-            shop_manager::instance().stop_shopping(ch);
+            get_shop_manager().stop_shopping(ch);
             return 0;
 
         case SHOP_SUBHEADER_CG_BUY:
@@ -825,7 +825,7 @@ namespace metin2::game::inline protocol {
 
                 uint8_t pos_value = *(data_value + 1);
                 metin2::log::debug("Shop: player {} buys slot {:d}", ch->name(), pos_value);
-                shop_manager::instance().buy(ch, pos_value);
+                get_shop_manager().buy(ch, pos_value);
                 return (sizeof(uint8_t) + sizeof(uint8_t));
             }
 
@@ -837,7 +837,7 @@ namespace metin2::game::inline protocol {
                 uint8_t pos = *data_value;
 
                 metin2::log::debug("Shop: player {} sells inventory slot {:d}", ch->name(), pos);
-                shop_manager::instance().sell(ch, pos);
+                get_shop_manager().sell(ch, pos);
                 return sizeof(uint8_t);
             }
 
@@ -850,7 +850,7 @@ namespace metin2::game::inline protocol {
                 uint8_t count = *(data_value);
 
                 metin2::log::debug("Shop: player {} sells {:d} from inventory slot {:d}", ch->name(), count, pos);
-                shop_manager::instance().sell(ch, pos, count);
+                get_shop_manager().sell(ch, pos, count);
                 return sizeof(uint8_t) + sizeof(uint8_t);
             }
 
@@ -866,7 +866,7 @@ namespace metin2::game::inline protocol {
         auto *pinfo = (struct packet_cg_on_click *)data;
         character *victim;
 
-        if ((victim = character_manager::instance().find(pinfo->vid)))
+        if ((victim = get_character_manager().find(pinfo->vid)))
             victim->on_click(ch);
         else if (metin2::config::test_server()) {
             metin2::log::debug("Player {} clicked unknown vid {:d}", ch->name(), pinfo->vid);
@@ -882,7 +882,7 @@ namespace metin2::game::inline protocol {
 
         int pulse = thecore_pulse();
 
-        if ((to_ch = character_manager::instance().find(pinfo->arg1))) {
+        if ((to_ch = get_character_manager().find(pinfo->arg1))) {
             if (pulse - to_ch->safebox_load_time() < passes_per_sec(portal_limit_time)) {
                 to_ch->chat_packet(CHAT_TYPE_INFO, lc_text("거래 후 %d초 이내에 창고를 열수 없습니다."), portal_limit_time);
                 return;
@@ -903,7 +903,7 @@ namespace metin2::game::inline protocol {
         switch (pinfo->sub_header) {
         case EXCHANGE_SUBHEADER_CG_START:
             if (!ch->get_exchange()) {
-                if ((to_ch = character_manager::instance().find(pinfo->arg1))) {
+                if ((to_ch = get_character_manager().find(pinfo->arg1))) {
                     if (pulse - ch->safebox_load_time() < passes_per_sec(portal_limit_time)) {
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("창고를 연후 %d초 이내에는 거래를 할수 없습니다."), portal_limit_time);
 
@@ -928,7 +928,7 @@ namespace metin2::game::inline protocol {
                     }
 
                     if (to_ch->is_pc()) {
-                        if (quest::quest_manager::instance().give_item_to_pc(ch->player_id(), to_ch)) {
+                        if (quest::get_quest_manager().give_item_to_pc(ch->player_id(), to_ch)) {
                             metin2::log::debug("Exchange between {} and {} handled by a quest", ch->name(), to_ch->name());
                             return;
                         }
@@ -1028,7 +1028,7 @@ namespace metin2::game::inline protocol {
         }
 
         if (arg == 13) {
-            float normal_attack_duration = motion_manager::instance().normal_attack_duration(ch->race_num());
+            float normal_attack_duration = get_motion_manager().normal_attack_duration(ch->race_num());
             interval_value = (int)(normal_attack_duration / (((float)ch->point(POINT_ATT_SPEED) / 100.f) * 900.f) + adjust_num);
         } else if (arg == 14) {
             interval_value = (int)(ani_combo_speed(ch, 1) / ((ch->point(POINT_ATT_SPEED) / 100.f) + adjust_num));
@@ -1111,7 +1111,7 @@ namespace metin2::game::inline protocol {
             }
         } else {
             if (ch->get_desc()->delayed_disconnect(number(2, 9))) {
-                log_manager::instance().hack_log("Hacker", ch);
+                get_log_manager().hack_log("Hacker", ch);
                 metin2::log::warn("Attack hack: player {} (combo argument {:d}), disconnecting", ch->name(), arg);
             }
 
@@ -1194,7 +1194,7 @@ namespace metin2::game::inline protocol {
                     unsigned int group = ch->skill_group();
 
                     const std::string hack_text = std::format("SKILL_HACK: name={}, job={}, group={}, motion={}", name, job, group, motion);
-                    log_manager::instance().hack_log(hack_text.c_str(), ch->get_desc()->get_account_table().login, ch->name(), ch->get_desc()->host_name());
+                    get_log_manager().hack_log(hack_text.c_str(), ch->get_desc()->get_account_table().login, ch->name(), ch->get_desc()->host_name());
                     metin2::log::warn("{}", hack_text);
 
                     if (metin2::config::test_server()) {
@@ -1279,7 +1279,7 @@ namespace metin2::game::inline protocol {
 
                 const auto *const pack_melee = reinterpret_cast<const packet_cg_attack *>(data);
 
-                character *victim = character_manager::instance().find(pack_melee->vid);
+                character *victim = get_character_manager().find(pack_melee->vid);
 
                 if (nullptr == victim || ch == victim)
                     return;
@@ -1352,7 +1352,7 @@ namespace metin2::game::inline protocol {
         gettimeofday(&tv_cur_time, nullptr);
 
         for (int i = 0; i < count; ++i, ++e) {
-            character *victim = character_manager::instance().find(e->vid);
+            character *victim = get_character_manager().find(e->vid);
 
             if (!victim)
                 continue;
@@ -1374,7 +1374,7 @@ namespace metin2::game::inline protocol {
                     ch->set_sync_hack_count(ch->sync_hack_count() + 1);
                     continue;
                 } else {
-                    log_manager::instance().hack_log("SYNC_POSITION_HACK", ch);
+                    get_log_manager().hack_log("SYNC_POSITION_HACK", ch);
 
                     metin2::log::warn("Sync position hack: {:.1f} m from sync owner to {} by player {} (player {:d}x{:d}, target {:d}x{:d}, sync {:d}x{:d}), disconnecting",
                         dist_with_sync_owner, victim->name(), ch->name(), ch->x(), ch->y(), victim->x(), victim->y(),
@@ -1396,7 +1396,7 @@ namespace metin2::game::inline protocol {
                     ch->set_sync_hack_count(ch->sync_hack_count() + 1);
                     continue;
                 } else {
-                    log_manager::instance().hack_log("SYNC_POSITION_HACK", ch);
+                    get_log_manager().hack_log("SYNC_POSITION_HACK", ch);
 
                     metin2::log::warn("Sync position hack: interval {:d} ms too short for {} by player {} (target {:d}x{:d}, sync {:d}x{:d}), disconnecting",
                         static_cast<long>(elapsed_usec / 1000), victim->name(), ch->name(), victim->x(), victim->y(),
@@ -1407,7 +1407,7 @@ namespace metin2::game::inline protocol {
                     return -1;
                 }
             } else if (dist > 25.0f) {
-                log_manager::instance().hack_log("SYNC_POSITION_HACK", ch);
+                get_log_manager().hack_log("SYNC_POSITION_HACK", ch);
 
                 metin2::log::warn("Sync position hack: moved {:.1f} m for {} by player {} (player {:d}x{:d}, target {:d}x{:d}, sync {:d}x{:d}), disconnecting",
                     dist, victim->name(), ch->name(), ch->x(), ch->y(), victim->x(), victim->y(),
@@ -1444,20 +1444,20 @@ namespace metin2::game::inline protocol {
 
     void input_main::use_skill(character *ch, const char *pc_data) {
         auto *p = (packet_cg_use_skill *)pc_data;
-        ch->use_skill(p->vnum, character_manager::instance().find(p->vid));
+        ch->use_skill(p->vnum, get_character_manager().find(p->vid));
     }
 
     void input_main::script_button(character *ch, const void *data) {
         auto *p = (packet_cg_script_button *)data;
         metin2::log::debug("Quest: pid {:d} pressed button {:d}", ch->player_id(), p->idx);
 
-        quest::pc *pc = quest::quest_manager::instance().pc_force(ch->player_id());
+        quest::pc *pc = quest::get_quest_manager().pc_force(ch->player_id());
         if (pc && pc->is_confirm_wait()) {
-            quest::quest_manager::instance().confirm(ch->player_id(), quest::CONFIRM_TIMEOUT);
+            quest::get_quest_manager().confirm(ch->player_id(), quest::CONFIRM_TIMEOUT);
         } else if (p->idx & 0x80000000) {
-            quest::quest_manager::instance().quest_info(ch->player_id(), p->idx & 0x7fffffff);
+            quest::get_quest_manager().quest_info(ch->player_id(), p->idx & 0x7fffffff);
         } else {
-            quest::quest_manager::instance().quest_button(ch->player_id(), p->idx);
+            quest::get_quest_manager().quest_button(ch->player_id(), p->idx);
         }
     }
 
@@ -1466,16 +1466,16 @@ namespace metin2::game::inline protocol {
         metin2::log::debug("Quest: pid {:d} answered {:d}", ch->player_id(), p->answer);
 
         if (p->answer > 250) {
-            quest::quest_manager::instance().resume(ch->player_id());
+            quest::get_quest_manager().resume(ch->player_id());
         } else {
-            quest::quest_manager::instance().select(ch->player_id(), p->answer);
+            quest::get_quest_manager().select(ch->player_id(), p->answer);
         }
     }
 
     void input_main::script_select_item(character *ch, const void *data) {
         auto *p = (packet_cg_script_select_item *)data;
         metin2::log::debug("Quest: pid {:d} selected item {:d}", ch->player_id(), p->selection);
-        quest::quest_manager::instance().select_item(ch->player_id(), p->selection);
+        quest::get_quest_manager().select_item(ch->player_id(), p->selection);
     }
 
     void input_main::quest_input_string(character *ch, const void *data) {
@@ -1484,24 +1484,24 @@ namespace metin2::game::inline protocol {
         const std::string msg(p->msg, strnlen(p->msg, sizeof(p->msg) - 1));
         metin2::log::debug("Quest: pid {:d} entered \"{}\"", ch->player_id(), msg);
 
-        quest::quest_manager::instance().input(ch->player_id(), msg.c_str());
+        quest::get_quest_manager().input(ch->player_id(), msg.c_str());
     }
 
     void input_main::quest_confirm(character *ch, const void *data) {
         auto *p = (packet_cg_quest_confirm *)data;
-        character *ch_wait = character_manager::instance().find_by_pid(p->request_pid);
+        character *ch_wait = get_character_manager().find_by_pid(p->request_pid);
         if (p->answer)
             p->answer = quest::CONFIRM_YES;
         metin2::log::debug("Quest: confirm from {} to pid {:d} ({}), answer {:d}", ch->name(), p->request_pid, (ch_wait) ? ch_wait->name() : "", p->answer);
         if (ch_wait) {
-            quest::quest_manager::instance().confirm(ch_wait->player_id(), (quest::quest_confirm_type)p->answer, ch->player_id());
+            quest::get_quest_manager().confirm(ch_wait->player_id(), (quest::quest_confirm_type)p->answer, ch->player_id());
         }
     }
 
     void input_main::target(character *ch, const char *pc_data) {
         auto *p = (packet_cg_target *)pc_data;
 
-        building::object *obj = building::manager::instance().find_object_by_vid(p->vid);
+        building::object *obj = building::get_manager().find_object_by_vid(p->vid);
 
         if (obj) {
             packet_gc_target pck_target;
@@ -1509,7 +1509,7 @@ namespace metin2::game::inline protocol {
             pck_target.vid = p->vid;
             ch->get_desc()->packet(&pck_target, sizeof(packet_gc_target));
         } else
-            ch->set_target(character_manager::instance().find(p->vid));
+            ch->set_target(get_character_manager().find(p->vid));
     }
 
     void input_main::warp(character *ch, const char *pc_data) {
@@ -1517,7 +1517,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_main::safebox_checkin(character *ch, const char *data) {
-        if (quest::quest_manager::instance().pc_force(ch->player_id())->is_running() == true)
+        if (quest::get_quest_manager().pc_force(ch->player_id())->is_running() == true)
             return;
 
         auto *p = (packet_cg_safebox_checkin *)data;
@@ -1568,7 +1568,7 @@ namespace metin2::game::inline protocol {
         safebox->add(p->safe_pos, item);
 
         const std::string hint = std::format("{} {}", item->name(), item->count());
-        log_manager::instance().item_log(ch, item, "SAFEBOX PUT", hint.c_str());
+        get_log_manager().item_log(ch, item, "SAFEBOX PUT", hint.c_str());
     }
 
     void input_main::safebox_checkout(character *ch, const char *data, bool mall_value) {
@@ -1600,7 +1600,7 @@ namespace metin2::game::inline protocol {
 
         if (item->is_dragon_soul()) {
             if (mall_value) {
-                ds_manager::instance().dragon_soul_item_initialize(item);
+                get_ds_manager().dragon_soul_item_initialize(item);
             }
 
             if (DRAGON_SOUL_INVENTORY != p->item_pos.window_type) {
@@ -1609,7 +1609,7 @@ namespace metin2::game::inline protocol {
             }
 
             item_pos dest_pos = p->item_pos;
-            if (!ds_manager::instance().is_valid_cell_for_this_item(item, dest_pos)) {
+            if (!get_ds_manager().is_valid_cell_for_this_item(item, dest_pos)) {
                 int cell = ch->empty_dragon_soul_inventory(item);
                 if (cell < 0) {
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("<창고> 옮길 수 없는 위치입니다."));
@@ -1620,7 +1620,7 @@ namespace metin2::game::inline protocol {
 
             safebox->remove(p->safe_pos);
             item->add_to_character(ch, dest_pos);
-            item_manager::instance().flush_delayed_save(item);
+            get_item_manager().flush_delayed_save(item);
         } else {
             if (DRAGON_SOUL_INVENTORY == p->item_pos.window_type) {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("<창고> 옮길 수 없는 위치입니다."));
@@ -1638,7 +1638,7 @@ namespace metin2::game::inline protocol {
                 }
             }
             item->add_to_character(ch, p->item_pos);
-            item_manager::instance().flush_delayed_save(item);
+            get_item_manager().flush_delayed_save(item);
         }
 
         uint32_t id = item->id();
@@ -1647,9 +1647,9 @@ namespace metin2::game::inline protocol {
 
         const std::string hint = std::format("{} {}", item->name(), item->count());
         if (mall_value)
-            log_manager::instance().item_log(ch, item, "MALL GET", hint.c_str());
+            get_log_manager().item_log(ch, item, "MALL GET", hint.c_str());
         else
-            log_manager::instance().item_log(ch, item, "SAFEBOX GET", hint.c_str());
+            get_log_manager().item_log(ch, item, "SAFEBOX GET", hint.c_str());
     }
 
     void input_main::safebox_item_move(character *ch, const char *data) {
@@ -1672,7 +1672,7 @@ namespace metin2::game::inline protocol {
 
         auto *p = (packet_cg_party_invite *)data;
 
-        character *invitee = character_manager::instance().find(p->vid);
+        character *invitee = get_character_manager().find(p->vid);
 
         if (!invitee || !ch->get_desc() || !invitee->get_desc()) {
             metin2::log::debug("Party invite: target vid {:d} not found or offline", p->vid);
@@ -1690,7 +1690,7 @@ namespace metin2::game::inline protocol {
 
         auto *p = (packet_cg_party_invite_answer *)data;
 
-        character *inviter = character_manager::instance().find(p->leader_vid);
+        character *inviter = get_character_manager().find(p->leader_vid);
 
         if (!inviter)
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("<파티> 파티요청을 한 캐릭터를 찾을수 없습니다."));
@@ -1701,7 +1701,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_main::party_set_state(character *ch, const char *data) {
-        if (!party_manager::instance().is_enable_pc_party()) {
+        if (!get_party_manager().is_enable_pc_party()) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("<파티> 서버 문제로 파티 관련 처리를 할 수 없습니다."));
             return;
         }
@@ -1756,7 +1756,7 @@ namespace metin2::game::inline protocol {
             return;
         }
 
-        if (!party_manager::instance().is_enable_pc_party()) {
+        if (!get_party_manager().is_enable_pc_party()) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("<파티> 서버 문제로 파티 관련 처리를 할 수 없습니다."));
             return;
         }
@@ -1777,9 +1777,9 @@ namespace metin2::game::inline protocol {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("<파티> 던젼내에서는 파티원을 추방할 수 없습니다."));
             } else {
                 if (p->pid == ch->player_id() || party->member_count() == 2) {
-                    party_manager::instance().delete_party(party);
+                    get_party_manager().delete_party(party);
                 } else {
-                    character *b = character_manager::instance().find_by_pid(p->pid);
+                    character *b = get_character_manager().find_by_pid(p->pid);
                     if (b) {
                         b->chat_packet(CHAT_TYPE_INFO, lc_text("<파티> 파티에서 추방당하셨습니다."));
                     }
@@ -1792,7 +1792,7 @@ namespace metin2::game::inline protocol {
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("<파티> 던젼내에서는 파티를 나갈 수 없습니다."));
                 } else {
                     if (party->member_count() == 2) {
-                        party_manager::instance().delete_party(party);
+                        get_party_manager().delete_party(party);
                     } else {
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("<파티> 파티에서 나가셨습니다."));
                         party->quit(ch->player_id());
@@ -1819,23 +1819,23 @@ namespace metin2::game::inline protocol {
             return;
 
         if (get_global_time() - ch->quest_flag("guild_building.new_disband_time") <
-            guild_manager::instance().disband_delay()) {
+            get_guild_manager().disband_delay()) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 해산한 후 %d일 이내에는 길드를 만들 수 없습니다."),
-                quest::quest_manager::instance().event_flag("guild_disband_delay"));
+                quest::get_quest_manager().event_flag("guild_disband_delay"));
             return;
         }
 
         if (get_global_time() - ch->quest_flag("guild_building.new_withdraw_time") <
-            guild_manager::instance().withdraw_delay()) {
+            get_guild_manager().withdraw_delay()) {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 탈퇴한 후 %d일 이내에는 길드를 만들 수 없습니다."),
-                quest::quest_manager::instance().event_flag("guild_withdraw_delay"));
+                quest::get_quest_manager().event_flag("guild_withdraw_delay"));
             return;
         }
 
         if (ch->get_guild())
             return;
 
-        guild_manager &gm = guild_manager::instance();
+        guild_manager &gm = get_guild_manager();
 
         guild_create_parameter cp;
         memset(&cp, 0, sizeof(cp));
@@ -1858,10 +1858,10 @@ namespace metin2::game::inline protocol {
             guild_create_fee = 200000;
 
             ch->point_change(POINT_GOLD, -guild_create_fee);
-            db_manager::instance().send_money_log(MONEY_LOG_GUILD, ch->player_id(), -guild_create_fee);
+            get_db_manager().send_money_log(MONEY_LOG_GUILD, ch->player_id(), -guild_create_fee);
 
             const std::string log_text = std::format("GUILD_NAME {} MASTER {}", cp.name, ch->name());
-            log_manager::instance().char_log(ch, 0, "MAKE_GUILD", log_text.c_str());
+            get_log_manager().char_log(ch, 0, "MAKE_GUILD", log_text.c_str());
 
             ch->remove_specify_item(GUILD_CREATE_ITEM_VNUM, 1);
         } else
@@ -1884,7 +1884,7 @@ namespace metin2::game::inline protocol {
             break;
         case PARTY_SKILL_WARP:
             {
-                character *pch = character_manager::instance().find(p->vid);
+                character *pch = get_character_manager().find(p->vid);
                 if (pch)
                     ch->get_party()->summon_to_leader(pch->player_id());
                 else
@@ -1985,7 +1985,7 @@ namespace metin2::game::inline protocol {
         case GUILD_SUBHEADER_CG_ADD_MEMBER:
             {
                 const uint32_t vid = *reinterpret_cast<const uint32_t *>(data_value);
-                character *newmember = character_manager::instance().find(vid);
+                character *newmember = get_character_manager().find(vid);
 
                 if (!newmember || !newmember->is_pc()) {
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 그러한 사람을 찾을 수 없습니다."));
@@ -2012,7 +2012,7 @@ namespace metin2::game::inline protocol {
                 if (nullptr == m)
                     return -1;
 
-                character *member = character_manager::instance().find_by_pid(pid);
+                character *member = get_character_manager().find_by_pid(pid);
 
                 if (member) {
                     if (member->get_guild() != guild_value) {
@@ -2210,7 +2210,7 @@ namespace metin2::game::inline protocol {
                 const uint32_t guild_id = *reinterpret_cast<const uint32_t *>(data_value);
                 const uint8_t accept = *(data_value + sizeof(uint32_t));
 
-                game::guilds::guild *g = guild_manager::instance().find_guild(guild_id);
+                game::guilds::guild *g = get_guild_manager().find_guild(guild_id);
 
                 if (g) {
                     if (accept)
@@ -2234,7 +2234,7 @@ namespace metin2::game::inline protocol {
 
     void input_main::item_give(character *ch, const char *data) {
         auto *p = (packet_cg_give_item *)data;
-        character *to_ch = character_manager::instance().find(p->target_vid);
+        character *to_ch = get_character_manager().find(p->target_vid);
 
         if (to_ch)
             ch->give_item(to_ch, p->item_pos);
@@ -2319,7 +2319,7 @@ namespace metin2::game::inline protocol {
 
             if (nullptr != item) {
                 if (500 <= item->refine_set()) {
-                    log_manager::instance().hack_log("DEVIL_TOWER_REFINE_HACK", ch);
+                    get_log_manager().hack_log("DEVIL_TOWER_REFINE_HACK", ch);
                 } else {
                     if (ch->quest_flag("deviltower_zone.can_refine")) {
                         ch->do_refine(item, true);
@@ -2426,7 +2426,7 @@ namespace metin2::game::inline protocol {
                 if (version_value != date) {
                     ch->chat_packet(CHAT_TYPE_NOTICE, lc_text("클라이언트 버전이 틀려 로그아웃 됩니다. 정상적으로 패치 후 접속하세요."));
                     d->delayed_disconnect(10);
-                    log_manager::instance().hack_log("VERSION_CONFLICT", d->get_account_table().login, ch->name(), d->host_name());
+                    get_log_manager().hack_log("VERSION_CONFLICT", d->get_account_table().login, ch->name(), d->host_name());
                 }
             }
             break;
@@ -2619,17 +2619,17 @@ namespace metin2::game::inline protocol {
                     break;
                 case DS_SUB_HEADER_DO_REFINE_GRADE:
                     {
-                        ds_manager::instance().do_refine_grade(ch, p->item_grid);
+                        get_ds_manager().do_refine_grade(ch, p->item_grid);
                     }
                     break;
                 case DS_SUB_HEADER_DO_REFINE_STEP:
                     {
-                        ds_manager::instance().do_refine_step(ch, p->item_grid);
+                        get_ds_manager().do_refine_step(ch, p->item_grid);
                     }
                     break;
                 case DS_SUB_HEADER_DO_REFINE_STRENGTH:
                     {
-                        ds_manager::instance().do_refine_strength(ch, p->item_grid);
+                        get_ds_manager().do_refine_strength(ch, p->item_grid);
                     }
                     break;
                 }

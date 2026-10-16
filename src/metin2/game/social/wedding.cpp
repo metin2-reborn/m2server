@@ -52,7 +52,7 @@ namespace metin2::game::inline social {
                 map->warp_all();
                 return passes_per_sec(15);
             }
-            wedding_manager::instance().destroy_wedding_map(map);
+            get_wedding_manager().destroy_wedding_map(map);
             return 0;
         }
 
@@ -118,9 +118,9 @@ namespace metin2::game::inline social {
                 metin2::log::debug("Wedding map: removing {}", ch->name());
 
                 if (ch->get_desc())
-                    desc_manager::instance().destroy_desc(ch->get_desc());
+                    get_desc_manager().destroy_desc(ch->get_desc());
                 else
-                    character_manager::instance().destroy_character(ch);
+                    get_character_manager().destroy_character(ch);
             }
         }
 
@@ -232,7 +232,7 @@ namespace metin2::game::inline social {
         }
 
         auto wedding_manager::create_wedding_map(uint32_t pid1, uint32_t pid2) -> uint32_t {
-            sectree_manager &sec_tree_mgr = sectree_manager::instance();
+            sectree_manager &sec_tree_mgr = get_sectree_manager();
 
             uint32_t map_index = sec_tree_mgr.create_private_map(WEDDING_MAP_INDEX);
 
@@ -269,7 +269,7 @@ namespace metin2::game::inline social {
                 owner = std::move(it->second);
                 wedding_.erase(it);
             }
-            sectree_manager::instance().destroy_private_map(map->map_index());
+            get_sectree_manager().destroy_private_map(map->map_index());
         }
 
         auto wedding_manager::end(uint32_t map_index) -> bool {

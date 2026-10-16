@@ -242,20 +242,20 @@ namespace metin2::game::inline protocol {
                 int total;
                 int *pai_empire_user_count;
                 int local;
-                desc_manager::instance().user_count(total, &pai_empire_user_count, local);
+                get_desc_manager().user_count(total, &pai_empire_user_count, local);
                 result_value = std::format("{} {} {} {} {}", total, pai_empire_user_count[1], pai_empire_user_count[2], pai_empire_user_count[3], local);
             } else if (d->is_admin_mode() && !buf.compare("CHECK_P2P_CONNECTIONS")) {
                 std::ostringstream oss(std::ostringstream::out);
 
-                oss << "P2P CONNECTION NUMBER : " << p2p_manager::instance().desc_count() << "\n";
+                oss << "P2P CONNECTION NUMBER : " << get_p2p_manager().desc_count() << "\n";
                 std::string host_names;
-                p2p_manager::instance().p2p_host_names(host_names);
+                get_p2p_manager().p2p_host_names(host_names);
                 oss << host_names;
                 result_value = oss.str();
                 packet_gg_check_awakeness packet;
                 packet.header = HEADER_GG_CHECK_AWAKENESS;
 
-                p2p_manager::instance().send(&packet, sizeof(packet));
+                get_p2p_manager().send(&packet, sizeof(packet));
             } else if (d->is_admin_mode() && !buf.compare(0, 15, "DELETE_AWARDID ")) {
                 std::string msg = buf.substr(15, 26);
 
@@ -271,17 +271,17 @@ namespace metin2::game::inline protocol {
                     if (!buf.compare(0, 7, "NOTICE ")) {
                         std::string msg = buf.substr(7);
                         msg.resize(utf8_truncated_size(msg, 50));
-                        log_manager::instance().char_log(0, 0, 0, 1, "NOTICE", msg.c_str(), d->host_name());
+                        get_log_manager().char_log(0, 0, 0, 1, "NOTICE", msg.c_str(), d->host_name());
                         broadcast_notice(msg.c_str());
                     } else if (!buf.compare("SHUTDOWN")) {
-                        log_manager::instance().char_log(0, 0, 0, 2, "SHUTDOWN", "", d->host_name());
+                        get_log_manager().char_log(0, 0, 0, 2, "SHUTDOWN", "", d->host_name());
                         packet_gg_shutdown p;
                         p.header = HEADER_GG_SHUTDOWN;
-                        p2p_manager::instance().send(&p, sizeof(packet_gg_shutdown));
+                        get_p2p_manager().send(&p, sizeof(packet_gg_shutdown));
                         metin2::log::info("Shutdown requested by admin host {}", d->host_name());
                         shutdown(10);
                     } else if (!buf.compare("SHUTDOWN_ONLY")) {
-                        log_manager::instance().char_log(0, 0, 0, 2, "SHUTDOWN", "", d->host_name());
+                        get_log_manager().char_log(0, 0, 0, 2, "SHUTDOWN", "", d->host_name());
                         metin2::log::info("Local-only shutdown requested by admin host {}", d->host_name());
                         shutdown(10);
                     } else if (!buf.compare(0, 3, "DC ")) {
@@ -294,7 +294,7 @@ namespace metin2::game::inline protocol {
                         pgg.header = HEADER_GG_DISCONNECT;
                         strlcpy(pgg.login, msg.c_str(), sizeof(pgg.login));
 
-                        p2p_manager::instance().send(&pgg, sizeof(packet_gg_disconnect));
+                        get_p2p_manager().send(&pgg, sizeof(packet_gg_disconnect));
 
                         {
                             packet_dc p;
@@ -305,13 +305,13 @@ namespace metin2::game::inline protocol {
                         check_client_version();
 
                         uint8_t header = HEADER_GG_CHECK_CLIENT_VERSION;
-                        p2p_manager::instance().send(&header, sizeof(uint8_t));
+                        get_p2p_manager().send(&header, sizeof(uint8_t));
                         result_value = "OK";
                     } else if (!buf.compare(0, 6, "RELOAD")) {
                         if (buf.size() == 6) {
                             load_state_user_count();
                             db_clientdesc->db_packet(HEADER_GD_RELOAD_PROTO, 0, nullptr, 0);
-                            db_manager::instance().load_db_string();
+                            get_db_manager().load_db_string();
                         } else {
                             char c = buf[7];
 
@@ -325,11 +325,11 @@ namespace metin2::game::inline protocol {
                                 break;
 
                             case 's':
-                                db_manager::instance().load_db_string();
+                                get_db_manager().load_db_string();
                                 break;
 
                             case 'q':
-                                quest::quest_manager::instance().reload();
+                                quest::get_quest_manager().reload();
                                 break;
 
                             case 'f':
@@ -350,7 +350,7 @@ namespace metin2::game::inline protocol {
 
                         if (!is.fail()) {
                             metin2::log::info("Admin command: event flag {} set to {:d}", flag_name, value_value);
-                            quest::quest_manager::instance().request_set_event_flag(flag_name, value_value);
+                            quest::get_quest_manager().request_set_event_flag(flag_name, value_value);
                             result_value = "EVENT FLAG CHANGE ";
                             result_value += flag_name;
                         } else {
@@ -395,7 +395,7 @@ namespace metin2::game::inline protocol {
 
                                 metin2::log::info("Admin command: empire {:d} privilege type {:d}, value {:d}, for {:d} seconds",
                                     empire, type, value, duration);
-                                priv_manager::instance().request_give_empire_priv(empire, type, value, duration);
+                                get_priv_manager().request_give_empire_priv(empire, type, value, duration);
                             }
                         }
                     }
@@ -416,7 +416,7 @@ namespace metin2::game::inline protocol {
             // Anyone may download marks; uploads need the key from the player's game login, which the
             // client lacks on its first download, so a missing key means download only.
             const auto *p = (const packet_cg_mark_login *)data_value;
-            const bool authenticated = desc_manager::instance().check_random_key(p->handle, p->random_key);
+            const bool authenticated = get_desc_manager().check_random_key(p->handle, p->random_key);
 
             metin2::log::debug("Guild mark login{}", authenticated ? "" : " (download only)");
             d->set_mark_login(authenticated ? p->handle : 0);

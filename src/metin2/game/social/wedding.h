@@ -3,8 +3,6 @@
 #include <metin2/game/app/event.h>
 #include <metin2/game/app/typedef.h>
 
-#include <metin2/common/singleton.h>
-
 #include <cstddef>
 #include <cstdint>
 #include <map>
@@ -61,10 +59,10 @@ namespace metin2::game::inline social {
             std::string music_file_name_;
         };
 
-        class wedding_manager : public singleton<wedding_manager> {
+        class wedding_manager {
           public:
             wedding_manager();
-            ~wedding_manager() override;
+            ~wedding_manager();
 
             auto is_wedding_map(uint32_t map_index) -> bool;
 
@@ -81,5 +79,10 @@ namespace metin2::game::inline social {
           private:
             std::map<uint32_t, std::unique_ptr<wedding_map>> wedding_;
         };
+
+        inline auto get_wedding_manager() -> wedding_manager & {
+            static wedding_manager instance;
+            return instance;
+        }
     }
 }

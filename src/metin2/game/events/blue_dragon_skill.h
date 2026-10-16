@@ -248,7 +248,7 @@ namespace metin2::game::inline events {
                         int32_t ty = ch->y() + vec.y * fly_distance;
 
                         for (int i = 0; i < 5; ++i) {
-                            if (true == sectree_manager::instance().is_movable_position(ch->map_index(), tx, ty)) {
+                            if (true == get_sectree_manager().is_movable_position(ch->map_index(), tx, ty)) {
                                 break;
                             }
 

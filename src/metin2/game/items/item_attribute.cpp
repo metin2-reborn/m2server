@@ -268,7 +268,7 @@ namespace metin2::game::inline items {
             if (owner() && owner()->get_desc())
                 ip = owner()->get_desc()->host_name();
 
-            log_manager::instance().item_log(i, type_value, s_value_value, id(), "SET_ATTR", "", ip ? ip : "", original_vnum());
+            get_log_manager().item_log(i, type_value, s_value_value, id(), "SET_ATTR", "", ip ? ip : "", original_vnum());
         }
     }
 
@@ -286,7 +286,7 @@ namespace metin2::game::inline items {
             if (owner() && owner()->get_desc())
                 ip = owner()->get_desc()->host_name();
 
-            log_manager::instance().item_log(i, type_value, s_value_value, id(), "SET_FORCE_ATTR", "", ip ? ip : "", original_vnum());
+            get_log_manager().item_log(i, type_value, s_value_value, id(), "SET_FORCE_ATTR", "", ip ? ip : "", original_vnum());
         }
     }
 
@@ -318,9 +318,9 @@ namespace metin2::game::inline items {
         }
 
         if (owner() && owner()->get_desc())
-            log_manager::instance().item_log(owner(), this, "SET_RARE_CHANGE", "");
+            get_log_manager().item_log(owner(), this, "SET_RARE_CHANGE", "");
         else
-            log_manager::instance().item_log(0, 0, 0, id(), "SET_RARE_CHANGE", "", "", original_vnum());
+            get_log_manager().item_log(0, 0, 0, id(), "SET_RARE_CHANGE", "", "", original_vnum());
 
         for (int i = 0; i < cnt; ++i) {
             add_rare_attribute();
@@ -367,7 +367,7 @@ namespace metin2::game::inline items {
         if (owner() && owner()->get_desc())
             ip = owner()->get_desc()->host_name();
 
-        log_manager::instance().item_log(pos, attr.type, attr.s_value, id(), "SET_RARE", "", ip ? ip : "", original_vnum());
+        get_log_manager().item_log(pos, attr.type, attr.s_value, id(), "SET_RARE", "", ip ? ip : "", original_vnum());
         return true;
     }
 }

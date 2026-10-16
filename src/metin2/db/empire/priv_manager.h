@@ -2,7 +2,6 @@
 
 #include <metin2/db/clients/peer.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/proto/limits.h>
 #include <metin2/proto/log_types.h>
 
@@ -50,7 +49,7 @@ namespace metin2::db::inline empire {
             : type(type), value(value), removed(false), pid(pid) {}
     };
 
-    class priv_manager : public singleton<priv_manager> {
+    class priv_manager {
       public:
         priv_manager();
 
@@ -86,4 +85,9 @@ namespace metin2::db::inline empire {
         std::map<uint32_t, priv_guild_data *> priv_guild_[MAX_PRIV_NUM];
         std::map<uint32_t, priv_char_data *> priv_char_[MAX_PRIV_NUM];
     };
+
+    inline auto get_priv_manager() -> priv_manager & {
+        static priv_manager instance;
+        return instance;
+    }
 }

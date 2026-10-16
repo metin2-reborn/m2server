@@ -72,7 +72,7 @@ namespace metin2::game::inline guilds {
             return passes_per_sec(5);
         } else {
             map->set_end_event(nullptr);
-            war_map_manager::instance().destroy_war_map(map);
+            get_war_map_manager().destroy_war_map(map);
             return 0;
         }
     }
@@ -110,11 +110,11 @@ namespace metin2::game::inline guilds {
 
         team_data_[0].initialize();
         team_data_[0].id = guild_id1;
-        team_data_[0].guild = guild_manager::instance().touch_guild(guild_id1);
+        team_data_[0].guild = get_guild_manager().touch_guild(guild_id1);
 
         team_data_[1].initialize();
         team_data_[1].id = guild_id2;
-        team_data_[1].guild = guild_manager::instance().touch_guild(guild_id2);
+        team_data_[1].guild = get_guild_manager().touch_guild(guild_id2);
         observer_count_ = 0;
 
         auto *info = alloc_event_info<war_map_event_info>();
@@ -151,7 +151,7 @@ namespace metin2::game::inline guilds {
 
             if (ch->get_desc()) {
                 metin2::log::info("Guild war: disconnecting player {} from closing war map", ch->name());
-                desc_manager::instance().destroy_desc(ch->get_desc());
+                get_desc_manager().destroy_desc(ch->get_desc());
             }
         }
 
@@ -417,7 +417,7 @@ namespace metin2::game::inline guilds {
     }
 
     void war_map::draw() {
-        guild_manager::instance().request_war_over(team_data_[0].id, team_data_[1].id, 0, 0);
+        get_guild_manager().request_war_over(team_data_[0].id, team_data_[1].id, 0, 0);
     }
 
     void war_map::timeout() {
@@ -472,9 +472,9 @@ namespace metin2::game::inline guilds {
             team_data_[0].id, team_data_[1].id, winner_value, loser_value, reward_gold_value, map_info_.map_index);
 
         if (winner_value)
-            guild_manager::instance().request_war_over(winner_value, loser_value, winner_value, reward_gold_value);
+            get_guild_manager().request_war_over(winner_value, loser_value, winner_value, reward_gold_value);
         else
-            guild_manager::instance().request_war_over(team_data_[0].id, team_data_[1].id, winner_value, reward_gold_value);
+            get_guild_manager().request_war_over(team_data_[0].id, team_data_[1].id, winner_value, reward_gold_value);
 
         timeout_ = true;
     }
@@ -499,8 +499,8 @@ namespace metin2::game::inline guilds {
 
         pack2.guild_self = team_data_[0].id;
         pack2.guild_opp = team_data_[1].id;
-        pack2.type = guild_manager::instance().touch_guild(team_data_[0].id)->get_guild_war_type(team_data_[1].id);
-        pack2.war_state = guild_manager::instance().touch_guild(team_data_[0].id)->get_guild_war_state(team_data_[1].id);
+        pack2.type = get_guild_manager().touch_guild(team_data_[0].id)->get_guild_war_type(team_data_[1].id);
+        pack2.war_state = get_guild_manager().touch_guild(team_data_[0].id)->get_guild_war_state(team_data_[1].id);
 
         d->buffered_packet(&pack, sizeof(pack));
         d->packet(&pack2, sizeof(pack2));
@@ -587,7 +587,7 @@ namespace metin2::game::inline guilds {
             winner_value,
             reward_gold_value);
 
-        guild_manager::instance().request_war_over(winner_value, loser, winner_value, reward_gold_value);
+        get_guild_manager().request_war_over(winner_value, loser, winner_value, reward_gold_value);
         return true;
     }
 
@@ -598,22 +598,22 @@ namespace metin2::game::inline guilds {
             return false;
 
         if (team_data_[0].chr_flag) {
-            character_manager::instance().destroy_character(team_data_[0].chr_flag);
+            get_character_manager().destroy_character(team_data_[0].chr_flag);
             team_data_[0].chr_flag = nullptr;
         }
 
         if (team_data_[0].chr_flag_base) {
-            character_manager::instance().destroy_character(team_data_[0].chr_flag_base);
+            get_character_manager().destroy_character(team_data_[0].chr_flag_base);
             team_data_[0].chr_flag_base = nullptr;
         }
 
         if (team_data_[1].chr_flag) {
-            character_manager::instance().destroy_character(team_data_[1].chr_flag);
+            get_character_manager().destroy_character(team_data_[1].chr_flag);
             team_data_[1].chr_flag = nullptr;
         }
 
         if (team_data_[1].chr_flag_base) {
-            character_manager::instance().destroy_character(team_data_[1].chr_flag_base);
+            get_character_manager().destroy_character(team_data_[1].chr_flag_base);
             team_data_[1].chr_flag_base = nullptr;
         }
 
@@ -691,7 +691,7 @@ namespace metin2::game::inline guilds {
             y = map_info_.pos_start[idx].y;
         }
 
-        r.chr_flag_base = character_manager::instance().spawn_mob(warmap::WAR_FLAG_BASE_VNUM, map_info_.map_index, x, y, 0);
+        r.chr_flag_base = get_character_manager().spawn_mob(warmap::WAR_FLAG_BASE_VNUM, map_info_.map_index, x, y, 0);
         metin2::log::debug("Guild war: spawned flag base for team {:d} ({}), guild {:d}", idx, static_cast<const void *>(r.chr_flag_base), r.id);
 
         r.chr_flag_base->set_point(POINT_STAT, r.id);
@@ -714,7 +714,7 @@ namespace metin2::game::inline guilds {
             y = map_info_.pos_start[idx].y;
         }
 
-        r.chr_flag = character_manager::instance().spawn_mob(idx == 0 ? warmap::WAR_FLAG_VNUM0 : warmap::WAR_FLAG_VNUM1, map_info_.map_index, x, y, 0);
+        r.chr_flag = get_character_manager().spawn_mob(idx == 0 ? warmap::WAR_FLAG_VNUM0 : warmap::WAR_FLAG_VNUM1, map_info_.map_index, x, y, 0);
         metin2::log::debug("Guild war: spawned flag for team {:d} ({}), guild {:d}", idx, static_cast<const void *>(r.chr_flag), r.id);
 
         r.chr_flag->set_point(POINT_STAT, r.id);
@@ -857,7 +857,7 @@ namespace metin2::game::inline guilds {
             return 0;
         }
 
-        uint32_t map_index = sectree_manager::instance().create_private_map(guild_war_info_value.map_index);
+        uint32_t map_index = get_sectree_manager().create_private_map(guild_war_info_value.map_index);
 
         if (map_index) {
             war_map_.insert(std::make_pair(map_index, new war_map(map_index, guild_war_info_value, info_value, guild_id1, guild_id2)));
@@ -886,7 +886,7 @@ namespace metin2::game::inline guilds {
         war_map_.erase(map->map_index());
         delete map;
 
-        sectree_manager::instance().destroy_private_map(map_idx);
+        get_sectree_manager().destroy_private_map(map_idx);
     }
 
     auto war_map_manager::find(int32_t map_index) -> war_map * {

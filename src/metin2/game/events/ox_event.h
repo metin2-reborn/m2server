@@ -3,8 +3,6 @@
 #include <metin2/game/app/event.h>
 #include <metin2/game/app/typedef.h>
 
-#include <metin2/common/singleton.h>
-
 #include <cstdint>
 #include <map>
 #include <string>
@@ -28,7 +26,7 @@ namespace metin2::game::inline events {
         OXEVENT_ERR = 0xff
     };
 
-    class ox_event_manager : public singleton<ox_event_manager> {
+    class ox_event_manager {
       private:
         std::map<uint32_t, uint32_t> map_char_;
         std::map<uint32_t, uint32_t> map_attender_;
@@ -69,4 +67,9 @@ namespace metin2::game::inline events {
 
         auto attender_count() -> uint32_t { return map_attender_.size(); }
     };
+
+    inline auto get_ox_event_manager() -> ox_event_manager & {
+        static ox_event_manager instance;
+        return instance;
+    }
 }

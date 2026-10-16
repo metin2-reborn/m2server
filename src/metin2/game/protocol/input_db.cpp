@@ -83,7 +83,7 @@ namespace metin2::game::inline protocol {
             found = true;
             int32_t index = 0;
 
-            if (!map_locations::instance().get(tab.players[i].x,
+            if (!get_map_locations().get(tab.players[i].x,
                     tab.players[i].y,
                     index,
                     tab.players[i].addr,
@@ -96,7 +96,7 @@ namespace metin2::game::inline protocol {
 
                 index = 0;
 
-                if (!map_locations::instance().get(tab.players[i].x, tab.players[i].y, index, tab.players[i].addr, tab.players[i].port)) {
+                if (!get_map_locations().get(tab.players[i].x, tab.players[i].y, index, tab.players[i].addr, tab.players[i].port)) {
                     metin2::log::error("No server for empire start location (map {:d}, {:d}x{:d}) of player {}",
                         index,
                         tab.players[i].x,
@@ -125,7 +125,7 @@ namespace metin2::game::inline protocol {
     void input_db::login_success(uint32_t handle, const char *data) {
         auto *tab = (account_table *)data;
 
-        desc *d = desc_manager::instance().find_by_handle(handle);
+        desc *d = get_desc_manager().find_by_handle(handle);
 
         if (!d) {
             metin2::log::warn("Login success for account {} but its connection is gone, logging out", tab->login);
@@ -201,7 +201,7 @@ namespace metin2::game::inline protocol {
 
         int32_t index = 0;
 
-        if (!game::world::map_locations::instance().get(packet_db->player.x,
+        if (!game::world::get_map_locations().get(packet_db->player.x,
                 packet_db->player.y,
                 index,
                 packet_db->player.addr,
@@ -227,7 +227,7 @@ namespace metin2::game::inline protocol {
 
         d->packet(&pack, sizeof(packet_gc_player_create_success));
 
-        log_manager::instance().char_log(pack.player.id, 0, 0, 0, "CREATE PLAYER", "", d->host_name());
+        get_log_manager().char_log(pack.player.id, 0, 0, 0, "CREATE PLAYER", "", d->host_name());
     }
 
     void input_db::player_delete_success(desc *d, const char *data) {
@@ -286,7 +286,7 @@ namespace metin2::game::inline protocol {
         pixel_position pos;
 
         if (map_index == 0) {
-            map_index = sectree_manager::instance().map_index(tab->x, tab->y);
+            map_index = get_sectree_manager().map_index(tab->x, tab->y);
 
             if (map_index == 0) {
                 map_index = empire_start_map(d->get_account_table().empire);
@@ -299,7 +299,7 @@ namespace metin2::game::inline protocol {
         }
         tab->map_index = map_index;
 
-        if (!sectree_manager::instance().valid_location(tab->map_index, tab->x, tab->y, map_index, pos, d->empire())) {
+        if (!get_sectree_manager().valid_location(tab->map_index, tab->x, tab->y, map_index, pos, d->empire())) {
             metin2::log::error("No valid location {:d}x{:d} for player {}, closing connection", tab->x, tab->y, tab->name);
             d->set_phase(PHASE_CLOSE);
             return;
@@ -315,12 +315,12 @@ namespace metin2::game::inline protocol {
             return;
         }
 
-        if (nullptr != character_manager::instance().find_pc(tab->name)) {
+        if (nullptr != get_character_manager().find_pc(tab->name)) {
             metin2::log::error("Player {} is already in game, load ignored", tab->name);
             return;
         }
 
-        character *ch = character_manager::instance().create_character(tab->name, tab->id);
+        character *ch = get_character_manager().create_character(tab->name, tab->id);
 
         ch->bind_desc(d);
         ch->set_player_proto(tab);
@@ -335,14 +335,14 @@ namespace metin2::game::inline protocol {
             strlcpy(p.name, ch->name(), sizeof(p.name));
             p.pid = ch->player_id();
             p.empire = ch->empire();
-            p.map_index = sectree_manager::instance().map_index(ch->x(), ch->y());
+            p.map_index = get_sectree_manager().map_index(ch->x(), ch->y());
             p.channel = metin2::config::server().channel;
 
-            p2p_manager::instance().send(&p, sizeof(packet_gg_login));
+            get_p2p_manager().send(&p, sizeof(packet_gg_login));
 
             const std::string hint = std::format("{} {} {} {} {}",
                 ch->get_desc()->host_name(), ch->gold(), metin2::config::server().channel, ch->map_index(), ch->alignment());
-            log_manager::instance().char_log(ch, 0, "LOGIN", hint.c_str());
+            get_log_manager().char_log(ch, 0, "LOGIN", hint.c_str());
         }
 
         d->set_phase(PHASE_LOADING);
@@ -362,7 +362,7 @@ namespace metin2::game::inline protocol {
             return;
         }
 
-        quest::quest_manager::instance().broadcast_event_flag_on_login(ch);
+        quest::get_quest_manager().broadcast_event_flag_on_login(ch);
 
         for (int i = 0; i < QUICKSLOT_MAX_NUM; ++i)
             ch->set_quickslot(i, tab->quickslot[i]);
@@ -438,20 +438,20 @@ namespace metin2::game::inline protocol {
             return;
         metin2::log::info("Boot: {:d} mobs", mobs->size());
         if (!mobs->empty())
-            mob_manager::instance().initialize(mobs->data(), mobs->size());
+            get_mob_manager().initialize(mobs->data(), mobs->size());
 
         auto items = read_table<item_table>(data, "item table");
         if (!items)
             return;
         metin2::log::info("Boot: {:d} items", items->size());
         if (!items->empty())
-            item_manager::instance().initialize(items->data(), items->size());
+            get_item_manager().initialize(items->data(), items->size());
 
         auto shops = read_table<shop_table>(data, "shop table");
         if (!shops)
             return;
         metin2::log::info("Boot: {:d} shops", shops->size());
-        if (!shops->empty() && !shop_manager::instance().initialize(shops->data(), shops->size())) {
+        if (!shops->empty() && !get_shop_manager().initialize(shops->data(), shops->size())) {
             metin2::log::error("Cannot initialize shops, shutting down");
             thecore_shutdown();
             return;
@@ -461,7 +461,7 @@ namespace metin2::game::inline protocol {
         if (!skills)
             return;
         metin2::log::info("Boot: {:d} skills", skills->size());
-        if (!skills->empty() && !skill_manager::instance().initialize(skills->data(), skills->size())) {
+        if (!skills->empty() && !get_skill_manager().initialize(skills->data(), skills->size())) {
             metin2::log::error("Cannot initialize skills, shutting down");
             thecore_shutdown();
             return;
@@ -472,7 +472,7 @@ namespace metin2::game::inline protocol {
             return;
         metin2::log::info("Boot: {:d} refine recipes", refines->size());
         if (!refines->empty())
-            refine_manager::instance().initialize(refines->data(), refines->size());
+            get_refine_manager().initialize(refines->data(), refines->size());
 
         auto attrs = read_table<item_attr_table>(data, "item attribute table");
         if (!attrs)
@@ -501,7 +501,7 @@ namespace metin2::game::inline protocol {
         auto banwords = read_table<banword_table>(data, "banword table");
         if (!banwords)
             return;
-        banword_manager::instance().initialize(banwords->data(), banwords->size());
+        get_banword_manager().initialize(banwords->data(), banwords->size());
 
         {
             using namespace building;
@@ -510,18 +510,18 @@ namespace metin2::game::inline protocol {
             if (!lands)
                 return;
             for (land_table &land : *lands)
-                manager::instance().load_land(&land);
+                get_manager().load_land(&land);
 
             auto object_protos = read_table<object_proto>(data, "object proto table");
             if (!object_protos)
                 return;
-            manager::instance().load_object_proto(object_protos->data(), object_protos->size());
+            get_manager().load_object_proto(object_protos->data(), object_protos->size());
 
             auto objects = read_table<object_table>(data, "object table");
             if (!objects)
                 return;
             for (object_table &object : *objects)
-                manager::instance().load_object(&object, true);
+                get_manager().load_object(&object, true);
         }
         int32_t server_time;
         memcpy(&server_time, data, sizeof(server_time));
@@ -564,7 +564,7 @@ namespace metin2::game::inline protocol {
         monarch_info &p = *(monarch_info *)data;
         data += sizeof(monarch_info);
 
-        monarch::instance().set_monarch_info(&p);
+        get_monarch().set_monarch_info(&p);
 
         for (int n = 1; n < 4; ++n) {
             if (*p.name[n])
@@ -591,13 +591,13 @@ namespace metin2::game::inline protocol {
             metin2::log::debug("Boot packet end marker ok ({:#x})", end_check);
         data += 2;
 
-        if (!item_manager::instance().set_max_item_id(*range)) {
+        if (!get_item_manager().set_max_item_id(*range)) {
             metin2::log::error("Item id range exhausted, shutting down");
             thecore_shutdown();
             return;
         }
 
-        if (!item_manager::instance().set_max_spare_item_id(*rangespare)) {
+        if (!get_item_manager().set_max_spare_item_id(*rangespare)) {
             metin2::log::error("Spare item id range exhausted, shutting down");
             thecore_shutdown();
             return;
@@ -620,65 +620,65 @@ namespace metin2::game::inline protocol {
         }
 
         metin2::log::info("Loading common drop items from {}", common_drop_item_file_name);
-        if (!item_manager::instance().read_common_drop_item_file(common_drop_item_file_name.c_str())) {
+        if (!get_item_manager().read_common_drop_item_file(common_drop_item_file_name.c_str())) {
             metin2::log::error("Cannot load common drop items from {}, shutting down", common_drop_item_file_name);
             thecore_shutdown();
             return;
         }
 
         metin2::log::info("Loading etc drop items from {}", etc_drop_item_file_name);
-        if (!item_manager::instance().read_etc_drop_item_file(etc_drop_item_file_name.c_str())) {
+        if (!get_item_manager().read_etc_drop_item_file(etc_drop_item_file_name.c_str())) {
             metin2::log::error("Cannot load etc drop items from {}, shutting down", etc_drop_item_file_name);
             thecore_shutdown();
             return;
         }
 
         metin2::log::info("Loading drop item groups from {}", drop_item_group_file_name);
-        if (!item_manager::instance().read_drop_item_group(drop_item_group_file_name.c_str())) {
+        if (!get_item_manager().read_drop_item_group(drop_item_group_file_name.c_str())) {
             metin2::log::error("Cannot load drop item groups from {}, shutting down", drop_item_group_file_name);
             thecore_shutdown();
             return;
         }
 
         metin2::log::info("Loading special item groups from {}", special_item_group_file_name);
-        if (!item_manager::instance().read_special_drop_item_file(special_item_group_file_name.c_str())) {
+        if (!get_item_manager().read_special_drop_item_file(special_item_group_file_name.c_str())) {
             metin2::log::error("Cannot load special item groups from {}, shutting down", special_item_group_file_name);
             thecore_shutdown();
             return;
         }
 
         metin2::log::info("Loading item vnum mask table from {}", item_vnum_mask_table_file_name);
-        if (!item_manager::instance().read_item_vnum_mask_table(item_vnum_mask_table_file_name.c_str())) {
+        if (!get_item_manager().read_item_vnum_mask_table(item_vnum_mask_table_file_name.c_str())) {
             metin2::log::warn("Cannot load item vnum mask table {}, continuing without it", item_vnum_mask_table_file_name);
         }
 
         metin2::log::info("Loading mob drop items from {}", mob_drop_item_file_name);
-        if (!item_manager::instance().read_monster_drop_item_group(mob_drop_item_file_name.c_str())) {
+        if (!get_item_manager().read_monster_drop_item_group(mob_drop_item_file_name.c_str())) {
             metin2::log::error("Cannot load mob drop items from {}, shutting down", mob_drop_item_file_name);
             thecore_shutdown();
             return;
         }
 
         metin2::log::info("Loading map index from {}", map_index_file_name);
-        if (!sectree_manager::instance().build(map_index_file_name.c_str(), locale_service_get_map_path().c_str())) {
+        if (!get_sectree_manager().build(map_index_file_name.c_str(), locale_service_get_map_path().c_str())) {
             metin2::log::error("Cannot load map index from {}, shutting down", map_index_file_name);
             thecore_shutdown();
             return;
         }
 
         metin2::log::info("Loading dragon soul table from {}", dragon_soul_table_file_name);
-        if (!ds_manager::instance().read_dragon_soul_table_file(dragon_soul_table_file_name.c_str())) {
+        if (!get_ds_manager().read_dragon_soul_table_file(dragon_soul_table_file_name.c_str())) {
             metin2::log::error("Cannot load dragon soul table from {}", dragon_soul_table_file_name);
         }
 
-        building::manager::instance().finalize_boot();
+        building::get_manager().finalize_boot();
 
-        motion_manager::instance().build();
+        get_motion_manager().build();
 
         signal_timer_enable(30);
 
         if (metin2::config::test_server()) {
-            mob_manager::instance().dump_regen_count("mob_count");
+            get_mob_manager().dump_regen_count("mob_count");
         }
 
         castle_boot();
@@ -708,7 +708,7 @@ namespace metin2::game::inline protocol {
 
         uint32_t pid_value = info->pid;
 
-        character *ch = character_manager::instance().find_by_pid(pid_value);
+        character *ch = get_character_manager().find_by_pid(pid_value);
 
         if (!ch)
             return 0;
@@ -728,7 +728,7 @@ namespace metin2::game::inline protocol {
             return 0;
         } else if (d->is_phase(PHASE_GAME)) {
             metin2::log::debug("Quest: login of pid {:d} (deferred)", ch->player_id());
-            quest::quest_manager::instance().login(ch->player_id());
+            quest::get_quest_manager().login(ch->player_id());
             return 0;
         } else {
             metin2::log::error("Quest login for pid {:d} in unexpected connection phase", ch->player_id());
@@ -759,7 +759,7 @@ namespace metin2::game::inline protocol {
 
             metin2::log::debug("Quest: loading {:d} flags", count);
 
-            quest::pc *pc = quest::quest_manager::instance().pc_force(ch->player_id());
+            quest::pc *pc = quest::get_quest_manager().pc_force(ch->player_id());
 
             if (!pc) {
                 metin2::log::error("Cannot create quest state for pid {:d}", quest_table_value[0].pid);
@@ -784,7 +784,7 @@ namespace metin2::game::inline protocol {
 
             if (ch->get_desc()->is_phase(PHASE_GAME)) {
                 metin2::log::debug("Quest: login of pid {:d}", quest_table_value[0].pid);
-                quest::quest_manager::instance().login(quest_table_value[0].pid);
+                quest::get_quest_manager().login(quest_table_value[0].pid);
             } else {
                 auto *info = alloc_event_info<quest_login_event_info>();
                 info->pid = ch->player_id();
@@ -890,7 +890,7 @@ namespace metin2::game::inline protocol {
         {
             auto *p = (packet_dg_login_already *)data;
 
-            desc *d2 = desc_manager::instance().find_by_login_name(p->login);
+            desc *d2 = get_desc_manager().find_by_login_name(p->login);
 
             if (d2)
                 d2->disconnect_of_same_login();
@@ -900,7 +900,7 @@ namespace metin2::game::inline protocol {
                 pgg.header = HEADER_GG_DISCONNECT;
                 strlcpy(pgg.login, p->login, sizeof(pgg.login));
 
-                p2p_manager::instance().send(&pgg, sizeof(packet_gg_disconnect));
+                get_p2p_manager().send(&pgg, sizeof(packet_gg_disconnect));
             }
         }
 
@@ -944,7 +944,7 @@ namespace metin2::game::inline protocol {
                 if (0 == loc->maps[i])
                     break;
 
-                game::world::map_locations::instance().insert(loc->maps[i], loc->host, loc->port);
+                game::world::get_map_locations().insert(loc->maps[i], loc->host, loc->port);
             }
 
             loc++;
@@ -955,25 +955,25 @@ namespace metin2::game::inline protocol {
 
         auto *p = (packet_dg_p2p *)data;
 
-        p2p_manager &mgr = p2p_manager::instance();
+        p2p_manager &mgr = get_p2p_manager();
 
-        if (false == desc_manager::instance().is_p2p_desc_exist(p->host, p->port)) {
+        if (false == get_desc_manager().is_p2p_desc_exist(p->host, p->port)) {
             client_desc *desc = nullptr;
             metin2::log::info("Connecting to peer {}:{:d}", p->host, p->port);
-            desc = desc_manager::instance().create_connection_desc(p->host, p->port, PHASE_P2P, false);
+            desc = get_desc_manager().create_connection_desc(p->host, p->port, PHASE_P2P, false);
             mgr.register_connector(desc);
             desc->set_p2p(p->host, p->port);
         }
     }
 
     void input_db::guild_load(const char *data) {
-        guild_manager::instance().load_guild(*(uint32_t *)data);
+        get_guild_manager().load_guild(*(uint32_t *)data);
     }
 
     void input_db::guild_skill_update(const char *data) {
         auto *p = (packet_guild_skill_update *)data;
 
-        guild *g = guild_manager::instance().touch_guild(p->guild_id);
+        guild *g = get_guild_manager().touch_guild(p->guild_id);
 
         if (g) {
             g->update_skill(p->skill_point, p->skill_levels);
@@ -989,35 +989,35 @@ namespace metin2::game::inline protocol {
         switch (p->war) {
         case GUILD_WAR_SEND_DECLARE:
         case GUILD_WAR_RECV_DECLARE:
-            guild_manager::instance().declare_war(p->guild_from, p->guild_to, p->type);
+            get_guild_manager().declare_war(p->guild_from, p->guild_to, p->type);
             break;
 
         case GUILD_WAR_REFUSE:
-            guild_manager::instance().refuse_war(p->guild_from, p->guild_to);
+            get_guild_manager().refuse_war(p->guild_from, p->guild_to);
             break;
 
         case GUILD_WAR_WAIT_START:
-            guild_manager::instance().wait_start_war(p->guild_from, p->guild_to);
+            get_guild_manager().wait_start_war(p->guild_from, p->guild_to);
             break;
 
         case GUILD_WAR_CANCEL:
-            guild_manager::instance().cancel_war(p->guild_from, p->guild_to);
+            get_guild_manager().cancel_war(p->guild_from, p->guild_to);
             break;
 
         case GUILD_WAR_ON_WAR:
-            guild_manager::instance().start_war(p->guild_from, p->guild_to);
+            get_guild_manager().start_war(p->guild_from, p->guild_to);
             break;
 
         case GUILD_WAR_END:
-            guild_manager::instance().end_war(p->guild_from, p->guild_to);
+            get_guild_manager().end_war(p->guild_from, p->guild_to);
             break;
 
         case GUILD_WAR_OVER:
-            guild_manager::instance().war_over(p->guild_from, p->guild_to, p->type);
+            get_guild_manager().war_over(p->guild_from, p->guild_to, p->type);
             break;
 
         case GUILD_WAR_RESERVE:
-            guild_manager::instance().reserve_war(p->guild_from, p->guild_to, p->type);
+            get_guild_manager().reserve_war(p->guild_from, p->guild_to, p->type);
             break;
 
         default:
@@ -1028,19 +1028,19 @@ namespace metin2::game::inline protocol {
 
     void input_db::guild_war_score(const char *data) {
         auto *p = (packet_guild_war_score *)data;
-        guild *g = guild_manager::instance().touch_guild(p->guild_gain_point);
+        guild *g = get_guild_manager().touch_guild(p->guild_gain_point);
         g->set_war_score_against_to(p->guild_opponent, p->score);
     }
 
     void input_db::guild_skill_recharge() {
-        guild_manager::instance().skill_recharge();
+        get_guild_manager().skill_recharge();
     }
 
     void input_db::guild_exp_update(const char *data) {
         auto *p = (packet_guild_skill_update *)data;
         metin2::log::debug("Guild {:d}: exp update {:d}", p->guild_id, p->amount);
 
-        guild *g = guild_manager::instance().touch_guild(p->guild_id);
+        guild *g = get_guild_manager().touch_guild(p->guild_id);
 
         if (g)
             g->guild_point_change(POINT_EXP, p->amount);
@@ -1048,7 +1048,7 @@ namespace metin2::game::inline protocol {
 
     void input_db::guild_add_member(const char *data) {
         auto *p = (packet_dg_guild_member *)data;
-        guild *g = guild_manager::instance().touch_guild(p->guild);
+        guild *g = get_guild_manager().touch_guild(p->guild);
 
         if (g)
             g->add_member(p);
@@ -1056,7 +1056,7 @@ namespace metin2::game::inline protocol {
 
     void input_db::guild_remove_member(const char *data) {
         auto *p = (packet_guild *)data;
-        guild *g = guild_manager::instance().touch_guild(p->guild);
+        guild *g = get_guild_manager().touch_guild(p->guild);
 
         if (g)
             g->remove_member(p->info);
@@ -1064,7 +1064,7 @@ namespace metin2::game::inline protocol {
 
     void input_db::guild_change_grade(const char *data) {
         auto *p = (packet_guild *)data;
-        guild *g = guild_manager::instance().touch_guild(p->guild);
+        guild *g = get_guild_manager().touch_guild(p->guild);
 
         if (g)
             g->p2p_change_grade((uint8_t)p->info);
@@ -1072,7 +1072,7 @@ namespace metin2::game::inline protocol {
 
     void input_db::guild_change_member_data(const char *data) {
         auto *p = (packet_guild_change_member_data *)data;
-        guild *g = guild_manager::instance().touch_guild(p->guild_id);
+        guild *g = get_guild_manager().touch_guild(p->guild_id);
 
         if (g)
             g->change_member_data(p->pid, p->offer, p->level, p->grade);
@@ -1080,13 +1080,13 @@ namespace metin2::game::inline protocol {
 
     void input_db::guild_disband(const char *data) {
         auto *p = (packet_guild *)data;
-        guild_manager::instance().disband_guild(p->guild);
+        get_guild_manager().disband_guild(p->guild);
     }
 
     void input_db::guild_ladder(const char *data) {
         auto *p = (packet_guild_ladder *)data;
         metin2::log::debug("Guild {:d}: ladder points {:d}, wins {:d}, draws {:d}, losses {:d}", p->guild, p->ladder_point, p->win, p->draw, p->loss);
-        guild *g = guild_manager::instance().touch_guild(p->guild);
+        guild *g = get_guild_manager().touch_guild(p->guild);
 
         g->set_ladder_point(p->ladder_point);
         g->set_war_data(p->win, p->draw, p->loss);
@@ -1111,7 +1111,7 @@ namespace metin2::game::inline protocol {
         auto *p = (player_item *)data;
 
         for (uint32_t i = 0; i < count; ++i, ++p) {
-            item *item = item_manager::instance().create_item(p->vnum, p->count, p->id);
+            item *item = get_item_manager().create_item(p->vnum, p->count, p->id);
 
             if (!item) {
                 metin2::log::error("Cannot create item vnum {:d} for player {} (item id {:d})", p->vnum, ch->name(), p->id);
@@ -1199,27 +1199,27 @@ namespace metin2::game::inline protocol {
 
     void input_db::party_create(const char *data) {
         auto *p = (packet_party_create *)data;
-        party_manager::instance().p2p_create_party(p->leader_pid);
+        get_party_manager().p2p_create_party(p->leader_pid);
     }
 
     void input_db::party_delete(const char *data) {
         auto *p = (packet_party_delete *)data;
-        party_manager::instance().p2p_delete_party(p->leader_pid);
+        get_party_manager().p2p_delete_party(p->leader_pid);
     }
 
     void input_db::party_add(const char *data) {
         auto *p = (packet_party_add *)data;
-        party_manager::instance().p2p_join_party(p->leader_pid, p->pid, p->state);
+        get_party_manager().p2p_join_party(p->leader_pid, p->pid, p->state);
     }
 
     void input_db::party_remove(const char *data) {
         auto *p = (packet_party_remove *)data;
-        party_manager::instance().p2p_quit_party(p->pid);
+        get_party_manager().p2p_quit_party(p->pid);
     }
 
     void input_db::party_state_change(const char *data) {
         auto *p = (packet_party_state_change *)data;
-        party *party = party_manager::instance().p2p_create_party(p->leader_pid);
+        party *party = get_party_manager().p2p_create_party(p->leader_pid);
 
         if (!party)
             return;
@@ -1229,7 +1229,7 @@ namespace metin2::game::inline protocol {
 
     void input_db::party_set_member_level(const char *data) {
         auto *p = (packet_party_set_member_level *)data;
-        party *party = party_manager::instance().p2p_create_party(p->leader_pid);
+        party *party = get_party_manager().p2p_create_party(p->leader_pid);
 
         if (!party)
             return;
@@ -1248,12 +1248,12 @@ namespace metin2::game::inline protocol {
 
         size = decode_2bytes(data);
         data += sizeof(uint16_t);
-        if (size) skill_manager::instance().initialize((skill_table *)data, size);
+        if (size) get_skill_manager().initialize((skill_table *)data, size);
         data += sizeof(skill_table) * size;
 
         size = decode_2bytes(data);
         data += sizeof(uint16_t);
-        banword_manager::instance().initialize((banword_table *)data, size);
+        get_banword_manager().initialize((banword_table *)data, size);
         data += sizeof(banword_table) * size;
 
         size = decode_2bytes(data);
@@ -1261,7 +1261,7 @@ namespace metin2::game::inline protocol {
         metin2::log::info("Reload: {:d} items", size);
 
         if (size) {
-            item_manager::instance().initialize((item_table *)data, size);
+            get_item_manager().initialize((item_table *)data, size);
             data += size * sizeof(item_table);
         }
 
@@ -1270,19 +1270,19 @@ namespace metin2::game::inline protocol {
         metin2::log::info("Reload: {:d} mobs", size);
 
         if (size) {
-            mob_manager::instance().initialize((mob_table *)data, size);
+            get_mob_manager().initialize((mob_table *)data, size);
             data += size * sizeof(mob_table);
         }
 
-        motion_manager::instance().build();
+        get_motion_manager().build();
 
-        character_manager::instance().for_each_pc([](character *ch) { ch->compute_points(); });
+        get_character_manager().for_each_pc([](character *ch) { ch->compute_points(); });
     }
 
     void input_db::guild_skill_usable_change(const char *data) {
         auto *p = (packet_guild_skill_usable_change *)data;
 
-        guild *g = guild_manager::instance().touch_guild(p->guild);
+        guild *g = get_guild_manager().touch_guild(p->guild);
 
         g->skill_usable_change(p->skill_vnum, p->usable ? true : false);
     }
@@ -1311,18 +1311,18 @@ namespace metin2::game::inline protocol {
     void input_db::change_empire_priv(const char *data) {
         auto *p = (packet_dg_change_empire_priv *)data;
 
-        priv_manager::instance().give_empire_priv(p->empire, p->type, p->value, p->log, p->end_time_sec);
+        get_priv_manager().give_empire_priv(p->empire, p->type, p->value, p->log, p->end_time_sec);
     }
 
     void input_db::change_guild_priv(const char *data) {
         auto *p = (packet_dg_change_guild_priv *)data;
 
-        priv_manager::instance().give_guild_priv(p->guild_id, p->type, p->value, p->log, p->end_time_sec);
+        get_priv_manager().give_guild_priv(p->guild_id, p->type, p->value, p->log, p->end_time_sec);
     }
 
     void input_db::change_character_priv(const char *data) {
         auto *p = (packet_dg_change_character_priv *)data;
-        priv_manager::instance().give_character_priv(p->pid, p->type, p->value, p->log);
+        get_priv_manager().give_character_priv(p->pid, p->type, p->value, p->log);
     }
 
     void input_db::money_log(const char *data) {
@@ -1334,13 +1334,13 @@ namespace metin2::game::inline protocol {
         if (metin2::config::is_auth() == true)
             return;
 
-        log_manager::instance().money_log(p->type, p->vnum, p->gold);
+        get_log_manager().money_log(p->type, p->vnum, p->gold);
     }
 
     void input_db::guild_money_change(const char *data) {
         auto *p = (packet_dg_guild_money_change *)data;
 
-        guild *g = guild_manager::instance().touch_guild(p->guild);
+        guild *g = get_guild_manager().touch_guild(p->guild);
         if (g) {
             g->recv_money_change(p->total_gold);
         }
@@ -1349,7 +1349,7 @@ namespace metin2::game::inline protocol {
     void input_db::guild_withdraw_money(const char *data) {
         auto *p = (packet_dg_guild_money_withdraw *)data;
 
-        guild *g = guild_manager::instance().touch_guild(p->guild);
+        guild *g = get_guild_manager().touch_guild(p->guild);
         if (g) {
             g->recv_withdraw_money_give(p->change_gold);
         }
@@ -1357,22 +1357,22 @@ namespace metin2::game::inline protocol {
 
     void input_db::set_event_flag(const char *data) {
         auto *p = (packet_set_event_flag *)data;
-        quest::quest_manager::instance().set_event_flag(p->flag_name, p->value);
+        quest::get_quest_manager().set_event_flag(p->flag_name, p->value);
     }
 
     void input_db::create_object(const char *data) {
         using namespace building;
-        manager::instance().load_object((object_table *)data);
+        get_manager().load_object((object_table *)data);
     }
 
     void input_db::delete_object(const char *data) {
         using namespace building;
-        manager::instance().delete_object(*(uint32_t *)data);
+        get_manager().delete_object(*(uint32_t *)data);
     }
 
     void input_db::update_land(const char *data) {
         using namespace building;
-        manager::instance().update_land((land_table *)data);
+        get_manager().update_land((land_table *)data);
     }
 
     void input_db::notice(const char *data) {
@@ -1386,49 +1386,49 @@ namespace metin2::game::inline protocol {
     }
 
     void input_db::guild_war_reserve_add(guild_war_reserve *p) {
-        guild_manager::instance().reserve_war_add(p);
+        get_guild_manager().reserve_war_add(p);
     }
 
     void input_db::guild_war_reserve_delete(uint32_t id) {
-        guild_manager::instance().reserve_war_delete(id);
+        get_guild_manager().reserve_war_delete(id);
     }
 
     void input_db::guild_war_bet(packet_gd_guild_war_bet *p) {
-        guild_manager::instance().reserve_war_bet(p);
+        get_guild_manager().reserve_war_bet(p);
     }
 
     void input_db::marriage_add(packet_marriage_add *p) {
         metin2::log::info("Marriage: pid {:d} and {:d} married at {:d} ({} and {})", p->pid1, p->pid2, (uint32_t)p->t_marry_time, p->name1, p->name2);
-        marriage::manager::instance().add(p->pid1, p->pid2, p->t_marry_time, p->name1, p->name2);
+        marriage::get_manager().add(p->pid1, p->pid2, p->t_marry_time, p->name1, p->name2);
     }
 
     void input_db::marriage_update(packet_marriage_update *p) {
         metin2::log::debug("Marriage: pid {:d} and {:d}, love points {:d}, married {:d}", p->pid1, p->pid2, p->love_point, p->married);
-        marriage::manager::instance().update(p->pid1, p->pid2, p->love_point, p->married);
+        marriage::get_manager().update(p->pid1, p->pid2, p->love_point, p->married);
     }
 
     void input_db::marriage_remove(packet_marriage_remove *p) {
         metin2::log::info("Marriage: pid {:d} and {:d} divorced", p->pid1, p->pid2);
-        marriage::manager::instance().remove(p->pid1, p->pid2);
+        marriage::get_manager().remove(p->pid1, p->pid2);
     }
 
     void input_db::wedding_request(packet_wedding_request *p) {
-        marriage::wedding_manager::instance().request(p->pid1, p->pid2);
+        marriage::get_wedding_manager().request(p->pid1, p->pid2);
     }
 
     void input_db::wedding_ready(packet_wedding_ready *p) {
         metin2::log::info("Wedding: pid {:d} and {:d} ready on map {:d}", p->pid1, p->pid2, p->map_index);
-        marriage::manager::instance().wedding_ready(p->pid1, p->pid2, p->map_index);
+        marriage::get_manager().wedding_ready(p->pid1, p->pid2, p->map_index);
     }
 
     void input_db::wedding_start(packet_wedding_start *p) {
         metin2::log::info("Wedding: pid {:d} and {:d} started", p->pid1, p->pid2);
-        marriage::manager::instance().wedding_start(p->pid1, p->pid2);
+        marriage::get_manager().wedding_start(p->pid1, p->pid2);
     }
 
     void input_db::wedding_end(packet_wedding_end *p) {
         metin2::log::info("Wedding: pid {:d} and {:d} ended", p->pid1, p->pid2);
-        marriage::manager::instance().wedding_end(p->pid1, p->pid2);
+        marriage::get_manager().wedding_end(p->pid1, p->pid2);
     }
 
     void input_db::myshop_pricelist_res(desc *d, const packet_myshop_pricelist_header *p) {
@@ -1459,7 +1459,7 @@ namespace metin2::game::inline protocol {
 
             data += sizeof(t_admin_info);
 
-            character *ch = character_manager::instance().find_pc(admin_info.name);
+            character *ch = get_character_manager().find_pc(admin_info.name);
             if (ch) {
                 ch->set_gm_level();
             }
@@ -1467,7 +1467,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto input_db::analyze(desc *d, uint8_t header, const char *data) -> int {
-        desc *handle_desc = desc_manager::instance().find_by_handle(handle_);
+        desc *handle_desc = get_desc_manager().find_by_handle(handle_);
 
         switch (header) {
         case HEADER_DG_BOOT:
@@ -1780,12 +1780,12 @@ namespace metin2::game::inline protocol {
             this->guild_change_master((packet_change_guild_master *)data);
             break;
         case HEADER_DG_ACK_SPARE_ITEM_ID_RANGE:
-            item_manager::instance().set_max_spare_item_id(*((item_id_range_table *)data));
+            get_item_manager().set_max_spare_item_id(*((item_id_range_table *)data));
             break;
 
         case HEADER_DG_UPDATE_HORSE_NAME:
         case HEADER_DG_ACK_HORSE_NAME:
-            horse_name_manager::instance().update_horse_name(
+            get_horse_name_manager().update_horse_name(
                 ((packet_update_horse_name *)data)->player_id,
                 ((packet_update_horse_name *)data)->horse_name);
             break;
@@ -1850,15 +1850,15 @@ namespace metin2::game::inline protocol {
         int money = *(int *)data;
         data += sizeof(int);
 
-        monarch::instance().add_money(money, empire);
+        get_monarch().add_money(money, empire);
 
-        uint32_t pid = monarch::instance().monarch_pid(empire);
+        uint32_t pid = get_monarch().monarch_pid(empire);
 
-        character *ch = character_manager::instance().find_by_pid(pid);
+        character *ch = get_character_manager().find_by_pid(pid);
 
         if (ch) {
             if (number(1, 100) > 95)
-                ch->chat_packet(CHAT_TYPE_INFO, lc_text("현재 %s 국고에는 %u 의 돈이 있습니다"), empire_name(empire), monarch::instance().money(empire));
+                ch->chat_packet(CHAT_TYPE_INFO, lc_text("현재 %s 국고에는 %u 의 돈이 있습니다"), empire_name(empire), get_monarch().money(empire));
         }
     }
 
@@ -1869,14 +1869,14 @@ namespace metin2::game::inline protocol {
         int money = *(int *)data;
         data += sizeof(int);
 
-        monarch::instance().dec_money(money, empire);
+        get_monarch().dec_money(money, empire);
 
-        uint32_t pid = monarch::instance().monarch_pid(empire);
+        uint32_t pid = get_monarch().monarch_pid(empire);
 
-        character *ch = character_manager::instance().find_by_pid(pid);
+        character *ch = get_character_manager().find_by_pid(pid);
 
         if (ch) {
-            ch->chat_packet(CHAT_TYPE_INFO, lc_text("현재 %s 국고에는 %d 의 돈이 있습니다"), empire_name(empire), monarch::instance().money(empire));
+            ch->chat_packet(CHAT_TYPE_INFO, lc_text("현재 %s 국고에는 %d 의 돈이 있습니다"), empire_name(empire), get_monarch().money(empire));
         }
     }
 
@@ -1887,7 +1887,7 @@ namespace metin2::game::inline protocol {
         int money = *(int *)data;
         data += sizeof(int);
 
-        if (!monarch::instance().dec_money(money, empire)) {
+        if (!get_monarch().dec_money(money, empire)) {
             if (!d)
                 return;
 
@@ -1915,24 +1915,24 @@ namespace metin2::game::inline protocol {
     }
 
     void input_db::update_monarch_info(monarch_info *info) {
-        monarch::instance().set_monarch_info(info);
+        get_monarch().set_monarch_info(info);
         metin2::log::info("Monarch info updated");
     }
 
     void input_db::guild_change_master(packet_change_guild_master *p) {
-        guild_manager::instance().change_master(p->guild_id);
+        get_guild_manager().change_master(p->guild_id);
     }
 
     void input_db::detail_log(const packet_need_login_log_info *info) {
-        character *ch = character_manager::instance().find_by_pid(info->player_id);
+        character *ch = get_character_manager().find_by_pid(info->player_id);
 
         if (nullptr != ch) {
-            log_manager::instance().detail_login_log(true, ch);
+            get_log_manager().detail_login_log(true, ch);
         }
     }
 
     void input_db::item_award_informer(packet_item_award_infromer *data) {
-        desc *d = desc_manager::instance().find_by_login_name(data->login);
+        desc *d = get_desc_manager().find_by_login_name(data->login);
 
         if (d == nullptr)
             return;
@@ -1943,7 +1943,7 @@ namespace metin2::game::inline protocol {
                 ch->set_item_award_cmd(data->command);
 
                 if (d->is_phase(PHASE_GAME)) {
-                    quest::quest_manager::instance().item_informer(ch->player_id(), ch->item_award_vnum());
+                    quest::get_quest_manager().item_informer(ch->player_id(), ch->item_award_vnum());
                 }
             }
         }

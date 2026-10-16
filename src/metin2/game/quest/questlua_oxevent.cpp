@@ -14,7 +14,7 @@ namespace metin2::game {
 
     namespace quest {
         auto oxevent_get_status(lua_State *lua) -> int {
-            ox_event_status ret = ox_event_manager::instance().status();
+            ox_event_status ret = get_ox_event_manager().status();
 
             lua_pushnumber(lua, (int)ret);
 
@@ -22,10 +22,10 @@ namespace metin2::game {
         }
 
         auto oxevent_open(lua_State *lua) -> int {
-            ox_event_manager::instance().clear_quiz();
+            get_ox_event_manager().clear_quiz();
 
             const std::string script = std::format("{}/oxquiz.lua", locale_service_get_base_path());
-            int result = lua_dofile(quest::quest_manager::instance().lua_state(), script.c_str());
+            int result = lua_dofile(quest::get_quest_manager().lua_state(), script.c_str());
 
             if (result != 0) {
                 lua_pushnumber(lua, 0);
@@ -34,20 +34,20 @@ namespace metin2::game {
                 lua_pushnumber(lua, 1);
             }
 
-            ox_event_manager::instance().set_status(OXEVENT_OPEN);
+            get_ox_event_manager().set_status(OXEVENT_OPEN);
 
             return 1;
         }
 
         auto oxevent_close(lua_State *lua) -> int {
-            ox_event_manager::instance().set_status(OXEVENT_CLOSE);
+            get_ox_event_manager().set_status(OXEVENT_CLOSE);
 
             return 0;
         }
 
         auto oxevent_quiz(lua_State *lua) -> int {
             if (lua_isnumber(lua, 1) && lua_isnumber(lua, 2)) {
-                bool ret = ox_event_manager::instance().quiz((int)lua_tonumber(lua, 1), (int)lua_tonumber(lua, 2));
+                bool ret = get_ox_event_manager().quiz((int)lua_tonumber(lua, 1), (int)lua_tonumber(lua, 2));
 
                 if (ret == false) {
                     lua_pushnumber(lua, 0);
@@ -60,7 +60,7 @@ namespace metin2::game {
         }
 
         auto oxevent_get_attender(lua_State *lua) -> int {
-            lua_pushnumber(lua, (int)ox_event_manager::instance().attender_count());
+            lua_pushnumber(lua, (int)get_ox_event_manager().attender_count());
             return 1;
         }
 
@@ -73,12 +73,12 @@ namespace metin2::game {
         };
 
         EVENTFUNC(end_oxevent) {
-            ox_event_manager::instance().close_event();
+            get_ox_event_manager().close_event();
             return 0;
         }
 
         auto oxevent_end_event(lua_State *lua) -> int {
-            ox_event_manager::instance().set_status(OXEVENT_FINISH);
+            get_ox_event_manager().set_status(OXEVENT_FINISH);
 
             auto *info = alloc_event_info<end_oxevent_info>();
             event_create(end_oxevent, info, passes_per_sec(5));
@@ -87,15 +87,15 @@ namespace metin2::game {
         }
 
         auto oxevent_end_event_force(lua_State *lua) -> int {
-            ox_event_manager::instance().close_event();
-            ox_event_manager::instance().set_status(OXEVENT_FINISH);
+            get_ox_event_manager().close_event();
+            get_ox_event_manager().set_status(OXEVENT_FINISH);
 
             return 0;
         }
 
         auto oxevent_give_item(lua_State *lua) -> int {
             if (lua_isnumber(lua, 1) && lua_isnumber(lua, 2)) {
-                ox_event_manager::instance().give_item_to_attender((int)lua_tonumber(lua, 1), (int)lua_tonumber(lua, 2));
+                get_ox_event_manager().give_item_to_attender((int)lua_tonumber(lua, 1), (int)lua_tonumber(lua, 2));
             }
 
             return 0;
@@ -116,7 +116,7 @@ namespace metin2::game {
                     {nullptr,           nullptr                }
             };
 
-            quest_manager::instance().add_lua_function_table("oxevent", oxevent_functions);
+            get_quest_manager().add_lua_function_table("oxevent", oxevent_functions);
         }
     }
 }

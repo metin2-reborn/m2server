@@ -225,7 +225,7 @@ namespace metin2::game::inline characters {
             }
         }
 
-        horse_name_manager::instance().validate(this);
+        get_horse_name_manager().validate(this);
 
         affect_flag af_old = af_affect_flag_;
         int32_t mov_spd = point(POINT_MOV_SPEED);
@@ -331,7 +331,7 @@ namespace metin2::game::inline characters {
         }
 
         uint32_t pid_value = info->pid;
-        character *ch = character_manager::instance().find_by_pid(pid_value);
+        character *ch = get_character_manager().find_by_pid(pid_value);
 
         if (!ch) {
             return 0;
@@ -426,7 +426,7 @@ namespace metin2::game::inline characters {
             compute_affect(aff, true);
         }
 
-        if (arena_manager::instance().is_arena_map(map_index()) == true) {
+        if (get_arena_manager().is_arena_map(map_index()) == true) {
             remove_good_affect();
         }
 

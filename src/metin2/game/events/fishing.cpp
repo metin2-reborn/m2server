@@ -256,15 +256,15 @@ namespace metin2::game::inline events {
 
             if (ch->premium_remain_seconds(PREMIUM_FISH_MIND) > 0 ||
                 ch->is_equip_unique_group(UNIQUE_GROUP_FISH_MIND)) {
-                if (quest::quest_manager::instance().event_flag("manwoo") != 0)
+                if (quest::get_quest_manager().event_flag("manwoo") != 0)
                     prob_idx = 3;
                 else
                     prob_idx = 2;
             }
 
             int adjust = 0;
-            if (quest::quest_manager::instance().event_flag("fish_miss_pct") != 0) {
-                int fish_pct_value = std::clamp(quest::quest_manager::instance().event_flag("fish_miss_pct"), 0, 200);
+            if (quest::get_quest_manager().event_flag("fish_miss_pct") != 0) {
+                int fish_pct_value = std::clamp(quest::get_quest_manager().event_flag("fish_miss_pct"), 0, 200);
                 adjust = (100 - fish_pct_value) * fish_info[0].prob[prob_idx] / 100;
             }
 
@@ -337,7 +337,7 @@ namespace metin2::game::inline events {
                 return 0;
             }
 
-            character *ch = character_manager::instance().find_by_pid(info->pid);
+            character *ch = get_character_manager().find_by_pid(info->pid);
 
             if (!ch)
                 return 0;
@@ -455,7 +455,7 @@ namespace metin2::game::inline events {
                         int map_idx = ch->map_index();
                         int prob_idx = get_prob_index_by_map_index(map_idx);
 
-                        log_manager::instance().fish_log(
+                        get_log_manager().fish_log(
                             ch->player_id(),
                             prob_idx,
                             info->fish_id,
@@ -482,7 +482,7 @@ namespace metin2::game::inline events {
                                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("이번에 잡은 물고기의 길이는 %.2fcm"), item->get_socket(0) / 100.f);
                             }
 
-                            if (quest::quest_manager::instance().event_flag("fishevent") > 0 && (info->fish_id == 5 || info->fish_id == 6)) {
+                            if (quest::get_quest_manager().event_flag("fishevent") > 0 && (info->fish_id == 5 || info->fish_id == 6)) {
 
                                 packet_gd_highscore p;
                                 p.pid = ch->player_id();
@@ -501,7 +501,7 @@ namespace metin2::game::inline events {
                         int map_idx = ch->map_index();
                         int prob_idx = get_prob_index_by_map_index(map_idx);
 
-                        log_manager::instance().fish_log(
+                        get_log_manager().fish_log(
                             ch->player_id(),
                             prob_idx,
                             info->fish_id,
@@ -514,7 +514,7 @@ namespace metin2::game::inline events {
                         int map_idx = ch->map_index();
                         int prob_idx = get_prob_index_by_map_index(map_idx);
 
-                        log_manager::instance().fish_log(
+                        get_log_manager().fish_log(
                             ch->player_id(),
                             prob_idx,
                             info->fish_id,
@@ -528,7 +528,7 @@ namespace metin2::game::inline events {
                 int map_idx = ch->map_index();
                 int prob_idx = get_prob_index_by_map_index(map_idx);
 
-                log_manager::instance().fish_log(
+                get_log_manager().fish_log(
                     ch->player_id(),
                     prob_idx,
                     info->fish_id,
@@ -646,7 +646,7 @@ namespace metin2::game::inline events {
             if (!refinable_rod(item)) {
                 metin2::log::warn("Possible hack: pid {:d} tried to refine non-refinable rod {} (id {:d})", ch->player_id(), item->name(), item->id());
 
-                log_manager::instance().refine_log(ch->player_id(), item->name(), item->id(), -1, 1, "ROD_HACK");
+                get_log_manager().refine_log(ch->player_id(), item->name(), item->id(), -1, 1, "ROD_HACK");
 
                 return 2;
             }
@@ -656,28 +656,28 @@ namespace metin2::game::inline events {
             int adv = rod->value(0) / 10;
 
             if (prob(rod->value(3))) {
-                log_manager::instance().refine_log(ch->player_id(), rod->name(), rod->id(), adv, 1, "ROD");
+                get_log_manager().refine_log(ch->player_id(), rod->name(), rod->id(), adv, 1, "ROD");
 
-                game::items::item *new_item = item_manager::instance().create_item(rod->refined_vnum(), 1);
+                game::items::item *new_item = get_item_manager().create_item(rod->refined_vnum(), 1);
 
                 if (new_item) {
                     uint8_t cell = rod->cell();
-                    item_manager::instance().remove_item(rod, "REMOVE (REFINE FISH_ROD)");
+                    get_item_manager().remove_item(rod, "REMOVE (REFINE FISH_ROD)");
                     new_item->add_to_character(ch, item_pos(INVENTORY, cell));
-                    log_manager::instance().item_log(ch, new_item, "REFINE FISH_ROD SUCCESS", new_item->name());
+                    get_log_manager().item_log(ch, new_item, "REFINE FISH_ROD SUCCESS", new_item->name());
                     return 1;
                 }
 
                 return 2;
             } else {
-                log_manager::instance().refine_log(ch->player_id(), rod->name(), rod->id(), adv, 0, "ROD");
+                get_log_manager().refine_log(ch->player_id(), rod->name(), rod->id(), adv, 0, "ROD");
 
-                game::items::item *new_item = item_manager::instance().create_item(rod->value(4), 1);
+                game::items::item *new_item = get_item_manager().create_item(rod->value(4), 1);
                 if (new_item) {
                     uint8_t cell = rod->cell();
-                    item_manager::instance().remove_item(rod, "REMOVE (REFINE FISH_ROD)");
+                    get_item_manager().remove_item(rod, "REMOVE (REFINE FISH_ROD)");
                     new_item->add_to_character(ch, item_pos(INVENTORY, cell));
-                    log_manager::instance().item_log(ch, new_item, "REFINE FISH_ROD FAIL", new_item->name());
+                    get_log_manager().item_log(ch, new_item, "REFINE FISH_ROD FAIL", new_item->name());
                     return 0;
                 }
 

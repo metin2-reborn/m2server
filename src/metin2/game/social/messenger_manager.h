@@ -2,7 +2,6 @@
 
 #include <metin2/game/app/typedef.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/sql/async_sql.h>
 
 #include <cstdint>
@@ -12,13 +11,13 @@
 
 namespace metin2::game::inline social {
 
-    class messenger_manager : public singleton<messenger_manager> {
+    class messenger_manager {
       public:
         using key_t = std::string;
         using key_a = const std::string &;
 
         messenger_manager();
-        ~messenger_manager() override;
+        ~messenger_manager();
 
       public:
         void p2p_login(key_a account);
@@ -56,4 +55,9 @@ namespace metin2::game::inline social {
         std::map<key_t, std::set<key_t>> inverse_relation_;
         std::set<uint32_t> set_request_to_add_;
     };
+
+    inline auto get_messenger_manager() -> messenger_manager & {
+        static messenger_manager instance;
+        return instance;
+    }
 }

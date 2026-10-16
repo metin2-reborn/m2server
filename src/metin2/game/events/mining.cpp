@@ -158,7 +158,7 @@ namespace metin2::game::inline events {
                 return;
             }
 
-            item *item = item_manager::instance().create_item(raw_ore_vnum, fraction_count);
+            item *item = get_item_manager().create_item(raw_ore_vnum, fraction_count);
 
             if (!item) {
                 metin2::log::error("Cannot create raw ore item (vnum {:d})", raw_ore_vnum);
@@ -173,7 +173,7 @@ namespace metin2::game::inline events {
             item->start_destroy_event();
             item->set_ownership(ch, 15);
 
-            db_manager::instance().send_money_log(MONEY_LOG_DROP, item->vnum(), item->count());
+            get_db_manager().send_money_log(MONEY_LOG_DROP, item->vnum(), item->count());
         }
 
         auto get_ore_pct(character *ch) -> int {
@@ -241,8 +241,8 @@ namespace metin2::game::inline events {
             if (!ch || !item)
                 return 2;
 
-            log_manager &log_mgr = log_manager::instance();
-            item_manager &item_mgr = item_manager::instance();
+            log_manager &log_mgr = get_log_manager();
+            item_manager &item_mgr = get_item_manager();
 
             if (!pick_check(*item)) {
                 metin2::log::warn("Possible hack: pid {:d} tried to refine invalid pick {} (id {:d}, type {:d})", ch->player_id(), item->name(), item->id(), item->type());
@@ -263,12 +263,12 @@ namespace metin2::game::inline events {
             if (pick_is_refine_success(old_pick)) {
                 log_mgr.refine_log(ch->player_id(), old_pick.name(), old_pick.id(), adv, 1, "PICK");
 
-                game::items::item *new_pick = item_manager::instance().create_item(old_pick.refined_vnum(), 1);
+                game::items::item *new_pick = get_item_manager().create_item(old_pick.refined_vnum(), 1);
                 if (new_pick) {
                     uint8_t cell = old_pick.cell();
                     item_mgr.remove_item(item, "REMOVE (REFINE PICK)");
                     new_pick->add_to_character(ch, item_pos(INVENTORY, cell));
-                    log_manager::instance().item_log(ch, new_pick, "REFINE PICK SUCCESS", new_pick->name());
+                    get_log_manager().item_log(ch, new_pick, "REFINE PICK SUCCESS", new_pick->name());
                     return 1;
                 }
 
@@ -276,7 +276,7 @@ namespace metin2::game::inline events {
             } else {
                 log_mgr.refine_log(ch->player_id(), old_pick.name(), old_pick.id(), adv, 0, "PICK");
 
-                game::items::item *new_pick = item_manager::instance().create_item(old_pick.value(4), 1);
+                game::items::item *new_pick = get_item_manager().create_item(old_pick.value(4), 1);
 
                 if (new_pick) {
                     uint8_t cell = old_pick.cell();
@@ -341,8 +341,8 @@ namespace metin2::game::inline events {
                 return 0;
             }
 
-            character *ch = character_manager::instance().find_by_pid(info->pid);
-            character *load = character_manager::instance().find(info->vid_load);
+            character *ch = get_character_manager().find_by_pid(info->pid);
+            character *load = get_character_manager().find(info->vid_load);
 
             if (!ch)
                 return 0;
@@ -412,7 +412,7 @@ namespace metin2::game::inline events {
             ch->pay_refine_fee(cost_value);
 
             if (metinstone_item)
-                item_manager::instance().remove_item(metinstone_item, "REMOVE (MELT)");
+                get_item_manager().remove_item(metinstone_item, "REMOVE (MELT)");
 
             if (prob(pct)) {
                 ch->auto_give_item(refined_vnum, 1);

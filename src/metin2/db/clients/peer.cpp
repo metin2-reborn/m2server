@@ -44,7 +44,7 @@ namespace metin2::db::inline clients {
     void peer::return_item_id_range() {
         metin2::log::info("Item id range: {:d} to {:d} returned to the pool", item_range_.min, item_range_.max);
 
-        item_id_range_manager::instance().update_range(item_range_.min, item_range_.max);
+        get_item_id_range_manager().update_range(item_range_.min, item_range_.max);
 
         item_range_.min = 0;
         item_range_.max = 0;
@@ -54,7 +54,7 @@ namespace metin2::db::inline clients {
     auto peer::on_receive(std::span<std::uint8_t> input, std::size_t) -> std::size_t {
         input_ = input;
         input_consumed_ = 0;
-        client_manager::instance().process_packets(this);
+        get_client_manager().process_packets(this);
         input_ = {};
         return input_consumed_;
     }
@@ -134,7 +134,7 @@ namespace metin2::db::inline clients {
         } else {
             set_item_id_range(item_spare_range_);
 
-            if (set_spare_item_id_range(item_id_range_manager::instance().range()) == false) {
+            if (set_spare_item_id_range(get_item_id_range_manager().range()) == false) {
                 metin2::log::error("Item id range: cannot assign spare range to peer {}", public_ip());
                 item_spare_range_.min = item_spare_range_.max = item_spare_range_.usable_item_id_min = 0;
             }

@@ -1,13 +1,11 @@
 #pragma once
 
-#include <metin2/common/singleton.h>
-
 #include <cstdint>
 #include <map>
 
 namespace metin2::game::inline world {
 
-    class map_locations : public singleton<map_locations> {
+    class map_locations {
       public:
         struct location {
             int32_t addr;
@@ -21,4 +19,9 @@ namespace metin2::game::inline world {
       protected:
         std::map<int32_t, location> map_address_;
     };
+
+    inline auto get_map_locations() -> map_locations & {
+        static map_locations instance;
+        return instance;
+    }
 }

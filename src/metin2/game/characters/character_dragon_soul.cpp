@@ -45,7 +45,7 @@ namespace metin2::game::inline characters {
 
     void character::dragon_soul_give_qualification() {
         if (nullptr == find_affect(AFFECT_DRAGON_SOUL_QUALIFIED)) {
-            log_manager::instance().char_log(this, 0, "DS_QUALIFIED", "");
+            get_log_manager().char_log(this, 0, "DS_QUALIFIED", "");
         }
         add_affect(AFFECT_DRAGON_SOUL_QUALIFIED, APPLY_NONE, 0, AFF_NONE, INFINITE_AFFECT_DURATION, 0, false, false);
     }
@@ -73,7 +73,7 @@ namespace metin2::game::inline characters {
             i < DRAGON_SOUL_EQUIP_SLOT_START + DS_SLOT_MAX * (deck_idx + 1); i++) {
             item *item = inventory_item(i);
             if (nullptr != item)
-                ds_manager::instance().activate_dragon_soul(item);
+                get_ds_manager().activate_dragon_soul(item);
         }
 
         return true;
@@ -81,7 +81,7 @@ namespace metin2::game::inline characters {
 
     void character::dragon_soul_deactivate_all() {
         for (int i = DRAGON_SOUL_EQUIP_SLOT_START; i < DRAGON_SOUL_EQUIP_SLOT_END; i++) {
-            ds_manager::instance().deactivate_dragon_soul(inventory_item(i), true);
+            get_ds_manager().deactivate_dragon_soul(inventory_item(i), true);
         }
         points_instant_.dragon_soul_active_deck = -1;
         remove_affect(AFFECT_DRAGON_SOUL_DECK_0);
@@ -90,7 +90,7 @@ namespace metin2::game::inline characters {
 
     void character::dragon_soul_clean_up() {
         for (int i = DRAGON_SOUL_EQUIP_SLOT_START; i < DRAGON_SOUL_EQUIP_SLOT_END; i++) {
-            ds_manager::instance().deactivate_dragon_soul(inventory_item(i), true);
+            get_ds_manager().deactivate_dragon_soul(inventory_item(i), true);
         }
     }
 

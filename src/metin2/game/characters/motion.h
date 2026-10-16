@@ -2,8 +2,6 @@
 
 #include <metin2/game/world/vector.h>
 
-#include <metin2/common/singleton.h>
-
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -106,13 +104,13 @@ namespace metin2::game::inline characters {
         container map_motion_;
     };
 
-    class motion_manager : public singleton<motion_manager> {
+    class motion_manager {
       public:
         using container = std::map<uint32_t, std::unique_ptr<motion_set>>;
         using iterator = container::iterator;
 
         motion_manager();
-        ~motion_manager() override;
+        ~motion_manager();
 
         auto build() -> bool;
 
@@ -127,4 +125,9 @@ namespace metin2::game::inline characters {
 
         std::map<uint32_t, float> map_normal_attack_duration_;
     };
+
+    inline auto get_motion_manager() -> motion_manager & {
+        static motion_manager instance;
+        return instance;
+    }
 }

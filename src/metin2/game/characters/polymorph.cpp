@@ -128,7 +128,7 @@ namespace metin2::game::inline characters {
         if (item == nullptr)
             return false;
 
-        if (mob_manager::instance().get(mob_vnum) == nullptr) {
+        if (get_mob_manager().get(mob_vnum) == nullptr) {
             metin2::log::error("Cannot give polymorph book to pid {:d}: invalid mob vnum {:d} (practice count {:d}, book level {:d}, level limit {:d})",
                 ch->player_id(), mob_vnum, practice_count, book_level, level_limit);
             return false;

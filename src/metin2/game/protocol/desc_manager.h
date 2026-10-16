@@ -2,7 +2,6 @@
 
 #include <metin2/game/app/typedef.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/net/io.h>
 #include <metin2/proto/limits.h>
 
@@ -17,7 +16,7 @@ namespace metin2::game::inline protocol {
 
     class login_key;
 
-    class desc_manager : public singleton<desc_manager> {
+    class desc_manager {
       public:
         using desc_set = std::unordered_set<desc *>;
         using client_desc_set = std::unordered_set<client_desc *>;
@@ -28,7 +27,7 @@ namespace metin2::game::inline protocol {
 
       public:
         desc_manager();
-        ~desc_manager() override;
+        ~desc_manager();
 
         void initialize();
         void destroy();
@@ -86,4 +85,9 @@ namespace metin2::game::inline protocol {
 
         bool destroyed_;
     };
+
+    inline auto get_desc_manager() -> desc_manager & {
+        static desc_manager instance;
+        return instance;
+    }
 }

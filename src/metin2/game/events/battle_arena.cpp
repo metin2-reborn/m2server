@@ -88,10 +88,10 @@ namespace metin2::game::inline events {
                     ++info->state;
                     info->wait_count = 0;
 
-                    quest::quest_manager::instance().request_set_event_flag("battle_arena", 0);
+                    quest::get_quest_manager().request_set_event_flag("battle_arena", 0);
                     broadcast_notice(lc_text("몬스터들이 성을 공격하기 시작했습니다."));
 
-                    sectree_map *sectree = sectree_manager::instance().map(info->map_index);
+                    sectree_map *sectree = get_sectree_manager().map(info->map_index);
 
                     if (sectree != nullptr) {
                         std::string map = locale_service_get_map_path();
@@ -106,7 +106,7 @@ namespace metin2::game::inline events {
 
             case 3:
                 {
-                    if (sectree_manager::instance().monster_count_in_map(info->map_index) <= 0) {
+                    if (get_sectree_manager().monster_count_in_map(info->map_index) <= 0) {
                         info->state = 6;
                         send_notice_map(lc_text("중앙 제단에 악의 기운이 모여듭니다."), info->map_index, false);
                     } else {
@@ -116,7 +116,7 @@ namespace metin2::game::inline events {
                             info->state++;
                             send_notice_map(lc_text("몬스터들이 물러갈 조짐을 보입니다."), info->map_index, false);
                         } else {
-                            battle_arena::instance().spawn_random_stone();
+                            get_battle_arena().spawn_random_stone();
                         }
                     }
                 }
@@ -128,13 +128,13 @@ namespace metin2::game::inline events {
                     send_notice_map(lc_text("몬스터들이 물러가기 시작했습니다."), info->map_index, false);
                     send_notice_map(lc_text("잠시 후 마을로 돌아갑니다."), info->map_index, false);
 
-                    sectree_manager::instance().purge_monsters_in_map(info->map_index);
+                    get_sectree_manager().purge_monsters_in_map(info->map_index);
                 }
                 return passes_per_sec(30);
 
             case 5:
                 {
-                    sectree_map *sectree = sectree_manager::instance().map(info->map_index);
+                    sectree_map *sectree = get_sectree_manager().map(info->map_index);
 
                     if (sectree != nullptr) {
                         sectree->for_each([](entity *ent) {
@@ -159,7 +159,7 @@ namespace metin2::game::inline events {
                         });
                     }
 
-                    battle_arena::instance().end();
+                    get_battle_arena().end();
                 }
                 return 0;
 
@@ -171,13 +171,13 @@ namespace metin2::game::inline events {
                     send_notice_map(lc_text("몬스터들의 대장이 나타났습니다."), info->map_index, false);
                     send_notice_map(lc_text("30분 내로 귀목령주를 물리쳐주세요."), info->map_index, false);
 
-                    battle_arena::instance().spawn_last_boss();
+                    get_battle_arena().spawn_last_boss();
                 }
                 return metin2::config::test_server() ? passes_per_sec(60) : passes_per_sec(60 * 5);
 
             case 7:
                 {
-                    if (sectree_manager::instance().monster_count_in_map(info->map_index) <= 0) {
+                    if (get_sectree_manager().monster_count_in_map(info->map_index) <= 0) {
                         send_notice_map(lc_text("귀목령주와 그의 부하들을 모두 물리쳤습니다."), info->map_index, false);
                         send_notice_map(lc_text("잠시 후 마을로 돌아갑니다."), info->map_index, false);
 
@@ -192,14 +192,14 @@ namespace metin2::game::inline events {
                         send_notice_map(lc_text("귀목령주가 퇴각하였습니다."), info->map_index, false);
                         send_notice_map(lc_text("잠시 후 마을로 돌아갑니다."), info->map_index, false);
 
-                        sectree_manager::instance().purge_monsters_in_map(info->map_index);
-                        sectree_manager::instance().purge_stones_in_map(info->map_index);
+                        get_sectree_manager().purge_monsters_in_map(info->map_index);
+                        get_sectree_manager().purge_stones_in_map(info->map_index);
 
                         info->state = 5;
 
                         return passes_per_sec(60);
                     } else {
-                        battle_arena::instance().spawn_random_stone();
+                        get_battle_arena().spawn_random_stone();
                     }
                 }
                 return metin2::config::test_server() ? passes_per_sec(60) : passes_per_sec(60 * 5);
@@ -236,7 +236,7 @@ namespace metin2::game::inline events {
 
         set_status(STATUS_BATTLE);
 
-        quest::quest_manager::instance().request_set_event_flag("battle_arena", map_index_);
+        quest::get_quest_manager().request_set_event_flag("battle_arena", map_index_);
 
         return true;
     }
@@ -250,7 +250,7 @@ namespace metin2::game::inline events {
         empire_ = 0;
         status_ = STATUS_CLOSE;
 
-        quest::quest_manager::instance().request_set_event_flag("battle_arena", 0);
+        quest::get_quest_manager().request_set_event_flag("battle_arena", 0);
     }
 
     void battle_arena::force_end() {
@@ -283,7 +283,7 @@ namespace metin2::game::inline events {
         int idx = map_index_ - 190;
         if (idx < 0 || idx >= 3) return;
 
-        character_manager::instance().spawn_mob_range(
+        get_character_manager().spawn_mob_range(
             vnum[number(0, 6)],
             map_index_,
             region_info[idx][0], region_info[idx][1], region_info[idx][2], region_info[idx][3],
@@ -302,6 +302,6 @@ namespace metin2::game::inline events {
         int idx = map_index_ - 190;
         if (idx < 0 || idx >= 3) return;
 
-        character_manager::instance().spawn_mob(vnum, map_index_, position[idx][0], position[idx][1], 0);
+        get_character_manager().spawn_mob(vnum, map_index_, position[idx][0], position[idx][1], 0);
     }
 }

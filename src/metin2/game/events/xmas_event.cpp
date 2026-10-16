@@ -22,7 +22,7 @@ namespace metin2::game::inline events {
     namespace xmas {
         void process_event_flag(const std::string &name, int prev_value, int value) {
             if (name == "xmas_snow" || name == "xmas_boom" || name == "xmas_song" || name == "xmas_tree") {
-                const desc_manager::desc_set &c_ref_set = desc_manager::instance().client_set();
+                const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
 
                 for (auto it = c_ref_set.begin(); it != c_ref_set.end(); ++it) {
                     character *ch = (*it)->get_character();
@@ -43,16 +43,16 @@ namespace metin2::game::inline events {
                     if (value > 0 && prev_value == 0) {
                         character_vector_interactor i;
 
-                        if (!character_manager::instance().characters_by_race_num(MOB_XMAS_TREE_VNUM, i))
-                            character_manager::instance().spawn_mob(MOB_XMAS_TREE_VNUM, 61, 76500 + 358400, 60900 + 153600, 0, false, -1);
+                        if (!get_character_manager().characters_by_race_num(MOB_XMAS_TREE_VNUM, i))
+                            get_character_manager().spawn_mob(MOB_XMAS_TREE_VNUM, 61, 76500 + 358400, 60900 + 153600, 0, false, -1);
                     } else if (prev_value > 0 && value == 0) {
                         character_vector_interactor i;
 
-                        if (character_manager::instance().characters_by_race_num(MOB_XMAS_TREE_VNUM, i)) {
+                        if (get_character_manager().characters_by_race_num(MOB_XMAS_TREE_VNUM, i)) {
                             auto it = i.begin();
 
                             while (it != i.end())
-                                character_manager::instance().destroy_character(*it++);
+                                get_character_manager().destroy_character(*it++);
                         }
                     }
                 }
@@ -62,11 +62,11 @@ namespace metin2::game::inline events {
                     {
                         character_vector_interactor i;
 
-                        if (character_manager::instance().characters_by_race_num(MOB_SANTA_VNUM, i)) {
+                        if (get_character_manager().characters_by_race_num(MOB_SANTA_VNUM, i)) {
                             auto it = i.begin();
 
                             while (it != i.end())
-                                character_manager::instance().destroy_character(*it++);
+                                get_character_manager().destroy_character(*it++);
                         }
                     }
 
@@ -74,12 +74,12 @@ namespace metin2::game::inline events {
 
                 case 1:
                     if (map_allow_find(61)) {
-                        quest::quest_manager::instance().request_set_event_flag("xmas_santa", 2);
+                        quest::get_quest_manager().request_set_event_flag("xmas_santa", 2);
 
                         character_vector_interactor i;
 
-                        if (character_manager::instance().characters_by_race_num(MOB_SANTA_VNUM, i))
-                            character_manager::instance().spawn_mob_random_position(MOB_SANTA_VNUM, 61);
+                        if (get_character_manager().characters_by_race_num(MOB_SANTA_VNUM, i))
+                            get_character_manager().spawn_mob_random_position(MOB_SANTA_VNUM, 61);
                     }
                     break;
 
@@ -107,15 +107,15 @@ namespace metin2::game::inline events {
 
             int32_t map_index = info->map_index;
 
-            if (quest::quest_manager::instance().event_flag("xmas_santa") == 0)
+            if (quest::get_quest_manager().event_flag("xmas_santa") == 0)
                 return 0;
 
             character_vector_interactor i;
 
-            if (character_manager::instance().characters_by_race_num(MOB_SANTA_VNUM, i))
+            if (get_character_manager().characters_by_race_num(MOB_SANTA_VNUM, i))
                 return 0;
 
-            if (character_manager::instance().spawn_mob_random_position(xmas::MOB_SANTA_VNUM, map_index)) {
+            if (get_character_manager().spawn_mob_random_position(xmas::MOB_SANTA_VNUM, map_index)) {
                 metin2::log::info("Xmas: santa spawned");
                 return 0;
             }
@@ -156,13 +156,13 @@ namespace metin2::game::inline events {
                 while (p->map_index) {
                     if (map_allow_find(p->map_index)) {
                         pixel_position pos_base;
-                        if (!sectree_manager::instance().map_base_position_by_map_index(p->map_index, pos_base)) {
+                        if (!get_sectree_manager().map_base_position_by_map_index(p->map_index, pos_base)) {
                             metin2::log::error("Cannot get base position of map {:d}", p->map_index);
                             p++;
                             continue;
                         }
 
-                        character_manager::instance().spawn_mob(
+                        get_character_manager().spawn_mob(
                             MOB_XMAS_FIRWORK_SELLER_VNUM, p->map_index, pos_base.x + p->x * 100, pos_base.y + p->y * 100, 0, false, -1);
                     }
                     p++;
@@ -170,11 +170,11 @@ namespace metin2::game::inline events {
             } else {
                 character_vector_interactor i;
 
-                if (character_manager::instance().characters_by_race_num(MOB_XMAS_FIRWORK_SELLER_VNUM, i)) {
+                if (get_character_manager().characters_by_race_num(MOB_XMAS_FIRWORK_SELLER_VNUM, i)) {
                     auto it = i.begin();
 
                     while (it != i.end())
-                        character_manager::instance().destroy_character(*it++);
+                        get_character_manager().destroy_character(*it++);
                 }
             }
         }

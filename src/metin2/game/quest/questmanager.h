@@ -6,7 +6,6 @@
 #include <metin2/game/quest/quest.h>
 #include <metin2/game/quest/questnpc.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/log/log.h>
 
 #include <cstddef>
@@ -33,7 +32,7 @@ namespace metin2::game {
         auto is_script_true(const char *code, int size) -> bool;
         auto script_to_string(const std::string &str) -> std::string;
 
-        class quest_manager : public singleton<quest_manager> {
+        class quest_manager {
           public:
             enum {
                 QUEST_SKIN_NOWINDOW,
@@ -47,7 +46,7 @@ namespace metin2::game {
 
           public:
             quest_manager();
-            ~quest_manager() override;
+            ~quest_manager();
 
             auto initialize() -> bool;
             void destroy();
@@ -249,6 +248,11 @@ namespace metin2::game {
             pc *other_pc_block_root_pc_;
             std::vector<uint32_t> pc_stack_;
         };
+
+        inline auto get_quest_manager() -> quest_manager & {
+            static quest_manager instance;
+            return instance;
+        }
     };
 
     namespace quest {

@@ -3,7 +3,6 @@
 #include <metin2/db/clients/peer.h>
 #include <metin2/db/login/login_data.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/net/io.h>
 #include <metin2/net/listener.h>
 #include <metin2/proto/building.h>
@@ -43,7 +42,7 @@ namespace metin2::db::inline clients {
     auto create_item_table_from_res(MYSQL_RES *res, std::vector<player_item> *vec, uint32_t pid) -> bool;
     auto create_item_save_query(const player_item &item) -> std::string;
 
-    class client_manager : public singleton<client_manager> {
+    class client_manager {
       public:
         using peer_list = std::list<peer *>;
         using player_table_cache_map = std::unordered_map<uint32_t, std::unique_ptr<player_table_cache>>;
@@ -82,7 +81,7 @@ namespace metin2::db::inline clients {
       public:
         client_manager();
 
-        ~client_manager() override;
+        ~client_manager();
 
         auto initialize() -> bool;
         auto current_time() -> time_t;
@@ -417,6 +416,11 @@ namespace metin2::db::inline clients {
         void update_channel_status(channel_status *data);
         void request_channel_status(peer *peer, uint32_t handle);
     };
+
+    inline auto get_client_manager() -> client_manager & {
+        static client_manager instance;
+        return instance;
+    }
 
     template <class Func>
     void client_manager::for_each_peer(Func &&f) {

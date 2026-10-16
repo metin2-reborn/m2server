@@ -67,7 +67,7 @@ namespace metin2::game::inline characters {
 
     auto character::stop_riding() -> bool {
         if (horse_rider::stop_riding()) {
-            quest::quest_manager::instance().unmount(player_id());
+            quest::get_quest_manager().unmount(player_id());
 
             if (!is_dead() && !is_stun()) {
                 uint32_t old_vnum = get_mount_vnum();
@@ -148,7 +148,7 @@ namespace metin2::game::inline characters {
                 y_value += number(-100, 100);
             }
 
-            ch_horse_ = character_manager::instance().spawn_mob(
+            ch_horse_ = get_character_manager().spawn_mob(
                 (0 == vnum) ? my_horse_vnum() : vnum,
                 map_index(),
                 x_value, y_value,
@@ -169,7 +169,7 @@ namespace metin2::game::inline characters {
 
             ch_horse_->set_level(horse_level());
 
-            const char *horse_name = horse_name_manager::instance().horse_name(player_id());
+            const char *horse_name = get_horse_name_manager().horse_name(player_id());
 
             if (horse_name != nullptr && strlen(horse_name) != 0) {
                 ch_horse_->name_ = horse_name;
@@ -179,7 +179,7 @@ namespace metin2::game::inline characters {
             }
 
             if (!ch_horse_->show(map_index(), x_value, y_value, z())) {
-                character_manager::instance().destroy_character(ch_horse_);
+                get_character_manager().destroy_character(ch_horse_);
                 metin2::log::error("Cannot show summoned horse");
                 ch_horse_ = nullptr;
                 return;
@@ -202,7 +202,7 @@ namespace metin2::game::inline characters {
             ch_horse->set_rider(nullptr);
 
             if (!from_far) {
-                character_manager::instance().destroy_character(ch_horse);
+                get_character_manager().destroy_character(ch_horse);
             } else {
                 ch_horse->set_now_walking(false);
                 float fx, fy;

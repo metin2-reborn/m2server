@@ -3,7 +3,6 @@
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/world/sectree.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/log/log.h>
 
 #include <cstddef>
@@ -99,10 +98,10 @@ namespace metin2::game::inline world {
         ATTR_REGION_MODE_CHECK,
     };
 
-    class sectree_manager : public singleton<sectree_manager> {
+    class sectree_manager {
       public:
         sectree_manager();
-        ~sectree_manager() override;
+        ~sectree_manager();
 
         auto map(int32_t map_index) -> sectree_map *;
         auto get(uint32_t index, uint32_t package) -> sectree *;
@@ -110,7 +109,7 @@ namespace metin2::game::inline world {
 
         template <typename Func>
         void for_each(int map_index, Func &&rfunc) {
-            sectree_map *sec_map = sectree_manager::instance().map(map_index);
+            sectree_map *sec_map = map(map_index);
             if (sec_map) {
                 sec_map->for_each(rfunc);
             }
@@ -170,4 +169,9 @@ namespace metin2::game::inline world {
         using private_index_map_type = std::unordered_map<int32_t, int>;
         private_index_map_type next_private_index_map_;
     };
+
+    inline auto get_sectree_manager() -> sectree_manager & {
+        static sectree_manager instance;
+        return instance;
+    }
 }

@@ -23,7 +23,7 @@ namespace metin2::game::inline protocol {
             return;
         }
 
-        p2p_manager::instance().unregister_acceptor(this);
+        get_p2p_manager().unregister_acceptor(this);
 
         metin2::log::info("Closing peer connection to {}", host_);
 

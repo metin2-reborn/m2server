@@ -124,7 +124,7 @@ namespace metin2::db::inline guilds {
 
     void guild_manager::initialize() {
         const std::string query = sql::format("SELECT id, name, ladder_point, win, draw, loss, gold, level FROM guild");
-        auto pmsg = db_manager::instance().direct_query(query);
+        auto pmsg = get_db_manager().direct_query(query);
 
         if (pmsg->get()->num_rows)
             parse_result(pmsg->get());
@@ -145,7 +145,7 @@ namespace metin2::db::inline guilds {
 
     void guild_manager::load(uint32_t guild_id) {
         const std::string query = sql::format("SELECT id, name, ladder_point, win, draw, loss, gold, level FROM guild WHERE id={}", guild_id);
-        auto pmsg = db_manager::instance().direct_query(query);
+        auto pmsg = get_db_manager().direct_query(query);
 
         if (pmsg->get()->num_rows)
             parse_result(pmsg->get());
@@ -154,7 +154,7 @@ namespace metin2::db::inline guilds {
     void guild_manager::query_ranking() {
         const std::string query = sql::format("SELECT id,name,ladder_point FROM guild ORDER BY ladder_point DESC LIMIT 20");
 
-        db_manager::instance().return_query(query, [this](sql_msg &msg) { result_ranking(msg.get()->res.get()); });
+        get_db_manager().return_query(query, [this](sql_msg &msg) { result_ranking(msg.get()->res.get()); });
     }
 
     auto guild_manager::ranking(uint32_t gid) -> int {
@@ -195,7 +195,7 @@ namespace metin2::db::inline guilds {
     void guild_manager::update() {
         process_reserve_war();
 
-        time_t now = client_manager::instance().current_time();
+        time_t now = get_client_manager().current_time();
 
         if (!pq_on_war_.empty()) {
 
@@ -213,7 +213,7 @@ namespace metin2::db::inline guilds {
 
         while (!pq_skill_.empty() && pq_skill_.top().first <= now) {
             const guild_skill_used &s = pq_skill_.top().second;
-            client_manager::instance().send_guild_skill_usable(s.gid, s.skill_vnum, true);
+            get_client_manager().send_guild_skill_usable(s.gid, s.skill_vnum, true);
             pq_skill_.pop();
         }
 
@@ -235,7 +235,7 @@ namespace metin2::db::inline guilds {
             p.guild_from = ws.gid[0];
             p.guild_to = ws.gid[1];
 
-            client_manager::instance().forward_packet(HEADER_DG_GUILD_WAR, &p, sizeof(p));
+            get_client_manager().forward_packet(HEADER_DG_GUILD_WAR, &p, sizeof(p));
             metin2::log::info("Guild war: starting waiting war between guild {:d} and guild {:d}", ws.gid[0], ws.gid[1]);
         }
     }
@@ -270,7 +270,7 @@ namespace metin2::db::inline guilds {
         const int count = ++(it->second.*counter);
 
         const std::string query = sql::format("UPDATE guild SET {}={} WHERE id={}", sql::raw(column), count, gid);
-        db_manager::instance().async_query(query);
+        get_db_manager().async_query(query);
     }
 
     auto guild_manager::find_war(uint32_t gid1, uint32_t gid2) -> guild_war_info * {
@@ -282,7 +282,7 @@ namespace metin2::db::inline guilds {
         const auto it = guild_war_end_time_.find(make_war_key(guild_winner, guild_loser));
 
         return it != guild_war_end_time_.end() &&
-               it->second + GUILD_WAR_LADDER_HALF_PENALTY_TIME > client_manager::instance().current_time();
+               it->second + GUILD_WAR_LADDER_HALF_PENALTY_TIME > get_client_manager().current_time();
     }
 
     void guild_manager::process_draw(uint32_t guild_id1, uint32_t guild_id2) {
@@ -328,7 +328,7 @@ namespace metin2::db::inline guilds {
         if (it->second.element)
             it->second.element->end = true;
 
-        guild_war_end_time_[key] = client_manager::instance().current_time();
+        guild_war_end_time_[key] = get_client_manager().current_time();
 
         war_map_.erase(it);
     }
@@ -376,7 +376,7 @@ namespace metin2::db::inline guilds {
             process_win_lose(win_guild, lose_guild);
 
         // The db ends some wars on its own, so the packet must still be sent.
-        client_manager::instance().for_each_peer(send_peer_war(0, GUILD_WAR_END, gid1, gid2));
+        get_client_manager().for_each_peer(send_peer_war(0, GUILD_WAR_END, gid1, gid2));
 
         remove_war(gid1, gid2);
     }
@@ -424,9 +424,9 @@ namespace metin2::db::inline guilds {
         guild_war_info &gw = war_map_[{gid1, gid2}];
 
         if (type == GUILD_WAR_TYPE_FIELD)
-            gw.t_end_time = client_manager::instance().current_time() + GUILD_WAR_DURATION;
+            gw.t_end_time = get_client_manager().current_time() + GUILD_WAR_DURATION;
         else
-            gw.t_end_time = client_manager::instance().current_time() + 172800;
+            gw.t_end_time = get_client_manager().current_time() + 172800;
 
         gw.element = std::make_shared<guild_war_pq_element>(type, gid1, gid2);
         gw.reserve = reserve_value;
@@ -463,7 +463,7 @@ namespace metin2::db::inline guilds {
             metin2::log::debug("Guild war: guild {:d} war type {:d} score {:+d}, bet score {:+d}, now {:d} and {:d}",
                 gain_gid, p->type, score_delta, bet_score_delta, new_score, new_bet_score);
 
-            client_manager::instance().for_each_peer(send_guild_war_score(gain_gid, opp_gid, new_score, new_bet_score));
+            get_client_manager().for_each_peer(send_guild_war_score(gain_gid, opp_gid, new_score, new_bet_score));
         }
     }
 
@@ -537,7 +537,7 @@ namespace metin2::db::inline guilds {
             r.ladder_point = 0;
 
         const std::string query = sql::format("UPDATE guild SET ladder_point={} WHERE id={}", r.ladder_point, gid);
-        db_manager::instance().async_query(query);
+        get_db_manager().async_query(query);
 
         metin2::log::info("Guild {:d}: ladder points now {:d}", gid, r.ladder_point);
         packet_guild_ladder p;
@@ -548,12 +548,12 @@ namespace metin2::db::inline guilds {
         p.draw = r.draw;
         p.loss = r.loss;
 
-        client_manager::instance().forward_packet(HEADER_DG_GUILD_LADDER, &p, sizeof(packet_guild_ladder));
+        get_client_manager().forward_packet(HEADER_DG_GUILD_LADDER, &p, sizeof(packet_guild_ladder));
     }
 
     void guild_manager::use_skill(uint32_t gid, uint32_t skill_vnum, uint32_t cooltime) {
-        metin2::log::debug("Guild {:d}: used skill {:d}, cooldown {:d} s (until {:d})", gid, skill_vnum, cooltime, client_manager::instance().current_time() + cooltime);
-        pq_skill_.push(std::make_pair(client_manager::instance().current_time() + cooltime, guild_skill_used(gid, skill_vnum)));
+        metin2::log::debug("Guild {:d}: used skill {:d}, cooldown {:d} s (until {:d})", gid, skill_vnum, cooltime, get_client_manager().current_time() + cooltime);
+        pq_skill_.push(std::make_pair(get_client_manager().current_time() + cooltime, guild_skill_used(gid, skill_vnum)));
     }
 
     void guild_manager::money_change(uint32_t guild_value, uint32_t gold) {
@@ -562,10 +562,10 @@ namespace metin2::db::inline guilds {
         packet_dg_guild_money_change p;
         p.guild = guild_value;
         p.total_gold = gold;
-        client_manager::instance().forward_packet(HEADER_DG_GUILD_MONEY_CHANGE, &p, sizeof(p));
+        get_client_manager().forward_packet(HEADER_DG_GUILD_MONEY_CHANGE, &p, sizeof(p));
 
         const std::string query = sql::format("UPDATE guild SET gold={} WHERE id = {}", gold, guild_value);
-        db_manager::instance().async_query(query);
+        get_db_manager().async_query(query);
     }
 
     void guild_manager::deposit_money(uint32_t guild, int32_t gold_value) {
@@ -676,7 +676,7 @@ namespace metin2::db::inline guilds {
                 "SELECT id, guild1, guild2, UNIX_TIMESTAMP(time), type, warprice, initscore, bet_from, bet_to, power1, power2, handicap FROM guild_war_reservation WHERE started=0"};
 
         for (int i = 0; i < 2; ++i) {
-            auto pmsg = db_manager::instance().direct_query(c_apsz_query[i]);
+            auto pmsg = get_db_manager().direct_query(c_apsz_query[i]);
 
             if (pmsg->get()->num_rows == 0)
                 continue;
@@ -705,7 +705,7 @@ namespace metin2::db::inline guilds {
                 auto reserve = std::make_unique<guild_war_reservation>(t);
 
                 const std::string buf = std::format("GuildWar: BootReserveWar : step {} id {} GID1 {} GID2 {}", i, t.id, t.guild_from, t.guild_to);
-                if (i == 0 || (int)t.time - client_manager::instance().current_time() < 0) {
+                if (i == 0 || (int)t.time - get_client_manager().current_time() < 0) {
                     if (i == 0)
                         metin2::log::info("{}: server was shut down during this war, cancelling it", buf);
                     else
@@ -724,7 +724,7 @@ namespace metin2::db::inline guilds {
         const std::string query = sql::format(
             "SELECT AVG(level) FROM guild_member, player AS p WHERE guild_id={0} AND guild_member.pid=p.id", gid);
 
-        auto msg = db_manager::instance().direct_query(query);
+        auto msg = get_db_manager().direct_query(query);
 
         MYSQL_ROW row;
         row = mysql_fetch_row(msg->get()->res.get());
@@ -737,7 +737,7 @@ namespace metin2::db::inline guilds {
     auto get_guild_member_count(uint32_t gid) -> int {
         const std::string query = sql::format("SELECT COUNT(*) FROM guild_member WHERE guild_id={}", gid);
 
-        auto msg = db_manager::instance().direct_query(query);
+        auto msg = get_db_manager().direct_query(query);
 
         MYSQL_ROW row;
         row = mysql_fetch_row(msg->get()->res.get());
@@ -763,7 +763,7 @@ namespace metin2::db::inline guilds {
 
         t.guild_from = gid1;
         t.guild_to = gid2;
-        t.time = client_manager::instance().current_time() + get_guild_war_reserve_seconds();
+        t.time = get_client_manager().current_time() + get_guild_war_reserve_seconds();
         t.type = p->type;
         t.war_price = p->war_price;
         t.initial_score = p->initial_score;
@@ -816,7 +816,7 @@ namespace metin2::db::inline guilds {
             "VALUES({}, {}, DATE_ADD(NOW(), INTERVAL 180 SECOND), {}, {}, {}, {}, {}, {})",
             gid1, gid2, p->type, p->war_price, p->initial_score, t.power_from, t.power_to, t.handicap);
 
-        auto pmsg = db_manager::instance().direct_query(query);
+        auto pmsg = get_db_manager().direct_query(query);
 
         if (pmsg->get()->affected_rows == 0 || pmsg->get()->insert_id == 0 || pmsg->get()->affected_rows == (uint32_t)-1) {
             metin2::log::error("Guild war: cannot reserve war between guild {:d} and guild {:d}", gid1, gid2);
@@ -827,12 +827,12 @@ namespace metin2::db::inline guilds {
 
         map_war_reserve_.insert(std::make_pair(t.id, std::make_unique<guild_war_reservation>(t)));
 
-        client_manager::instance().forward_packet(HEADER_DG_GUILD_WAR_RESERVE_ADD, &t, sizeof(guild_war_reserve));
+        get_client_manager().forward_packet(HEADER_DG_GUILD_WAR_RESERVE_ADD, &t, sizeof(guild_war_reserve));
         return true;
     }
 
     void guild_manager::process_reserve_war() {
-        uint32_t cur_time = client_manager::instance().current_time();
+        uint32_t cur_time = get_client_manager().current_time();
 
         auto it = map_war_reserve_.begin();
 
@@ -849,9 +849,9 @@ namespace metin2::db::inline guilds {
 
                 if (min_value <= 0) {
                     const std::string query = sql::format("UPDATE guild_war_reservation SET started=1 WHERE id={}", r.id);
-                    db_manager::instance().async_query(query);
+                    get_db_manager().async_query(query);
 
-                    client_manager::instance().forward_packet(HEADER_DG_GUILD_WAR_RESERVE_DEL, &r.id, sizeof(uint32_t));
+                    get_client_manager().forward_packet(HEADER_DG_GUILD_WAR_RESERVE_DEL, &r.id, sizeof(uint32_t));
 
                     r.started = true;
 
@@ -867,7 +867,7 @@ namespace metin2::db::inline guilds {
                     pck.war_price = r.war_price;
                     pck.initial_score = r.initial_score;
 
-                    client_manager::instance().forward_packet(HEADER_DG_GUILD_WAR, &pck, sizeof(packet_guild_war));
+                    get_client_manager().forward_packet(HEADER_DG_GUILD_WAR, &pck, sizeof(packet_guild_war));
                 } else {
                     if (min_value != pk->last_notice_min()) {
                         pk->set_last_notice_min(min_value);
@@ -884,7 +884,7 @@ namespace metin2::db::inline guilds {
             metin2::log::warn("Guild war bet: reserved war {:d} not found, refunding", id);
             const std::string query = sql::format("INSERT INTO item_award (login, vnum, socket0, given_time) VALUES({}, {}, {}, NOW())",
                 login, ITEM_ELK_VNUM, gold);
-            db_manager::instance().async_query(query);
+            get_db_manager().async_query(query);
             return false;
         }
 
@@ -892,7 +892,7 @@ namespace metin2::db::inline guilds {
             metin2::log::info("Guild war bet: bet on war {:d} by account {} ({:d} gold on guild {:d}) rejected, refunding", id, login, gold, guild);
             const std::string query = sql::format("INSERT INTO item_award (login, vnum, socket0, given_time) VALUES({}, {}, {}, NOW())",
                 login, ITEM_ELK_VNUM, gold);
-            db_manager::instance().async_query(query);
+            get_db_manager().async_query(query);
             return false;
         }
 
@@ -910,9 +910,9 @@ namespace metin2::db::inline guilds {
         if (iter == map_guild_.end())
             return false;
 
-        db_manager::instance().direct_query(sql::format("UPDATE guild SET master={} WHERE id={}", to, gid));
-        db_manager::instance().direct_query(sql::format("UPDATE guild_member SET grade=1 WHERE pid={}", to));
-        db_manager::instance().direct_query(sql::format("UPDATE guild_member SET grade=15 WHERE pid={}", from));
+        get_db_manager().direct_query(sql::format("UPDATE guild SET master={} WHERE id={}", to, gid));
+        get_db_manager().direct_query(sql::format("UPDATE guild_member SET grade=1 WHERE pid={}", to));
+        get_db_manager().direct_query(sql::format("UPDATE guild_member SET grade=15 WHERE pid={}", from));
 
         return true;
     }
@@ -927,7 +927,7 @@ namespace metin2::db::inline guilds {
     void guild_war_reservation::initialize() {
         const std::string query = sql::format("SELECT login, guild, gold FROM guild_war_bet WHERE war_id={}", data_.id);
 
-        auto msgbet = db_manager::instance().direct_query(query);
+        auto msgbet = get_db_manager().direct_query(query);
 
         if (msgbet->get()->num_rows) {
             MYSQL_RES *res = msgbet->get()->res.get();
@@ -994,7 +994,7 @@ namespace metin2::db::inline guilds {
             "INSERT INTO guild_war_bet (war_id, login, gold, guild) VALUES({}, {}, {}, {})",
             data_.id, login_value, gold_value, guild_value);
 
-        auto pmsg = db_manager::instance().direct_query(query);
+        auto pmsg = get_db_manager().direct_query(query);
 
         if (pmsg->get()->affected_rows == 0 || pmsg->get()->affected_rows == (uint32_t)-1) {
             metin2::log::error("Guild war bet: cannot record bet of account {} on war {:d}", login_value, data_.id);
@@ -1006,12 +1006,12 @@ namespace metin2::db::inline guilds {
         else
             data_.bet_to += gold_value;
 
-        client_manager::instance().forward_packet(HEADER_DG_GUILD_WAR_RESERVE_ADD, &data_, sizeof(guild_war_reserve));
+        get_client_manager().forward_packet(HEADER_DG_GUILD_WAR_RESERVE_ADD, &data_, sizeof(guild_war_reserve));
 
         query = sql::format("UPDATE guild_war_reservation SET bet_from={},bet_to={} WHERE id={}",
             data_.bet_from, data_.bet_to, data_.id);
 
-        db_manager::instance().async_query(query);
+        get_db_manager().async_query(query);
 
         metin2::log::info("Guild war bet: account {} bet on guild {:d} in war {:d}, totals {:d} : {:d}", login_value, guild_value, data_.id, data_.bet_from, data_.bet_to);
         bet_.insert(std::make_pair(login_value, std::make_pair(guild_value, gold_value)));
@@ -1022,7 +1022,7 @@ namespace metin2::db::inline guilds {
         pck_bet.guild = guild_value;
         pck_bet.gold = gold_value;
 
-        client_manager::instance().forward_packet(HEADER_DG_GUILD_WAR_BET, &pck_bet, sizeof(packet_gd_guild_war_bet));
+        get_client_manager().forward_packet(HEADER_DG_GUILD_WAR_BET, &pck_bet, sizeof(packet_gd_guild_war_bet));
         return true;
     }
 
@@ -1040,7 +1040,7 @@ namespace metin2::db::inline guilds {
             void flush() {
                 if (rows_ > 0) {
                     metin2::log::debug("Guild war reward: {}", query_);
-                    db_manager::instance().async_query(query_);
+                    get_db_manager().async_query(query_);
                 }
                 query_.clear();
                 rows_ = 0;
@@ -1054,7 +1054,7 @@ namespace metin2::db::inline guilds {
 
     void guild_war_reservation::draw() {
         std::string query = sql::format("UPDATE guild_war_reservation SET started=1,winner=0 WHERE id={}", data_.id);
-        db_manager::instance().async_query(query);
+        get_db_manager().async_query(query);
 
         if (bet_.empty())
             return;
@@ -1092,7 +1092,7 @@ namespace metin2::db::inline guilds {
 
         std::string query = sql::format("UPDATE guild_war_reservation SET started=1,winner={},result1={},result2={} WHERE id={}",
             winner_value, score_from, score_to, data_.id);
-        db_manager::instance().async_query(query);
+        get_db_manager().async_query(query);
 
         if (bet_.empty())
             return;

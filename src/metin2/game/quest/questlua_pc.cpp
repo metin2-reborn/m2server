@@ -59,7 +59,7 @@ namespace metin2::game {
 
     namespace quest {
         auto pc_has_master_skill(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             bool has_master_skill = false;
             for (int i = 0; i < SKILL_MAX_NUM; i++)
                 if (ch->skill_master_type(i) >= SKILL_MASTER && ch->skill_level(i) >= 21) {
@@ -72,20 +72,20 @@ namespace metin2::game {
         }
 
         auto pc_remove_skill_book_no_delay(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             ch->remove_affect(AFFECT_SKILL_NO_BOOK_DELAY);
             return 0;
         }
 
         auto pc_is_skill_book_no_delay(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             lua_pushboolean(lua, ch->find_affect(AFFECT_SKILL_NO_BOOK_DELAY) ? true : false);
             return 1;
         }
 
         auto pc_learn_grand_master_skill(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (!require_number(lua, 1, "Invalid skill index argument"))
                 return 0;
@@ -95,7 +95,7 @@ namespace metin2::game {
         }
 
         auto pc_set_warp_location(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (!require_number(lua, 1, "Invalid map index argument"))
                 return 0;
@@ -110,7 +110,7 @@ namespace metin2::game {
         }
 
         auto pc_set_warp_location_local(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (!require_number(lua, 1, "Invalid map index argument"))
                 return 0;
@@ -121,7 +121,7 @@ namespace metin2::game {
             }
 
             auto map_index = (int32_t)lua_tonumber(lua, 1);
-            const map_region *region = sectree_manager::instance().get_map_region(map_index);
+            const map_region *region = get_sectree_manager().get_map_region(map_index);
 
             if (!region) {
                 quest::error("No map with index {:d}", map_index);
@@ -146,7 +146,7 @@ namespace metin2::game {
         }
 
         auto pc_get_start_location(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             lua_pushnumber(lua, start_map[ch->empire()]);
             lua_pushnumber(lua, start_position[ch->empire()][0] / 100);
@@ -155,7 +155,7 @@ namespace metin2::game {
         }
 
         auto pc_warp(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2)) {
                 lua_pushboolean(lua, false);
@@ -192,7 +192,7 @@ namespace metin2::game {
             }
 
             auto map_index = (int32_t)lua_tonumber(lua, 1);
-            const map_region *region = sectree_manager::instance().get_map_region(map_index);
+            const map_region *region = get_sectree_manager().get_map_region(map_index);
 
             if (!region) {
                 quest::error("No map with index {:d}", map_index);
@@ -212,35 +212,35 @@ namespace metin2::game {
                 return 0;
             }
 
-            quest_manager::instance().current_character_ptr()->warp_set(region->sx + x, region->sy + y);
+            get_quest_manager().current_character_ptr()->warp_set(region->sx + x, region->sy + y);
             return 0;
         }
 
         auto pc_warp_exit(lua_State *lua) -> int {
-            quest_manager::instance().current_character_ptr()->exit_to_saved_location();
+            get_quest_manager().current_character_ptr()->exit_to_saved_location();
             return 0;
         }
 
         auto pc_in_dungeon(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushboolean(lua, ch->get_dungeon() ? 1 : 0);
             return 1;
         }
 
         auto pc_hasguild(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushboolean(lua, ch->get_guild() ? 1 : 0);
             return 1;
         }
 
         auto pc_getguild(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushnumber(lua, ch->get_guild() ? ch->get_guild()->id() : 0);
             return 1;
         }
 
         auto pc_isguildmaster(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             guild *g = ch->get_guild();
 
             if (g)
@@ -252,7 +252,7 @@ namespace metin2::game {
         }
 
         auto pc_destroy_guild(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             guild *g = ch->get_guild();
 
             if (g)
@@ -262,7 +262,7 @@ namespace metin2::game {
         }
 
         auto pc_remove_from_guild(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             guild *g = ch->get_guild();
 
             if (g)
@@ -272,7 +272,7 @@ namespace metin2::game {
         }
 
         auto pc_give_gold(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (!require_number(lua, 1))
                 return 0;
@@ -284,7 +284,7 @@ namespace metin2::game {
                 return 0;
             }
 
-            db_manager::instance().send_money_log(MONEY_LOG_QUEST, ch->player_id(), amount_value);
+            get_db_manager().send_money_log(MONEY_LOG_QUEST, ch->player_id(), amount_value);
             ch->point_change(POINT_GOLD, amount_value, true);
             return 0;
         }
@@ -296,8 +296,8 @@ namespace metin2::game {
             auto gid1 = (uint32_t)lua_tonumber(lua, 1);
             auto gid2 = (uint32_t)lua_tonumber(lua, 2);
 
-            guild *g1 = guild_manager::instance().find_guild(gid1);
-            guild *g2 = guild_manager::instance().find_guild(gid2);
+            guild *g1 = get_guild_manager().find_guild(gid1);
+            guild *g2 = get_guild_manager().find_guild(gid2);
 
             if (!g1 || !g2) {
                 luaL_error(lua, "no such guild with id %d %d", gid1, gid2);
@@ -307,12 +307,12 @@ namespace metin2::game {
 
             uint32_t map_index = g1->guild_war_map_index(gid2);
 
-            if (!war_map_manager::instance().start_position(map_index, 2, pos)) {
+            if (!get_war_map_manager().start_position(map_index, 2, pos)) {
                 luaL_error(lua, "not under warp guild war between guild %d %d", gid1, gid2);
                 return 0;
             }
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch->is_hack())
                 return 0;
@@ -326,7 +326,7 @@ namespace metin2::game {
         auto pc_give_item_from_special_item_group(lua_State *lua) -> int {
             luaL_checknumber(lua, 1);
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             auto group_vnum = (uint32_t)lua_tonumber(lua, 1);
 
@@ -351,14 +351,14 @@ namespace metin2::game {
         }
 
         auto pc_enough_inventory(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             if (!lua_isnumber(lua, 1)) {
                 lua_pushboolean(lua, 0);
                 return 1;
             }
 
             auto item_vnum = (uint32_t)lua_tonumber(lua, 1);
-            item_table *table = item_manager::instance().table(item_vnum);
+            item_table *table = get_item_manager().table(item_vnum);
             if (!table) {
                 lua_pushboolean(lua, 0);
                 return 1;
@@ -370,8 +370,8 @@ namespace metin2::game {
         }
 
         auto pc_give_item(lua_State *lua) -> int {
-            pc *pc = quest_manager::instance().current_pc();
-            character *ch = quest_manager::instance().current_character_ptr();
+            pc *pc = get_quest_manager().current_pc();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (!lua_isstring(lua, 1) || !(lua_isstring(lua, 2) || lua_isnumber(lua, 2))) {
                 quest::error("Invalid arguments");
@@ -382,7 +382,7 @@ namespace metin2::game {
 
             if (lua_isnumber(lua, 2))
                 vnum = (int)lua_tonumber(lua, 2);
-            else if (!item_manager::instance().vnum(lua_tostring(lua, 2), vnum)) {
+            else if (!get_item_manager().vnum(lua_tostring(lua, 2), vnum)) {
                 quest::error("Unknown item name {}", lua_tostring(lua, 1));
                 return 0;
             }
@@ -400,12 +400,12 @@ namespace metin2::game {
 
             pc->give_item(lua_tostring(lua, 1), vnum, icount);
 
-            log_manager::instance().quest_reward_log(pc->current_quest_name().c_str(), ch->player_id(), ch->level(), vnum, icount);
+            get_log_manager().quest_reward_log(pc->current_quest_name().c_str(), ch->player_id(), ch->level(), vnum, icount);
             return 0;
         }
 
         auto pc_give_or_drop_item(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (!lua_isstring(lua, 1) && !lua_isnumber(lua, 1)) {
                 quest::error("Invalid item argument");
@@ -417,7 +417,7 @@ namespace metin2::game {
 
             if (lua_isnumber(lua, 1)) {
                 vnum = (int)lua_tonumber(lua, 1);
-            } else if (!item_manager::instance().vnum(lua_tostring(lua, 1), vnum)) {
+            } else if (!get_item_manager().vnum(lua_tostring(lua, 1), vnum)) {
                 quest::error("Unknown item name {}", lua_tostring(lua, 1));
                 lua_pushnumber(lua, 0);
 
@@ -436,14 +436,14 @@ namespace metin2::game {
 
             metin2::log::info("Quest reward: item {} to player {}", lua_tostring(lua, 1), ch->name());
 
-            pc *pc = quest_manager::instance().current_pc();
+            pc *pc = get_quest_manager().current_pc();
 
-            log_manager::instance().quest_reward_log(pc->current_quest_name().c_str(), ch->player_id(), ch->level(), vnum, icount);
+            get_log_manager().quest_reward_log(pc->current_quest_name().c_str(), ch->player_id(), ch->level(), vnum, icount);
 
             item *item = ch->auto_give_item(vnum, icount);
 
             if (vnum >= 80003 && vnum <= 80007) {
-                log_manager::instance().gold_bar_log(ch->player_id(), item->id(), QUEST, "quest: give_item2");
+                get_log_manager().gold_bar_log(ch->player_id(), item->id(), QUEST, "quest: give_item2");
             }
 
             if (nullptr != item)
@@ -454,7 +454,7 @@ namespace metin2::game {
         }
 
         auto pc_give_or_drop_item_and_select(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (!lua_isstring(lua, 1) && !lua_isnumber(lua, 1)) {
                 quest::error("Invalid item argument");
@@ -465,7 +465,7 @@ namespace metin2::game {
 
             if (lua_isnumber(lua, 1)) {
                 vnum = (int)lua_tonumber(lua, 1);
-            } else if (!item_manager::instance().vnum(lua_tostring(lua, 1), vnum)) {
+            } else if (!get_item_manager().vnum(lua_tostring(lua, 1), vnum)) {
                 quest::error("Unknown item name {}", lua_tostring(lua, 1));
                 return 0;
             }
@@ -481,42 +481,42 @@ namespace metin2::game {
 
             metin2::log::info("Quest reward: item {} to player {}", lua_tostring(lua, 1), ch->name());
 
-            pc *pc = quest_manager::instance().current_pc();
+            pc *pc = get_quest_manager().current_pc();
 
-            log_manager::instance().quest_reward_log(pc->current_quest_name().c_str(), ch->player_id(), ch->level(), vnum, icount);
+            get_log_manager().quest_reward_log(pc->current_quest_name().c_str(), ch->player_id(), ch->level(), vnum, icount);
 
             item *item = ch->auto_give_item(vnum, icount);
 
             if (nullptr != item)
-                quest_manager::instance().set_current_item(item);
+                get_quest_manager().set_current_item(item);
 
             if (vnum >= 80003 && vnum <= 80007) {
-                log_manager::instance().gold_bar_log(ch->player_id(), item->id(), QUEST, "quest: give_item2");
+                get_log_manager().gold_bar_log(ch->player_id(), item->id(), QUEST, "quest: give_item2");
             }
 
             return 0;
         }
 
         auto pc_get_current_map_index(lua_State *lua) -> int {
-            lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->map_index());
+            lua_pushnumber(lua, get_quest_manager().current_character_ptr()->map_index());
             return 1;
         }
 
         auto pc_get_x(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushnumber(lua, ch->x() / 100);
             return 1;
         }
 
         auto pc_get_y(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushnumber(lua, ch->y() / 100);
             return 1;
         }
 
         auto pc_get_local_x(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
-            sectree_map *map = sectree_manager::instance().map(ch->map_index());
+            character *ch = get_quest_manager().current_character_ptr();
+            sectree_map *map = get_sectree_manager().map(ch->map_index());
 
             if (map)
                 lua_pushnumber(lua, (ch->x() - map->setting.base_x) / 100);
@@ -527,8 +527,8 @@ namespace metin2::game {
         }
 
         auto pc_get_local_y(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
-            sectree_map *map = sectree_manager::instance().map(ch->map_index());
+            character *ch = get_quest_manager().current_character_ptr();
+            sectree_map *map = get_sectree_manager().map(ch->map_index());
 
             if (map)
                 lua_pushnumber(lua, (ch->y() - map->setting.base_y) / 100);
@@ -540,15 +540,15 @@ namespace metin2::game {
 
         auto pc_count_item(lua_State *lua) -> int {
             if (lua_isnumber(lua, -1))
-                lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->count_specify_item((uint32_t)lua_tonumber(lua, -1)));
+                lua_pushnumber(lua, get_quest_manager().current_character_ptr()->count_specify_item((uint32_t)lua_tonumber(lua, -1)));
             else if (lua_isstring(lua, -1)) {
                 uint32_t item_vnum;
 
-                if (!item_manager::instance().vnum(lua_tostring(lua, 1), item_vnum)) {
+                if (!get_item_manager().vnum(lua_tostring(lua, 1), item_vnum)) {
                     quest::error("Unknown item name {}", lua_tostring(lua, 1));
                     lua_pushnumber(lua, 0);
                 } else {
-                    lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->count_specify_item(item_vnum));
+                    lua_pushnumber(lua, get_quest_manager().current_character_ptr()->count_specify_item(item_vnum));
                 }
             } else
                 lua_pushnumber(lua, 0);
@@ -563,7 +563,7 @@ namespace metin2::game {
                 if (lua_isnumber(lua, 1)) {
                     item_vnum = (uint32_t)lua_tonumber(lua, 1);
                 } else if (lua_isstring(lua, 1)) {
-                    if (!item_manager::instance().vnum(lua_tostring(lua, 1), item_vnum)) {
+                    if (!get_item_manager().vnum(lua_tostring(lua, 1), item_vnum)) {
                         quest::error("Unknown item name {}", lua_tostring(lua, 1));
                         return 0;
                     }
@@ -572,15 +572,15 @@ namespace metin2::game {
                     return 0;
                 }
 
-                metin2::log::info("Quest: remove item (vnum {:d}) from player {} (pid {:d})", item_vnum, quest_manager::instance().current_character_ptr()->name(), quest_manager::instance().current_character_ptr()->player_id());
-                quest_manager::instance().current_character_ptr()->remove_specify_item(item_vnum);
+                metin2::log::info("Quest: remove item (vnum {:d}) from player {} (pid {:d})", item_vnum, get_quest_manager().current_character_ptr()->name(), get_quest_manager().current_character_ptr()->player_id());
+                get_quest_manager().current_character_ptr()->remove_specify_item(item_vnum);
             } else if (lua_gettop(lua) == 2) {
                 uint32_t item_vnum;
 
                 if (lua_isnumber(lua, 1)) {
                     item_vnum = (uint32_t)lua_tonumber(lua, 1);
                 } else if (lua_isstring(lua, 1)) {
-                    if (!item_manager::instance().vnum(lua_tostring(lua, 1), item_vnum)) {
+                    if (!get_item_manager().vnum(lua_tostring(lua, 1), item_vnum)) {
                         quest::error("Unknown item name {}", lua_tostring(lua, 1));
                         return 0;
                     }
@@ -593,70 +593,70 @@ namespace metin2::game {
                 metin2::log::info("Quest: remove items (vnum {:d}, count {:d}) from player {} (pid {:d})",
                     item_vnum,
                     item_count,
-                    quest_manager::instance().current_character_ptr()->name(),
-                    quest_manager::instance().current_character_ptr()->player_id());
+                    get_quest_manager().current_character_ptr()->name(),
+                    get_quest_manager().current_character_ptr()->player_id());
 
-                quest_manager::instance().current_character_ptr()->remove_specify_item(item_vnum, item_count);
+                get_quest_manager().current_character_ptr()->remove_specify_item(item_vnum, item_count);
             }
             return 0;
         }
 
         auto pc_get_leadership(lua_State *lua) -> int {
-            lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->leadership_skill_level());
+            lua_pushnumber(lua, get_quest_manager().current_character_ptr()->leadership_skill_level());
             return 1;
         }
 
         auto pc_reset_point(lua_State *lua) -> int {
-            quest_manager::instance().current_character_ptr()->reset_point(quest_manager::instance().current_character_ptr()->level());
+            get_quest_manager().current_character_ptr()->reset_point(get_quest_manager().current_character_ptr()->level());
             return 0;
         }
 
         auto pc_get_playtime(lua_State *lua) -> int {
-            lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->real_point(POINT_PLAYTIME));
+            lua_pushnumber(lua, get_quest_manager().current_character_ptr()->real_point(POINT_PLAYTIME));
             return 1;
         }
 
         auto pc_get_vid(lua_State *lua) -> int {
-            lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->get_vid());
+            lua_pushnumber(lua, get_quest_manager().current_character_ptr()->get_vid());
             return 1;
         }
         auto pc_get_name(lua_State *lua) -> int {
-            lua_pushstring(lua, quest_manager::instance().current_character_ptr()->name());
+            lua_pushstring(lua, get_quest_manager().current_character_ptr()->name());
             return 1;
         }
 
         auto pc_get_next_exp(lua_State *lua) -> int {
-            lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->next_exp());
+            lua_pushnumber(lua, get_quest_manager().current_character_ptr()->next_exp());
             return 1;
         }
 
         auto pc_get_exp(lua_State *lua) -> int {
-            lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->get_exp());
+            lua_pushnumber(lua, get_quest_manager().current_character_ptr()->get_exp());
             return 1;
         }
 
         auto pc_get_race(lua_State *lua) -> int {
-            lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->race_num());
+            lua_pushnumber(lua, get_quest_manager().current_character_ptr()->race_num());
             return 1;
         }
 
         auto pc_change_sex(lua_State *lua) -> int {
-            lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->change_sex());
+            lua_pushnumber(lua, get_quest_manager().current_character_ptr()->change_sex());
             return 1;
         }
 
         auto pc_get_job(lua_State *lua) -> int {
-            lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->job());
+            lua_pushnumber(lua, get_quest_manager().current_character_ptr()->job());
             return 1;
         }
 
         auto pc_get_max_sp(lua_State *lua) -> int {
-            lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->max_sp());
+            lua_pushnumber(lua, get_quest_manager().current_character_ptr()->max_sp());
             return 1;
         }
 
         auto pc_get_sp(lua_State *lua) -> int {
-            lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->sp());
+            lua_pushnumber(lua, get_quest_manager().current_character_ptr()->sp());
             return 1;
         }
 
@@ -673,7 +673,7 @@ namespace metin2::game {
                 return 1;
             }
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (val > 0)
                 ch->point_change(POINT_SP, val);
@@ -691,17 +691,17 @@ namespace metin2::game {
         }
 
         auto pc_get_max_hp(lua_State *lua) -> int {
-            lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->max_hp());
+            lua_pushnumber(lua, get_quest_manager().current_character_ptr()->max_hp());
             return 1;
         }
 
         auto pc_get_hp(lua_State *lua) -> int {
-            lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->hp());
+            lua_pushnumber(lua, get_quest_manager().current_character_ptr()->hp());
             return 1;
         }
 
         auto pc_get_level(lua_State *lua) -> int {
-            lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->level());
+            lua_pushnumber(lua, get_quest_manager().current_character_ptr()->level());
             return 1;
         }
 
@@ -711,12 +711,12 @@ namespace metin2::game {
                 return 0;
             } else {
                 int new_level = lua_tonumber(lua, 1);
-                character *ch = quest_manager::instance().current_character_ptr();
+                character *ch = get_quest_manager().current_character_ptr();
 
                 metin2::log::info("Quest: player {} jumps to level {:d}", ch->name(), (int)rint(lua_tonumber(lua, 1)));
 
-                pc *pc = quest_manager::instance().current_pc();
-                log_manager::instance().quest_reward_log(pc->current_quest_name().c_str(), ch->player_id(), ch->level(), new_level, 0);
+                pc *pc = get_quest_manager().current_pc();
+                get_log_manager().quest_reward_log(pc->current_quest_name().c_str(), ch->player_id(), ch->level(), new_level, 0);
 
                 ch->point_change(POINT_SKILL, new_level - ch->level());
                 ch->point_change(POINT_SUB_SKILL, new_level < 10 ? 0 : new_level - std::max(ch->level(), 9));
@@ -737,7 +737,7 @@ namespace metin2::game {
         }
 
         auto pc_get_weapon(lua_State *lua) -> int {
-            item *item = quest_manager::instance().current_character_ptr()->wear(WEAR_WEAPON);
+            item *item = get_quest_manager().current_character_ptr()->wear(WEAR_WEAPON);
 
             if (!item)
                 lua_pushnumber(lua, 0);
@@ -748,7 +748,7 @@ namespace metin2::game {
         }
 
         auto pc_get_armor(lua_State *lua) -> int {
-            item *item = quest_manager::instance().current_character_ptr()->wear(WEAR_BODY);
+            item *item = get_quest_manager().current_character_ptr()->wear(WEAR_BODY);
 
             if (!item)
                 lua_pushnumber(lua, 0);
@@ -764,7 +764,7 @@ namespace metin2::game {
 
             auto cell = (uint8_t)lua_tonumber(lua, 1);
 
-            item *item = quest_manager::instance().current_character_ptr()->wear(cell);
+            item *item = get_quest_manager().current_character_ptr()->wear(cell);
 
             if (!item)
                 lua_pushnil(lua);
@@ -775,23 +775,23 @@ namespace metin2::game {
         }
 
         auto pc_get_money(lua_State *lua) -> int {
-            lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->gold());
+            lua_pushnumber(lua, get_quest_manager().current_character_ptr()->gold());
             return 1;
         }
 
         auto pc_get_real_alignment(lua_State *lua) -> int {
-            lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->real_alignment() / 10);
+            lua_pushnumber(lua, get_quest_manager().current_character_ptr()->real_alignment() / 10);
             return 1;
         }
 
         auto pc_get_alignment(lua_State *lua) -> int {
-            lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->alignment() / 10);
+            lua_pushnumber(lua, get_quest_manager().current_character_ptr()->alignment() / 10);
             return 1;
         }
 
         auto pc_change_alignment(lua_State *lua) -> int {
             int alignment = (int)(lua_tonumber(lua, 1) * 10);
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             ch->update_alignment(alignment);
             return 0;
@@ -800,12 +800,12 @@ namespace metin2::game {
         auto pc_change_money(lua_State *lua) -> int {
             int gold = (int)lua_tonumber(lua, -1);
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (gold + ch->gold() < 0)
                 quest::error("Gold change {:d} would make gold negative (now {:d})", gold, ch->gold());
             else {
-                db_manager::instance().send_money_log(MONEY_LOG_QUEST, ch->player_id(), gold);
+                get_db_manager().send_money_log(MONEY_LOG_QUEST, ch->player_id(), gold);
                 ch->point_change(POINT_GOLD, gold, true);
             }
 
@@ -819,7 +819,7 @@ namespace metin2::game {
             } else {
                 const char *sz = lua_tostring(lua, 1);
                 const char *sz2 = lua_tostring(lua, 2);
-                quest_manager &q = quest_manager::instance();
+                quest_manager &q = get_quest_manager();
                 pc *pc = q.current_pc();
                 pc->set_flag(std::string(sz) + "." + sz2, int(rint(lua_tonumber(lua, 3))));
                 return 0;
@@ -833,7 +833,7 @@ namespace metin2::game {
             } else {
                 const char *sz = lua_tostring(lua, 1);
                 const char *sz2 = lua_tostring(lua, 2);
-                quest_manager &q = quest_manager::instance();
+                quest_manager &q = get_quest_manager();
                 pc *pc = q.current_pc();
                 if (!pc) {
                     return 0;
@@ -849,7 +849,7 @@ namespace metin2::game {
                 return 0;
             } else {
                 const char *sz = lua_tostring(lua, -1);
-                quest_manager &q = quest_manager::instance();
+                quest_manager &q = get_quest_manager();
                 pc *pc = q.current_pc();
                 lua_pushnumber(lua, pc->flag(pc->current_quest_name() + "." + sz));
                 if (metin2::config::test_server())
@@ -863,7 +863,7 @@ namespace metin2::game {
                 quest::error("Invalid flag arguments");
             } else {
                 const char *sz = lua_tostring(lua, 1);
-                quest_manager &q = quest_manager::instance();
+                quest_manager &q = get_quest_manager();
                 pc *pc = q.current_pc();
                 pc->set_flag(pc->current_quest_name() + "." + sz, int(rint(lua_tonumber(lua, 2))));
             }
@@ -875,13 +875,13 @@ namespace metin2::game {
                 return 0;
 
             const char *sz = lua_tostring(lua, 1);
-            pc *pc = quest_manager::instance().current_pc();
+            pc *pc = get_quest_manager().current_pc();
             pc->delete_flag(pc->current_quest_name() + "." + sz);
             return 0;
         }
 
         auto pc_give_exp2(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *ch = q.current_character_ptr();
             if (!lua_isnumber(lua, 1))
                 return 0;
@@ -890,8 +890,8 @@ namespace metin2::game {
 
             auto exp = (uint32_t)rint(lua_tonumber(lua, 1));
 
-            pc *pc = quest_manager::instance().current_pc();
-            log_manager::instance().quest_reward_log(pc->current_quest_name().c_str(), ch->player_id(), ch->level(), exp, 0);
+            pc *pc = get_quest_manager().current_pc();
+            get_log_manager().quest_reward_log(pc->current_quest_name().c_str(), ch->player_id(), ch->level(), exp, 0);
             ch->point_change(POINT_EXP, exp);
             return 0;
         }
@@ -900,23 +900,23 @@ namespace metin2::game {
             if (!lua_isstring(lua, 1) || !lua_isnumber(lua, 2))
                 return 0;
 
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *ch = q.current_character_ptr();
 
             metin2::log::info("Quest reward: player {} gets exp ({}) {:d}", ch->name(), lua_tostring(lua, 1), (int)rint(lua_tonumber(lua, 2)));
 
             auto exp = (uint32_t)rint(lua_tonumber(lua, 2));
 
-            pc *pc = quest_manager::instance().current_pc();
+            pc *pc = get_quest_manager().current_pc();
 
-            log_manager::instance().quest_reward_log(pc->current_quest_name().c_str(), ch->player_id(), ch->level(), exp, 0);
+            get_log_manager().quest_reward_log(pc->current_quest_name().c_str(), ch->player_id(), ch->level(), exp, 0);
 
             pc->give_exp(lua_tostring(lua, 1), exp);
             return 0;
         }
 
         auto pc_give_exp_perc(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *ch = q.current_character_ptr();
 
             if (!ch || !lua_isstring(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3))
@@ -928,21 +928,21 @@ namespace metin2::game {
             metin2::log::info("Quest reward: player {} gets exp ({}) level {:d}, {:g}%", ch->name(), lua_tostring(lua, 1), lev, proc);
 
             uint32_t exp = (uint32_t)((exp_table[std::clamp(lev, 0, PLAYER_EXP_TABLE_MAX)] * proc) / 100);
-            pc *pc = quest_manager::instance().current_pc();
+            pc *pc = get_quest_manager().current_pc();
 
-            log_manager::instance().quest_reward_log(pc->current_quest_name().c_str(), ch->player_id(), ch->level(), exp, 0);
+            get_log_manager().quest_reward_log(pc->current_quest_name().c_str(), ch->player_id(), ch->level(), exp, 0);
 
             pc->give_exp(lua_tostring(lua, 1), exp);
             return 0;
         }
 
         auto pc_get_empire(lua_State *lua) -> int {
-            lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->empire());
+            lua_pushnumber(lua, get_quest_manager().current_character_ptr()->empire());
             return 1;
         }
 
         auto pc_get_part(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *ch = q.current_character_ptr();
             if (!lua_isnumber(lua, 1)) {
                 lua_pushnumber(lua, 0);
@@ -954,7 +954,7 @@ namespace metin2::game {
         }
 
         auto pc_set_part(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *ch = q.current_character_ptr();
             if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2)) {
                 return 0;
@@ -967,7 +967,7 @@ namespace metin2::game {
         }
 
         auto pc_get_skillgroup(lua_State *lua) -> int {
-            lua_pushnumber(lua, quest_manager::instance().current_character_ptr()->skill_group());
+            lua_pushnumber(lua, get_quest_manager().current_character_ptr()->skill_group());
             return 1;
         }
 
@@ -975,7 +975,7 @@ namespace metin2::game {
             if (!lua_isnumber(lua, 1))
                 quest::error("Invalid skill group argument");
             else {
-                quest_manager &q = quest_manager::instance();
+                quest_manager &q = get_quest_manager();
                 character *ch = q.current_character_ptr();
 
                 ch->set_skill_group((uint8_t)rint(lua_tonumber(lua, 1)));
@@ -984,20 +984,20 @@ namespace metin2::game {
         }
 
         auto pc_is_polymorphed(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushboolean(lua, ch->is_polymorphed());
             return 1;
         }
 
         auto pc_remove_polymorph(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             ch->remove_affect(AFFECT_POLYMORPH);
             ch->set_polymorph(0);
             return 0;
         }
 
         auto pc_polymorph(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             auto vnum = (uint32_t)lua_tonumber(lua, 1);
             int duration = (int)lua_tonumber(lua, 2);
             ch->add_affect(AFFECT_POLYMORPH, POINT_POLYMORPH, vnum, AFF_POLYMORPH, duration, 0, true);
@@ -1005,7 +1005,7 @@ namespace metin2::game {
         }
 
         auto pc_is_mount(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushboolean(lua, ch->get_mount_vnum());
             return 1;
         }
@@ -1024,7 +1024,7 @@ namespace metin2::game {
             if (length < 0)
                 length = 60;
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             ch->remove_affect(AFFECT_MOUNT);
             ch->remove_affect(AFFECT_MOUNT_BONUS);
@@ -1072,7 +1072,7 @@ namespace metin2::game {
             auto value = static_cast<int32_t>(lua_tonumber(lua, 2));
             auto duration = static_cast<int32_t>(lua_tonumber(lua, 3));
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (nullptr != ch) {
                 ch->remove_affect(AFFECT_MOUNT_BONUS);
@@ -1083,7 +1083,7 @@ namespace metin2::game {
         }
 
         auto pc_unmount(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             ch->remove_affect(AFFECT_MOUNT);
             ch->remove_affect(AFFECT_MOUNT_BONUS);
             if (ch->is_horse_riding())
@@ -1092,19 +1092,19 @@ namespace metin2::game {
         }
 
         auto pc_get_horse_level(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushnumber(lua, ch->horse_level());
             return 1;
         }
 
         auto pc_is_horse_alive(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushboolean(lua, ch->horse_level() > 0 && ch->horse_health() > 0);
             return 1;
         }
 
         auto pc_revive_horse(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             ch->revive_horse();
             return 0;
         }
@@ -1116,14 +1116,14 @@ namespace metin2::game {
             }
 
             const char *map_name = lua_tostring(lua, 1);
-            const map_region *region = sectree_manager::instance().find_region_by_partial_name(map_name);
+            const map_region *region = get_sectree_manager().find_region_by_partial_name(map_name);
 
             if (!region) {
                 lua_pushboolean(lua, 0);
                 return 1;
             }
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             bool find = false;
             for (int cell = 0; cell < INVENTORY_MAX_NUM; cell++) {
@@ -1148,13 +1148,13 @@ namespace metin2::game {
         }
 
         auto pc_get_war_map(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushnumber(lua, ch->get_war_map() ? ch->get_war_map()->map_index() : 0);
             return 1;
         }
 
         auto pc_have_pos_scroll(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2)) {
                 quest::error("Invalid x, y arguments");
@@ -1194,7 +1194,7 @@ namespace metin2::game {
         }
 
         auto pc_get_equip_refine_level(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             int cell = (int)lua_tonumber(lua, 1);
             if (cell < 0 || cell >= WEAR_MAX_NUM) {
                 quest::error("Wear position {:d} is out of range", cell);
@@ -1213,7 +1213,7 @@ namespace metin2::game {
         }
 
         auto pc_refine_equip(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2)) {
                 quest::error("Invalid arguments");
                 lua_pushboolean(lua, 0);
@@ -1243,7 +1243,7 @@ namespace metin2::game {
             if (pct == 100 || prob(pct)) {
                 lua_pushboolean(lua, 1);
 
-                game::items::item *new_item = item_manager::instance().create_item(item->refined_vnum(), 1, 0, false);
+                game::items::item *new_item = get_item_manager().create_item(item->refined_vnum(), 1, 0, false);
 
                 if (new_item) {
                     for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i)
@@ -1262,13 +1262,13 @@ namespace metin2::game {
 
                     item->copy_attribute_to(new_item);
 
-                    item_manager::instance().remove_item(item, "REMOVE (REFINE SUCCESS)");
+                    get_item_manager().remove_item(item, "REMOVE (REFINE SUCCESS)");
 
                     new_item->equip_to(ch, cell);
 
-                    item_manager::instance().flush_delayed_save(new_item);
+                    get_item_manager().flush_delayed_save(new_item);
 
-                    log_manager::instance().item_log(ch, new_item, "REFINE SUCCESS (QUEST)", new_item->name());
+                    get_log_manager().item_log(ch, new_item, "REFINE SUCCESS (QUEST)", new_item->name());
                 }
             } else {
                 lua_pushboolean(lua, 0);
@@ -1283,7 +1283,7 @@ namespace metin2::game {
                 return 1;
             }
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             auto vnum = (uint32_t)lua_tonumber(lua, 1);
             lua_pushnumber(lua, ch->skill_level(vnum));
@@ -1292,31 +1292,31 @@ namespace metin2::game {
         }
 
         auto pc_give_lotto(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *ch = q.current_character_ptr();
 
             metin2::log::debug("Quest: giving lotto ticket to pid {:d}", ch->player_id());
 
-            db_manager::instance().func_query([pid = ch->player_id(), round = static_cast<uint32_t>(q.event_flag("lotto_round"))](sql_msg &msg) { give_lotto_ticket_result(msg, pid, 50001, 1, round); },
+            get_db_manager().func_query([pid = ch->player_id(), round = static_cast<uint32_t>(q.event_flag("lotto_round"))](sql_msg &msg) { give_lotto_ticket_result(msg, pid, 50001, 1, round); },
                 sql::format("INSERT INTO lotto_list VALUES(0, 'server', {}, NOW())", ch->player_id()));
 
             return 0;
         }
 
         auto pc_aggregate_monster(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             ch->aggregate_monster();
             return 0;
         }
 
         auto pc_forget_my_attacker(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             ch->forget_my_attacker();
             return 0;
         }
 
         auto pc_attract_ranger(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             ch->attract_ranger();
             return 0;
         }
@@ -1324,11 +1324,11 @@ namespace metin2::game {
         auto pc_select_vid(lua_State *lua) -> int {
             auto vid = (uint32_t)lua_tonumber(lua, 1);
 
-            character *ch = quest_manager::instance().current_character_ptr();
-            character *new_ch = character_manager::instance().find(vid);
+            character *ch = get_quest_manager().current_character_ptr();
+            character *new_ch = get_character_manager().find(vid);
 
             if (new_ch) {
-                quest_manager::instance().get_pc(new_ch->player_id());
+                get_quest_manager().get_pc(new_ch->player_id());
 
                 lua_pushnumber(lua, (uint32_t)ch->get_vid());
             } else {
@@ -1339,44 +1339,44 @@ namespace metin2::game {
         }
 
         auto pc_get_sex(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushnumber(lua, get_sex(ch));
             return 1;
         }
 
         auto pc_is_engaged(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
-            lua_pushboolean(lua, marriage::manager::instance().is_engaged(ch->player_id()));
+            character *ch = get_quest_manager().current_character_ptr();
+            lua_pushboolean(lua, marriage::get_manager().is_engaged(ch->player_id()));
             return 1;
         }
 
         auto pc_is_married(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
-            lua_pushboolean(lua, marriage::manager::instance().is_married(ch->player_id()));
+            character *ch = get_quest_manager().current_character_ptr();
+            lua_pushboolean(lua, marriage::get_manager().is_married(ch->player_id()));
             return 1;
         }
 
         auto pc_is_engaged_or_married(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
-            lua_pushboolean(lua, marriage::manager::instance().is_engaged_or_married(ch->player_id()));
+            character *ch = get_quest_manager().current_character_ptr();
+            lua_pushboolean(lua, marriage::get_manager().is_engaged_or_married(ch->player_id()));
             return 1;
         }
 
         auto pc_is_gm(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushboolean(lua, ch->gm_level() >= GM_HIGH_WIZARD);
             return 1;
         }
 
         auto pc_get_gm_level(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushnumber(lua, ch->gm_level());
             return 1;
         }
 
         auto pc_mining(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
-            character *npc = quest_manager::instance().current_npc_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
+            character *npc = get_quest_manager().current_npc_character_ptr();
             ch->mining(npc);
             return 0;
         }
@@ -1390,9 +1390,9 @@ namespace metin2::game {
             int cost = (int)lua_tonumber(lua, 1);
             int pct = (int)lua_tonumber(lua, 2);
 
-            character *ch = quest_manager::instance().current_character_ptr();
-            character *npc = quest_manager::instance().current_npc_character_ptr();
-            item *item = quest_manager::instance().current_item();
+            character *ch = get_quest_manager().current_character_ptr();
+            character *npc = get_quest_manager().current_npc_character_ptr();
+            item *item = get_quest_manager().current_item();
 
             if (item)
                 lua_pushboolean(lua, mining::ore_refine(ch, npc, item, cost, pct, nullptr));
@@ -1412,9 +1412,9 @@ namespace metin2::game {
             int pct = (int)lua_tonumber(lua, 2);
             int metinstone_cell = (int)lua_tonumber(lua, 3);
 
-            character *ch = quest_manager::instance().current_character_ptr();
-            character *npc = quest_manager::instance().current_npc_character_ptr();
-            item *item = quest_manager::instance().current_item();
+            character *ch = get_quest_manager().current_character_ptr();
+            character *npc = get_quest_manager().current_npc_character_ptr();
+            item *item = get_quest_manager().current_item();
 
             game::items::item *metinstone_item = ch->inventory_item(metinstone_cell);
 
@@ -1427,7 +1427,7 @@ namespace metin2::game {
         }
 
         auto pc_clear_skill(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             if (ch == nullptr) return 0;
 
             ch->clear_skill();
@@ -1436,7 +1436,7 @@ namespace metin2::game {
         }
 
         auto pc_clear_sub_skill(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             if (ch == nullptr) return 0;
 
             ch->clear_sub_skill();
@@ -1449,7 +1449,7 @@ namespace metin2::game {
                 return 0;
             }
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             int new_point = (int)lua_tonumber(lua, 1);
 
             ch->set_real_point(POINT_SKILL, new_point);
@@ -1465,7 +1465,7 @@ namespace metin2::game {
             int vnum = (int)lua_tonumber(lua, 1);
             metin2::log::debug("Quest: clearing skill {:d}", vnum);
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             if (ch == nullptr) {
                 metin2::log::error("Cannot clear skill {:d}: no current player", vnum);
                 lua_pushnumber(lua, 0);
@@ -1478,7 +1478,7 @@ namespace metin2::game {
         }
 
         auto pc_is_clear_skill_group(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             lua_pushboolean(lua, ch->quest_flag("skill_group_clear.clear") == 1);
 
@@ -1486,7 +1486,7 @@ namespace metin2::game {
         }
 
         auto pc_save_exit_location(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             ch->save_exit_location();
 
@@ -1494,7 +1494,7 @@ namespace metin2::game {
         }
 
         auto pc_teleport(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             int x = 0, y = 0;
             if (lua_isnumber(lua, 1)) {
                 const int town_num = 10;
@@ -1525,10 +1525,10 @@ namespace metin2::game {
             else {
                 const char *arg1 = lua_tostring(lua, 1);
 
-                character *tch = character_manager::instance().find_pc(arg1);
+                character *tch = get_character_manager().find_pc(arg1);
 
                 if (!tch) {
-                    const cci *cci = p2p_manager::instance().find(arg1);
+                    const cci *cci = get_p2p_manager().find(arg1);
 
                     if (cci) {
                         if (cci->channel != metin2::config::server().channel) {
@@ -1537,7 +1537,7 @@ namespace metin2::game {
 
                             pixel_position pos;
 
-                            if (!sectree_manager::instance().center_position_of_map(cci->map_index, pos)) {
+                            if (!get_sectree_manager().center_position_of_map(cci->map_index, pos)) {
                                 ch->chat_packet(CHAT_TYPE_INFO, "Cannot find map (index %d)", cci->map_index);
                             } else {
                                 ch->chat_packet(CHAT_TYPE_INFO, "You warp to ( %d, %d )", pos.x, pos.y);
@@ -1545,7 +1545,7 @@ namespace metin2::game {
                                 lua_pushnumber(lua, 1);
                             }
                         }
-                    } else if (nullptr == character_manager::instance().find_pc(arg1)) {
+                    } else if (nullptr == get_character_manager().find_pc(arg1)) {
                         ch->chat_packet(CHAT_TYPE_INFO, "There is no one by that name");
                     }
 
@@ -1574,7 +1574,7 @@ namespace metin2::game {
             auto vnum = (uint32_t)lua_tonumber(lua, 1);
             auto lev = (uint8_t)lua_tonumber(lua, 2);
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             ch->set_skill_level(vnum, lev);
 
             ch->skill_level_packet();
@@ -1588,18 +1588,18 @@ namespace metin2::game {
                 return 0;
             }
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
-            polymorph_utils::instance().give_book(ch, (uint32_t)lua_tonumber(lua, 1), (uint32_t)lua_tonumber(lua, 2), (uint8_t)lua_tonumber(lua, 3), (uint8_t)lua_tonumber(lua, 4));
+            get_polymorph_utils().give_book(ch, (uint32_t)lua_tonumber(lua, 1), (uint32_t)lua_tonumber(lua, 2), (uint8_t)lua_tonumber(lua, 3), (uint8_t)lua_tonumber(lua, 4));
 
             return 0;
         }
 
         auto pc_upgrade_polymorph_book(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
-            item *item = quest_manager::instance().current_item();
+            character *ch = get_quest_manager().current_character_ptr();
+            item *item = get_quest_manager().current_item();
 
-            bool ret = polymorph_utils::instance().book_upgrade(ch, item);
+            bool ret = get_polymorph_utils().book_upgrade(ch, item);
 
             lua_pushboolean(lua, ret);
 
@@ -1609,7 +1609,7 @@ namespace metin2::game {
         auto pc_get_premium_remain_sec(lua_State *lua) -> int {
             int remain_seconds = 0;
             int premium_type = 0;
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (!require_number(lua, 1, "Premium index is not a number"))
                 return 0;
@@ -1637,7 +1637,7 @@ namespace metin2::game {
         }
 
         auto pc_send_block_mode(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             ch->set_block_mode_force((uint8_t)lua_tonumber(lua, 1));
 
@@ -1645,7 +1645,7 @@ namespace metin2::game {
         }
 
         auto pc_change_empire(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             lua_pushnumber(lua, ch->change_empire((unsigned char)lua_tonumber(lua, 1)));
 
@@ -1653,7 +1653,7 @@ namespace metin2::game {
         }
 
         auto pc_get_change_empire_count(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             lua_pushnumber(lua, ch->change_empire_count());
 
@@ -1661,7 +1661,7 @@ namespace metin2::game {
         }
 
         auto pc_set_change_empire_count(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             ch->set_change_empire_count();
 
@@ -1670,7 +1670,7 @@ namespace metin2::game {
 
         auto pc_change_name(lua_State *lua) -> int {
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch->new_name().size() != 0) {
                 lua_pushnumber(lua, 0);
@@ -1689,7 +1689,7 @@ namespace metin2::game {
                 return 1;
             }
 
-            auto pmsg = db_manager::instance().direct_query(sql::format("SELECT COUNT(*) FROM player WHERE name={}", name_value));
+            auto pmsg = get_db_manager().direct_query(sql::format("SELECT COUNT(*) FROM player WHERE name={}", name_value));
 
             if (pmsg->get()->num_rows > 0) {
                 MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res.get());
@@ -1706,11 +1706,11 @@ namespace metin2::game {
             uint32_t pid = ch->player_id();
             ch->save();
 
-            messenger_manager::instance().remove_all_list(ch->name());
+            get_messenger_manager().remove_all_list(ch->name());
 
-            log_manager::instance().change_name_log(pid, ch->name(), name_value, ch->get_desc()->host_name());
+            get_log_manager().change_name_log(pid, ch->name(), name_value, ch->get_desc()->host_name());
 
-            auto msg = db_manager::instance().direct_query(sql::format("UPDATE player SET name={} WHERE id={}", name_value, pid));
+            auto msg = get_db_manager().direct_query(sql::format("UPDATE player SET name={} WHERE id={}", name_value, pid));
 
             ch->set_new_name(name_value);
             lua_pushnumber(lua, 4);
@@ -1718,7 +1718,7 @@ namespace metin2::game {
         }
 
         auto pc_is_dead(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch != nullptr) {
                 lua_pushboolean(lua, ch->is_dead());
@@ -1735,7 +1735,7 @@ namespace metin2::game {
                 int idx = (int)lua_tonumber(lua, 1);
 
                 if (idx >= 0 && idx < 4) {
-                    character *ch = quest_manager::instance().current_character_ptr();
+                    character *ch = get_quest_manager().current_character_ptr();
                     int point = POINT_NONE;
                     std::string buf;
 
@@ -1787,7 +1787,7 @@ namespace metin2::game {
                         break;
                     }
 
-                    log_manager::instance().char_log(ch, 0, "RESET_ONE_STATUS", buf.c_str());
+                    get_log_manager().char_log(ch, 0, "RESET_ONE_STATUS", buf.c_str());
 
                     lua_pushboolean(lua, true);
                     return 1;
@@ -1799,7 +1799,7 @@ namespace metin2::game {
         }
 
         auto pc_get_ht(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushnumber(lua, ch->real_point(POINT_HT));
             return 1;
         }
@@ -1810,7 +1810,7 @@ namespace metin2::game {
 
             int new_point = (int)lua_tonumber(lua, 1);
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             int used_point = new_point - ch->real_point(POINT_HT);
             ch->set_real_point(POINT_HT, new_point);
             ch->point_change(POINT_HT, 0);
@@ -1821,7 +1821,7 @@ namespace metin2::game {
         }
 
         auto pc_get_iq(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushnumber(lua, ch->real_point(POINT_IQ));
             return 1;
         }
@@ -1832,7 +1832,7 @@ namespace metin2::game {
 
             int new_point = (int)lua_tonumber(lua, 1);
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             int used_point = new_point - ch->real_point(POINT_IQ);
             ch->set_real_point(POINT_IQ, new_point);
             ch->point_change(POINT_IQ, 0);
@@ -1843,7 +1843,7 @@ namespace metin2::game {
         }
 
         auto pc_get_st(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushnumber(lua, ch->real_point(POINT_ST));
             return 1;
         }
@@ -1854,7 +1854,7 @@ namespace metin2::game {
 
             int new_point = (int)lua_tonumber(lua, 1);
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             int used_point = new_point - ch->real_point(POINT_ST);
             ch->set_real_point(POINT_ST, new_point);
             ch->point_change(POINT_ST, 0);
@@ -1865,7 +1865,7 @@ namespace metin2::game {
         }
 
         auto pc_get_dx(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushnumber(lua, ch->real_point(POINT_DX));
             return 1;
         }
@@ -1876,7 +1876,7 @@ namespace metin2::game {
 
             int new_point = (int)lua_tonumber(lua, 1);
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             int used_point = new_point - ch->real_point(POINT_DX);
             ch->set_real_point(POINT_DX, new_point);
             ch->point_change(POINT_DX, 0);
@@ -1890,8 +1890,8 @@ namespace metin2::game {
             if (lua_isnumber(lua, 1) != true || lua_isnumber(lua, 2) != true) {
                 lua_pushboolean(lua, false);
             } else {
-                character *me = quest_manager::instance().current_character_ptr();
-                character *other = character_manager::instance().find((uint32_t)lua_tonumber(lua, 1));
+                character *me = get_quest_manager().current_character_ptr();
+                character *other = get_character_manager().find((uint32_t)lua_tonumber(lua, 1));
 
                 if (me != nullptr && other != nullptr) {
                     lua_pushboolean(lua, (distance_approx(me->x() - other->x(), me->y() - other->y()) < (int)lua_tonumber(lua, 2) * 100));
@@ -1904,7 +1904,7 @@ namespace metin2::game {
         }
 
         auto pc_get_socket_items(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             lua_newtable(lua);
 
@@ -1922,7 +1922,7 @@ namespace metin2::game {
                             int32_t socket = item->get_socket(j);
 
                             if (socket > 2 && socket != ITEM_BROKEN_METIN_VNUM) {
-                                item_table *item_info = item_manager::instance().table(socket);
+                                item_table *item_info = get_item_manager().table(socket);
                                 if (item_info != nullptr) {
                                     if (item_info->type == ITEM_METIN) break;
                                 }
@@ -1950,7 +1950,7 @@ namespace metin2::game {
         }
 
         auto pc_get_empty_inventory_count(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch != nullptr) {
                 lua_pushnumber(lua, ch->count_empty_inventory());
@@ -1962,7 +1962,7 @@ namespace metin2::game {
         }
 
         auto pc_get_logoff_interval(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch != nullptr) {
                 lua_pushnumber(lua, ch->log_off_interval());
@@ -1974,7 +1974,7 @@ namespace metin2::game {
         }
 
         auto pc_get_player_id(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch != nullptr) {
                 lua_pushnumber(lua, ch->player_id());
@@ -1986,7 +1986,7 @@ namespace metin2::game {
         }
 
         auto pc_get_account_id(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch != nullptr) {
                 if (ch->get_desc() != nullptr) {
@@ -2000,7 +2000,7 @@ namespace metin2::game {
         }
 
         auto pc_get_account(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (nullptr != ch) {
                 if (nullptr != ch->get_desc()) {
@@ -2014,7 +2014,7 @@ namespace metin2::game {
         }
 
         auto pc_is_riding(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (nullptr != ch) {
                 bool is_riding = ch->is_riding();
@@ -2029,7 +2029,7 @@ namespace metin2::game {
         }
 
         auto pc_get_special_ride_vnum(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (nullptr != ch) {
                 item *unique1 = ch->wear(WEAR_UNIQUE1);
@@ -2059,7 +2059,7 @@ namespace metin2::game {
         }
 
         auto pc_can_warp(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (nullptr != ch) {
                 lua_pushboolean(lua, ch->can_warp());
@@ -2071,7 +2071,7 @@ namespace metin2::game {
         }
 
         auto pc_dec_skill_point(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (nullptr != ch) {
                 ch->point_change(POINT_SKILL, -1);
@@ -2081,7 +2081,7 @@ namespace metin2::game {
         }
 
         auto pc_get_skill_point(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (nullptr != ch) {
                 lua_pushnumber(lua, ch->point(POINT_SKILL));
@@ -2101,7 +2101,7 @@ namespace metin2::game {
         auto pc_give_poly_marble(lua_State *lua) -> int {
             const int vnum = lua_tonumber(lua, 1);
 
-            const mob *mob_info = mob_manager::instance().get(vnum);
+            const mob *mob_info = get_mob_manager().get(vnum);
 
             if (nullptr == mob_info) {
                 lua_pushboolean(lua, false);
@@ -2113,7 +2113,7 @@ namespace metin2::game {
                 return 1;
             }
 
-            item *item = item_manager::instance().create_item(mob_info->table.polymorph_item_vnum);
+            item *item = get_item_manager().create_item(mob_info->table.polymorph_item_vnum);
 
             if (nullptr == item) {
                 lua_pushboolean(lua, false);
@@ -2122,21 +2122,21 @@ namespace metin2::game {
 
             item->set_socket(0, vnum);
 
-            character *const ch = quest_manager::instance().current_character_ptr();
+            character *const ch = get_quest_manager().current_character_ptr();
 
             int empty_cell = ch->empty_inventory(item->size());
 
             if (-1 == empty_cell) {
-                item_manager::instance().destroy_item(item);
+                get_item_manager().destroy_item(item);
                 lua_pushboolean(lua, false);
                 return 1;
             }
 
             item->add_to_character(ch, item_pos(INVENTORY, empty_cell));
 
-            const pc *pc = quest_manager::instance().current_pc();
+            const pc *pc = get_quest_manager().current_pc();
 
-            log_manager::instance().quest_reward_log(pc->current_quest_name().c_str(), ch->player_id(), ch->level(), mob_info->table.polymorph_item_vnum, vnum);
+            get_log_manager().quest_reward_log(pc->current_quest_name().c_str(), ch->player_id(), ch->level(), mob_info->table.polymorph_item_vnum, vnum);
 
             lua_pushboolean(lua, true);
 
@@ -2145,7 +2145,7 @@ namespace metin2::game {
 
         auto pc_get_sig_items(lua_State *lua) -> int {
             auto group_vnum = (uint32_t)lua_tonumber(lua, 1);
-            character *const ch = quest_manager::instance().current_character_ptr();
+            character *const ch = get_quest_manager().current_character_ptr();
             int count = 0;
             for (int i = 0; i < INVENTORY_MAX_NUM; ++i) {
                 if (ch->inventory_item(i) != nullptr && ch->inventory_item(i)->sig_vnum() == group_vnum) {
@@ -2163,7 +2163,7 @@ namespace metin2::game {
             int amount = lua_isnumber(lua, 1) ? (int)lua_tonumber(lua, 1) : 0;
             std::string charge_type = lua_isstring(lua, 2) ? lua_tostring(lua, 2) : "";
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (nullptr == ch || nullptr == ch->get_desc() || 1 > amount || 50000 < amount) {
                 lua_pushboolean(lua, 0);
@@ -2188,7 +2188,7 @@ namespace metin2::game {
         }
 
         auto pc_give_award(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isstring(lua, 3)) {
                 quest::error("Invalid award arguments");
@@ -2202,7 +2202,7 @@ namespace metin2::game {
 
             metin2::log::info("Quest award: item (vnum {:d}) to account {}", vnum_value, ch->get_desc()->get_account_table().login);
 
-            db_manager::instance().query(sql::format("INSERT INTO item_award (login, vnum, count, given_time, why, mall)select {}, {}, {}, now(), {}, 1 from DUAL where not exists (select login, why from item_award where login = {} and why  = {}) ;",
+            get_db_manager().query(sql::format("INSERT INTO item_award (login, vnum, count, given_time, why, mall)select {}, {}, {}, now(), {}, 1 from DUAL where not exists (select login, why from item_award where login = {} and why  = {}) ;",
                 ch->get_desc()->get_account_table().login,
                 vnum_value,
                 icount,
@@ -2214,7 +2214,7 @@ namespace metin2::game {
             return 1;
         }
         auto pc_give_award_socket(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isstring(lua, 3) || !lua_isstring(lua, 4) || !lua_isstring(lua, 5) || !lua_isstring(lua, 6)) {
                 quest::error("Invalid award arguments");
@@ -2232,7 +2232,7 @@ namespace metin2::game {
             for (int i = 0; i < 3; ++i)
                 str_to_number(sockets[i], lua_tostring(lua, 4 + i));
 
-            db_manager::instance().query(sql::format("INSERT INTO item_award (login, vnum, count, given_time, why, mall, socket0, socket1, socket2)select {}, {}, {}, now(), {}, 1, {}, {}, {} from DUAL where not exists (select login, why from item_award where login = {} and why  = {}) ;",
+            get_db_manager().query(sql::format("INSERT INTO item_award (login, vnum, count, given_time, why, mall, socket0, socket1, socket2)select {}, {}, {}, now(), {}, 1, {}, {}, {} from DUAL where not exists (select login, why from item_award where login = {} and why  = {}) ;",
                 ch->get_desc()->get_account_table().login,
                 vnum_value,
                 icount,
@@ -2248,7 +2248,7 @@ namespace metin2::game {
         }
 
         auto pc_get_informer_type(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch != nullptr) {
                 lua_pushstring(lua, ch->item_award_cmd());
@@ -2259,7 +2259,7 @@ namespace metin2::game {
         }
 
         auto pc_get_informer_item(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch != nullptr) {
                 lua_pushnumber(lua, ch->item_award_vnum());
@@ -2270,11 +2270,11 @@ namespace metin2::game {
         }
 
         auto pc_get_killee_drop_pct(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             character *killee = ch->quest_npc();
 
             int delta_percent, rand_range;
-            if (nullptr == killee || !item_manager::instance().drop_pct(killee, ch, delta_percent, rand_range)) {
+            if (nullptr == killee || !get_item_manager().drop_pct(killee, ch, delta_percent, rand_range)) {
                 quest::error("No killed mob or no drop chance for player {}", ch->name());
                 lua_pushnumber(lua, -1);
                 lua_pushnumber(lua, -1);
@@ -2489,7 +2489,7 @@ namespace metin2::game {
                     {nullptr,                               nullptr                               }
             };
 
-            quest_manager::instance().add_lua_function_table("pc", pc_functions);
+            get_quest_manager().add_lua_function_table("pc", pc_functions);
         }
     };
 }

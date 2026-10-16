@@ -5,8 +5,6 @@
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/guilds/guild.h>
 
-#include <metin2/common/singleton.h>
-
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -140,10 +138,10 @@ namespace metin2::game::inline guilds {
         character_set set_chr_;
     };
 
-    class war_map_manager : public singleton<war_map_manager> {
+    class war_map_manager {
       public:
         war_map_manager();
-        ~war_map_manager() override;
+        ~war_map_manager();
 
         auto load_war_map_info(const char *file_name) -> bool;
         auto is_war_map(int32_t map_index) -> bool;
@@ -162,6 +160,11 @@ namespace metin2::game::inline guilds {
         std::map<int32_t, std::unique_ptr<war_map_info>> map_war_map_info_;
         std::map<int32_t, war_map *> war_map_;
     };
+
+    inline auto get_war_map_manager() -> war_map_manager & {
+        static war_map_manager instance;
+        return instance;
+    }
 
     template <typename Func>
     auto war_map_manager::for_each(Func f) -> Func {

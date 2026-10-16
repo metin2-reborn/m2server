@@ -103,7 +103,7 @@ namespace metin2::game::inline empire {
         priv_guild_[type][guild_id].value = value;
         priv_guild_[type][guild_id].end_time_sec = end_time_sec;
 
-        guild *g = guild_manager::instance().find_guild(guild_id);
+        guild *g = get_guild_manager().find_guild(guild_id);
 
         if (g) {
             if (value) {
@@ -117,7 +117,7 @@ namespace metin2::game::inline empire {
             }
 
             if (log) {
-                log_manager::instance().char_log(0, guild_id, type, value, "GUILD_PRIV", "", "");
+                get_log_manager().char_log(0, guild_id, type, value, "GUILD_PRIV", "", "");
             }
         }
     }
@@ -135,7 +135,7 @@ namespace metin2::game::inline empire {
         priv_char_[type][pid] = value;
 
         if (log)
-            log_manager::instance().char_log(pid, 0, type, value, "CHARACTER_PRIV", "", "");
+            get_log_manager().char_log(pid, 0, type, value, "CHARACTER_PRIV", "", "");
     }
 
     void priv_manager::give_empire_priv(uint8_t empire, uint8_t type, int value, uint8_t log, time_t end_time_sec) {
@@ -172,7 +172,7 @@ namespace metin2::game::inline empire {
         }
 
         if (log) {
-            log_manager::instance().char_log(0, empire, type, value, "EMPIRE_PRIV", "", "");
+            get_log_manager().char_log(0, empire, type, value, "EMPIRE_PRIV", "", "");
         }
     }
 

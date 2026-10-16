@@ -109,7 +109,7 @@ namespace metin2::game::inline items {
             metin2::log::error("Destroying item {} still owned by player {}", item_value->name(), item_value->owner()->name());
 
         item_value->set_destroy_event(nullptr);
-        item_manager::instance().destroy_item(item_value);
+        get_item_manager().destroy_item(item_value);
         return 0;
     }
 
@@ -236,12 +236,12 @@ namespace metin2::game::inline items {
                     }
                 }
 
-                item_manager::instance().destroy_item(this);
+                get_item_manager().destroy_item(this);
             } else {
                 if (!is_dragon_soul()) {
                     owner_->sync_quickslot(QUICKSLOT_TYPE_ITEM, cell_, 255);
                 }
-                item_manager::instance().destroy_item(remove_from_character());
+                get_item_manager().destroy_item(remove_from_character());
             }
 
             return false;
@@ -354,7 +354,7 @@ namespace metin2::game::inline items {
             return false;
         }
 
-        sectree *tree = sectree_manager::instance().get(map_index, pos.x, pos.y);
+        sectree *tree = get_sectree_manager().get(map_index, pos.x, pos.y);
 
         if (!tree) {
             metin2::log::error("No sectree at ({:d}, {:d}) on map {:d}", pos.x, pos.y, map_index);
@@ -494,7 +494,7 @@ namespace metin2::game::inline items {
                     if ((vnum_value = get_socket(i)) <= 2)
                         continue;
 
-                    item_table *p = item_manager::instance().table(vnum_value);
+                    item_table *p = get_item_manager().table(vnum_value);
 
                     if (!p) {
                         metin2::log::error("No item proto for socketed vnum {:d} in item {} (id {:d})", vnum_value, name(), id());
@@ -622,11 +622,11 @@ namespace metin2::game::inline items {
         case ITEM_UNIQUE:
             {
                 if (0 != sig_vnum()) {
-                    const special_item_group *item_group = item_manager::instance().get_special_item_group(sig_vnum());
+                    const special_item_group *item_group = get_item_manager().get_special_item_group(sig_vnum());
                     if (nullptr == item_group)
                         break;
                     uint32_t attr_vnum = item_group->attr_vnum(vnum());
-                    const special_attr_group *attr_group = item_manager::instance().get_special_attr_group(attr_vnum);
+                    const special_attr_group *attr_group = get_item_manager().get_special_attr_group(attr_vnum);
                     if (nullptr == attr_group)
                         break;
                     for (auto it = attr_group->attrs.begin(); it != attr_group->attrs.end(); it++) {
@@ -709,7 +709,7 @@ namespace metin2::game::inline items {
         owner_->set_immune_flag(immune_flag);
 
         if (is_dragon_soul()) {
-            ds_manager::instance().activate_dragon_soul(this);
+            get_ds_manager().activate_dragon_soul(this);
         } else {
             modify_points(true);
             start_unique_expire_event();
@@ -746,7 +746,7 @@ namespace metin2::game::inline items {
             clear_mount_attribute_and_affect();
 
         if (is_dragon_soul()) {
-            ds_manager::instance().deactivate_dragon_soul(this);
+            get_ds_manager().deactivate_dragon_soul(this);
         } else {
             modify_points(false);
         }
@@ -806,7 +806,7 @@ namespace metin2::game::inline items {
         if (skip_save_)
             return;
 
-        item_manager::instance().delayed_save(this);
+        get_item_manager().delayed_save(this);
     }
 
     void item::set_sockets(const int32_t *al) {
@@ -820,7 +820,7 @@ namespace metin2::game::inline items {
         update_packet();
         save();
         if (log)
-            log_manager::instance().item_log(i, v, 0, id(), "SET_SOCKET", "", "", original_vnum());
+            get_log_manager().item_log(i, v, 0, id(), "SET_SOCKET", "", "", original_vnum());
     }
 
     auto item::shop_buy_price() -> int {
@@ -966,7 +966,7 @@ namespace metin2::game::inline items {
     }
 
     auto item::refine_from_vnum() -> uint32_t {
-        return item_manager::instance().refine_from_vnum(vnum());
+        return get_item_manager().refine_from_vnum(vnum());
     }
 
     auto item::refine_level() -> int {
@@ -1007,7 +1007,7 @@ namespace metin2::game::inline items {
             if (item_value->get_socket(ITEM_SOCKET_UNIQUE_REMAIN_TIME) <= 1) {
                 metin2::log::info("Item: unique item {} (id {:d}) expired", item_value->name(), item_value->id());
                 item_value->set_unique_expire_event(nullptr);
-                item_manager::instance().remove_item(item_value, "UNIQUE_EXPIRE");
+                get_item_manager().remove_item(item_value, "UNIQUE_EXPIRE");
                 return 0;
             } else {
                 item_value->set_socket(ITEM_SOCKET_UNIQUE_REMAIN_TIME, item_value->get_socket(ITEM_SOCKET_UNIQUE_REMAIN_TIME) - 1);
@@ -1018,7 +1018,7 @@ namespace metin2::game::inline items {
 
             if (item_value->get_socket(ITEM_SOCKET_UNIQUE_REMAIN_TIME) <= cur) {
                 item_value->set_unique_expire_event(nullptr);
-                item_manager::instance().remove_item(item_value, "UNIQUE_EXPIRE");
+                get_item_manager().remove_item(item_value, "UNIQUE_EXPIRE");
                 return 0;
             } else {
                 if (item_value->get_socket(ITEM_SOCKET_UNIQUE_REMAIN_TIME) - cur < 600)
@@ -1045,9 +1045,9 @@ namespace metin2::game::inline items {
             item->set_socket(ITEM_SOCKET_REMAIN_SEC, 0);
 
             if (item->is_dragon_soul()) {
-                ds_manager::instance().deactivate_dragon_soul(item);
+                get_ds_manager().deactivate_dragon_soul(item);
             } else {
-                item_manager::instance().remove_item(item, "TIMER_BASED_ON_WEAR_EXPIRE");
+                get_item_manager().remove_item(item, "TIMER_BASED_ON_WEAR_EXPIRE");
             }
             return 0;
         }
@@ -1069,7 +1069,7 @@ namespace metin2::game::inline items {
         if (nullptr == info)
             return 0;
 
-        item *const item = item_manager::instance().find_by_vid(info->item_vid);
+        item *const item = get_item_manager().find_by_vid(info->item_vid);
 
         if (nullptr == item)
             return 0;
@@ -1077,7 +1077,7 @@ namespace metin2::game::inline items {
         const time_t current = get_global_time();
 
         if (current > item->get_socket(0)) {
-            item_manager::instance().remove_item(item, "REAL_TIME_EXPIRE");
+            get_item_manager().remove_item(item, "REAL_TIME_EXPIRE");
 
             return 0;
         }
@@ -1177,7 +1177,7 @@ namespace metin2::game::inline items {
         set_socket(ITEM_SOCKET_UNIQUE_SAVE_TIME, event_time(unique_expire_event_) / metin2::config::server().passes_per_sec);
         event_cancel(&unique_expire_event_);
 
-        item_manager::instance().save_single_item(this);
+        get_item_manager().save_single_item(this);
     }
 
     void item::stop_timer_based_on_wear_expire_event() {
@@ -1189,15 +1189,15 @@ namespace metin2::game::inline items {
         set_socket(ITEM_SOCKET_REMAIN_SEC, remain_time);
         event_cancel(&timer_based_on_wear_expire_event_);
 
-        item_manager::instance().save_single_item(this);
+        get_item_manager().save_single_item(this);
     }
 
     void item::apply_addon(int addon_type) {
-        item_addon_manager::instance().apply_addon_to(addon_type, this);
+        get_item_addon_manager().apply_addon_to(addon_type, this);
     }
 
     auto item::special_group() const -> int {
-        return item_manager::instance().special_group_from_item(vnum());
+        return get_item_manager().special_group_from_item(vnum());
     }
 
     auto item::is_accessory_for_socket() -> bool {
@@ -1232,7 +1232,7 @@ namespace metin2::game::inline items {
             return 0;
         }
 
-        item *item = item_manager::instance().find_by_vid(info->item_vid);
+        item *item = get_item_manager().find_by_vid(info->item_vid);
 
         if (item->accessory_socket_down_grade_time() <= 1) {
         degrade:
@@ -1491,7 +1491,7 @@ namespace metin2::game::inline items {
 
         for (int i = 0; i < ITEM_SOCKET_MAX_NUM; ++i) {
             if (sockets_[i]) {
-                log_manager::instance().item_log(i, sockets_[i], 0, id(), "INFO_SOCKET", "", ip ? ip : "", original_vnum());
+                get_log_manager().item_log(i, sockets_[i], 0, id(), "INFO_SOCKET", "", ip ? ip : "", original_vnum());
             }
         }
 
@@ -1500,7 +1500,7 @@ namespace metin2::game::inline items {
             int value = attr_[i].s_value;
 
             if (type)
-                log_manager::instance().item_log(i, type, value, id(), "INFO_ATTR", "", ip ? ip : "", original_vnum());
+                get_log_manager().item_log(i, type, value, id(), "INFO_ATTR", "", ip ? ip : "", original_vnum());
         }
     }
 
@@ -1529,7 +1529,7 @@ namespace metin2::game::inline items {
 
     auto item::give_more_time_per(float percent) -> int {
         if (is_dragon_soul()) {
-            uint32_t duration = ds_manager::instance().duration(this);
+            uint32_t duration = get_ds_manager().duration(this);
             int remain_sec = get_socket(ITEM_SOCKET_REMAIN_SEC);
             int given_time = percent * duration / 100;
             if (static_cast<uint32_t>(remain_sec) == duration)
@@ -1547,7 +1547,7 @@ namespace metin2::game::inline items {
 
     auto item::give_more_time_fix(uint32_t time) -> int {
         if (is_dragon_soul()) {
-            uint32_t duration = ds_manager::instance().duration(this);
+            uint32_t duration = get_ds_manager().duration(this);
             int remain_sec = get_socket(ITEM_SOCKET_REMAIN_SEC);
             if (static_cast<uint32_t>(remain_sec) == duration)
                 return false;

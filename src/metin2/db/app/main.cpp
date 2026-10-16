@@ -45,38 +45,38 @@ namespace metin2::db::inline app {
             ~core_cleanup() { thecore_destroy(); }
         } core_cleanup;
 
-        db_manager db_manager;
-        client_manager client_manager;
-        guild_manager guild_manager;
-        priv_manager priv_manager;
-        money_log money_log;
-        item_award_manager item_award_manager;
-        marriage::manager marriage_manager;
-        monarch monarch;
-        item_id_range_manager item_id_range_manager;
+        get_db_manager();
+        get_client_manager();
+        get_guild_manager();
+        get_priv_manager();
+        get_money_log();
+        get_item_award_manager();
+        marriage::get_manager();
+        get_monarch();
+        get_item_id_range_manager();
 
         if (!start()) {
             return 1;
         }
 
-        guild_manager.initialize();
-        marriage_manager.initialize();
-        item_id_range_manager.build();
+        get_guild_manager().initialize();
+        marriage::get_manager().initialize();
+        get_item_id_range_manager().build();
         metin2::log::info("Db cache server starting");
 
         if (!mark_server_ready()) return 1;
-        client_manager::instance().main_loop();
+        get_client_manager().main_loop();
 
         signal_timer_disable();
 
-        db_manager.quit();
+        get_db_manager().quit();
         int count;
 
         while (1) {
             count = 0;
 
-            count += db_manager::instance().return_stats(SQL_PLAYER).queued;
-            count += db_manager::instance().async_stats(SQL_PLAYER).queued;
+            count += get_db_manager().return_stats(SQL_PLAYER).queued;
+            count += get_db_manager().async_stats(SQL_PLAYER).queued;
 
             if (count == 0) {
                 break;
@@ -93,7 +93,7 @@ namespace metin2::db::inline app {
         const metin2::config::database_settings &database = metin2::config::database();
 
         for (int attempt = 1; attempt <= 6; ++attempt) {
-            if (db_manager::instance().connect(slot, database.host.c_str(), database.port, name.c_str(), database.user.c_str(), database.password.c_str())) {
+            if (get_db_manager().connect(slot, database.host.c_str(), database.port, name.c_str(), database.user.c_str(), database.password.c_str())) {
                 metin2::log::info("Connected to database {}", name);
                 return true;
             }
@@ -115,8 +115,8 @@ namespace metin2::db::inline app {
 
         signal_timer_enable(60);
 
-        client_manager::instance().set_cache_flush_count_limit(db.cache_flush_limit_per_second);
-        client_manager::instance().set_player_id_start(db.player_id_start);
+        get_client_manager().set_cache_flush_count_limit(db.cache_flush_limit_per_second);
+        get_client_manager().set_player_id_start(db.player_id_start);
         locale_name_column = db.name_column;
 
         const auto &database = metin2::config::database();
@@ -128,7 +128,7 @@ namespace metin2::db::inline app {
 
         metin2::log::info("Initialising client manager");
 
-        if (!client_manager::instance().initialize()) {
+        if (!get_client_manager().initialize()) {
             metin2::log::error("Client manager initialisation failed");
             return false;
         }

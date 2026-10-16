@@ -61,7 +61,7 @@ namespace metin2::game::inline characters {
         if (ch == nullptr) {
             return 0;
         }
-        character *attacker = character_manager::instance().find_by_pid(info->attacker_pid);
+        character *attacker = get_character_manager().find_by_pid(info->attacker_pid);
 
         int dam = ch->max_hp() * get_poison_damage_rate(ch) / 1000;
         if (metin2::config::test_server()) ch->chat_packet(CHAT_TYPE_NOTICE, "Poison Damage %d", dam);
@@ -104,7 +104,7 @@ namespace metin2::game::inline characters {
         if (ch == nullptr) {
             return 0;
         }
-        character *attacker = character_manager::instance().find_by_pid(info->attacker_pid);
+        character *attacker = get_character_manager().find_by_pid(info->attacker_pid);
 
         int dam = info->amount;
         if (metin2::config::test_server()) ch->chat_packet(CHAT_TYPE_NOTICE, "Fire Damage %d", dam);

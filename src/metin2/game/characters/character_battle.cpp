@@ -268,7 +268,7 @@ namespace metin2::game::inline characters {
 
         cube_close(this);
 
-        if (battle_arena::instance().is_battle_arena_map(map_index()) == true) {
+        if (get_battle_arena().is_battle_arena_map(map_index()) == true) {
             return;
         }
 
@@ -395,9 +395,9 @@ namespace metin2::game::inline characters {
         character *ch = nullptr;
 
         if (true == info->is_pc) {
-            ch = character_manager::instance().find_by_pid(info->id);
+            ch = get_character_manager().find_by_pid(info->id);
         } else {
-            ch = character_manager::instance().find(info->id);
+            ch = get_character_manager().find(info->id);
         }
 
         if (nullptr == ch) {
@@ -414,7 +414,7 @@ namespace metin2::game::inline characters {
 
             pixel_position pos;
 
-            if (sectree_manager::instance().recall_position_by_empire(ch->map_index(), ch->empire(), pos))
+            if (get_sectree_manager().recall_position_by_empire(ch->map_index(), ch->empire(), pos))
                 ch->warp_set(pos.x, pos.y);
             else {
                 metin2::log::error("Cannot find spawn position for {}", ch->name());
@@ -443,7 +443,7 @@ namespace metin2::game::inline characters {
                 }
             }
 
-            character_manager::instance().destroy_character(ch);
+            get_character_manager().destroy_character(ch);
         }
 
         return 0;
@@ -468,19 +468,19 @@ namespace metin2::game::inline characters {
         pixel_position pos;
 
         if (!is_auto_loot)
-            if (!sectree_manager::instance().movable_position(map_index(), x(), y(), pos))
+            if (!get_sectree_manager().movable_position(map_index(), x(), y(), pos))
                 return;
 
         int total_gold = 0;
         int gold_percent = mob_rank_stats[get_mob_rank()].gold_percent;
 
         if (attacker->is_pc())
-            gold_percent = gold_percent * (100 + priv_manager::instance().priv(attacker, PRIV_GOLD_DROP)) / 100;
+            gold_percent = gold_percent * (100 + get_priv_manager().priv(attacker, PRIV_GOLD_DROP)) / 100;
 
         if (attacker->point(POINT_MALL_GOLDBONUS))
             gold_percent += (gold_percent * attacker->point(POINT_MALL_GOLDBONUS) / 100);
 
-        gold_percent = gold_percent * character_manager::instance().mob_gold_drop_rate(attacker) / 100;
+        gold_percent = gold_percent * get_character_manager().mob_gold_drop_rate(attacker) / 100;
 
         if (attacker->premium_remain_seconds(PREMIUM_GOLD) > 0 ||
             attacker->is_equip_unique_group(UNIQUE_GROUP_LUCKY_GOLD))
@@ -511,12 +511,12 @@ namespace metin2::game::inline characters {
                 gold_multipler *= 2;
 
         if (metin2::config::test_server())
-            attacker->chat_packet(CHAT_TYPE_PARTY, "gold_mul %d rate %d", gold_multipler, character_manager::instance().mob_gold_amount_rate(attacker));
+            attacker->chat_packet(CHAT_TYPE_PARTY, "gold_mul %d rate %d", gold_multipler, get_character_manager().mob_gold_amount_rate(attacker));
 
         item *item;
 
         int gold10_drop_pct = 100;
-        gold10_drop_pct = (gold10_drop_pct * 100) / (100 + priv_manager::instance().priv(attacker, PRIV_GOLD10_DROP));
+        gold10_drop_pct = (gold10_drop_pct * 100) / (100 + get_priv_manager().priv(attacker, PRIV_GOLD10_DROP));
 
         if (get_mob_rank() >= MOB_RANK_BOSS && !is_stone() && get_mob_table().gold_max != 0) {
             if (1 == number(1, gold10_drop_pct))
@@ -528,7 +528,7 @@ namespace metin2::game::inline characters {
                 int gold = number(get_mob_table().gold_min, get_mob_table().gold_max) / split_count;
                 if (metin2::config::test_server())
                     metin2::log::debug("Gold drop: base amount {:d}", gold);
-                gold = gold * character_manager::instance().mob_gold_amount_rate(attacker) / 100;
+                gold = gold * get_character_manager().mob_gold_amount_rate(attacker) / 100;
                 gold *= gold_multipler;
 
                 if (gold == 0) {
@@ -536,11 +536,11 @@ namespace metin2::game::inline characters {
                 }
 
                 if (metin2::config::test_server()) {
-                    metin2::log::debug("Gold drop: rate {:d}%, multiplier {:d}", character_manager::instance().mob_gold_amount_rate(attacker), gold_multipler);
+                    metin2::log::debug("Gold drop: rate {:d}%, multiplier {:d}", get_character_manager().mob_gold_amount_rate(attacker), gold_multipler);
                     metin2::log::debug("Gold drop: {:d} (min {:d}, max {:d})", gold, get_mob_table().gold_min, get_mob_table().gold_max);
                 }
 
-                if ((item = item_manager::instance().create_item(1, gold))) {
+                if ((item = get_item_manager().create_item(1, gold))) {
                     pos.x = x() + ((number(-14, 14) + number(-14, 14)) * 23);
                     pos.y = y() + ((number(-14, 14) + number(-14, 14)) * 23);
 
@@ -553,14 +553,14 @@ namespace metin2::game::inline characters {
         } else if (1 == number(1, gold10_drop_pct)) {
             for (int i = 0; i < 10; ++i) {
                 int gold = number(get_mob_table().gold_min, get_mob_table().gold_max);
-                gold = gold * character_manager::instance().mob_gold_amount_rate(attacker) / 100;
+                gold = gold * get_character_manager().mob_gold_amount_rate(attacker) / 100;
                 gold *= gold_multipler;
 
                 if (gold == 0) {
                     continue;
                 }
 
-                if ((item = item_manager::instance().create_item(1, gold))) {
+                if ((item = get_item_manager().create_item(1, gold))) {
                     pos.x = x() + (number(-7, 7) * 20);
                     pos.y = y() + (number(-7, 7) * 20);
 
@@ -572,7 +572,7 @@ namespace metin2::game::inline characters {
             }
         } else {
             int gold = number(get_mob_table().gold_min, get_mob_table().gold_max);
-            gold = gold * character_manager::instance().mob_gold_amount_rate(attacker) / 100;
+            gold = gold * get_character_manager().mob_gold_amount_rate(attacker) / 100;
             gold *= gold_multipler;
 
             int split_count;
@@ -593,7 +593,7 @@ namespace metin2::game::inline characters {
                 for (int i = 0; i < split_count; ++i) {
                     if (is_auto_loot) {
                         attacker->give_gold(gold / split_count);
-                    } else if ((item = item_manager::instance().create_item(1, gold / split_count))) {
+                    } else if ((item = get_item_manager().create_item(1, gold / split_count))) {
                         pos.x = x() + (number(-7, 7) * 20);
                         pos.y = y() + (number(-7, 7) * 20);
 
@@ -604,26 +604,26 @@ namespace metin2::game::inline characters {
             }
         }
 
-        db_manager::instance().send_money_log(MONEY_LOG_MONSTER, race_num(), total_gold);
+        get_db_manager().send_money_log(MONEY_LOG_MONSTER, race_num(), total_gold);
     }
 
     void character::reward(bool item_drop) {
         if (race_num() == 5001) {
             pixel_position pos;
 
-            if (!sectree_manager::instance().movable_position(map_index(), x(), y(), pos))
+            if (!get_sectree_manager().movable_position(map_index(), x(), y(), pos))
                 return;
 
             item *item;
             int gold_value = number(get_mob_table().gold_min, get_mob_table().gold_max);
-            gold_value = gold_value * character_manager::instance().mob_gold_amount_rate(nullptr) / 100;
+            gold_value = gold_value * get_character_manager().mob_gold_amount_rate(nullptr) / 100;
             gold_value *= get_gold_multipler();
             int split_count = number(25, 35);
 
             metin2::log::debug("Waegu died: gold {:d} split into {:d}", gold_value, split_count);
 
             for (int i = 1; i <= split_count; ++i) {
-                if ((item = item_manager::instance().create_item(1, gold_value / split_count))) {
+                if ((item = get_item_manager().create_item(1, gold_value / split_count))) {
                     if (i != 0) {
                         pos.x = number(-7, 7) * 20;
                         pos.y = number(-7, 7) * 20;
@@ -656,8 +656,8 @@ namespace metin2::game::inline characters {
             }
 
             attacker->set_quest_npcid(get_vid());
-            quest::quest_manager::instance().kill(attacker->player_id(), race_num());
-            character_manager::instance().kill_log(race_num());
+            quest::get_quest_manager().kill(attacker->player_id(), race_num());
+            get_character_manager().kill_log(race_num());
 
             if (!number(0, 9)) {
                 if (attacker->point(POINT_KILL_HP_RECOVERY)) {
@@ -679,7 +679,7 @@ namespace metin2::game::inline characters {
 
         pixel_position pos = xyz();
 
-        if (!sectree_manager::instance().movable_position(map_index(), pos.x, pos.y, pos))
+        if (!get_sectree_manager().movable_position(map_index(), pos.x, pos.y, pos))
             return;
 
         if (metin2::config::test_server())
@@ -691,14 +691,14 @@ namespace metin2::game::inline characters {
         static std::vector<game::items::item *> s_vec_item;
         s_vec_item.clear();
 
-        if (item_manager::instance().create_drop_item(this, attacker, s_vec_item)) {
+        if (get_item_manager().create_drop_item(this, attacker, s_vec_item)) {
             if (s_vec_item.size() == 0)
                 ;
             else if (s_vec_item.size() == 1) {
                 item = s_vec_item[0];
                 item->add_to_ground(map_index(), pos);
 
-                if (battle_arena::instance().is_battle_arena_map(attacker->map_index()) == false) {
+                if (get_battle_arena().is_battle_arena_map(attacker->map_index()) == false) {
                     item->set_ownership(attacker);
                 }
 
@@ -720,7 +720,7 @@ namespace metin2::game::inline characters {
                 for (auto it = map_damage_.begin(); it != map_damage_.end(); ++it) {
                     int damage = it->second.total_damage;
                     if (damage > 0) {
-                        character *ch = character_manager::instance().find(it->first);
+                        character *ch = get_character_manager().find(it->first);
 
                         if (ch) {
                             pq.push(std::make_pair(damage, ch));
@@ -778,7 +778,7 @@ namespace metin2::game::inline characters {
                         if (it == v.end())
                             it = v.begin();
 
-                        if (battle_arena::instance().is_battle_arena_map(ch->map_index()) == false) {
+                        if (get_battle_arena().is_battle_arena_map(ch->map_index()) == false) {
                             item->set_ownership(ch);
                         }
 
@@ -825,7 +825,7 @@ namespace metin2::game::inline characters {
         if (level() < 50)
             return;
 
-        if (battle_arena::instance().is_battle_arena_map(map_index()) == true) {
+        if (get_battle_arena().is_battle_arena_map(map_index()) == true) {
             return;
         }
 
@@ -965,7 +965,7 @@ namespace metin2::game::inline characters {
                 item->start_destroy_event();
 
                 metin2::log::info("Item {} dropped at {:d} {:d} on death of {}", item->name(), pos.x, pos.y, name());
-                log_manager::instance().item_log(this, item, "DEAD_DROP", (window == INVENTORY) ? "INVENTORY" : ((window == EQUIPMENT) ? "EQUIPMENT" : ""));
+                get_log_manager().item_log(this, item, "DEAD_DROP", (window == INVENTORY) ? "INVENTORY" : ((window == EQUIPMENT) ? "EQUIPMENT" : ""));
 
                 pos.x = x() + number(-7, 7) * 20;
                 pos.y = y() + number(-7, 7) * 20;
@@ -990,7 +990,7 @@ namespace metin2::game::inline characters {
         }
 
         if (!killer && killer_pid_)
-            killer = character_manager::instance().find_by_pid(killer_pid_);
+            killer = get_character_manager().find_by_pid(killer_pid_);
 
         killer_pid_ = 0; // Must be reset here, or a later death is credited to this killer.
 
@@ -1006,8 +1006,8 @@ namespace metin2::game::inline characters {
             if (!is_pc() && killer->get_dungeon())
                 killer->get_dungeon()->inc_kill_count(killer, this);
 
-            is_agreed_pvp = pvp_manager::instance().dead(this, killer->player_id());
-            is_duel = arena_manager::instance().on_dead(killer, this);
+            is_agreed_pvp = get_pvp_manager().dead(this, killer->player_id());
+            is_duel = get_arena_manager().on_dead(killer, this);
 
             if (is_pc()) {
                 guild *g1 = get_guild();
@@ -1018,13 +1018,13 @@ namespace metin2::game::inline characters {
                         is_under_guild_war = true;
 
                 killer->set_quest_npcid(get_vid());
-                quest::quest_manager::instance().kill(killer->player_id(), quest::QUEST_NO_NPC);
-                guild_manager::instance().kill(killer, this);
+                quest::get_quest_manager().kill(killer->player_id(), quest::QUEST_NO_NPC);
+                get_guild_manager().kill(killer, this);
             }
         }
 
         if (is_pc()) {
-            if (three_way_war::instance().is_three_way_war_map_index(map_index()))
+            if (get_three_way_war().is_three_way_war_map_index(map_index()))
                 is_forked = true;
         }
 
@@ -1050,7 +1050,7 @@ namespace metin2::game::inline characters {
         }
 
         if (true == is_forked) {
-            three_way_war::instance().on_dead(this, killer);
+            get_three_way_war().on_dead(this, killer);
         }
 
         set_position(POS_DEAD);
@@ -1061,7 +1061,7 @@ namespace metin2::game::inline characters {
                 if (!is_forked) {
                     metin2::log::debug("{} ({}) died with penalty", name(), static_cast<const void *>(this));
                     set_bit(points_instant_.instant_flag, INSTANT_FLAG_DEATH_PENALTY);
-                    log_manager::instance().char_log(this, killer->race_num(), "DEAD_BY_NPC", killer->name());
+                    get_log_manager().char_log(this, killer->race_num(), "DEAD_BY_NPC", killer->name());
                 }
             } else {
                 metin2::log::debug("{} ({}) killed by player {} ({})", name(), static_cast<const void *>(this), killer->name(), static_cast<const void *>(killer));
@@ -1080,7 +1080,7 @@ namespace metin2::game::inline characters {
                         empire(), alignment(), pk_mode(), name(),
                         killer->empire(), killer->alignment(), killer->pk_mode(), killer->name());
 
-                    log_manager::instance().char_log(this, killer->player_id(), "DEAD_BY_PC", buf.c_str());
+                    get_log_manager().char_log(this, killer->player_id(), "DEAD_BY_PC", buf.c_str());
                 } else {
                     if (!is_agreed_pvp && !is_under_guild_war && !is_killer_mode() && alignment() >= 0 && !is_duel && !is_forked) {
                         int no_penalty_prob = 0;
@@ -1124,7 +1124,7 @@ namespace metin2::game::inline characters {
                         empire(), alignment(), pk_mode(), name(),
                         killer->empire(), killer->alignment(), killer->pk_mode(), killer->name());
 
-                    log_manager::instance().char_log(this, killer->player_id(), "DEAD_BY_PC", buf.c_str());
+                    get_log_manager().char_log(this, killer->player_id(), "DEAD_BY_PC", buf.c_str());
                 }
             }
         } else {
@@ -1144,7 +1144,7 @@ namespace metin2::game::inline characters {
             if (!is_set(points_instant_.instant_flag, INSTANT_FLAG_NO_REWARD)) {
                 if (!(killer && killer->is_pc() && killer->get_guild() && killer->get_guild()->under_any_war(GUILD_WAR_TYPE_FIELD))) {
                     if (get_mob_table().resurrection_vnum) {
-                        character *ch_resurrect = character_manager::instance().spawn_mob(get_mob_table().resurrection_vnum, map_index(), x(), y(), z(), true, (int)rotation());
+                        character *ch_resurrect = get_character_manager().spawn_mob(get_mob_table().resurrection_vnum, map_index(), x(), y(), z(), true, (int)rotation());
                         if (get_dungeon() && ch_resurrect) {
                             ch_resurrect->set_dungeon(get_dungeon());
                         }
@@ -1167,9 +1167,9 @@ namespace metin2::game::inline characters {
         if (get_mob_rank() >= MOB_RANK_BOSS && killer && killer->is_pc()) {
             const std::string buf = std::format("{} {}", metin2::config::server().channel, killer->map_index());
             if (is_stone())
-                log_manager::instance().char_log(killer, race_num(), "STONE_KILL", buf.c_str());
+                get_log_manager().char_log(killer, race_num(), "STONE_KILL", buf.c_str());
             else
-                log_manager::instance().char_log(killer, race_num(), "BOSS_KILL", buf.c_str());
+                get_log_manager().char_log(killer, race_num(), "BOSS_KILL", buf.c_str());
         }
 
         packet_gc_dead pack;
@@ -1228,13 +1228,13 @@ namespace metin2::game::inline characters {
             cube_close(this);
         }
 
-        shop_manager::instance().stop_shopping(this);
+        get_shop_manager().stop_shopping(this);
         close_my_shop();
         close_safebox();
 
         if (true == is_monster() && 2493 == get_mob_table().vnum) {
             if (nullptr != killer && nullptr != killer->get_guild()) {
-                dragon_lair_manager::instance().on_dragon_dead(this, killer->get_guild()->id());
+                get_dragon_lair_manager().on_dragon_dead(this, killer->get_guild()->id());
             } else {
                 metin2::log::error("Dragon lair: dragon died without a killer");
             }
@@ -1303,7 +1303,7 @@ namespace metin2::game::inline characters {
                     pixel_position pos;
                     item *item;
 
-                    if ((item = item_manager::instance().create_item(1, gold_value / split_count))) {
+                    if ((item = get_item_manager().create_item(1, gold_value / split_count))) {
                         if (i != 0) {
                             pos.x = (number(-14, 14) + number(-14, 14)) * 20;
                             pos.y = (number(-14, 14) + number(-14, 14)) * 20;
@@ -1377,7 +1377,7 @@ namespace metin2::game::inline characters {
 
                 if (penetrate_pct) {
                     {
-                        skill_proto *sk = skill_manager::instance().get(SKILL_RESIST_PENETRATE);
+                        skill_proto *sk = get_skill_manager().get(SKILL_RESIST_PENETRATE);
 
                         if (nullptr != sk) {
                             sk->set_point_var("k", 1.0f * skill_power(SKILL_RESIST_PENETRATE) / 100.0f);
@@ -1473,7 +1473,7 @@ namespace metin2::game::inline characters {
                     penetrate_pct += attacker->marriage_bonus(UNIQUE_ITEM_MARRIAGE_PENETRATE_BONUS);
 
                 {
-                    skill_proto *sk = skill_manager::instance().get(SKILL_RESIST_PENETRATE);
+                    skill_proto *sk = get_skill_manager().get(SKILL_RESIST_PENETRATE);
 
                     if (nullptr != sk) {
                         sk->set_point_var("k", 1.0f * skill_power(SKILL_RESIST_PENETRATE) / 100.0f);
@@ -1536,7 +1536,7 @@ namespace metin2::game::inline characters {
                     if (prob(attacker->point(POINT_STEAL_GOLD))) {
                         int amount = number(1, level());
                         attacker->point_change(POINT_GOLD, amount);
-                        db_manager::instance().send_money_log(MONEY_LOG_MISC, 1, amount);
+                        get_db_manager().send_money_log(MONEY_LOG_MISC, 1, amount);
                     }
                 }
 
@@ -1619,12 +1619,12 @@ namespace metin2::game::inline characters {
 
             int empire_value = empire();
             int32_t map_index_value = map_index();
-            int map_empire = sectree_manager::instance().empire_from_map_index(map_index_value);
+            int map_empire = get_sectree_manager().empire_from_map_index(map_index_value);
 
             if (attacker->is_pc()) {
                 empire_value = attacker->empire();
                 map_index_value = attacker->map_index();
-                map_empire = sectree_manager::instance().empire_from_map_index(map_index_value);
+                map_empire = get_sectree_manager().empire_from_map_index(map_index_value);
 
                 if (empire_value && map_empire && empire_value != map_empire) {
                     int percent = 10;
@@ -1655,11 +1655,11 @@ namespace metin2::game::inline characters {
                 return true;
             }
 
-            if (attacker->is_pc() && monarch::instance().is_power_up(attacker->empire())) {
+            if (attacker->is_pc() && get_monarch().is_power_up(attacker->empire())) {
                 dam += dam / 10;
             }
 
-            if (is_pc() && monarch::instance().is_defence_up(empire())) {
+            if (is_pc() && get_monarch().is_defence_up(empire())) {
                 dam -= dam / 10;
             }
         }
@@ -1798,7 +1798,7 @@ namespace metin2::game::inline characters {
 
         int base_exp = exp;
 
-        exp = exp * (100 + priv_manager::instance().priv(to, PRIV_EXP_PCT)) / 100;
+        exp = exp * (100 + get_priv_manager().priv(to, PRIV_EXP_PCT)) / 100;
 
         {
             if (to->is_equip_unique_item(UNIQUE_ITEM_LARBOR_MEDAL))
@@ -1858,12 +1858,12 @@ namespace metin2::game::inline characters {
                 to->point(POINT_EXP));
         }
 
-        exp = exp * character_manager::instance().mob_exp_rate(to) / 100;
+        exp = exp * get_character_manager().mob_exp_rate(to) / 100;
 
         exp = std::min<int>(to->next_exp() / 10, exp);
 
         if (metin2::config::test_server()) {
-            if (quest::quest_manager::instance().event_flag("exp_bonus_log") && base_exp > 0)
+            if (quest::get_quest_manager().event_flag("exp_bonus_log") && base_exp > 0)
                 to->chat_packet(CHAT_TYPE_INFO, "exp bonus %d%%", (exp - base_exp) * 100 / base_exp);
         }
 
@@ -1881,7 +1881,7 @@ namespace metin2::game::inline characters {
                     you->premium_remain_seconds(PREMIUM_MARRIAGE_FAST) > 0)
                     update_point = (uint32_t)(update_point * 3);
 
-                marriage::marriage *marriage = marriage::manager::instance().get(to->player_id());
+                marriage::marriage *marriage = marriage::get_manager().get(to->player_id());
 
                 if (marriage && marriage->is_near())
                     marriage->update(update_point);
@@ -1920,7 +1920,7 @@ namespace metin2::game::inline characters {
                     exp = exp * (100 + party->exp_bonus_percent()) / 100;
 
                 if (metin2::config::test_server()) {
-                    if (quest::quest_manager::instance().event_flag("exp_bonus_log") && party->exp_bonus_percent())
+                    if (quest::get_quest_manager().event_flag("exp_bonus_log") && party->exp_bonus_percent())
                         party->chat_packet_to_all_member(CHAT_TYPE_INFO, "exp party bonus %d%%", party->exp_bonus_percent());
                 }
 
@@ -1990,7 +1990,7 @@ namespace metin2::game::inline characters {
 
             ++it;
 
-            character *attacker = character_manager::instance().find(vid);
+            character *attacker = get_character_manager().find(vid);
 
             if (!attacker || attacker->is_npc() || distance_approx(x() - attacker->x(), y() - attacker->y()) > 5000)
                 continue;
@@ -2152,7 +2152,7 @@ namespace metin2::game::inline characters {
                 skill_use_info_[type].set_main_target_vid(target_vid);
             }
 
-            character *victim = character_manager::instance().find(target_vid);
+            character *victim = get_character_manager().find(target_vid);
 
             if (!victim)
                 return;
@@ -2389,7 +2389,7 @@ namespace metin2::game::inline characters {
     }
 
     void character::fly_target(uint32_t target_vid_value, int32_t x, int32_t y, uint8_t header_value) {
-        character *victim = character_manager::instance().find(target_vid_value);
+        character *victim = get_character_manager().find(target_vid_value);
         packet_gc_fly_targeting pack;
 
         pack.header = (header_value == HEADER_CG_FLY_TARGETING) ? HEADER_GC_FLY_TARGETING : HEADER_GC_ADD_FLY_TARGETING;
@@ -2427,7 +2427,7 @@ namespace metin2::game::inline characters {
             const vid &vid = it->first;
             ++it;
 
-            character *attacker = character_manager::instance().find(vid);
+            character *attacker = get_character_manager().find(vid);
 
             if (!attacker)
                 continue;
@@ -2465,7 +2465,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character::victim() const -> character * {
-        return character_manager::instance().find(vid_victim);
+        return get_character_manager().find(vid_victim);
     }
 
     auto character::protege() const -> character * {
@@ -2736,7 +2736,7 @@ namespace metin2::game::inline characters {
 
             for (it = map_damage_.begin(); it != map_damage_.end(); ++it) {
                 if (it->second.aggro > new_aggro) {
-                    character *ch = character_manager::instance().find(it->first);
+                    character *ch = get_character_manager().find(it->first);
 
                     if (ch && !ch->is_dead() && distance_approx(ch->x() - x(), ch->y() - y()) < 5000) {
                         find = it;
@@ -2747,7 +2747,7 @@ namespace metin2::game::inline characters {
 
             if (find != map_damage_.end()) {
                 max_aggro_ = new_aggro;
-                set_victim(character_manager::instance().find(find->first));
+                set_victim(get_character_manager().find(find->first));
                 state_duration_ = 1;
             }
         } else {

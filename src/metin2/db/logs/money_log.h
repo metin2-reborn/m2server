@@ -1,6 +1,5 @@
 #pragma once
 
-#include <metin2/common/singleton.h>
 #include <metin2/proto/log_types.h>
 
 #include <cstdint>
@@ -8,7 +7,7 @@
 
 namespace metin2::db::inline logs {
 
-    class money_log : public singleton<money_log> {
+    class money_log {
       public:
         money_log();
 
@@ -18,4 +17,9 @@ namespace metin2::db::inline logs {
       private:
         std::map<uint32_t, int> money_log_container_[MONEY_LOG_TYPE_MAX_NUM];
     };
+
+    inline auto get_money_log() -> money_log & {
+        static money_log instance;
+        return instance;
+    }
 }

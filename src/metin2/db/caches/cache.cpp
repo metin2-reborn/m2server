@@ -43,7 +43,7 @@ namespace metin2::db::inline caches {
         if (data_.vnum == 0) {
             const auto query = sql::format("DELETE FROM item WHERE id={}", data_.id);
 
-            db_manager::instance().return_query(query, [](sql_msg &) {});
+            get_db_manager().return_query(query, [](sql_msg &) {});
 
             if (metin2::config::test_server()) {
                 metin2::log::debug("Item cache: deleting item {:d}: {}", data_.id, query);
@@ -55,7 +55,7 @@ namespace metin2::db::inline caches {
                 metin2::log::debug("Item cache: saving item: {}", query);
             }
 
-            db_manager::instance().return_query(query, [](sql_msg &) {});
+            get_db_manager().return_query(query, [](sql_msg &) {});
 
             ++item_count;
         }
@@ -74,7 +74,7 @@ namespace metin2::db::inline caches {
 
         const auto query = create_player_save_query(&data_);
 
-        db_manager::instance().return_query(query, [](sql_msg &) -> void {});
+        get_db_manager().return_query(query, [](sql_msg &) -> void {});
     }
 
     const int item_price_list_table_cache::min_flush_sec_ = 1800;
@@ -131,13 +131,13 @@ namespace metin2::db::inline caches {
 
     void item_price_list_table_cache::on_flush() {
         const auto query = sql::format("DELETE FROM myshop_pricelist WHERE owner_id = {}", data_.owner_id);
-        db_manager::instance().return_query(query, [](sql_msg &) {});
+        get_db_manager().return_query(query, [](sql_msg &) {});
 
         for (int idx = 0; idx < data_.count; ++idx) {
             const auto replace_query = sql::format(
                 "REPLACE myshop_pricelist (owner_id, item_vnum, price) VALUES({}, {}, {})", data_.owner_id, data_.price_info[idx].vnum, data_.price_info[idx].price);
 
-            db_manager::instance().return_query(replace_query, [](sql_msg &) -> void {});
+            get_db_manager().return_query(replace_query, [](sql_msg &) -> void {});
         }
 
         metin2::log::debug("Price list: saving {1:d} items for owner pid {0:d}", data_.owner_id, data_.count);

@@ -21,7 +21,7 @@ namespace metin2::db::inline clients {
         metin2::log::info("Guild: created guild {:d}", guild_id);
         forward_packet(HEADER_DG_GUILD_LOAD, &guild_id, sizeof(uint32_t));
 
-        guild_manager::instance().load(guild_id);
+        get_guild_manager().load(guild_id);
     }
 
     void client_manager::guild_change_grade(peer *peer, packet_guild *p) {
@@ -31,18 +31,18 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::guild_add_member(peer *peer, packet_gd_guild_add_member *p) {
-        guild_manager::instance().touch_guild(p->guild);
+        get_guild_manager().touch_guild(p->guild);
         metin2::log::info("Guild: guild {:d} added member pid {:d}", p->guild, p->pid);
 
         const std::string insert_query = sql::format(
             "INSERT INTO guild_member VALUES({}, {}, {}, 0, 0)", p->pid, p->guild, p->grade);
 
-        auto pmsg_insert = db_manager::instance().direct_query(insert_query);
+        auto pmsg_insert = get_db_manager().direct_query(insert_query);
 
         const std::string query = sql::format(
             "SELECT pid, grade, is_general, offer, level, job, name FROM guild_member, player WHERE guild_id = {0} and pid = id and pid = {1}", p->guild, p->pid);
 
-        auto pmsg = db_manager::instance().direct_query(query);
+        auto pmsg = get_db_manager().direct_query(query);
 
         if (pmsg->get()->num_rows == 0) {
             metin2::log::error("Guild: cannot load guild member data: {}", pmsg->query);
@@ -72,9 +72,9 @@ namespace metin2::db::inline clients {
     void client_manager::guild_remove_member(peer *peer, packet_guild *p) {
         metin2::log::info("Guild: guild {:d} removed member pid {:d}", p->guild, p->info);
 
-        db_manager::instance().async_query(sql::format("DELETE FROM guild_member WHERE pid={} and guild_id={}", p->info, p->guild));
+        get_db_manager().async_query(sql::format("DELETE FROM guild_member WHERE pid={} and guild_id={}", p->info, p->guild));
 
-        db_manager::instance().async_query(sql::format("REPLACE INTO quest (dwPID, szName, szState, lValue) VALUES({}, 'guild_manage', 'withdraw_time', {})", p->info, (uint32_t)current_time()));
+        get_db_manager().async_query(sql::format("REPLACE INTO quest (dwPID, szName, szState, lValue) VALUES({}, 'guild_manage', 'withdraw_time', {})", p->info, (uint32_t)current_time()));
 
         forward_packet(HEADER_DG_GUILD_REMOVE_MEMBER, p, sizeof(packet_guild));
     }
@@ -97,15 +97,15 @@ namespace metin2::db::inline clients {
     void client_manager::guild_disband(peer *peer, packet_guild *p) {
         metin2::log::info("Guild: disbanded guild {:d}", p->guild);
 
-        db_manager::instance().async_query(sql::format("DELETE FROM guild WHERE id={}", p->guild));
+        get_db_manager().async_query(sql::format("DELETE FROM guild WHERE id={}", p->guild));
 
-        db_manager::instance().async_query(sql::format("DELETE FROM guild_grade WHERE guild_id={}", p->guild));
+        get_db_manager().async_query(sql::format("DELETE FROM guild_grade WHERE guild_id={}", p->guild));
 
-        db_manager::instance().async_query(sql::format("REPLACE INTO quest (dwPID, szName, szState, lValue) SELECT pid, 'guild_manage', 'withdraw_time', {0} FROM guild_member WHERE guild_id = {1}", (uint32_t)current_time(), p->guild));
+        get_db_manager().async_query(sql::format("REPLACE INTO quest (dwPID, szName, szState, lValue) SELECT pid, 'guild_manage', 'withdraw_time', {0} FROM guild_member WHERE guild_id = {1}", (uint32_t)current_time(), p->guild));
 
-        db_manager::instance().async_query(sql::format("DELETE FROM guild_member WHERE guild_id={}", p->guild));
+        get_db_manager().async_query(sql::format("DELETE FROM guild_member WHERE guild_id={}", p->guild));
 
-        db_manager::instance().async_query(sql::format("DELETE FROM guild_comment WHERE guild_id={}", p->guild));
+        get_db_manager().async_query(sql::format("DELETE FROM guild_comment WHERE guild_id={}", p->guild));
 
         forward_packet(HEADER_DG_GUILD_DISBAND, p, sizeof(packet_guild));
     }
@@ -123,12 +123,12 @@ namespace metin2::db::inline clients {
         switch (p->war) {
         case GUILD_WAR_SEND_DECLARE:
             metin2::log::info("Guild war (type {}): declared by guild {:d} on guild {:d}", get_war_type(p->type), p->guild_from, p->guild_to);
-            guild_manager::instance().add_declare(p->type, p->guild_from, p->guild_to);
+            get_guild_manager().add_declare(p->type, p->guild_from, p->guild_to);
             break;
 
         case GUILD_WAR_REFUSE:
             metin2::log::info("Guild war (type {}): between guild {:d} and guild {:d} refused", get_war_type(p->type), p->guild_from, p->guild_to);
-            guild_manager::instance().remove_declare(p->guild_from, p->guild_to);
+            get_guild_manager().remove_declare(p->guild_from, p->guild_to);
             break;
 
         case GUILD_WAR_WAIT_START:
@@ -137,9 +137,9 @@ namespace metin2::db::inline clients {
         case GUILD_WAR_RESERVE:
             if (p->war != GUILD_WAR_WAIT_START)
                 metin2::log::info("Guild war (type {}): between guild {:d} and guild {:d} reserved", get_war_type(p->type), p->guild_from, p->guild_to);
-            guild_manager::instance().remove_declare(p->guild_from, p->guild_to);
+            get_guild_manager().remove_declare(p->guild_from, p->guild_to);
 
-            if (!guild_manager::instance().reserve_war(p)) {
+            if (!get_guild_manager().reserve_war(p)) {
                 p->war = GUILD_WAR_CANCEL;
             } else {
                 p->war = GUILD_WAR_RESERVE;
@@ -149,23 +149,23 @@ namespace metin2::db::inline clients {
 
         case GUILD_WAR_ON_WAR:
             metin2::log::info("Guild war (type {}): between guild {:d} and guild {:d} started", get_war_type(p->type), p->guild_from, p->guild_to);
-            guild_manager::instance().remove_declare(p->guild_from, p->guild_to);
-            guild_manager::instance().start_war(p->type, p->guild_from, p->guild_to);
+            get_guild_manager().remove_declare(p->guild_from, p->guild_to);
+            get_guild_manager().start_war(p->type, p->guild_from, p->guild_to);
             break;
 
         case GUILD_WAR_OVER:
             metin2::log::info("Guild war (type {}): between guild {:d} and guild {:d} is over", get_war_type(p->type), p->guild_from, p->guild_to);
-            guild_manager::instance().recv_war_over(p->guild_from, p->guild_to, p->type, p->war_price);
+            get_guild_manager().recv_war_over(p->guild_from, p->guild_to, p->type, p->war_price);
             break;
 
         case GUILD_WAR_END:
             metin2::log::info("Guild war (type {}): between guild {:d} and guild {:d} ended", get_war_type(p->type), p->guild_from, p->guild_to);
-            guild_manager::instance().recv_war_end(p->guild_from, p->guild_to);
+            get_guild_manager().recv_war_end(p->guild_from, p->guild_to);
             return; // recv_war_end already broadcasts the packet.
 
         case GUILD_WAR_CANCEL:
             metin2::log::info("Guild war (type {}): between guild {:d} and guild {:d} cancelled", get_war_type(p->type), p->guild_from, p->guild_to);
-            guild_manager::instance().cancel_war(p->guild_from, p->guild_to);
+            get_guild_manager().cancel_war(p->guild_from, p->guild_to);
             break;
         }
 
@@ -173,17 +173,17 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::guild_war_score(peer *peer, packet_guild_war_score *p) {
-        guild_manager::instance().update_score(p->guild_gain_point, p->guild_opponent, p->score, p->bet_score);
+        get_guild_manager().update_score(p->guild_gain_point, p->guild_opponent, p->score, p->bet_score);
     }
 
     void client_manager::guild_change_ladder_point(packet_guild_ladder_point *p) {
         metin2::log::debug("Guild: guild {:d} ladder points changed by {:d}", p->guild, p->change);
-        guild_manager::instance().change_ladder_point(p->guild, p->change);
+        get_guild_manager().change_ladder_point(p->guild, p->change);
     }
 
     void client_manager::guild_use_skill(packet_guild_use_skill *p) {
         metin2::log::debug("Guild: guild {:d} used skill {:d}", p->guild, p->skill_vnum);
-        guild_manager::instance().use_skill(p->guild, p->skill_vnum, p->cooltime);
+        get_guild_manager().use_skill(p->guild, p->skill_vnum, p->cooltime);
         send_guild_skill_usable(p->guild, p->skill_vnum, false);
     }
 
@@ -200,7 +200,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::guild_change_master(packet_change_guild_master *p) {
-        if (guild_manager::instance().change_master(p->guild_id, p->id_from, p->id_to) == true) {
+        if (get_guild_manager().change_master(p->guild_id, p->id_from, p->id_to) == true) {
             packet_change_guild_master packet;
             packet.guild_id = p->guild_id;
             packet.id_from = 0;

@@ -19,7 +19,7 @@ namespace metin2::game {
 
     namespace quest {
         auto game_set_event_flag(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             if (lua_isstring(lua, 1) && lua_isnumber(lua, 2))
                 q.request_set_event_flag(lua_tostring(lua, 1), (int)lua_tonumber(lua, 2));
@@ -28,7 +28,7 @@ namespace metin2::game {
         }
 
         auto game_get_event_flag(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             if (lua_isstring(lua, 1))
                 lua_pushnumber(lua, q.event_flag(lua_tostring(lua, 1)));
@@ -39,7 +39,7 @@ namespace metin2::game {
         }
 
         auto game_request_make_guild(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *ch = q.current_character_ptr();
             desc *d = ch->get_desc();
             if (d) {
@@ -59,13 +59,13 @@ namespace metin2::game {
         }
 
         auto game_get_safebox_level(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             lua_pushnumber(lua, q.current_character_ptr()->safebox_size() / SAFEBOX_PAGE_SIZE);
             return 1;
         }
 
         auto game_set_safebox_level(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             safebox_change_size_packet p;
             p.id = q.current_character_ptr()->get_desc()->get_account_table().id;
@@ -77,7 +77,7 @@ namespace metin2::game {
         }
 
         auto game_open_safebox(lua_State *) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *ch = q.current_character_ptr();
             ch->set_safebox_open_position();
             ch->chat_packet(CHAT_TYPE_COMMAND, "ShowMeSafeboxPassword");
@@ -85,7 +85,7 @@ namespace metin2::game {
         }
 
         auto game_open_mall(lua_State *) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *ch = q.current_character_ptr();
             ch->set_safebox_open_position();
             ch->chat_packet(CHAT_TYPE_COMMAND, "ShowMeMallPassword");
@@ -93,14 +93,14 @@ namespace metin2::game {
         }
 
         auto game_drop_item(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             auto item_vnum = (uint32_t)lua_tonumber(lua, 1);
             int count = (int)lua_tonumber(lua, 2);
             int32_t x = ch->x();
             int32_t y = ch->y();
 
-            item *item = item_manager::instance().create_item(item_vnum, count);
+            item *item = get_item_manager().create_item(item_vnum, count);
 
             if (!item) {
                 quest::error("Cannot create item (vnum {:d}, count {:d})", item_vnum, count);
@@ -118,16 +118,16 @@ namespace metin2::game {
         }
 
         auto game_drop_item_with_ownership(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             item *item = nullptr;
             switch (lua_gettop(lua)) {
             case 1:
-                item = item_manager::instance().create_item((uint32_t)lua_tonumber(lua, 1));
+                item = get_item_manager().create_item((uint32_t)lua_tonumber(lua, 1));
                 break;
             case 2:
             case 3:
-                item = item_manager::instance().create_item((uint32_t)lua_tonumber(lua, 1), (int)lua_tonumber(lua, 2));
+                item = get_item_manager().create_item((uint32_t)lua_tonumber(lua, 1), (int)lua_tonumber(lua, 2));
                 break;
             default:
                 return 0;
@@ -158,7 +158,7 @@ namespace metin2::game {
         }
 
         auto game_web_mall(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch != nullptr) {
                 do_in_game_mall(ch, const_cast<char *>(""), 0, 0);
@@ -183,7 +183,7 @@ namespace metin2::game {
                     {nullptr,                    nullptr                      }
             };
 
-            quest_manager::instance().add_lua_function_table("game", game_functions);
+            get_quest_manager().add_lua_function_table("game", game_functions);
         }
     }
 }

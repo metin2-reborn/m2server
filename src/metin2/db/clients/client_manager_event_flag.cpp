@@ -17,7 +17,7 @@
 namespace metin2::db::inline clients {
     void client_manager::load_event_flag() {
         const std::string query = sql::format("SELECT szName, lValue FROM quest WHERE dwPID = 0");
-        auto pmsg = db_manager::instance().direct_query(query);
+        auto pmsg = get_db_manager().direct_query(query);
 
         sql_result *res = pmsg->get();
         if (res->num_rows) {
@@ -51,7 +51,7 @@ namespace metin2::db::inline clients {
             const std::string query = sql::format(
                 "REPLACE INTO quest (dwPID, szName, szState, lValue) VALUES(0, {}, '', {})", p->flag_name, p->value);
 
-            db_manager::instance().async_query(query);
+            get_db_manager().async_query(query);
             metin2::log::info("Event flag: set {} = {:d}", p->flag_name, p->value);
             return;
         }

@@ -458,7 +458,7 @@ namespace metin2::game::inline items {
                         dragon_soul_names_[i], ast_grade_name[j]);
                     return false;
                 }
-                if (0 != by_product && nullptr == item_manager::instance().table(by_product)) {
+                if (0 != by_product && nullptr == get_item_manager().table(by_product)) {
                     metin2::log::error("DragonSoulExtTables: group {} has unknown by-product {:d} for grade {}",
                         dragon_soul_names_[i], by_product, ast_grade_name[j]);
                     return false;

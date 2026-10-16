@@ -4,7 +4,6 @@
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/protocol/packet.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/proto/limits.h>
 
 #include <cstdint>
@@ -25,10 +24,10 @@ namespace metin2::game::inline protocol {
         game::protocol::desc *desc;
     };
 
-    class p2p_manager : public singleton<p2p_manager> {
+    class p2p_manager {
       public:
         p2p_manager();
-        ~p2p_manager() override;
+        ~p2p_manager();
 
         void register_acceptor(desc *d);
         void unregister_acceptor(desc *d);
@@ -67,4 +66,9 @@ namespace metin2::game::inline protocol {
         pidcci_map map_pid_pk_cci_;
         int empire_user_count_[EMPIRE_MAX_NUM];
     };
+
+    inline auto get_p2p_manager() -> p2p_manager & {
+        static p2p_manager instance;
+        return instance;
+    }
 }

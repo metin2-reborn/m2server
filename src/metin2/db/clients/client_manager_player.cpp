@@ -203,7 +203,7 @@ namespace metin2::db::inline clients {
 
     void client_manager::query_player_load(peer *peer, uint32_t handle_value, player_load_packet *packet) {
         auto return_composite_query = [this, peer_handle = peer->handle()](std::string_view query, uint32_t qid, std::unique_ptr<client_handle_info> info) {
-            db_manager::instance().return_query(query, [this, peer_handle, qid, info = std::move(info)](sql_msg &msg) {
+            get_db_manager().return_query(query, [this, peer_handle, qid, info = std::move(info)](sql_msg &msg) {
                 if (auto *peer_value = get_peer(peer_handle))
                     result_composite_player(peer_value, msg, qid, *info);
             });
@@ -326,7 +326,7 @@ namespace metin2::db::inline clients {
     void client_manager::item_award(peer *peer, char *login) {
         std::string login_t = login;
 
-        auto *set = item_award_manager::instance().by_login(login_t.c_str());
+        auto *set = get_item_award_manager().by_login(login_t.c_str());
         if (set == nullptr) {
             return;
         }
@@ -644,7 +644,7 @@ namespace metin2::db::inline clients {
         std::string query = sql::format(
             "SELECT pid{} FROM player_index WHERE id={}", packet->account_index + 1, packet->account_id);
 
-        auto msg0 = db_manager::instance().direct_query(query);
+        auto msg0 = get_db_manager().direct_query(query);
 
         if (msg0->get()->num_rows != 0) {
             if (!msg0->get()->res.get()) {
@@ -669,7 +669,7 @@ namespace metin2::db::inline clients {
         query = sql::format(
             "SELECT COUNT(*) as count FROM player WHERE name={}", packet->player_table.name);
 
-        auto msg1 = db_manager::instance().direct_query(query);
+        auto msg1 = get_db_manager().direct_query(query);
 
         if (msg1->get()->num_rows) {
             if (!msg1->get()->res.get()) {
@@ -714,7 +714,7 @@ namespace metin2::db::inline clients {
             packet->player_table.ht,
             packet->player_table.job);
 
-        auto msg2 = db_manager::instance().direct_query(query);
+        auto msg2 = get_db_manager().direct_query(query);
         if (metin2::config::test_server()) {
             metin2::log::debug("Player create: query length {:d}", query.size());
         }
@@ -728,13 +728,13 @@ namespace metin2::db::inline clients {
         player_id = msg2->get()->insert_id;
 
         query = sql::format("UPDATE player_index SET pid{}={} WHERE id={}", packet->account_index + 1, player_id, packet->account_id);
-        auto msg3 = db_manager::instance().direct_query(query);
+        auto msg3 = get_db_manager().direct_query(query);
 
         if (msg3->get()->affected_rows <= 0) {
             metin2::log::error("Player create: cannot update player_index, rolling back: {}", query);
 
             query = sql::format("DELETE FROM player WHERE id={}", player_id);
-            db_manager::instance().direct_query(query);
+            get_db_manager().direct_query(query);
 
             peer->encode_header(HEADER_DG_PLAYER_CREATE_FAILED, handle, 0);
             return;
@@ -813,7 +813,7 @@ namespace metin2::db::inline clients {
         pi->account_index = packet->account_index;
 
         metin2::log::info("Player delete: account {} requested deletion of pid {:d} (slot {:d})", packet->login, packet->player_id, packet->account_index + 1);
-        db_manager::instance().return_query(query, [this, handle = peer->handle(), pi = std::move(pi)](sql_msg &msg) {
+        get_db_manager().return_query(query, [this, handle = peer->handle(), pi = std::move(pi)](sql_msg &msg) {
             if (auto *peer_value = get_peer(handle))
                 result_player_delete(peer_value, msg, *pi);
         });
@@ -846,7 +846,7 @@ namespace metin2::db::inline clients {
             }
 
             std::string query = sql::format("INSERT INTO player_deleted SELECT * FROM player WHERE id={}", pi.player_id);
-            auto ins = db_manager::instance().direct_query(query);
+            auto ins = get_db_manager().direct_query(query);
 
             if (ins->get()->affected_rows == 0 || ins->get()->affected_rows == (uint32_t)-1) {
                 metin2::log::error("Player delete: cannot copy pid {:d} into player_deleted", pid_value);
@@ -884,7 +884,7 @@ namespace metin2::db::inline clients {
                 pi.account_index + 1,
                 pi.player_id);
 
-            auto msg = db_manager::instance().direct_query(query);
+            auto msg = get_db_manager().direct_query(query);
 
             if (msg->get()->affected_rows == 0 || msg->get()->affected_rows == (uint32_t)-1) {
                 metin2::log::error("Player delete: cannot clear pid {:d} from player_index", pi.player_id);
@@ -894,25 +894,25 @@ namespace metin2::db::inline clients {
             }
 
             query = sql::format("DELETE FROM player WHERE id={}", pi.player_id);
-            db_manager::instance().direct_query(query);
+            get_db_manager().direct_query(query);
 
             query = sql::format("DELETE FROM item WHERE owner_id={} AND (window < {} or window = {})", pi.player_id, SAFEBOX, DRAGON_SOUL_INVENTORY);
-            db_manager::instance().direct_query(query);
+            get_db_manager().direct_query(query);
 
             query = sql::format("DELETE FROM quest WHERE dwPID={}", pi.player_id);
-            db_manager::instance().async_query(query);
+            get_db_manager().async_query(query);
 
             query = sql::format("DELETE FROM affect WHERE dwPID={}", pi.player_id);
-            db_manager::instance().async_query(query);
+            get_db_manager().async_query(query);
 
             query = sql::format("DELETE FROM guild_member WHERE pid={}", pi.player_id);
-            db_manager::instance().async_query(query);
+            get_db_manager().async_query(query);
 
             query = sql::format("DELETE FROM myshop_pricelist WHERE owner_id={}", pi.player_id);
-            db_manager::instance().async_query(query);
+            get_db_manager().async_query(query);
 
             query = sql::format("DELETE FROM messenger_list WHERE account={} OR companion={}", name, name);
-            db_manager::instance().async_query(query);
+            get_db_manager().async_query(query);
 
             peer->encode_header(HEADER_DG_PLAYER_DELETE_SUCCESS, pi.handle, 1);
             peer->encode_byte(pi.account_index);
@@ -935,14 +935,14 @@ namespace metin2::db::inline clients {
             p->elem.duration,
             p->elem.sp_cost);
 
-        db_manager::instance().async_query(query);
+        get_db_manager().async_query(query);
     }
 
     void client_manager::query_remove_affect(peer *peer, packet_gd_remove_affect *p) {
         const std::string query = sql::format(
             "DELETE FROM affect WHERE dwPID={} AND bType={} AND bApplyOn={}", p->pid, p->type, p->apply_on);
 
-        db_manager::instance().async_query(query);
+        get_db_manager().async_query(query);
     }
 
     void client_manager::query_highscore_register(peer *peer, packet_gd_highscore *data) {
@@ -956,7 +956,7 @@ namespace metin2::db::inline clients {
         pi->player_id = data->pid;
         pi->account_index = (data->c_dir > 0);
 
-        db_manager::instance().return_query(query, [this, handle = peer->handle(), pi = std::move(pi)](sql_msg &msg) {
+        get_db_manager().return_query(query, [this, handle = peer->handle(), pi = std::move(pi)](sql_msg &msg) {
             if (auto *peer_value = get_peer(handle))
                 result_highscore_register(peer_value, msg, *pi);
         });
@@ -973,7 +973,7 @@ namespace metin2::db::inline clients {
 
         if (res->num_rows == 0) {
             const std::string query = sql::format("INSERT INTO highscore VALUES({}, {}, {})", board, pi.player_id, value);
-            db_manager::instance().async_query(query);
+            get_db_manager().async_query(query);
         } else {
             if (!res->res.get()) {
                 return;
@@ -987,11 +987,11 @@ namespace metin2::db::inline clients {
                     value = current_value;
                 } else {
                     const std::string query = sql::format("REPLACE INTO highscore VALUES({}, {}, {})", board, pi.player_id, value);
-                    db_manager::instance().async_query(query);
+                    get_db_manager().async_query(query);
                 }
             } else {
                 const std::string query = sql::format("INSERT INTO highscore VALUES({}, {}, {})", board, pi.player_id, value);
-                db_manager::instance().async_query(query);
+                get_db_manager().async_query(query);
             }
         }
     }

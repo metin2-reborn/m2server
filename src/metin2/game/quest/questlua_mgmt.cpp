@@ -21,7 +21,7 @@ namespace metin2::game {
                 return 0;
             }
 
-            monarch_info *info = monarch::instance().get_monarch();
+            monarch_info *info = get_monarch().info();
 
             lua_pushstring(lua, info->name[idx]);
             lua_pushnumber(lua, info->pid[idx]);
@@ -54,7 +54,7 @@ namespace metin2::game {
                     {nullptr,               nullptr                 }
             };
 
-            quest_manager::instance().add_lua_function_table("mgmt", mgmt_functions);
+            get_quest_manager().add_lua_function_table("mgmt", mgmt_functions);
         }
     }
 }

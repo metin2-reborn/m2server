@@ -56,10 +56,10 @@ namespace metin2::game::inline protocol {
         int gold10_drop_bonus = 0;
         int exp_bonus = 0;
 
-        item_drop_bonus = priv_manager::instance().priv(ch, PRIV_ITEM_DROP);
-        gold_drop_bonus = priv_manager::instance().priv(ch, PRIV_GOLD_DROP);
-        gold10_drop_bonus = priv_manager::instance().priv(ch, PRIV_GOLD10_DROP);
-        exp_bonus = priv_manager::instance().priv(ch, PRIV_EXP_PCT);
+        item_drop_bonus = get_priv_manager().priv(ch, PRIV_ITEM_DROP);
+        gold_drop_bonus = get_priv_manager().priv(ch, PRIV_GOLD_DROP);
+        gold10_drop_bonus = get_priv_manager().priv(ch, PRIV_GOLD10_DROP);
+        exp_bonus = get_priv_manager().priv(ch, PRIV_EXP_PCT);
 
         if (item_drop_bonus) {
             ch->chat_packet(CHAT_TYPE_NOTICE,
@@ -131,7 +131,7 @@ namespace metin2::game::inline protocol {
             int *pai_empire_user_count;
             int local;
 
-            desc_manager::instance().user_count(total, &pai_empire_user_count, local);
+            get_desc_manager().user_count(total, &pai_empire_user_count, local);
 
             if (metin2::config::server().user_limit <= total) {
                 failure_packet.header = HEADER_GC_LOGIN_FAILURE;
@@ -179,7 +179,7 @@ namespace metin2::game::inline protocol {
             int *pai_empire_user_count;
             int local;
 
-            desc_manager::instance().user_count(total, &pai_empire_user_count, local);
+            get_desc_manager().user_count(total, &pai_empire_user_count, local);
 
             if (metin2::config::server().user_limit <= total) {
                 packet_gc_login_failure failure_packet;
@@ -482,9 +482,9 @@ namespace metin2::game::inline protocol {
 
         pixel_position pos = ch->xyz();
 
-        if (!sectree_manager::instance().movable_position(ch->map_index(), pos.x, pos.y, pos)) {
+        if (!get_sectree_manager().movable_position(ch->map_index(), pos.x, pos.y, pos)) {
             pixel_position pos2;
-            sectree_manager::instance().recall_position_by_empire(ch->map_index(), ch->empire(), pos2);
+            get_sectree_manager().recall_position_by_empire(ch->map_index(), ch->empire(), pos2);
 
             metin2::log::warn("Player {} at unwalkable position {:d}x{:d} on map {:d}, moved to {:d}x{:d}",
                 ch->name(),
@@ -494,17 +494,17 @@ namespace metin2::game::inline protocol {
             pos = pos2;
         }
 
-        guild_manager::instance().login_member(ch);
+        get_guild_manager().login_member(ch);
 
         ch->show(ch->map_index(), pos.x, pos.y, pos.z);
 
-        sectree_manager::instance().send_npc_position(ch);
+        get_sectree_manager().send_npc_position(ch);
         ch->revive_invisible(5);
 
         d->set_phase(PHASE_GAME);
 
         if (ch->item_award_cmd())
-            quest::quest_manager::instance().item_informer(ch->player_id(), ch->item_award_vnum());
+            quest::get_quest_manager().item_informer(ch->player_id(), ch->item_award_vnum());
 
         metin2::log::info("Enter game: player {} at {:d}x{:d}x{:d}, host {}, map {:d}",
             ch->name(), ch->x(), ch->y(), ch->z(), d->host_name(), ch->map_index());
@@ -519,17 +519,17 @@ namespace metin2::game::inline protocol {
         ch->start_recovery_event();
         ch->start_check_speed_hack_event();
 
-        pvp_manager::instance().connect(ch);
-        pvp_manager::instance().send_list(d);
+        get_pvp_manager().connect(ch);
+        get_pvp_manager().send_list(d);
 
-        messenger_manager::instance().login(ch->name());
+        get_messenger_manager().login(ch->name());
 
-        party_manager::instance().set_party(ch);
-        guild_manager::instance().send_guild_war(ch);
+        get_party_manager().set_party(ch);
+        get_guild_manager().send_guild_war(ch);
 
-        building::manager::instance().send_land_list(d, ch->map_index());
+        building::get_manager().send_land_list(d, ch->map_index());
 
-        marriage::manager::instance().login(ch);
+        marriage::get_manager().login(ch);
 
         packet_gc_time p;
         p.header = HEADER_GC_TIME;
@@ -567,7 +567,7 @@ namespace metin2::game::inline protocol {
                 if (version != date) {
                     ch->chat_packet(CHAT_TYPE_NOTICE, lc_text("클라이언트 버전이 틀려 로그아웃 됩니다. 정상적으로 패치 후 접속하세요."));
                     d->delayed_disconnect(10);
-                    log_manager::instance().hack_log("VERSION_CONFLICT", ch);
+                    get_log_manager().hack_log("VERSION_CONFLICT", ch);
 
                     metin2::log::warn("Wrong client version: account {}, player {}, host {}, server version {}, client version {}",
                         d->get_account_table().login,
@@ -585,19 +585,19 @@ namespace metin2::game::inline protocol {
             ch->chat_packet(CHAT_TYPE_COMMAND, "ConsoleEnable");
 
         if (ch->map_index() >= 10000) {
-            if (war_map_manager::instance().is_war_map(ch->map_index()))
-                ch->set_war_map(war_map_manager::instance().find(ch->map_index()));
-            else if (marriage::wedding_manager::instance().is_wedding_map(ch->map_index()))
-                ch->set_wedding_map(marriage::wedding_manager::instance().find(ch->map_index()));
+            if (get_war_map_manager().is_war_map(ch->map_index()))
+                ch->set_war_map(get_war_map_manager().find(ch->map_index()));
+            else if (marriage::get_wedding_manager().is_wedding_map(ch->map_index()))
+                ch->set_wedding_map(marriage::get_wedding_manager().find(ch->map_index()));
             else {
-                ch->set_dungeon(dungeon_manager::instance().find_by_map_index(ch->map_index()));
+                ch->set_dungeon(get_dungeon_manager().find_by_map_index(ch->map_index()));
             }
-        } else if (arena_manager::instance().is_arena_map(ch->map_index()) == true) {
-            int member_flag = arena_manager::instance().is_member(ch->map_index(), ch->player_id());
+        } else if (get_arena_manager().is_arena_map(ch->map_index()) == true) {
+            int member_flag = get_arena_manager().is_member(ch->map_index(), ch->player_id());
             if (member_flag == MEMBER_OBSERVER) {
                 ch->set_observer_mode(true);
                 ch->set_arena_observer_mode(true);
-                if (arena_manager::instance().register_observer_ptr(ch, ch->map_index(), ch->x() / 100, ch->y() / 100)) {
+                if (get_arena_manager().register_observer_ptr(ch, ch->map_index(), ch->x() / 100, ch->y() / 100)) {
                     metin2::log::info("Arena: cannot add observer {}", ch->name());
                 }
 
@@ -620,7 +620,7 @@ namespace metin2::game::inline protocol {
                 party *party = ch->get_party();
                 if (party != nullptr) {
                     if (party->member_count() == 2) {
-                        party_manager::instance().delete_party(party);
+                        get_party_manager().delete_party(party);
                     } else {
                         party->quit(ch->player_id());
                     }
@@ -631,13 +631,13 @@ namespace metin2::game::inline protocol {
             } else {
             }
         } else if (ch->map_index() == 113) {
-            if (ox_event_manager::instance().enter(ch) == false) {
+            if (get_ox_event_manager().enter(ch) == false) {
                 if (ch->gm_level() == GM_PLAYER)
                     ch->warp_set(empire_start_x(ch->empire()), empire_start_y(ch->empire()));
             }
         } else {
-            if (war_map_manager::instance().is_war_map(ch->map_index()) ||
-                marriage::wedding_manager::instance().is_wedding_map(ch->map_index())) {
+            if (get_war_map_manager().is_war_map(ch->map_index()) ||
+                marriage::get_wedding_manager().is_wedding_map(ch->map_index())) {
                 if (!metin2::config::test_server())
                     ch->warp_set(empire_start_x(ch->empire()), empire_start_y(ch->empire()));
             }
@@ -646,7 +646,7 @@ namespace metin2::game::inline protocol {
         if (ch->horse_level() > 0) {
             uint32_t pid = ch->player_id();
 
-            if (pid != 0 && horse_name_manager::instance().horse_name(pid) == nullptr)
+            if (pid != 0 && get_horse_name_manager().horse_name(pid) == nullptr)
                 db_clientdesc->db_packet(HEADER_GD_REQ_HORSE_NAME, 0, &pid, sizeof(uint32_t));
         }
 
@@ -692,7 +692,7 @@ namespace metin2::game::inline protocol {
     }
 
     static auto is_mark_owner_guild_master(desc *d, uint32_t guild_id) -> bool {
-        desc *owner = desc_manager::instance().find_by_handle(d->mark_owner_handle());
+        desc *owner = get_desc_manager().find_by_handle(d->mark_owner_handle());
         character *ch = owner ? owner->get_character() : nullptr;
 
         return ch && ch->get_guild() && ch->get_guild()->id() == guild_id && ch->get_guild()->master_pid() == ch->player_id();
@@ -723,15 +723,15 @@ namespace metin2::game::inline protocol {
         }
 
         if (!metin2::config::test_server())
-            if (!building::manager::instance().find_land_by_guild(p->guild_id)) {
+            if (!building::get_manager().find_land_by_guild(p->guild_id)) {
                 d->set_phase(PHASE_CLOSE);
                 return 0;
             }
 
         metin2::log::debug("Guild symbol upload: header {:02X}{:02X}{:02X}{:02X}, packet size {:d}", data[7], data[8], data[9], data[10], sizeof(*p));
 
-        guild_mark_manager::instance().upload_symbol(p->guild_id, symbol_size, (const uint8_t *)(data + sizeof(*p)));
-        guild_mark_manager::instance().save_symbol(GUILD_SYMBOL_FILENAME);
+        get_guild_mark_manager().upload_symbol(p->guild_id, symbol_size, (const uint8_t *)(data + sizeof(*p)));
+        get_guild_mark_manager().save_symbol(GUILD_SYMBOL_FILENAME);
         return symbol_size;
     }
 
@@ -740,7 +740,7 @@ namespace metin2::game::inline protocol {
 
         metin2::log::debug("Guild {:d} symbol crc check: client crc {:d}, size {:d}", cg_packet.guild_id, cg_packet.crc, cg_packet.size);
 
-        const guild_mark_manager::guild_symbol *gs = guild_mark_manager::instance().get_guild_symbol(cg_packet.guild_id);
+        const guild_mark_manager::guild_symbol *gs = get_guild_mark_manager().get_guild_symbol(cg_packet.guild_id);
 
         if (!gs || gs->raw.empty())
             return;
@@ -765,7 +765,7 @@ namespace metin2::game::inline protocol {
 
     void input_login::guild_mark_upload(desc *d, const char *data) {
         auto *p = (packet_cg_mark_upload *)data;
-        guild_manager &guild_mgr = guild_manager::instance();
+        guild_manager &guild_mgr = get_guild_manager();
         guild *guild_value;
 
         if (!(guild_value = guild_mgr.find_guild(p->gid))) {
@@ -784,7 +784,7 @@ namespace metin2::game::inline protocol {
             return;
         }
 
-        guild_mark_manager &mark_mgr = guild_mark_manager::instance();
+        guild_mark_manager &mark_mgr = get_guild_mark_manager();
 
         metin2::log::info("Guild {:d} uploaded a mark", p->gid);
 
@@ -801,7 +801,7 @@ namespace metin2::game::inline protocol {
     }
 
     void input_login::guild_mark_idx_list(desc *d, const char *data) {
-        guild_mark_manager &mark_mgr = guild_mark_manager::instance();
+        guild_mark_manager &mark_mgr = get_guild_mark_manager();
 
         uint32_t buf_size = sizeof(uint16_t) * 2 * mark_mgr.mark_count();
         char *buf = nullptr;
@@ -830,7 +830,7 @@ namespace metin2::game::inline protocol {
         auto *cg = (packet_cg_mark_crc_list *)data;
 
         std::map<uint8_t, const guild_mark_block *> map_diff_blocks;
-        guild_mark_manager::instance().diff_blocks(cg->img_idx, cg->crclist, map_diff_blocks);
+        get_guild_mark_manager().diff_blocks(cg->img_idx, cg->crclist, map_diff_blocks);
 
         uint32_t block_count = 0;
         temp_buffer buf(1024 * 1024);

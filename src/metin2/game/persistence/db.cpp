@@ -152,7 +152,7 @@ namespace metin2::game::inline persistence {
     }
 
     void give_lotto_ticket_result(sql_msg &msg, uint32_t pid, uint32_t vnum, uint32_t count, uint32_t round) {
-        character *ch = character_manager::instance().find_by_pid(pid);
+        character *ch = get_character_manager().find_by_pid(pid);
 
         if (!ch)
             return;
@@ -260,14 +260,14 @@ namespace metin2::game::inline persistence {
     static event_ptr reload_spam_event_handle = nullptr;
 
     static void query_spam_db() {
-        account_db::instance().func_query([](sql_msg &msg) {
+        get_account_db().func_query([](sql_msg &msg) {
             if (msg.get()->num_rows > 0) {
                 MYSQL_ROW row;
 
-                spam_manager::instance().clear();
+                get_spam_manager().clear();
 
                 while ((row = mysql_fetch_row(msg.get()->res.get())))
-                    spam_manager::instance().insert(row[0], atoi(row[1]));
+                    get_spam_manager().insert(row[0], atoi(row[1]));
             }
         },
             "SELECT word, score FROM spam_db WHERE type='SPAM'");

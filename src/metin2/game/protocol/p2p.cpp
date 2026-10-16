@@ -35,7 +35,7 @@ namespace metin2::game::inline protocol {
     p2p_manager::~p2p_manager() = default;
 
     void p2p_manager::boot(desc *d) {
-        character_manager::name_map &map = character_manager::instance().pc_map();
+        character_manager::name_map &map = get_character_manager().pc_map();
         auto it = map.begin();
 
         packet_gg_login p;
@@ -48,7 +48,7 @@ namespace metin2::game::inline protocol {
             strlcpy(p.name, ch->name(), sizeof(p.name));
             p.pid = ch->player_id();
             p.empire = ch->empire();
-            p.map_index = sectree_manager::instance().map_index(ch->x(), ch->y());
+            p.map_index = get_sectree_manager().map_index(ch->x(), ch->y());
             p.channel = metin2::config::server().channel;
 
             d->packet(&p, sizeof(p));
@@ -155,12 +155,12 @@ namespace metin2::game::inline protocol {
         cci_value->channel = p->channel;
         metin2::log::debug("Peer login: player {}", cci_value->name);
 
-        guild_manager::instance().p2p_login_member(cci_value->pid);
-        party_manager::instance().p2p_login(cci_value->pid, cci_value->name);
+        get_guild_manager().p2p_login_member(cci_value->pid);
+        get_party_manager().p2p_login(cci_value->pid, cci_value->name);
 
         if (update_p2_p) {
             std::string name(cci_value->name);
-            messenger_manager::instance().p2p_login(name);
+            get_messenger_manager().p2p_login(name);
         }
     }
 
@@ -178,10 +178,10 @@ namespace metin2::game::inline protocol {
 
         std::string name(cci_value->name);
 
-        guild_manager::instance().p2p_logout_member(cci_value->pid);
-        party_manager::instance().p2p_logout(cci_value->pid);
-        messenger_manager::instance().p2p_logout(name);
-        marriage::manager::instance().logout(cci_value->pid);
+        get_guild_manager().p2p_logout_member(cci_value->pid);
+        get_party_manager().p2p_logout(cci_value->pid);
+        get_messenger_manager().p2p_logout(name);
+        marriage::get_manager().logout(cci_value->pid);
 
         map_pid_pk_cci_.erase(cci_value->pid);
         map_cci_.erase(name);

@@ -108,7 +108,7 @@ namespace metin2::game::inline social {
 
         auto marriage::marriage_point() -> int {
             if (metin2::config::test_server()) {
-                int value = quest::quest_manager::instance().event_flag("lovepoint");
+                int value = quest::get_quest_manager().event_flag("lovepoint");
                 if (value)
                     return std::clamp(value, 0, 100);
             }
@@ -209,7 +209,7 @@ namespace metin2::game::inline social {
                 d1 = ch1 ? ch1->get_desc() : nullptr;
 
                 if (!d1) {
-                    cci = p2p_manager::instance().find_by_pid(pid1);
+                    cci = get_p2p_manager().find_by_pid(pid1);
 
                     if (cci) {
                         d1 = cci->desc;
@@ -220,7 +220,7 @@ namespace metin2::game::inline social {
                 d2 = ch2 ? ch2->get_desc() : nullptr;
 
                 if (!d2) {
-                    cci = p2p_manager::instance().find_by_pid(pid2);
+                    cci = get_p2p_manager().find_by_pid(pid2);
 
                     if (cci) {
                         d2 = cci->desc;
@@ -262,7 +262,7 @@ namespace metin2::game::inline social {
                 d1 = ch1 ? ch1->get_desc() : nullptr;
 
                 if (!d1) {
-                    cci = p2p_manager::instance().find_by_pid(pid1);
+                    cci = get_p2p_manager().find_by_pid(pid1);
 
                     if (cci) {
                         d1 = cci->desc;
@@ -277,7 +277,7 @@ namespace metin2::game::inline social {
                 d2 = ch2 ? ch2->get_desc() : nullptr;
 
                 if (!d2) {
-                    cci = p2p_manager::instance().find_by_pid(pid2);
+                    cci = get_p2p_manager().find_by_pid(pid2);
 
                     if (cci) {
                         d2 = cci->desc;
@@ -360,7 +360,7 @@ namespace metin2::game::inline social {
         void marriage::save() {
             metin2::log::debug("Marriage: save requested (needs save {:d})", needs_save);
             if (needs_save) {
-                manager::instance().request_update(pid1, pid2, love_point, is_married);
+                get_manager().request_update(pid1, pid2, love_point, is_married);
                 needs_save = false;
             }
         }
@@ -391,10 +391,10 @@ namespace metin2::game::inline social {
 
                 if (metin2::config::test_server()) {
                     character *ch;
-                    ch = character_manager::instance().find_by_pid(pid1);
+                    ch = get_character_manager().find_by_pid(pid1);
                     if (ch)
                         ch->chat_packet(CHAT_TYPE_PARTY, "lovepoint bykill %.3g total %d", love_point / 1000000., marriage_point());
-                    ch = character_manager::instance().find_by_pid(pid2);
+                    ch = get_character_manager().find_by_pid(pid2);
                     if (ch)
                         ch->chat_packet(CHAT_TYPE_PARTY, "lovepoint bykill %.3g total %d", love_point / 1000000., marriage_point());
                 }
@@ -405,10 +405,10 @@ namespace metin2::game::inline social {
             if (!wedding_info)
                 return;
 
-            character *ch = character_manager::instance().find_by_pid(pid);
+            character *ch = get_character_manager().find_by_pid(pid);
             if (ch) {
                 pixel_position pos;
-                if (!sectree_manager::instance().recall_position_by_empire(wedding_info->map_index / 10000, 0, pos)) {
+                if (!get_sectree_manager().recall_position_by_empire(wedding_info->map_index / 10000, 0, pos)) {
                     metin2::log::error("Cannot get wedding warp position");
                     return;
                 }
@@ -420,7 +420,7 @@ namespace metin2::game::inline social {
         void marriage::request_end_wedding() {
             if (!wedding_info)
                 return;
-            manager::instance().request_end_wedding(pid1, pid2);
+            get_manager().request_end_wedding(pid1, pid2);
         }
 
         manager::manager() = default;
@@ -505,8 +505,8 @@ namespace metin2::game::inline social {
             marriage_by_pid_.insert(std::make_pair(pid1, marriage));
             marriage_by_pid_.insert(std::make_pair(pid2, marriage));
             {
-                character *a = character_manager::instance().find_by_pid(pid1);
-                character *b = character_manager::instance().find_by_pid(pid2);
+                character *a = get_character_manager().find_by_pid(pid1);
+                character *b = get_character_manager().find_by_pid(pid2);
 
                 if (a && b) {
                     packet_wedding_request p;
@@ -628,7 +628,7 @@ namespace metin2::game::inline social {
             }
 
             if (map_allow_find(WEDDING_MAP_INDEX))
-                if (!wedding_manager::instance().end(marriage->wedding_info->map_index)) {
+                if (!get_wedding_manager().end(marriage->wedding_info->map_index)) {
                     metin2::log::error("Cannot end wedding on map {:d}", marriage->wedding_info->map_index);
                     return;
                 }

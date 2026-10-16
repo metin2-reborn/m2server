@@ -123,7 +123,7 @@ namespace metin2::game::inline guilds {
     void guild_mark_block::compress(const pixel *px_buf) {
         size_comp_buf = MAX_COMP_SIZE;
 
-        if (LZO_E_OK != lzo1x_1_compress((const uint8_t *)px_buf, sizeof(pixel) * guild_mark_block::SIZE, comp_buf, &size_comp_buf, lzo_manager::instance().work_memory())) {
+        if (LZO_E_OK != lzo1x_1_compress((const uint8_t *)px_buf, sizeof(pixel) * guild_mark_block::SIZE, comp_buf, &size_comp_buf, get_lzo_manager().work_memory())) {
             metin2::log::error("Guild mark block compression failed ({:d} bytes in, {:d} bytes out)", sizeof(pixel) * guild_mark_block::SIZE, static_cast<unsigned long>(size_comp_buf));
             return;
         }

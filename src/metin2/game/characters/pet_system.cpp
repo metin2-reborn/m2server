@@ -92,7 +92,7 @@ namespace metin2::game::inline characters {
                 owner_->compute_points();
 
             if (nullptr != character_)
-                character_manager::instance().destroy_character(character_);
+                get_character_manager().destroy_character(character_);
 
             character_ = nullptr;
             vid_ = 0;
@@ -119,7 +119,7 @@ namespace metin2::game::inline characters {
             return vid_;
         }
 
-        character_ = character_manager::instance().spawn_mob(
+        character_ = get_character_manager().spawn_mob(
             vnum_,
             owner_->map_index(),
             x, y, z,
@@ -151,7 +151,7 @@ namespace metin2::game::inline characters {
         }
 
         if (0 == original_move_speed_) {
-            const mob *mob_data = mob_manager::instance().get(vnum_);
+            const mob *mob_data = get_mob_manager().get(vnum_);
 
             if (nullptr != mob_data)
                 original_move_speed_ = mob_data->table.s_moving_speed;
@@ -201,7 +201,7 @@ namespace metin2::game::inline characters {
     auto pet_actor::update(uint32_t delta_time) -> bool {
         bool result = true;
 
-        if (owner_->is_dead() || (is_summoned() && character_->is_dead()) || nullptr == item_manager::instance().find_by_vid(this->summon_item_vid()) || item_manager::instance().find_by_vid(this->summon_item_vid())->owner() != this->owner()) {
+        if (owner_->is_dead() || (is_summoned() && character_->is_dead()) || nullptr == get_item_manager().find_by_vid(this->summon_item_vid()) || get_item_manager().find_by_vid(this->summon_item_vid())->owner() != this->owner()) {
             this->unsummon();
             return true;
         }
@@ -258,7 +258,7 @@ namespace metin2::game::inline characters {
                 return;
             }
         }
-        item *item = item_manager::instance().find_by_vid(summon_item_vid_);
+        item *item = get_item_manager().find_by_vid(summon_item_vid_);
         if (nullptr != item)
             item->modify_points(true);
         return;
@@ -267,7 +267,7 @@ namespace metin2::game::inline characters {
     void pet_actor::clear_buff() {
         if (nullptr == owner_)
             return;
-        item_table *item_proto = item_manager::instance().table(summon_item_vnum_);
+        item_table *item_proto = get_item_manager().table(summon_item_vnum_);
         if (nullptr == item_proto)
             return;
         for (int i = 0; i < ITEM_APPLY_MAX_NUM; i++) {
@@ -314,7 +314,7 @@ namespace metin2::game::inline characters {
             if (nullptr != pet_actor && pet_actor->is_summoned()) {
                 character *pet = pet_actor->get_character();
 
-                if (nullptr == character_manager::instance().find(pet->get_vid())) {
+                if (nullptr == get_character_manager().find(pet->get_vid())) {
                     v_garbage_actor.push_back(pet_actor);
                 } else {
                     result = result && pet_actor->update(delta_time);

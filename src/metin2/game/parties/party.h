@@ -3,7 +3,6 @@
 #include <metin2/game/app/event.h>
 #include <metin2/game/characters/character.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/log/log.h>
 
 #include <cstdint>
@@ -45,14 +44,14 @@ namespace metin2::game::inline parties {
 
     class party;
 
-    class party_manager : public singleton<party_manager> {
+    class party_manager {
       public:
         using party_map = std::map<uint32_t, party *>;
         using pc_party_set = std::set<party *>;
 
       public:
         party_manager();
-        ~party_manager() override;
+        ~party_manager();
 
         void initialize();
 
@@ -88,6 +87,11 @@ namespace metin2::game::inline parties {
 
         bool enable_pc_party_;
     };
+
+    inline auto get_party_manager() -> party_manager & {
+        static party_manager instance;
+        return instance;
+    }
 
     enum party_messages {
         PM_ATTACK,

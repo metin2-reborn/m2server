@@ -27,7 +27,7 @@ namespace metin2::db::inline items {
 
     void item_award_manager::request_load() {
         const std::string query = sql::format("SELECT id,login,vnum,count,socket0,socket1,socket2,mall,why FROM item_award WHERE taken_time IS NULL and id > {}", last_cached_item_award_id);
-        db_manager::instance().return_query(query, [this](sql_msg &msg) { load(msg); });
+        get_db_manager().return_query(query, [this](sql_msg &msg) { load(msg); });
     }
 
     void item_award_manager::load(sql_msg &msg) {
@@ -57,7 +57,7 @@ namespace metin2::db::inline items {
 
             if (row[col]) {
                 strlcpy(data->why, row[col], sizeof(data->why));
-                client_manager::instance().inform_gift_award(data->login, data->why, data->vnum);
+                get_client_manager().inform_gift_award(data->login, data->why, data->vnum);
             }
 
             map_award_.emplace(id, std::move(owned));
@@ -95,7 +95,7 @@ namespace metin2::db::inline items {
             "UPDATE item_award SET taken_time=NOW(),item_id={} WHERE id={} AND taken_time IS NULL",
             item_id, award_id);
 
-        db_manager::instance().return_query(query, [](sql_msg &) {});
+        get_db_manager().return_query(query, [](sql_msg &) {});
     }
 
     auto item_award_manager::remove(uint32_t award_id) -> bool {

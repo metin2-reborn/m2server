@@ -28,7 +28,7 @@ namespace metin2::game {
                 return 0;
             }
 
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             if (!q.server_timer(info->npc_id, info->arg))
                 return metin2::config::server().passes_per_sec / 2 + 1;
@@ -48,10 +48,10 @@ namespace metin2::game {
                 return 0;
             }
 
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
-            if (character_manager::instance().find_by_pid(info->player_id)) {
-                if (!quest_manager::instance().timer(info->player_id, info->npc_id))
+            if (get_character_manager().find_by_pid(info->player_id)) {
+                if (!get_quest_manager().timer(info->player_id, info->npc_id))
                     return (metin2::config::server().passes_per_sec / 2 + 1);
 
                 if (0 == info->time_cycle)

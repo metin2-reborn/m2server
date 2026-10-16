@@ -3,8 +3,6 @@
 #include <metin2/game/app/event.h>
 #include <metin2/game/app/typedef.h>
 
-#include <metin2/common/singleton.h>
-
 #include <cstdint>
 #include <ctime>
 #include <map>
@@ -92,10 +90,10 @@ namespace metin2::game::inline social {
             event_ptr event_near_check;
         };
 
-        class manager : public singleton<manager> {
+        class manager {
           public:
             manager();
-            ~manager() override;
+            ~manager();
 
             auto initialize() -> bool;
             void destroy();
@@ -136,6 +134,11 @@ namespace metin2::game::inline social {
             std::map<uint32_t, marriage *> marriage_by_pid_;
             std::set<std::pair<uint32_t, uint32_t>> wedding_;
         };
+
+        inline auto get_manager() -> manager & {
+            static manager instance;
+            return instance;
+        }
 
         template <typename Func>
         auto manager::for_each_wedding(Func f) -> Func {

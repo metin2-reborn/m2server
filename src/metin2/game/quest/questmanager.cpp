@@ -477,7 +477,7 @@ namespace metin2::game {
 
             if ((pc_value = get_pc(pc))) {
                 if (!check_quest_loaded(pc_value)) {
-                    character *ch = character_manager::instance().find_by_pid(pc);
+                    character *ch = get_character_manager().find_by_pid(pc);
 
                     if (ch)
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("퀘스트를 로드하는 중입니다. 잠시만 기다려 주십시오."));
@@ -495,7 +495,7 @@ namespace metin2::game {
             game::quest::pc *pc_value;
             if ((pc_value = get_pc(pc))) {
                 if (!check_quest_loaded(pc_value)) {
-                    character *ch = character_manager::instance().find_by_pid(pc);
+                    character *ch = get_character_manager().find_by_pid(pc);
                     if (ch) {
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("퀘스트를 로드하는 중입니다. 잠시만 기다려 주십시오."));
                     }
@@ -512,7 +512,7 @@ namespace metin2::game {
 
             if ((pc_value = get_pc(pc))) {
                 if (!check_quest_loaded(pc_value)) {
-                    character *ch = character_manager::instance().find_by_pid(pc);
+                    character *ch = get_character_manager().find_by_pid(pc);
                     if (ch) {
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("퀘스트를 로드하는 중입니다. 잠시만 기다려 주십시오."));
                     }
@@ -532,7 +532,7 @@ namespace metin2::game {
             game::quest::pc *pc_value;
             if ((pc_value = get_pc(pc))) {
                 if (!check_quest_loaded(pc_value)) {
-                    character *ch = character_manager::instance().find_by_pid(pc);
+                    character *ch = get_character_manager().find_by_pid(pc);
                     if (ch) {
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("퀘스트를 로드하는 중입니다. 잠시만 기다려 주십시오."));
                     }
@@ -553,7 +553,7 @@ namespace metin2::game {
             game::quest::pc *pc_value;
             if ((pc_value = get_pc(pc))) {
                 if (!check_quest_loaded(pc_value)) {
-                    character *ch = character_manager::instance().find_by_pid(pc);
+                    character *ch = get_character_manager().find_by_pid(pc);
                     if (ch) {
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("퀘스트를 로드하는 중입니다. 잠시만 기다려 주십시오."));
                     }
@@ -578,7 +578,7 @@ namespace metin2::game {
                 if (!check_quest_loaded(pc_value))
                     return false;
 
-                target_info *info = target_manager::instance().get_target_info(pc, TARGET_TYPE_VID, chr->get_vid());
+                target_info *info = get_target_manager().get_target_info(pc, TARGET_TYPE_VID, chr->get_vid());
 
                 if (info) {
                     bool ret;
@@ -596,7 +596,7 @@ namespace metin2::game {
 
             if (pc_value) {
                 if (!check_quest_loaded(pc_value)) {
-                    character *ch = character_manager::instance().find_by_pid(pc);
+                    character *ch = get_character_manager().find_by_pid(pc);
 
                     if (ch)
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("퀘스트를 로드하는 중입니다. 잠시만 기다려 주십시오."));
@@ -604,7 +604,7 @@ namespace metin2::game {
                     return false;
                 }
 
-                target_info *info_value = target_manager::instance().get_target_info(pc, TARGET_TYPE_VID, chr_target->get_vid());
+                target_info *info_value = get_target_manager().get_target_info(pc, TARGET_TYPE_VID, chr_target->get_vid());
                 if (metin2::config::test_server()) {
                     metin2::log::info("Quest: pid {:d} clicked {}, target info {}", pc, chr_target->name(), static_cast<const void *>(static_cast<void *>(info_value)));
                 }
@@ -722,7 +722,7 @@ namespace metin2::game {
         auto quest_manager::get_pc(unsigned int pid) -> pc * {
             pc_map::iterator it;
 
-            character *chr = character_manager::instance().find_by_pid(pid);
+            character *chr = get_character_manager().find_by_pid(pid);
 
             if (!chr)
                 return nullptr;
@@ -941,27 +941,27 @@ namespace metin2::game {
             event_flag_[name] = value;
 
             if (name == "mob_item") {
-                character_manager::instance().set_mob_item_rate(value);
+                get_character_manager().set_mob_item_rate(value);
             } else if (name == "mob_dam") {
-                character_manager::instance().set_mob_damage_rate(value);
+                get_character_manager().set_mob_damage_rate(value);
             } else if (name == "mob_gold") {
-                character_manager::instance().set_mob_gold_amount_rate(value);
+                get_character_manager().set_mob_gold_amount_rate(value);
             } else if (name == "mob_gold_pct") {
-                character_manager::instance().set_mob_gold_drop_rate(value);
+                get_character_manager().set_mob_gold_drop_rate(value);
             } else if (name == "mob_exp") {
-                character_manager::instance().set_mob_exp_rate(value);
+                get_character_manager().set_mob_exp_rate(value);
             } else if (name == "mob_item_buyer") {
-                character_manager::instance().set_mob_item_rate_premium(value);
+                get_character_manager().set_mob_item_rate_premium(value);
             } else if (name == "mob_exp_buyer") {
-                character_manager::instance().set_mob_exp_rate_premium(value);
+                get_character_manager().set_mob_exp_rate_premium(value);
             } else if (name == "mob_gold_buyer") {
-                character_manager::instance().set_mob_gold_amount_rate_premium(value);
+                get_character_manager().set_mob_gold_amount_rate_premium(value);
             } else if (name == "mob_gold_pct_buyer") {
-                character_manager::instance().set_mob_gold_drop_rate_premium(value);
+                get_character_manager().set_mob_gold_drop_rate_premium(value);
             } else if (!name.compare(0, 5, "xmas_")) {
                 xmas::process_event_flag(name, prev_value, value);
             } else if (name == "newyear_boom") {
-                const desc_manager::desc_set &c_ref_set = desc_manager::instance().client_set();
+                const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
 
                 for (auto it = c_ref_set.begin(); it != c_ref_set.end(); ++it) {
                     character *ch = (*it)->get_character();
@@ -980,7 +980,7 @@ namespace metin2::game {
                     mode = "light";
                 }
 
-                const desc_manager::desc_set &c_ref_set = desc_manager::instance().client_set();
+                const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
 
                 for (auto it = c_ref_set.begin(); it != c_ref_set.end(); ++it) {
                     character *ch = (*it)->get_character();
@@ -990,7 +990,7 @@ namespace metin2::game {
                     ch->chat_packet(CHAT_TYPE_COMMAND, "DayMode %s", mode.c_str());
                 }
             } else if (name == "day") {
-                const desc_manager::desc_set &c_ref_set = desc_manager::instance().client_set();
+                const desc_manager::desc_set &c_ref_set = get_desc_manager().client_set();
 
                 for (auto it = c_ref_set.begin(); it != c_ref_set.end(); ++it) {
                     character *ch = (*it)->get_character();
@@ -1022,24 +1022,24 @@ namespace metin2::game {
                     while (p->map_index) {
                         if (map_allow_find(p->map_index)) {
                             pixel_position pos_base;
-                            if (!sectree_manager::instance().map_base_position_by_map_index(p->map_index, pos_base)) {
+                            if (!get_sectree_manager().map_base_position_by_map_index(p->map_index, pos_base)) {
                                 metin2::log::error("No base position for map {:d}", p->map_index);
                                 ++p;
                                 continue;
                             }
 
-                            character_manager::instance().spawn_mob(xmas::MOB_XMAS_FIRWORK_SELLER_VNUM, p->map_index, pos_base.x + p->x * 100, pos_base.y + p->y * 100, 0, false, -1);
+                            get_character_manager().spawn_mob(xmas::MOB_XMAS_FIRWORK_SELLER_VNUM, p->map_index, pos_base.x + p->x * 100, pos_base.y + p->y * 100, 0, false, -1);
                         }
                         p++;
                     }
                 } else if (!value && prev_value) {
                     character_vector_interactor i;
 
-                    if (character_manager::instance().characters_by_race_num(xmas::MOB_XMAS_FIRWORK_SELLER_VNUM, i)) {
+                    if (get_character_manager().characters_by_race_num(xmas::MOB_XMAS_FIRWORK_SELLER_VNUM, i)) {
                         auto it = i.begin();
 
                         while (it != i.end()) {
-                            character_manager::instance().destroy_character(*it++);
+                            get_character_manager().destroy_character(*it++);
                         }
                     }
                 }
@@ -1064,20 +1064,20 @@ namespace metin2::game {
                         if (map_allow_find(position_value->map_index)) {
                             pixel_position pos;
 
-                            if (!sectree_manager::instance().map_base_position_by_map_index(position_value->map_index, pos)) {
+                            if (!get_sectree_manager().map_base_position_by_map_index(position_value->map_index, pos)) {
                                 metin2::log::error("No base position for map {:d}", position_value->map_index);
                                 ++position_value;
                                 continue;
                             }
 
-                            character_manager::instance().spawn_mob(event_npc, position_value->map_index, pos.x + position_value->x * 100, pos.y + position_value->y * 100, 0, false, -1);
+                            get_character_manager().spawn_mob(event_npc, position_value->map_index, pos.x + position_value->x * 100, pos.y + position_value->y * 100, 0, false, -1);
                         }
                         position_value++;
                     }
                 } else if (!value && prev_value) {
                     character_vector_interactor i;
 
-                    if (character_manager::instance().characters_by_race_num(event_npc, i)) {
+                    if (get_character_manager().characters_by_race_num(event_npc, i)) {
                         auto it = i.begin();
 
                         while (it != i.end()) {
@@ -1087,7 +1087,7 @@ namespace metin2::game {
                             case 3:
                             case 23:
                             case 43:
-                                character_manager::instance().destroy_character(ch);
+                                get_character_manager().destroy_character(ch);
                                 break;
                             }
                         }
@@ -1107,7 +1107,7 @@ namespace metin2::game {
                     bool map21_santa_exist = false;
                     bool map41_santa_exist = false;
 
-                    if (character_manager::instance().characters_by_race_num(new_santa, i)) {
+                    if (get_character_manager().characters_by_race_num(new_santa, i)) {
                         auto it = i.begin();
 
                         while (it != i.end()) {
@@ -1124,23 +1124,23 @@ namespace metin2::game {
                     }
 
                     if (map_allow_find(1) && !map1_santa_exist) {
-                        sectree_map *sectree_map = sectree_manager::instance().map(1);
-                        character_manager::instance().spawn_mob(new_santa, 1, sectree_map->setting.base_x + 60800, sectree_map->setting.base_y + 61700, 0, false, 90, true);
+                        sectree_map *sectree_map = get_sectree_manager().map(1);
+                        get_character_manager().spawn_mob(new_santa, 1, sectree_map->setting.base_x + 60800, sectree_map->setting.base_y + 61700, 0, false, 90, true);
                     }
                     if (map_allow_find(21) && !map21_santa_exist) {
-                        sectree_map *sectree_map = sectree_manager::instance().map(21);
-                        character_manager::instance().spawn_mob(new_santa, 21, sectree_map->setting.base_x + 59600, sectree_map->setting.base_y + 61000, 0, false, 110, true);
+                        sectree_map *sectree_map = get_sectree_manager().map(21);
+                        get_character_manager().spawn_mob(new_santa, 21, sectree_map->setting.base_x + 59600, sectree_map->setting.base_y + 61000, 0, false, 110, true);
                     }
                     if (map_allow_find(41) && !map41_santa_exist) {
-                        sectree_map *sectree_map = sectree_manager::instance().map(41);
-                        character_manager::instance().spawn_mob(new_santa, 41, sectree_map->setting.base_x + 35700, sectree_map->setting.base_y + 74300, 0, false, 140, true);
+                        sectree_map *sectree_map = get_sectree_manager().map(41);
+                        get_character_manager().spawn_mob(new_santa, 41, sectree_map->setting.base_x + 35700, sectree_map->setting.base_y + 74300, 0, false, 140, true);
                     }
                 } else {
                     character_vector_interactor i;
-                    character_manager::instance().characters_by_race_num(new_santa, i);
+                    get_character_manager().characters_by_race_num(new_santa, i);
 
                     for (auto it = i.begin(); it != i.end(); it++) {
-                        character_manager::instance().destroy_character(*it);
+                        get_character_manager().destroy_character(*it);
                     }
                 }
             }
@@ -1158,27 +1158,27 @@ namespace metin2::game {
         void quest_manager::broadcast_event_flag_on_login(character *ch) {
             int event_flag_value;
 
-            if ((event_flag_value = quest::quest_manager::instance().event_flag("xmas_snow"))) {
+            if ((event_flag_value = quest::get_quest_manager().event_flag("xmas_snow"))) {
                 ch->chat_packet(CHAT_TYPE_COMMAND, "xmas_snow %d", event_flag_value);
             }
 
-            if ((event_flag_value = quest::quest_manager::instance().event_flag("xmas_boom"))) {
+            if ((event_flag_value = quest::get_quest_manager().event_flag("xmas_boom"))) {
                 ch->chat_packet(CHAT_TYPE_COMMAND, "xmas_boom %d", event_flag_value);
             }
 
-            if ((event_flag_value = quest::quest_manager::instance().event_flag("xmas_tree"))) {
+            if ((event_flag_value = quest::get_quest_manager().event_flag("xmas_tree"))) {
                 ch->chat_packet(CHAT_TYPE_COMMAND, "xmas_tree %d", event_flag_value);
             }
 
-            if ((event_flag_value = quest::quest_manager::instance().event_flag("day"))) {
+            if ((event_flag_value = quest::get_quest_manager().event_flag("day"))) {
                 ch->chat_packet(CHAT_TYPE_COMMAND, "DayMode dark");
             }
 
-            if ((event_flag_value = quest::quest_manager::instance().event_flag("newyear_boom"))) {
+            if ((event_flag_value = quest::get_quest_manager().event_flag("newyear_boom"))) {
                 ch->chat_packet(CHAT_TYPE_COMMAND, "newyear_boom %d", event_flag_value);
             }
 
-            if ((event_flag_value = quest::quest_manager::instance().event_flag("eclipse"))) {
+            if ((event_flag_value = quest::get_quest_manager().event_flag("eclipse"))) {
                 std::string mode;
 
                 if (event_flag_value == 1)
@@ -1208,11 +1208,11 @@ namespace metin2::game {
         }
 
         auto quest_manager::execute_quest_script(pc &pc, uint32_t quest_index, const int state, const char *code, const int code_size, std::vector<a_arg_script *> *chat_scripts, bool use_cache) -> bool {
-            return execute_quest_script(pc, quest_manager::instance().quest_name_by_index(quest_index), state, code, code_size, chat_scripts, use_cache);
+            return execute_quest_script(pc, get_quest_manager().quest_name_by_index(quest_index), state, code, code_size, chat_scripts, use_cache);
         }
 
         auto quest_manager::execute_quest_script(pc &pc, const std::string &quest_name, const int state, const char *code, const int code_size, std::vector<a_arg_script *> *chat_scripts_value, bool use_cache) -> bool {
-            quest_state qs = quest_manager::instance().open_state(quest_name, state);
+            quest_state qs = get_quest_manager().open_state(quest_name, state);
             if (chat_scripts_value)
                 qs.chat_scripts.swap(*chat_scripts_value);
 
@@ -1237,8 +1237,8 @@ namespace metin2::game {
             pc.set_quest(quest_name, qs);
 
             quest_state &rqs = *pc.running_quest_state();
-            if (!quest_manager::instance().run_state(rqs)) {
-                quest_manager::instance().close_state(rqs);
+            if (!get_quest_manager().run_state(rqs)) {
+                get_quest_manager().close_state(rqs);
                 pc.end_running();
                 return false;
             }
@@ -1301,7 +1301,7 @@ namespace metin2::game {
             if (!metin2::config::test_server())
                 return;
 
-            if (character *ch = quest_manager::instance().current_character_ptr()) {
+            if (character *ch = get_quest_manager().current_character_ptr()) {
                 const std::string text(message);
                 ch->chat_packet(CHAT_TYPE_PARTY, "error occurred on [%s:%u]", where.function_name(), static_cast<unsigned>(where.line()));
                 ch->chat_packet(CHAT_TYPE_PARTY, "%s", text.c_str());
@@ -1365,7 +1365,7 @@ namespace metin2::game {
             game::quest::pc *pc_value;
             if ((pc_value = get_pc(pc))) {
                 if (!check_quest_loaded(pc_value)) {
-                    character *ch = character_manager::instance().find_by_pid(pc);
+                    character *ch = get_character_manager().find_by_pid(pc);
                     if (ch) {
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("퀘스트를 로드하는 중입니다. 잠시만 기다려 주십시오."));
                     }

@@ -229,7 +229,7 @@ namespace metin2::game::inline events {
                 ch_a->set_arena(arena_value);
                 ch_b->set_arena(arena_value);
 
-                int count = quest::quest_manager::instance().event_flag("arena_potion_limit_count");
+                int count = quest::get_quest_manager().event_flag("arena_potion_limit_count");
 
                 if (count > 10000) {
                     ch_a->chat_packet(CHAT_TYPE_INFO, lc_text("물약 제한이 없습니다."));
@@ -519,7 +519,7 @@ namespace metin2::game::inline events {
         auto iter = observer_.begin();
 
         for (; iter != observer_.end(); iter++) {
-            character *ch = character_manager::instance().find_by_pid(iter->first);
+            character *ch = get_character_manager().find_by_pid(iter->first);
             if (ch != nullptr) {
                 ch->warp_set(arena_return_point_x(ch->empire()), arena_return_point_y(ch->empire()));
             }
@@ -718,7 +718,7 @@ namespace metin2::game::inline events {
                 metin2::log::error("Arena: reported death does not match the duel, duel pids ({:d}, {:d}), reported ({:d}, {:d})", pida_, pidb_, pida, pidb);
             }
 
-            int potion = quest::quest_manager::instance().event_flag("arena_potion_limit_count");
+            int potion = quest::get_quest_manager().event_flag("arena_potion_limit_count");
             char_a->set_potion_limit(potion);
             char_b->set_potion_limit(potion);
         } else {

@@ -3,7 +3,6 @@
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/world/entity.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/proto/building.h>
 
 #include <cstdint>
@@ -107,10 +106,10 @@ namespace metin2::game::inline guilds {
             void draw_wall(uint32_t vnum, int32_t map_index, int32_t &x, int32_t &y, char length, float z_rot);
         };
 
-        class manager : public singleton<manager> {
+        class manager {
           public:
             manager();
-            ~manager() override;
+            ~manager();
 
             void destroy();
 
@@ -144,5 +143,10 @@ namespace metin2::game::inline guilds {
             std::map<uint32_t, object *> map_obj_by_id_;
             std::map<uint32_t, object *> map_obj_by_vid_;
         };
+
+        inline auto get_manager() -> manager & {
+            static manager instance;
+            return instance;
+        }
     }
 }

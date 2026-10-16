@@ -10,7 +10,7 @@ namespace metin2::game {
 
     namespace quest {
         auto dance_event_go_home(lua_State *lua) -> int {
-            sectree_map *sec_map = sectree_manager::instance().map(115);
+            sectree_map *sec_map = get_sectree_manager().map(115);
 
             if (sec_map != nullptr) {
                 sec_map->for_each([](entity *ent) {
@@ -37,7 +37,7 @@ namespace metin2::game {
                     {nullptr,  nullptr            }
             };
 
-            quest_manager::instance().add_lua_function_table("dance_event", dance_event_functions);
+            get_quest_manager().add_lua_function_table("dance_event", dance_event_functions);
         }
     }
 }

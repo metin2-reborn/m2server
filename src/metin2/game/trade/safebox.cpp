@@ -44,9 +44,9 @@ namespace metin2::game::inline trade {
         for (int i = 0; i < SAFEBOX_MAX_NUM; ++i) {
             if (items_[i]) {
                 items_[i]->set_skip_save(true);
-                item_manager::instance().flush_delayed_save(items_[i]);
+                get_item_manager().flush_delayed_save(items_[i]);
 
-                item_manager::instance().destroy_item(items_[i]->remove_from_character());
+                get_item_manager().destroy_item(items_[i]->remove_from_character());
                 items_[i] = nullptr;
             }
         }
@@ -63,7 +63,7 @@ namespace metin2::game::inline trade {
         item_value->set_window(window_mode_);
         item_value->set_cell(chr_owner_, pos);
         item_value->save();
-        item_manager::instance().flush_delayed_save(item_value);
+        get_item_manager().flush_delayed_save(item_value);
 
         grid_->put(pos, 1, item_value->size());
         items_[pos] = item_value;
@@ -204,7 +204,7 @@ namespace metin2::game::inline trade {
                 send_item_set(dest_cell);
 
                 if (count == item->count())
-                    item_manager::instance().remove_item(item, "SAFEBOX_STACK");
+                    get_item_manager().remove_item(item, "SAFEBOX_STACK");
                 else {
                     item->set_count(item->count() - count);
                     send_item_set(cell);

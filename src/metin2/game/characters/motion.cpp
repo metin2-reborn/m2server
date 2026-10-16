@@ -275,9 +275,9 @@ namespace metin2::game::inline characters {
             motion_set_value->load(std::format("{}/horse/walk.msa", c_apsz_folder_name[i]).c_str(), MOTION_MODE_HORSE, MOTION_WALK);
         }
 
-        auto it = mob_manager::instance().begin();
+        auto it = get_mob_manager().begin();
 
-        while (it != mob_manager::instance().end()) {
+        while (it != get_mob_manager().end()) {
             mob *mob = (it++)->second.get();
             mob_table *t = &mob->table;
 

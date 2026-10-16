@@ -31,13 +31,13 @@ namespace metin2::game::inline text {
     static_assert(PLAYER_PER_ACCOUNT == 4);
 
     static auto check_name_independent(const char *str) -> int {
-        if (banword_manager::instance().check_string(str, strlen(str)))
+        if (get_banword_manager().check_string(str, strlen(str)))
             return 0;
 
         char tmp[256];
         str_lower(str, tmp, sizeof(tmp));
 
-        if (mob_manager::instance().get(tmp, false))
+        if (get_mob_manager().get(tmp, false))
             return 0;
 
         return 1;
@@ -98,7 +98,7 @@ namespace metin2::game::inline text {
     }
 
     void locale_service_transfer_default_setting() {
-        if (!table_by_skill::instance().check())
+        if (!get_table_by_skill().check())
             exit(1);
     }
 

@@ -97,7 +97,7 @@ namespace metin2::game::inline protocol {
             m_pk_login_key_->expire();
 
         if (get_account_table().id)
-            desc_manager::instance().disconnect_account(get_account_table().login);
+            get_desc_manager().disconnect_account(get_account_table().login);
 
         if (character_) {
             character_->disconnect("connection closed");
@@ -319,10 +319,10 @@ namespace metin2::game::inline protocol {
 
         // A second login on this connection must not leave the login map pointing here.
         if (account_table_.id && strcmp(account_table_.login, account_table_value->login) != 0)
-            desc_manager::instance().disconnect_account(account_table_.login);
+            get_desc_manager().disconnect_account(account_table_.login);
 
         std::memcpy(&account_table_, account_table_value, sizeof(account_table));
-        desc_manager::instance().connect_account(account_table_.login, this);
+        get_desc_manager().connect_account(account_table_.login, this);
     }
 
     void desc::start_handshake(uint32_t handshake) {
@@ -530,7 +530,7 @@ namespace metin2::game::inline protocol {
         p.header = HEADER_GC_LOGIN_SUCCESS_NEWSLOT;
 
         p.handle = handle();
-        p.random_key = desc_manager::instance().make_random_key(handle());
+        p.random_key = get_desc_manager().make_random_key(handle());
         std::memcpy(p.players, table.players, sizeof(table.players));
 
         for (int i = 0; i < PLAYER_PER_ACCOUNT; ++i) {
@@ -538,7 +538,7 @@ namespace metin2::game::inline protocol {
             if (!proxy_ip.empty())
                 table.players[i].addr = inet_addr(proxy_ip.c_str());
 
-            guild *g = guild_manager::instance().linked_guild(table.players[i].id);
+            guild *g = get_guild_manager().linked_guild(table.players[i].id);
 
             if (g) {
                 p.guild_id[i] = g->id();

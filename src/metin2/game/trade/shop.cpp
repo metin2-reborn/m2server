@@ -104,7 +104,7 @@ namespace metin2::game::inline trade {
                 if (!table_value->vnum)
                     continue;
 
-                item_table = item_manager::instance().table(table_value->vnum);
+                item_table = get_item_manager().table(table_value->vnum);
             }
 
             if (!item_table) {
@@ -182,11 +182,11 @@ namespace metin2::game::inline trade {
         shop_item &r_item = item_vector_[pos];
 
         if (r_item.price < 0) {
-            log_manager::instance().hack_log("SHOP_BUY_GOLD_OVERFLOW", ch);
+            get_log_manager().hack_log("SHOP_BUY_GOLD_OVERFLOW", ch);
             return SHOP_SUBHEADER_GC_NOT_ENOUGH_MONEY;
         }
 
-        item *selected_item = item_manager::instance().find(r_item.itemid);
+        item *selected_item = get_item_manager().find(r_item.itemid);
 
         if (is_pc_shop()) {
             if (!selected_item) {
@@ -225,13 +225,13 @@ namespace metin2::game::inline trade {
         if (pc_)
             item = r_item.item;
         else
-            item = item_manager::instance().create_item(r_item.vnum, r_item.count);
+            item = get_item_manager().create_item(r_item.vnum, r_item.count);
 
         if (!item)
             return SHOP_SUBHEADER_GC_SOLD_OUT;
 
         if (!pc_) {
-            if (quest::quest_manager::instance().event_flag("hivalue_item_sell") == 0) {
+            if (quest::get_quest_manager().event_flag("hivalue_item_sell") == 0) {
                 if (item->vnum() == 70024 || item->vnum() == 70035) {
                     return SHOP_SUBHEADER_GC_END;
                 }
@@ -251,7 +251,7 @@ namespace metin2::game::inline trade {
                 return SHOP_SUBHEADER_GC_INVENTORY_FULL;
             } else {
                 metin2::log::debug("Shop: inventory of {} is full (item size {:d})", ch->name(), item->size());
-                item_manager::instance().destroy_item(item);
+                get_item_manager().destroy_item(item);
                 return SHOP_SUBHEADER_GC_INVENTORY_FULL;
             }
         }
@@ -261,7 +261,7 @@ namespace metin2::game::inline trade {
         uint32_t tax = 0;
         int val = 0;
 
-        val = quest::quest_manager::instance().event_flag("personal_shop");
+        val = quest::get_quest_manager().event_flag("personal_shop");
 
         if (0 < val) {
             if (val > 100)
@@ -275,7 +275,7 @@ namespace metin2::game::inline trade {
         }
 
         if (!pc_) {
-            monarch::instance().sendto_db_add_money(tax, ch->empire(), ch);
+            get_monarch().sendto_db_add_money(tax, ch->empire(), ch);
         }
 
         if (pc_) {
@@ -285,8 +285,8 @@ namespace metin2::game::inline trade {
 
             if (item->vnum() >= 80003 && item->vnum() <= 80007) {
                 buf = std::format("{} FROM: {} TO: {} PRICE: {}", item->name(), ch->player_id(), pc_->player_id(), price_value);
-                log_manager::instance().gold_bar_log(ch->player_id(), item->id(), SHOP_BUY, buf.c_str());
-                log_manager::instance().gold_bar_log(pc_->player_id(), item->id(), SHOP_SELL, buf.c_str());
+                get_log_manager().gold_bar_log(ch->player_id(), item->id(), SHOP_BUY, buf.c_str());
+                get_log_manager().gold_bar_log(pc_->player_id(), item->id(), SHOP_SELL, buf.c_str());
             }
 
             item->remove_from_character();
@@ -294,13 +294,13 @@ namespace metin2::game::inline trade {
                 item->add_to_character(ch, item_pos(DRAGON_SOUL_INVENTORY, empty_pos));
             else
                 item->add_to_character(ch, item_pos(INVENTORY, empty_pos));
-            item_manager::instance().flush_delayed_save(item);
+            get_item_manager().flush_delayed_save(item);
 
             buf = std::format("{} {}({}) {} {}", item->name(), pc_->player_id(), pc_->name(), price_value, item->count());
-            log_manager::instance().item_log(ch, item, "SHOP_BUY", buf.c_str());
+            get_log_manager().item_log(ch, item, "SHOP_BUY", buf.c_str());
 
             buf = std::format("{} {}({}) {} {}", item->name(), ch->player_id(), ch->name(), price_value, item->count());
-            log_manager::instance().item_log(pc_, item, "SHOP_SELL", buf.c_str());
+            get_log_manager().item_log(pc_, item, "SHOP_SELL", buf.c_str());
 
             r_item.item = nullptr;
             broadcast_update_item(pos);
@@ -310,20 +310,20 @@ namespace metin2::game::inline trade {
             if (val > 0)
                 pc_->chat_packet(CHAT_TYPE_INFO, lc_text("판매금액의 %d %% 가 세금으로 나가게됩니다"), val);
 
-            monarch::instance().sendto_db_add_money(tax, pc_->empire(), pc_);
+            get_monarch().sendto_db_add_money(tax, pc_->empire(), pc_);
         } else {
             if (item->is_dragon_soul())
                 item->add_to_character(ch, item_pos(DRAGON_SOUL_INVENTORY, empty_pos));
             else
                 item->add_to_character(ch, item_pos(INVENTORY, empty_pos));
-            item_manager::instance().flush_delayed_save(item);
-            log_manager::instance().item_log(ch, item, "BUY", item->name());
+            get_item_manager().flush_delayed_save(item);
+            get_log_manager().item_log(ch, item, "BUY", item->name());
 
             if (item->vnum() >= 80003 && item->vnum() <= 80007) {
-                log_manager::instance().gold_bar_log(ch->player_id(), item->id(), PERSONAL_SHOP_BUY, "");
+                get_log_manager().gold_bar_log(ch->player_id(), item->id(), PERSONAL_SHOP_BUY, "");
             }
 
-            db_manager::instance().send_money_log(MONEY_LOG_SHOP, item->vnum(), -price_value);
+            get_db_manager().send_money_log(MONEY_LOG_SHOP, item->vnum(), -price_value);
         }
 
         if (item)
@@ -361,7 +361,7 @@ namespace metin2::game::inline trade {
         for (uint32_t i = 0; i < item_vector_.size() && i < SHOP_HOST_ITEM_MAX_NUM; ++i) {
             const shop_item &item = item_vector_[i];
 
-            if (quest::quest_manager::instance().event_flag("hivalue_item_sell") == 0) {
+            if (quest::get_quest_manager().event_flag("hivalue_item_sell") == 0) {
                 if (item.vnum == 70024 || item.vnum == 70035) {
                     continue;
                 }

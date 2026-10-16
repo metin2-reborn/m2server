@@ -430,10 +430,10 @@ namespace metin2::game::inline characters {
         for (i = 0; i < INVENTORY_AND_EQUIP_SLOT_MAX; ++i) {
             if ((item = inventory_item(i))) {
                 item->set_skip_save(true);
-                item_manager::instance().flush_delayed_save(item);
+                get_item_manager().flush_delayed_save(item);
 
                 item->remove_from_character();
-                item_manager::instance().destroy_item(item);
+                get_item_manager().destroy_item(item);
 
                 sync_quickslot(QUICKSLOT_TYPE_ITEM, i, 255);
             }
@@ -441,10 +441,10 @@ namespace metin2::game::inline characters {
         for (i = 0; i < DRAGON_SOUL_INVENTORY_MAX_NUM; ++i) {
             if ((item = get_item(item_pos(DRAGON_SOUL_INVENTORY, i)))) {
                 item->set_skip_save(true);
-                item_manager::instance().flush_delayed_save(item);
+                get_item_manager().flush_delayed_save(item);
 
                 item->remove_from_character();
-                item_manager::instance().destroy_item(item);
+                get_item_manager().destroy_item(item);
             }
         }
     }
@@ -539,7 +539,7 @@ namespace metin2::game::inline characters {
             return -1;
         }
         uint8_t size = item_value->size();
-        uint16_t base_cell = ds_manager::instance().base_position(item_value);
+        uint16_t base_cell = get_ds_manager().base_position(item_value);
 
         if (WORD_MAX == base_cell)
             return -1;
@@ -571,7 +571,7 @@ namespace metin2::game::inline characters {
         if (nullptr != ch && item != nullptr) {
             ch->chat_packet(CHAT_TYPE_COMMAND, "RefineSuceeded");
 
-            log_manager::instance().refine_log(ch->player_id(), item->name(), item->id(), item->refine_level(), 1, way);
+            get_log_manager().refine_log(ch->player_id(), item->name(), item->id(), item->refine_level(), 1, way);
         }
     }
 
@@ -579,13 +579,13 @@ namespace metin2::game::inline characters {
         if (nullptr != ch && nullptr != item) {
             ch->chat_packet(CHAT_TYPE_COMMAND, "RefineFailed");
 
-            log_manager::instance().refine_log(ch->player_id(), item->name(), item->id(), item->refine_level(), success, way);
+            get_log_manager().refine_log(ch->player_id(), item->name(), item->id(), item->refine_level(), success, way);
         }
     }
 
     auto character::is_refine_paused_after_update() const -> bool {
-        if (quest::quest_manager::instance().event_flag("update_refine_time") != 0) {
-            if (get_global_time() < quest::quest_manager::instance().event_flag("update_refine_time") + (60 * 5)) {
+        if (quest::get_quest_manager().event_flag("update_refine_time") != 0) {
+            if (get_global_time() < quest::get_quest_manager().event_flag("update_refine_time") + (60 * 5)) {
                 metin2::log::info("{} (pid {:d}) cannot refine: refining is paused after an update", name(), player_id());
                 return true;
             }
@@ -595,7 +595,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character::replace_refined_item(item *item, uint32_t new_vnum, int cost, bool refine_succeeded, const char *way) -> bool {
-        game::items::item *new_item = item_manager::instance().create_item(new_vnum, 1, 0, false);
+        game::items::item *new_item = get_item_manager().create_item(new_vnum, 1, 0, false);
 
         if (!new_item) {
             metin2::log::error("Cannot create refined item {:d}", new_vnum);
@@ -603,22 +603,22 @@ namespace metin2::game::inline characters {
         }
 
         item_manager::copy_all_attr_to(item, new_item);
-        log_manager::instance().item_log(this, new_item, refine_succeeded ? "REFINE SUCCESS" : "REFINE FAIL", new_item->name());
+        get_log_manager().item_log(this, new_item, refine_succeeded ? "REFINE SUCCESS" : "REFINE FAIL", new_item->name());
 
         uint8_t cell = item->cell();
 
         if (refine_succeeded) {
             notify_refine_success(this, item, way);
-            db_manager::instance().send_money_log(MONEY_LOG_REFINE, item->vnum(), -cost);
+            get_db_manager().send_money_log(MONEY_LOG_REFINE, item->vnum(), -cost);
         } else {
-            db_manager::instance().send_money_log(MONEY_LOG_REFINE, item->vnum(), -cost);
+            get_db_manager().send_money_log(MONEY_LOG_REFINE, item->vnum(), -cost);
             notify_refine_fail(this, item, way, -1);
         }
 
-        item_manager::instance().remove_item(item, refine_succeeded ? "REMOVE (REFINE SUCCESS)" : "REMOVE (REFINE FAIL)");
+        get_item_manager().remove_item(item, refine_succeeded ? "REMOVE (REFINE SUCCESS)" : "REMOVE (REFINE FAIL)");
 
         new_item->add_to_character(this, item_pos(INVENTORY, cell));
-        item_manager::instance().flush_delayed_save(new_item);
+        get_item_manager().flush_delayed_save(new_item);
         new_item->attr_log();
         pay_refine_fee(cost);
         return true;
@@ -641,7 +641,7 @@ namespace metin2::game::inline characters {
         if (is_refine_paused_after_update())
             return false;
 
-        const refine_table *prt = refine_manager::instance().refine_recipe(item->refine_set());
+        const refine_table *prt = get_refine_manager().refine_recipe(item->refine_set());
 
         if (!prt)
             return false;
@@ -670,7 +670,7 @@ namespace metin2::game::inline characters {
         if (item->type() == ITEM_USE && item->sub_type() == USE_TUNING)
             return false;
 
-        item_table *proto_value = item_manager::instance().table(item->refined_vnum());
+        item_table *proto_value = get_item_manager().table(item->refined_vnum());
 
         if (!proto_value) {
             metin2::log::error("No proto for refined item vnum {:d}", item->refined_vnum());
@@ -709,10 +709,10 @@ namespace metin2::game::inline characters {
             else
                 notify_refine_fail(this, item, is_refine_through_guild() ? "GUILD" : "POWER");
         } else {
-            db_manager::instance().send_money_log(MONEY_LOG_REFINE, item->vnum(), -cost);
+            get_db_manager().send_money_log(MONEY_LOG_REFINE, item->vnum(), -cost);
             notify_refine_fail(this, item, is_refine_through_guild() ? "GUILD" : "POWER");
             item->attr_log();
-            item_manager::instance().remove_item(item, "REMOVE (REFINE FAIL)");
+            get_item_manager().remove_item(item, "REMOVE (REFINE FAIL)");
 
             pay_refine_fee(cost);
         }
@@ -743,7 +743,7 @@ namespace metin2::game::inline characters {
         if (is_refine_paused_after_update())
             return false;
 
-        const refine_table *prt = refine_manager::instance().refine_recipe(item->refine_set());
+        const refine_table *prt = get_refine_manager().refine_recipe(item->refine_set());
 
         if (!prt)
             return false;
@@ -797,7 +797,7 @@ namespace metin2::game::inline characters {
             break;
         }
 
-        item_table *proto_value = item_manager::instance().table(item->refined_vnum());
+        item_table *proto_value = get_item_manager().table(item->refined_vnum());
 
         if (!proto_value) {
             metin2::log::error("No proto for refined item vnum {:d}", item->refined_vnum());
@@ -924,7 +924,7 @@ namespace metin2::game::inline characters {
             }
         }
 
-        refine_manager &rm = refine_manager::instance();
+        refine_manager &rm = get_refine_manager();
 
         const refine_table *prt = rm.refine_recipe(item->refine_set());
 
@@ -975,7 +975,7 @@ namespace metin2::game::inline characters {
                 refine_information(target->cell(), REFINE_TYPE_SCROLL, item_value->cell());
             }
         } else if (item_value->sub_type() == USE_DETACHMENT && is_set(target->flag(), ITEM_FLAG_REFINEABLE)) {
-            log_manager::instance().item_log(this, target, "USE_DETACHMENT", target->name());
+            get_log_manager().item_log(this, target, "USE_DETACHMENT", target->name());
 
             bool has_metin_stone = false;
 
@@ -1020,7 +1020,7 @@ namespace metin2::game::inline characters {
             return 0;
         }
         ch->mining_event = nullptr;
-        character_manager::instance().destroy_character(ch);
+        get_character_manager().destroy_character(ch);
         return 0;
     }
 
@@ -1055,7 +1055,7 @@ namespace metin2::game::inline characters {
             item->set_socket(0, x());
             item->set_socket(1, y());
         } else if ((pos = empty_inventory(item->size())) != -1) {
-            game::items::item *item2 = item_manager::instance().create_item(item->vnum(), 1);
+            game::items::item *item2 = get_item_manager().create_item(item->vnum(), 1);
 
             if (nullptr != item2) {
                 item2->set_socket(0, x());
@@ -1075,7 +1075,7 @@ namespace metin2::game::inline characters {
     void character::process_recall_item(item *item) {
         int idx;
 
-        if ((idx = sectree_manager::instance().map_index(item->get_socket(0), item->get_socket(1))) == 0)
+        if ((idx = get_sectree_manager().map_index(item->get_socket(0), item->get_socket(1))) == 0)
             return;
 
         int empire_by_map_index = -1;
@@ -1228,7 +1228,7 @@ namespace metin2::game::inline characters {
             metin2::log::debug("Use item {}: window {:d}, cell {:d}, type {:d}, subtype {:d}", item->name(), dest_inven, dest_cell_value, item->type(), item->sub_type());
         }
 
-        if (arena_manager::instance().is_limited_item(map_index(), item->vnum()) == true) {
+        if (get_arena_manager().is_limited_item(map_index(), item->vnum()) == true) {
             chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
             return false;
         }
@@ -1280,7 +1280,7 @@ namespace metin2::game::inline characters {
             {
                 if (!item->is_equipped())
                     return false;
-                return ds_manager::instance().pull_out(this, NPOS, item);
+                return get_ds_manager().pull_out(this, NPOS, item);
                 break;
             }
         case ITEM_SPECIAL_DS:
@@ -1292,7 +1292,7 @@ namespace metin2::game::inline characters {
 
         case ITEM_FISH:
             {
-                if (arena_manager::instance().is_arena_map(map_index()) == true) {
+                if (get_arena_manager().is_arena_map(map_index()) == true) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
                     return false;
                 }
@@ -1368,9 +1368,9 @@ namespace metin2::game::inline characters {
 
         if (!is_set(item->flag(), ITEM_FLAG_QUEST_USE | ITEM_FLAG_QUEST_USE_MULTIPLE)) {
             if (item->sig_vnum() == 0) {
-                quest::quest_manager::instance().use_item(player_id(), item, false);
+                quest::get_quest_manager().use_item(player_id(), item, false);
             } else {
-                quest::quest_manager::instance().sig_use(player_id(), item->sig_vnum(), item, false);
+                quest::get_quest_manager().sig_use(player_id(), item->sig_vnum(), item, false);
             }
         }
 
@@ -1381,7 +1381,7 @@ namespace metin2::game::inline characters {
         float fx, fy;
         get_delta_by_degree(rotation(), 100.0f, &fx, &fy);
 
-        sectree *tree = sectree_manager::instance().get(map_index(), (int32_t)(x() + fx), (int32_t)(y() + fy));
+        sectree *tree = get_sectree_manager().get(map_index(), (int32_t)(x() + fx), (int32_t)(y() + fy));
 
         if (!tree) {
             chat_packet(CHAT_TYPE_INFO, lc_text("모닥불을 피울 수 없는 지점입니다."));
@@ -1393,7 +1393,7 @@ namespace metin2::game::inline characters {
             return false;
         }
 
-        character *campfire = character_manager::instance().spawn_mob(fishing::CAMPFIRE_MOB, map_index(), (int32_t)(x() + fx), (int32_t)(y() + fy), 0, false, number(0, 359));
+        character *campfire = get_character_manager().spawn_mob(fishing::CAMPFIRE_MOB, map_index(), (int32_t)(x() + fx), (int32_t)(y() + fy), 0, false, number(0, 359));
 
         auto *info = alloc_event_info<char_event_info>();
 
@@ -1456,8 +1456,8 @@ namespace metin2::game::inline characters {
             int count = 0;
 
             if (give_item_from_special_item_group(box_vnum, vnums, counts, item_gets, count)) {
-                item_manager::instance().remove_item(item);
-                item_manager::instance().remove_item(item2);
+                get_item_manager().remove_item(item);
+                get_item_manager().remove_item(item2);
 
                 for (int i = 0; i < count; i++) {
                     notify_box_reward(vnums[i], counts[i], item_gets[i]);
@@ -1504,14 +1504,14 @@ namespace metin2::game::inline characters {
 
     auto character::use_item_skill_forget(item *item) -> bool {
         if (!item->get_socket(0)) {
-            item_manager::instance().remove_item(item);
+            get_item_manager().remove_item(item);
             return false;
         }
 
         uint32_t vnum = item->get_socket(0);
 
         if (skill_level_down(vnum)) {
-            item_manager::instance().remove_item(item);
+            get_item_manager().remove_item(item);
             chat_packet(CHAT_TYPE_INFO, lc_text("스킬 레벨을 내리는데 성공하였습니다."));
         } else
             chat_packet(CHAT_TYPE_INFO, lc_text("스킬 레벨을 내릴 수 없습니다."));
@@ -1534,13 +1534,13 @@ namespace metin2::game::inline characters {
         }
 
         if (0 == vnum) {
-            item_manager::instance().remove_item(item);
+            get_item_manager().remove_item(item);
 
             return false;
         }
 
         if (true == learn_skill_by_book(vnum)) {
-            item_manager::instance().remove_item(item);
+            get_item_manager().remove_item(item);
 
             int read_delay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
 
@@ -1558,7 +1558,7 @@ namespace metin2::game::inline characters {
             return use_item_euro_free(item);
 
         if (item->vnum() >= 27863 && item->vnum() <= 27883) {
-            if (arena_manager::instance().is_arena_map(map_index()) == true) {
+            if (get_arena_manager().is_arena_map(map_index()) == true) {
                 chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
                 return false;
             }
@@ -1695,7 +1695,7 @@ namespace metin2::game::inline characters {
 
                 chat_packet(CHAT_TYPE_INFO, lc_text("%d초 만큼 충전되었습니다."), ret);
                 item->set_count(item->count() - 1);
-                log_manager::instance().item_log(this, item, "DS_CHARGING_SUCCESS", buf.c_str());
+                get_log_manager().item_log(this, item, "DS_CHARGING_SUCCESS", buf.c_str());
                 return true;
             } else {
                 if (item->vnum() == DRAGON_HEART_VNUM) {
@@ -1705,7 +1705,7 @@ namespace metin2::game::inline characters {
                 }
 
                 chat_packet(CHAT_TYPE_INFO, lc_text("충전할 수 없습니다."));
-                log_manager::instance().item_log(this, item, "DS_CHARGING_FAILED", buf.c_str());
+                get_log_manager().item_log(this, item, "DS_CHARGING_FAILED", buf.c_str());
                 return false;
             }
         } else
@@ -1723,13 +1723,13 @@ namespace metin2::game::inline characters {
             if (ret) {
                 chat_packet(CHAT_TYPE_INFO, lc_text("%d초 만큼 충전되었습니다."), ret);
                 buf = std::format("Increase {}s by item{{VN:{} VAL{}:{}}}", ret, item->vnum(), ITEM_VALUE_CHARGING_AMOUNT_IDX, item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
-                log_manager::instance().item_log(this, item, "DS_CHARGING_SUCCESS", buf.c_str());
+                get_log_manager().item_log(this, item, "DS_CHARGING_SUCCESS", buf.c_str());
                 item->set_count(item->count() - 1);
                 return true;
             } else {
                 chat_packet(CHAT_TYPE_INFO, lc_text("충전할 수 없습니다."));
                 buf = std::format("No change by item{{VN:{} VAL{}:{}}}", item->vnum(), ITEM_VALUE_CHARGING_AMOUNT_IDX, item->value(ITEM_VALUE_CHARGING_AMOUNT_IDX));
-                log_manager::instance().item_log(this, item, "DS_CHARGING_FAILED", buf.c_str());
+                get_log_manager().item_log(this, item, "DS_CHARGING_FAILED", buf.c_str());
                 return false;
             }
         } else
@@ -1769,17 +1769,17 @@ namespace metin2::game::inline characters {
             break;
         case ITEM_MARRIAGE_RING:
             {
-                marriage::marriage *marriage = marriage::manager::instance().get(player_id());
+                marriage::marriage *marriage = marriage::get_manager().get(player_id());
                 if (marriage) {
                     if (marriage->ch1 != nullptr) {
-                        if (arena_manager::instance().is_arena_map(marriage->ch1->map_index()) == true) {
+                        if (get_arena_manager().is_arena_map(marriage->ch1->map_index()) == true) {
                             chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
                             break;
                         }
                     }
 
                     if (marriage->ch2 != nullptr) {
-                        if (arena_manager::instance().is_arena_map(marriage->ch2->map_index()) == true) {
+                        if (get_arena_manager().is_arena_map(marriage->ch2->map_index()) == true) {
                             chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
                             break;
                         }
@@ -1907,7 +1907,7 @@ namespace metin2::game::inline characters {
                 }
 
                 if (learn_skill_by_book(SKILL_LEADERSHIP)) {
-                    item_manager::instance().remove_item(item);
+                    get_item_manager().remove_item(item);
 
                     int read_delay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
                     if (metin2::config::game().distribution_test_server) read_delay /= 3;
@@ -1943,7 +1943,7 @@ namespace metin2::game::inline characters {
                 int pct = item->value(0);
 
                 if (learn_skill_by_book(SKILL_COMBO, pct)) {
-                    item_manager::instance().remove_item(item);
+                    get_item_manager().remove_item(item);
 
                     int read_delay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
                     if (metin2::config::game().distribution_test_server) read_delay /= 3;
@@ -1968,7 +1968,7 @@ namespace metin2::game::inline characters {
                 }
 
                 if (learn_skill_by_book(skill_vnum, pct)) {
-                    item_manager::instance().remove_item(item);
+                    get_item_manager().remove_item(item);
 
                     int read_delay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
                     if (metin2::config::game().distribution_test_server) read_delay /= 3;
@@ -1993,7 +1993,7 @@ namespace metin2::game::inline characters {
                 }
 
                 if (learn_skill_by_book(skill_vnum, pct)) {
-                    item_manager::instance().remove_item(item);
+                    get_item_manager().remove_item(item);
 
                     int read_delay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
                     if (metin2::config::game().distribution_test_server) read_delay /= 3;
@@ -2067,7 +2067,7 @@ namespace metin2::game::inline characters {
                 }
 
                 if (learn_skill_by_book(skill_vnum, pct)) {
-                    item_manager::instance().remove_item(item);
+                    get_item_manager().remove_item(item);
 
                     int read_delay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
                     if (metin2::config::game().distribution_test_server) read_delay /= 3;
@@ -2094,7 +2094,7 @@ namespace metin2::game::inline characters {
                 }
 
                 if (learn_skill_by_book(skill_vnum, pct)) {
-                    item_manager::instance().remove_item(item);
+                    get_item_manager().remove_item(item);
 
                     int read_delay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
                     if (metin2::config::game().distribution_test_server) read_delay /= 3;
@@ -2127,7 +2127,7 @@ namespace metin2::game::inline characters {
                 }
 
                 if (learn_skill_by_book(skill_vnum, pct)) {
-                    item_manager::instance().remove_item(item);
+                    get_item_manager().remove_item(item);
 
                     int read_delay = number(SKILLBOOK_DELAY_MIN, SKILLBOOK_DELAY_MAX);
                     if (metin2::config::game().distribution_test_server) read_delay /= 3;
@@ -2182,7 +2182,7 @@ namespace metin2::game::inline characters {
                     chat_packet(CHAT_TYPE_INFO, lc_text("승마 수련서 이해에 실패하였습니다."));
                 }
 
-                item_manager::instance().remove_item(item);
+                get_item_manager().remove_item(item);
             }
             break;
 
@@ -2210,7 +2210,7 @@ namespace metin2::game::inline characters {
             {
                 int val = item->value(0);
                 int interval = item->value(1);
-                quest::pc *pc = quest::quest_manager::instance().get_pc(player_id());
+                quest::pc *pc = quest::get_quest_manager().get_pc(player_id());
                 int last_use_time = pc->flag("mythical_peach.last_use_time");
 
                 if (get_global_time() - last_use_time < interval * 60 * 60) {
@@ -2242,7 +2242,7 @@ namespace metin2::game::inline characters {
                 chat_packet(CHAT_TYPE_INFO, lc_text("선악치가 %d 증가하였습니다."), val);
 
                 const std::string buf = std::format("{} {}", old_alignment, alignment() / 10);
-                log_manager::instance().char_log(this, val, "MYTHICAL_PEACH", buf.c_str());
+                get_log_manager().char_log(this, val, "MYTHICAL_PEACH", buf.c_str());
             }
             break;
 
@@ -2304,7 +2304,7 @@ namespace metin2::game::inline characters {
 
                     const std::string buf = std::format("{}({}) {}({})",
                         item2->name(), item2->id(), item_reward->name(), item_reward->id());
-                    log_manager::instance().item_log(this, item, "USE_DETACHMENT_ONE", buf.c_str());
+                    get_log_manager().item_log(this, item, "USE_DETACHMENT_ONE", buf.c_str());
 
                     item->set_count(item->count() - 1);
                 }
@@ -2321,7 +2321,7 @@ namespace metin2::game::inline characters {
                 if (part(PART_HAIR) >= 1001) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("현재 헤어스타일에서는 염색과 탈색이 불가능합니다."));
                 } else {
-                    quest::quest_manager &q = quest::quest_manager::instance();
+                    quest::quest_manager &q = quest::get_quest_manager();
                     quest::pc *pc = q.get_pc(player_id());
 
                     if (pc) {
@@ -2417,7 +2417,7 @@ namespace metin2::game::inline characters {
                 if (give_item_from_special_item_group(box_vnum, vnums, counts, item_gets, count)) {
                     for (int i = 0; i < count; i++) {
                         const std::string buf = std::format("{} {}", vnums[i], counts[i]);
-                        log_manager::instance().item_log(this, item, "MOONLIGHT_GET", buf.c_str());
+                        get_log_manager().item_log(this, item, "MOONLIGHT_GET", buf.c_str());
 
                         item->set_count(item->count() - 1);
 
@@ -2447,7 +2447,7 @@ namespace metin2::game::inline characters {
 
         case 50108:
             {
-                if (arena_manager::instance().is_arena_map(map_index()) == true) {
+                if (get_arena_manager().is_arena_map(map_index()) == true) {
                     chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
                     return false;
                 }
@@ -2476,7 +2476,7 @@ namespace metin2::game::inline characters {
         case ITEM_ELK_VNUM:
             {
                 int gold = item->get_socket(0);
-                item_manager::instance().remove_item(item);
+                get_item_manager().remove_item(item);
                 chat_packet(CHAT_TYPE_INFO, lc_text("돈 %d 냥을 획득했습니다."), gold);
                 point_change(POINT_GOLD, gold);
             }
@@ -2484,11 +2484,11 @@ namespace metin2::game::inline characters {
 
         case 70021:
             {
-                int heal_price = quest::quest_manager::instance().event_flag("MonarchHealGold");
+                int heal_price = quest::get_quest_manager().event_flag("MonarchHealGold");
                 if (heal_price == 0)
                     heal_price = 2000000;
 
-                if (monarch::instance().heal_my_empire(this, heal_price)) {
+                if (get_monarch().heal_my_empire(this, heal_price)) {
                     char notice[256];
                     snprintf(notice, sizeof(notice), lc_text("군주의 축복으로 이지역 %s 유저는 HP,SP가 모두 채워집니다."), empire_name(empire()));
                     send_notice_map(notice, map_index(), false);
@@ -2547,7 +2547,7 @@ namespace metin2::game::inline characters {
                     int added_idx = item2->rare_attr_count() + 4;
                     const std::string buf = std::to_string(item2->id());
 
-                    log_manager::instance().item_log(
+                    get_log_manager().item_log(
                         player_id(),
                         item2->attribute_type(added_idx),
                         item2->attribute_value(added_idx),
@@ -2588,7 +2588,7 @@ namespace metin2::game::inline characters {
 
                 if (item2->change_rare_attribute() == true) {
                     const std::string buf = std::to_string(item2->id());
-                    log_manager::instance().item_log(this, item, "CHANGE_RARE_ATTR", buf.c_str());
+                    get_log_manager().item_log(this, item, "CHANGE_RARE_ATTR", buf.c_str());
 
                     item->set_count(item->count() - 1);
                 } else {
@@ -2674,7 +2674,7 @@ namespace metin2::game::inline characters {
         } else {
             auto_give_item(bi[i].vnum, bi[i].count);
         }
-        item_manager::instance().remove_item(item);
+        get_item_manager().remove_item(item);
 
         return true;
     }
@@ -2687,7 +2687,7 @@ namespace metin2::game::inline characters {
 
             pixel_position pos;
 
-            if (sectree_manager::instance().random_location(map_index_value, pos, 700)) {
+            if (get_sectree_manager().random_location(map_index_value, pos, 700)) {
                 item->set_socket(0, 1);
                 item->set_socket(1, pos.x);
                 item->set_socket(2, pos.y);
@@ -2790,7 +2790,7 @@ namespace metin2::game::inline characters {
 
                     if (prob <= info[i].prob) {
                         if (info[i].vnum == 50001) {
-                            db_manager::instance().func_query([pid = player_id(), vnum = info[i].vnum, count = info[i].count](sql_msg &msg) { give_lotto_ticket_result(msg, pid, vnum, count, 0); },
+                            get_db_manager().func_query([pid = player_id(), vnum = info[i].vnum, count = info[i].count](sql_msg &msg) { give_lotto_ticket_result(msg, pid, vnum, count, 0); },
                                 sql::format("INSERT INTO lotto_list VALUES(0, 'server', {}, NOW())", player_id()));
                         } else
                             auto_give_item(info[i].vnum, info[i].count);
@@ -2817,7 +2817,7 @@ namespace metin2::game::inline characters {
 
             packet_around(buf.read_peek(), buf.size());
 
-            item_manager::instance().remove_item(item, "REMOVE (DETECT_EVENT_STONE) 1");
+            get_item_manager().remove_item(item, "REMOVE (DETECT_EVENT_STONE) 1");
             return true;
         } else if (distance < 20000)
             dist = 1;
@@ -2829,7 +2829,7 @@ namespace metin2::game::inline characters {
         const int stone_detect_max_try = 10;
         if (item->get_socket(0) >= stone_detect_max_try) {
             chat_packet(CHAT_TYPE_INFO, lc_text("이벤트용 감지기가 흔적도 없이 사라집니다."));
-            item_manager::instance().remove_item(item, "REMOVE (DETECT_EVENT_STONE) 0");
+            get_item_manager().remove_item(item, "REMOVE (DETECT_EVENT_STONE) 0");
             auto_give_item(27002);
             return true;
         }
@@ -2857,7 +2857,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character::use_item_stone_detector(item *item) -> bool {
-        sectree_map *map = sectree_manager::instance().map(map_index());
+        sectree_map *map = get_sectree_manager().map(map_index());
 
         if (map != nullptr) {
             item->set_socket(0, item->get_socket(0) + 1);
@@ -2896,7 +2896,7 @@ namespace metin2::game::inline characters {
 
             if (item->get_socket(0) >= 6) {
                 chat_packet(CHAT_TYPE_COMMAND, "StoneDetect %u 0 0", (uint32_t)get_vid());
-                item_manager::instance().remove_item(item);
+                get_item_manager().remove_item(item);
             }
         }
 
@@ -2904,7 +2904,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character::use_item_auto_recovery(item *item) -> bool {
-        if (arena_manager::instance().is_arena_map(map_index()) == true) {
+        if (get_arena_manager().is_arena_map(map_index()) == true) {
             chat_packet(CHAT_TYPE_INFO, lc_text("대련장에서 사용하실 수 없습니다."));
             return false;
         }
@@ -2953,7 +2953,7 @@ namespace metin2::game::inline characters {
 
             item->set_count(item->count() - 1);
 
-            game::items::item *item2 = item_manager::instance().create_item(item->vnum(), 1);
+            game::items::item *item2 = get_item_manager().create_item(item->vnum(), 1);
             item2->add_to_character(this, item_pos(INVENTORY, pos));
 
             if (item->get_socket(1) != 0) {
@@ -3022,7 +3022,7 @@ namespace metin2::game::inline characters {
 
     auto character::use_item_use_invisibility(item *item) -> bool {
         if (item->vnum() == 70026) {
-            quest::quest_manager &q = quest::quest_manager::instance();
+            quest::quest_manager &q = quest::get_quest_manager();
             quest::pc *pc = q.get_pc(player_id());
 
             if (pc != nullptr) {
@@ -3044,8 +3044,8 @@ namespace metin2::game::inline characters {
     }
 
     auto character::use_item_use_potion_nodelay(item *item) -> bool {
-        if (arena_manager::instance().is_arena_map(map_index()) == true) {
-            if (quest::quest_manager::instance().event_flag("arena_potion_limit") > 0) {
+        if (get_arena_manager().is_arena_map(map_index()) == true) {
+            if (quest::get_quest_manager().event_flag("arena_potion_limit") > 0) {
                 chat_packet(CHAT_TYPE_INFO, lc_text("대련장에서 사용하실 수 없습니다."));
                 return false;
             }
@@ -3055,7 +3055,7 @@ namespace metin2::game::inline characters {
             case 71018:
             case 71019:
             case 71020:
-                if (quest::quest_manager::instance().event_flag("arena_potion_limit_count") < 10000) {
+                if (quest::get_quest_manager().event_flag("arena_potion_limit_count") < 10000) {
                     if (potion_limit_ <= 0) {
                         chat_packet(CHAT_TYPE_INFO, lc_text("사용 제한량을 초과하였습니다."));
                         return false;
@@ -3117,8 +3117,8 @@ namespace metin2::game::inline characters {
     }
 
     auto character::use_item_use_potion(item *item) -> bool {
-        if (arena_manager::instance().is_arena_map(map_index()) == true) {
-            if (quest::quest_manager::instance().event_flag("arena_potion_limit") > 0) {
+        if (get_arena_manager().is_arena_map(map_index()) == true) {
+            if (quest::get_quest_manager().event_flag("arena_potion_limit") > 0) {
                 chat_packet(CHAT_TYPE_INFO, lc_text("대련장에서 사용하실 수 없습니다."));
                 return false;
             }
@@ -3130,7 +3130,7 @@ namespace metin2::game::inline characters {
             case 27004:
             case 27005:
             case 27006:
-                if (quest::quest_manager::instance().event_flag("arena_potion_limit_count") < 10000) {
+                if (quest::get_quest_manager().event_flag("arena_potion_limit_count") < 10000) {
                     if (potion_limit_ <= 0) {
                         chat_packet(CHAT_TYPE_INFO, lc_text("사용 제한량을 초과하였습니다."));
                         return false;
@@ -3192,7 +3192,7 @@ namespace metin2::game::inline characters {
             return false;
         }
 
-        if (arena_manager::instance().is_arena_map(map_index()) == true) {
+        if (get_arena_manager().is_arena_map(map_index()) == true) {
             chat_packet(CHAT_TYPE_INFO, lc_text("대련 중에는 이용할 수 없는 물품입니다."));
             return false;
         }
@@ -3215,7 +3215,7 @@ namespace metin2::game::inline characters {
 
                 pixel_position pos_warp;
 
-                if (sectree_manager::instance().recall_position_by_empire(map_index(), empire(), pos_warp)) {
+                if (get_sectree_manager().recall_position_by_empire(map_index(), empire(), pos_warp)) {
                     point_change(POINT_HP, -consume_life, false);
 
                     warp_set(pos_warp.x, pos_warp.y);
@@ -3327,7 +3327,7 @@ namespace metin2::game::inline characters {
 
                 {
                     const std::string buf = std::to_string(item2->id());
-                    log_manager::instance().item_log(this, item, "CLEAN_SOCKET", buf.c_str());
+                    get_log_manager().item_log(this, item, "CLEAN_SOCKET", buf.c_str());
                 }
 
                 item->set_count(item->count() - 1);
@@ -3347,11 +3347,11 @@ namespace metin2::game::inline characters {
 
             if (GM_PLAYER == gm_level() && false == metin2::config::test_server()) {
 
-                uint32_t change_item_attr_cycle = quest::quest_manager::instance().event_flag(change_item_attr_cycle_flag_);
+                uint32_t change_item_attr_cycle = quest::get_quest_manager().event_flag(change_item_attr_cycle_flag_);
                 if (change_item_attr_cycle < default_change_item_attr_cycle_)
                     change_item_attr_cycle = default_change_item_attr_cycle_;
 
-                quest::pc *pc = quest::quest_manager::instance().get_pc(player_id());
+                quest::pc *pc = quest::get_quest_manager().get_pc(player_id());
 
                 if (pc) {
                     uint32_t now_min = get_global_time() / 60;
@@ -3399,7 +3399,7 @@ namespace metin2::game::inline characters {
             chat_packet(CHAT_TYPE_INFO, lc_text("속성을 변경하였습니다."));
             {
                 const std::string buf = std::to_string(item2->id());
-                log_manager::instance().item_log(this, item, "CHANGE_ATTRIBUTE", buf.c_str());
+                get_log_manager().item_log(this, item, "CHANGE_ATTRIBUTE", buf.c_str());
             }
 
             item->set_count(item->count() - 1);
@@ -3437,7 +3437,7 @@ namespace metin2::game::inline characters {
                     chat_packet(CHAT_TYPE_INFO, lc_text("속성 추가에 성공하였습니다."));
 
                     int added_idx = item2->attribute_count() - 1;
-                    log_manager::instance().item_log(
+                    get_log_manager().item_log(
                         player_id(),
                         item2->attribute_type(added_idx),
                         item2->attribute_value(added_idx),
@@ -3448,7 +3448,7 @@ namespace metin2::game::inline characters {
                         item->original_vnum());
                 } else {
                     chat_packet(CHAT_TYPE_INFO, lc_text("속성 추가에 실패하였습니다."));
-                    log_manager::instance().item_log(this, item, "ADD_ATTRIBUTE_FAIL", buf.c_str());
+                    get_log_manager().item_log(this, item, "ADD_ATTRIBUTE_FAIL", buf.c_str());
                 }
 
                 item->set_count(item->count() - 1);
@@ -3471,7 +3471,7 @@ namespace metin2::game::inline characters {
                     chat_packet(CHAT_TYPE_INFO, lc_text("속성 추가에 성공하였습니다."));
 
                     int added_idx = item2->attribute_count() - 1;
-                    log_manager::instance().item_log(
+                    get_log_manager().item_log(
                         player_id(),
                         item2->attribute_type(added_idx),
                         item2->attribute_value(added_idx),
@@ -3482,7 +3482,7 @@ namespace metin2::game::inline characters {
                         item->original_vnum());
                 } else {
                     chat_packet(CHAT_TYPE_INFO, lc_text("속성 추가에 실패하였습니다."));
-                    log_manager::instance().item_log(this, item, "ADD_ATTRIBUTE2_FAIL", buf.c_str());
+                    get_log_manager().item_log(this, item, "ADD_ATTRIBUTE2_FAIL", buf.c_str());
                 }
 
                 item->set_count(item->count() - 1);
@@ -3504,10 +3504,10 @@ namespace metin2::game::inline characters {
                         if (prob(50)) {
                             item2->set_accessory_socket_max_grade(item2->accessory_socket_max_grade() + 1);
                             chat_packet(CHAT_TYPE_INFO, lc_text("소켓이 성공적으로 추가되었습니다."));
-                            log_manager::instance().item_log(this, item, "ADD_SOCKET_SUCCESS", buf.c_str());
+                            get_log_manager().item_log(this, item, "ADD_SOCKET_SUCCESS", buf.c_str());
                         } else {
                             chat_packet(CHAT_TYPE_INFO, lc_text("소켓 추가에 실패하였습니다."));
-                            log_manager::instance().item_log(this, item, "ADD_SOCKET_FAIL", buf.c_str());
+                            get_log_manager().item_log(this, item, "ADD_SOCKET_FAIL", buf.c_str());
                         }
 
                         item->set_count(item->count() - 1);
@@ -3529,10 +3529,10 @@ namespace metin2::game::inline characters {
                     if (prob(accessory_socket_put_pct[item2->accessory_socket_grade()])) {
                         item2->set_accessory_socket_grade(item2->accessory_socket_grade() + 1);
                         chat_packet(CHAT_TYPE_INFO, lc_text("장착에 성공하였습니다."));
-                        log_manager::instance().item_log(this, item, "PUT_SOCKET_SUCCESS", buf.c_str());
+                        get_log_manager().item_log(this, item, "PUT_SOCKET_SUCCESS", buf.c_str());
                     } else {
                         chat_packet(CHAT_TYPE_INFO, lc_text("장착에 실패하였습니다."));
-                        log_manager::instance().item_log(this, item, "PUT_SOCKET_FAIL", buf.c_str());
+                        get_log_manager().item_log(this, item, "PUT_SOCKET_FAIL", buf.c_str());
                     }
 
                     item->set_count(item->count() - 1);
@@ -3661,7 +3661,7 @@ namespace metin2::game::inline characters {
             if ((vnum = item2->get_socket(i)) <= 2)
                 continue;
 
-            item_table *p = item_manager::instance().table(vnum);
+            item_table *p = get_item_manager().table(vnum);
 
             if (!p)
                 continue;
@@ -3697,8 +3697,8 @@ namespace metin2::game::inline characters {
                     item2->set_socket(i, ITEM_BROKEN_METIN_VNUM);
                 }
 
-                log_manager::instance().item_log(this, item2, "SOCKET", item->name());
-                item_manager::instance().remove_item(item, "REMOVE (METIN)");
+                get_log_manager().item_log(this, item2, "SOCKET", item->name());
+                get_item_manager().remove_item(item, "REMOVE (METIN)");
                 break;
             }
 
@@ -3742,12 +3742,12 @@ namespace metin2::game::inline characters {
         switch (item->sub_type()) {
         case EXTRACT_DRAGON_SOUL:
             if (dest_item->is_dragon_soul()) {
-                return ds_manager::instance().pull_out(this, NPOS, dest_item, item);
+                return get_ds_manager().pull_out(this, NPOS, dest_item, item);
             }
             return false;
         case EXTRACT_DRAGON_HEART:
             if (dest_item->is_dragon_soul()) {
-                return ds_manager::instance().extract_dragon_heart(this, dest_item, item);
+                return get_ds_manager().extract_dragon_heart(this, dest_item, item);
             }
             return false;
         default:
@@ -3886,7 +3886,7 @@ namespace metin2::game::inline characters {
                 return false;
             }
 
-            if (three_way_war::instance().is_three_way_war_map_index(map_index())) {
+            if (get_three_way_war().is_three_way_war_map_index(map_index())) {
                 chat_packet(CHAT_TYPE_INFO, lc_text("삼거리 전투 참가중에는 귀환부,귀환기억부를 사용할수 없습니다."));
                 return false;
             }
@@ -3931,7 +3931,7 @@ namespace metin2::game::inline characters {
                     x_value = item->get_socket(0) - x();
                     y_value = item->get_socket(1) - y();
                 } else if (item->vnum() == 22000) {
-                    sectree_manager::instance().recall_position_by_empire(map_index(), empire(), pos_warp);
+                    get_sectree_manager().recall_position_by_empire(map_index(), empire(), pos_warp);
 
                     if (item->get_socket(0) == 0) {
                         x_value = pos_warp.x - x();
@@ -3974,11 +3974,11 @@ namespace metin2::game::inline characters {
 
             bool ret = use_item_ex(item, dest_cell);
 
-            if (nullptr == item_manager::instance().find_by_vid(vid)) {
-                log_manager::instance().item_log(this, vid, vnum, "REMOVE", hint.c_str());
+            if (nullptr == get_item_manager().find_by_vid(vid)) {
+                get_log_manager().item_log(this, vid, vnum, "REMOVE", hint.c_str());
             } else if (old_count != item->count()) {
                 hint += std::format(" {}", old_count - 1);
-                log_manager::instance().item_log(this, vid, vnum, "USE_ITEM", hint.c_str());
+                get_log_manager().item_log(this, vid, vnum, "USE_ITEM", hint.c_str());
             }
             return (ret);
         } else
@@ -4006,7 +4006,7 @@ namespace metin2::game::inline characters {
         if (true == item->is_locked())
             return false;
 
-        if (quest::quest_manager::instance().pc_force(player_id())->is_running() == true)
+        if (quest::get_quest_manager().pc_force(player_id())->is_running() == true)
             return false;
 
         if (is_set(item->anti_flag(), ITEM_ANTIFLAG_DROP | ITEM_ANTIFLAG_GIVE)) {
@@ -4032,14 +4032,14 @@ namespace metin2::game::inline characters {
             }
 
             item->set_count(item->count() - count_value);
-            item_manager::instance().flush_delayed_save(item);
+            get_item_manager().flush_delayed_save(item);
 
-            item_to_drop = item_manager::instance().create_item(item->vnum(), count_value);
+            item_to_drop = get_item_manager().create_item(item->vnum(), count_value);
 
             fn_copy_item_socket(item_to_drop, item);
 
             const std::string buf = std::format("{} {}", item_to_drop->id(), item_to_drop->count());
-            log_manager::instance().item_log(this, item, "ITEM_SPLIT", buf.c_str());
+            get_log_manager().item_log(this, item, "ITEM_SPLIT", buf.c_str());
         }
 
         pixel_position px_pos = xyz();
@@ -4059,10 +4059,10 @@ namespace metin2::game::inline characters {
             chat_packet(CHAT_TYPE_INFO, lc_text("떨어진 아이템은 3분 후 사라집니다."));
             item_to_drop->start_destroy_event();
 
-            item_manager::instance().flush_delayed_save(item_to_drop);
+            get_item_manager().flush_delayed_save(item_to_drop);
 
             const std::string hint = std::format("{} {} {}", item_to_drop->name(), item_to_drop->count(), item_to_drop->original_vnum());
-            log_manager::instance().item_log(this, item_to_drop, "DROP", hint.c_str());
+            get_log_manager().item_log(this, item_to_drop, "DROP", hint.c_str());
 
             last_drop_time = thecore_pulse();
             count_drops++;
@@ -4087,7 +4087,7 @@ namespace metin2::game::inline characters {
 
         last_gold_drop_time_ = get_dword_time();
 
-        item *item = item_manager::instance().create_item(1, gold_value);
+        item *item = get_item_manager().create_item(1, gold_value);
 
         if (item) {
             pixel_position pos = xyz();
@@ -4096,7 +4096,7 @@ namespace metin2::game::inline characters {
                 point_change(POINT_GOLD, -gold_value, true);
 
                 if (gold_value > 1000)
-                    log_manager::instance().char_log(this, gold_value, "DROP_GOLD", "");
+                    get_log_manager().char_log(this, gold_value, "DROP_GOLD", "");
 
                 item->start_destroy_event(150);
                 chat_packet(CHAT_TYPE_INFO, lc_text("떨어진 아이템은 %d분 후 사라집니다."), 150 / 60);
@@ -4162,13 +4162,13 @@ namespace metin2::game::inline characters {
         } else {
             if (item->is_dragon_soul()) {
                 if (item->is_equipped()) {
-                    return ds_manager::instance().pull_out(this, dest_cell, item);
+                    return get_ds_manager().pull_out(this, dest_cell, item);
                 } else {
                     if (dest_cell.window_type != DRAGON_SOUL_INVENTORY) {
                         return false;
                     }
 
-                    if (!ds_manager::instance().is_valid_cell_for_this_item(item, dest_cell))
+                    if (!get_ds_manager().is_valid_cell_for_this_item(item, dest_cell))
                         return false;
                 }
             } else if (DRAGON_SOUL_INVENTORY == dest_cell.window_type)
@@ -4214,14 +4214,14 @@ namespace metin2::game::inline characters {
                     dest_cell.window_type, dest_cell.cell, count);
 
                 item->set_count(item->count() - count);
-                game::items::item *item2 = item_manager::instance().create_item(item->vnum(), count);
+                game::items::item *item2 = get_item_manager().create_item(item->vnum(), count);
 
                 fn_copy_item_socket(item2, item);
 
                 item2->add_to_character(this, dest_cell);
 
                 const std::string buf = std::format("{} {} {} {} ", item2->id(), item2->count(), item->count(), item->count() + item2->count());
-                log_manager::instance().item_log(this, item, "ITEM_SPLIT", buf.c_str());
+                get_log_manager().item_log(this, item, "ITEM_SPLIT", buf.c_str());
             }
         }
 
@@ -4261,7 +4261,7 @@ namespace metin2::game::inline characters {
                             ch->point_change(POINT_GOLD, money, true);
 
                             if (money > 1000)
-                                log_manager::instance().char_log(ch, money, "GET_GOLD", "");
+                                get_log_manager().char_log(ch, money, "GET_GOLD", "");
                         }
                 });
             }
@@ -4269,17 +4269,17 @@ namespace metin2::game::inline characters {
             point_change(POINT_GOLD, my_amount, true);
 
             if (my_amount > 1000)
-                log_manager::instance().char_log(this, my_amount, "GET_GOLD", "");
+                get_log_manager().char_log(this, my_amount, "GET_GOLD", "");
         } else {
             point_change(POINT_GOLD, amount, true);
 
             if (amount > 1000)
-                log_manager::instance().char_log(this, amount, "GET_GOLD", "");
+                get_log_manager().char_log(this, amount, "GET_GOLD", "");
         }
     }
 
     auto character::pickup_item(uint32_t vid) -> bool {
-        item *item = item_manager::instance().find_by_vid(vid);
+        item *item = get_item_manager().find_by_vid(vid);
 
         if (is_observer_mode())
             return false;
@@ -4293,7 +4293,7 @@ namespace metin2::game::inline characters {
                     give_gold(item->count());
                     item->remove_from_ground();
 
-                    item_manager::instance().destroy_item(item);
+                    get_item_manager().destroy_item(item);
 
                     save();
                 } else {
@@ -4323,9 +4323,9 @@ namespace metin2::game::inline characters {
 
                                 if (count == 0) {
                                     chat_packet(CHAT_TYPE_INFO, lc_text("아이템 획득: %s"), item2->name());
-                                    item_manager::instance().destroy_item(item);
+                                    get_item_manager().destroy_item(item);
                                     if (item2->type() == ITEM_QUEST)
-                                        quest::quest_manager::instance().pickup_item(player_id(), item2);
+                                        quest::get_quest_manager().pickup_item(player_id(), item2);
                                     return true;
                                 }
                             }
@@ -4357,11 +4357,11 @@ namespace metin2::game::inline characters {
                         item->add_to_character(this, item_pos(INVENTORY, empty_cell));
 
                     const std::string hint = std::format("{} {} {}", item->name(), item->count(), item->original_vnum());
-                    log_manager::instance().item_log(this, item, "GET", hint.c_str());
+                    get_log_manager().item_log(this, item, "GET", hint.c_str());
                     chat_packet(CHAT_TYPE_INFO, lc_text("아이템 획득: %s"), item->name());
 
                     if (item->type() == ITEM_QUEST)
-                        quest::quest_manager::instance().pickup_item(player_id(), item);
+                        quest::get_quest_manager().pickup_item(player_id(), item);
                 }
 
                 return true;
@@ -4403,7 +4403,7 @@ namespace metin2::game::inline characters {
                     item->add_to_character(owner, item_pos(INVENTORY, empty_cell));
 
                 const std::string hint = std::format("{} {} {}", item->name(), item->count(), item->original_vnum());
-                log_manager::instance().item_log(owner, item, "GET", hint.c_str());
+                get_log_manager().item_log(owner, item, "GET", hint.c_str());
 
                 if (owner == this)
                     chat_packet(CHAT_TYPE_INFO, lc_text("아이템 획득: %s"), item->name());
@@ -4413,7 +4413,7 @@ namespace metin2::game::inline characters {
                 }
 
                 if (item->type() == ITEM_QUEST)
-                    quest::quest_manager::instance().pickup_item(owner->player_id(), item);
+                    quest::get_quest_manager().pickup_item(owner->player_id(), item);
 
                 return true;
             }
@@ -4611,9 +4611,9 @@ namespace metin2::game::inline characters {
             } else if (item_vnum::is_love_pendant(vnum)) {
                 this->effect_packet(SE_EQUIP_LOVE_PENDANT);
             } else if (ITEM_UNIQUE == item->type() && 0 != item->sig_vnum()) {
-                const special_item_group *group = item_manager::instance().get_special_item_group(item->sig_vnum());
+                const special_item_group *group = get_item_manager().get_special_item_group(item->sig_vnum());
                 if (nullptr != group) {
-                    const special_attr_group *attr_group = item_manager::instance().get_special_attr_group(group->attr_vnum(item->vnum()));
+                    const special_attr_group *attr_group = get_item_manager().get_special_attr_group(group->attr_vnum(item->vnum()));
                     if (nullptr != attr_group) {
                         const std::string &std = attr_group->effect_file_name;
                         specific_effect_packet(std.c_str());
@@ -4622,7 +4622,7 @@ namespace metin2::game::inline characters {
             }
 
             if (UNIQUE_SPECIAL_RIDE == item->sub_type() && is_set(item->flag(), ITEM_FLAG_QUEST_USE)) {
-                quest::quest_manager::instance().use_item(player_id(), item, false);
+                quest::get_quest_manager().use_item(player_id(), item, false);
             }
         }
 
@@ -4759,7 +4759,7 @@ namespace metin2::game::inline characters {
             }
 
             if (vnum >= 80003 && vnum <= 80007)
-                log_manager::instance().gold_bar_log(player_id(), inventory_item(i)->id(), QUEST, "RemoveSpecifyItem");
+                get_log_manager().gold_bar_log(player_id(), inventory_item(i)->id(), QUEST, "RemoveSpecifyItem");
 
             if (count >= inventory_item(i)->count()) {
                 count -= inventory_item(i)->count();
@@ -4843,7 +4843,7 @@ namespace metin2::game::inline characters {
             else
                 item->add_to_character(this, item_pos(INVENTORY, cell));
 
-            log_manager::instance().item_log(this, item, "SYSTEM", item->name());
+            get_log_manager().item_log(this, item, "SYSTEM", item->name());
 
             if (item->type() == ITEM_USE && item->sub_type() == USE_POTION) {
                 quickslot *slot_value;
@@ -4863,17 +4863,17 @@ namespace metin2::game::inline characters {
                 item->set_ownership(this, 300);
             else
                 item->set_ownership(this, 60);
-            log_manager::instance().item_log(this, item, "SYSTEM_DROP", item->name());
+            get_log_manager().item_log(this, item, "SYSTEM_DROP", item->name());
         }
     }
 
     auto character::auto_give_item(uint32_t item_vnum, uint8_t count_value, int rare_pct, bool msg) -> item * {
-        item_table *p = item_manager::instance().table(item_vnum);
+        item_table *p = get_item_manager().table(item_vnum);
 
         if (!p)
             return nullptr;
 
-        db_manager::instance().send_money_log(MONEY_LOG_DROP, item_vnum, count_value);
+        get_db_manager().send_money_log(MONEY_LOG_DROP, item_vnum, count_value);
 
         if (p->flags & ITEM_FLAG_STACKABLE && p->type != ITEM_BLEND) {
             for (int i = 0; i < INVENTORY_MAX_NUM; ++i) {
@@ -4903,7 +4903,7 @@ namespace metin2::game::inline characters {
             }
         }
 
-        game::items::item *item = item_manager::instance().create_item(item_vnum, count_value, 0, true);
+        game::items::item *item = get_item_manager().create_item(item_vnum, count_value, 0, true);
 
         if (!item) {
             metin2::log::error("Cannot create item vnum {:d} for {}", item_vnum, name());
@@ -4944,7 +4944,7 @@ namespace metin2::game::inline characters {
                 item->add_to_character(this, item_pos(DRAGON_SOUL_INVENTORY, empty_cell));
             else
                 item->add_to_character(this, item_pos(INVENTORY, empty_cell));
-            log_manager::instance().item_log(this, item, "SYSTEM", item->name());
+            get_log_manager().item_log(this, item, "SYSTEM", item->name());
 
             if (item->type() == ITEM_USE && item->sub_type() == USE_POTION) {
                 quickslot *slot_value;
@@ -4963,7 +4963,7 @@ namespace metin2::game::inline characters {
                 item->set_ownership(this, 300);
             else
                 item->set_ownership(this, 60);
-            log_manager::instance().item_log(this, item, "SYSTEM_DROP", item->name());
+            get_log_manager().item_log(this, item, "SYSTEM_DROP", item->name());
         }
 
         metin2::log::debug("Auto-give item vnum {:d}, count {:d}", item_vnum, count_value);
@@ -5129,7 +5129,7 @@ namespace metin2::game::inline characters {
                 fishing::grill(from, item);
             else {
                 from->set_quest_npcid(get_vid());
-                quest::quest_manager::instance().take_item(from->player_id(), race_num(), item);
+                quest::get_quest_manager().take_item(from->player_id(), race_num(), item);
             }
             break;
 
@@ -5185,7 +5185,7 @@ namespace metin2::game::inline characters {
         default:
             metin2::log::debug("{} gives npc {:d} item {}", from->name(), race_num(), item->name());
             from->set_quest_npcid(get_vid());
-            quest::quest_manager::instance().take_item(from->player_id(), race_num(), item);
+            quest::get_quest_manager().take_item(from->player_id(), race_num(), item);
             break;
         }
     }
@@ -5241,7 +5241,7 @@ namespace metin2::game::inline characters {
 
     auto character::give_item_from_special_item_group(uint32_t group_num, std::vector<uint32_t> &item_vnums,
         std::vector<uint32_t> &item_counts, std::vector<item *> &item_gets, int &count) -> bool {
-        const special_item_group *group_value = item_manager::instance().get_special_item_group(group_num);
+        const special_item_group *group_value = get_item_manager().get_special_item_group(group_num);
 
         if (!group_value) {
             metin2::log::error("Special item group {:d} not found", group_num);
@@ -5263,14 +5263,14 @@ namespace metin2::game::inline characters {
             switch (vnum) {
             case special_item_group::GOLD:
                 point_change(POINT_GOLD, count_value);
-                log_manager::instance().char_log(this, count_value, "TREASURE_GOLD", "");
+                get_log_manager().char_log(this, count_value, "TREASURE_GOLD", "");
 
                 success = true;
                 break;
             case special_item_group::EXP:
                 {
                     point_change(POINT_EXP, count_value);
-                    log_manager::instance().char_log(this, count_value, "TREASURE_EXP", "");
+                    get_log_manager().char_log(this, count_value, "TREASURE_EXP", "");
 
                     success = true;
                 }
@@ -5282,7 +5282,7 @@ namespace metin2::game::inline characters {
                     int x_value = x() + number(-500, 500);
                     int y_value = y() + number(-500, 500);
 
-                    character *ch = character_manager::instance().spawn_mob(count_value, map_index(), x_value, y_value, 0, true, -1);
+                    character *ch = get_character_manager().spawn_mob(count_value, map_index(), x_value, y_value, 0, true, -1);
                     if (ch)
                         ch->set_aggressive();
                     success = true;
@@ -5317,7 +5317,7 @@ namespace metin2::game::inline characters {
                     int sy = y() - number(300, 500);
                     int ex = x() + number(300, 500);
                     int ey = y() + number(300, 500);
-                    character_manager::instance().spawn_group(count_value, map_index(), sx, sy, ex, ey, nullptr, true);
+                    get_character_manager().spawn_group(count_value, map_index(), sx, sy, ex, ey, nullptr, true);
 
                     success = true;
                 }
@@ -5408,7 +5408,7 @@ namespace metin2::game::inline characters {
             return false;
         }
 
-        const mob *mob = mob_manager::instance().get(vnum_value);
+        const mob *mob = get_mob_manager().get(vnum_value);
 
         if (mob == nullptr) {
             chat_packet(CHAT_TYPE_INFO, lc_text("잘못된 둔갑 아이템입니다."));
@@ -5450,8 +5450,8 @@ namespace metin2::game::inline characters {
 
                 metin2::log::info("{} (pid {:d}) uses polymorph book (vnum {:d})", name(), player_id(), vnum_value);
 
-                if (polymorph_utils::instance().polymorph_character(this, item, mob) == true) {
-                    polymorph_utils::instance().update_book_practice_grade(this, item);
+                if (get_polymorph_utils().polymorph_character(this, item, mob) == true) {
+                    get_polymorph_utils().update_book_practice_grade(this, item);
                 }
             }
             break;
@@ -5525,7 +5525,7 @@ namespace metin2::game::inline characters {
             item *item = find_item_by_id(affect_value->flag);
 
             if (nullptr != item && true == item->get_socket(0)) {
-                if (false == arena_manager::instance().is_arena_map(map_index())) {
+                if (false == get_arena_manager().is_arena_map(map_index())) {
                     const int32_t amount_of_used = item->get_socket(idx_of_amount_of_used);
                     const int32_t amount_of_full = item->get_socket(idx_of_amount_of_full);
 
@@ -5551,7 +5551,7 @@ namespace metin2::game::inline characters {
                         } else {
                             amount = avail;
 
-                            item_manager::instance().remove_item(item);
+                            get_item_manager().remove_item(item);
                         }
 
                         if (AFFECT_AUTO_HP_RECOVERY == type) {
@@ -5682,8 +5682,8 @@ namespace metin2::game::inline characters {
                 return false;
             }
 
-            if (marriage::manager::instance().is_marriage_unique_item(item->vnum()) &&
-                !marriage::manager::instance().is_married(player_id())) {
+            if (marriage::get_manager().is_marriage_unique_item(item->vnum()) &&
+                !marriage::get_manager().is_married(player_id())) {
                 chat_packet(CHAT_TYPE_INFO, lc_text("결혼하지 않은 상태에서 예물을 착용할 수 없습니다."));
                 return false;
             }

@@ -95,7 +95,7 @@ namespace metin2::game::inline items {
                 map_item_refine_from_.insert(std::make_pair(vec_prototype_[i].refined_vnum, vec_prototype_[i].vnum));
 
             if (vec_prototype_[i].type == ITEM_QUEST || is_set(vec_prototype_[i].flags, ITEM_FLAG_QUEST_USE | ITEM_FLAG_QUEST_USE_MULTIPLE))
-                quest::quest_manager::instance().register_npc_vnum(vec_prototype_[i].vnum);
+                quest::get_quest_manager().register_npc_vnum(vec_prototype_[i].vnum);
 
             map_vid.insert(std::map<uint32_t, item_table>::value_type(vec_prototype_[i].vnum, vec_prototype_[i]));
             if (metin2::config::test_server())
@@ -295,7 +295,7 @@ namespace metin2::game::inline items {
                 do {
                     skill_vnum = number(1, 111);
 
-                    if (nullptr != skill_manager::instance().get(skill_vnum))
+                    if (nullptr != get_skill_manager().get(skill_vnum))
                         break;
                 } while (true);
 
@@ -306,7 +306,7 @@ namespace metin2::game::inline items {
                 do {
                     skill_vnum = number(112, 119);
 
-                    if (nullptr != skill_manager::instance().get(skill_vnum))
+                    if (nullptr != get_skill_manager().get(skill_vnum))
                         break;
                 } while (true);
 
@@ -329,7 +329,7 @@ namespace metin2::game::inline items {
         }
 
         if (item->is_dragon_soul() && 0 == id) {
-            ds_manager::instance().dragon_soul_item_initialize(item);
+            get_ds_manager().dragon_soul_item_initialize(item);
         }
         return item;
     }
@@ -402,7 +402,7 @@ namespace metin2::game::inline items {
 
         if ((o = item->owner())) {
             const std::string hint = std::format("{} {} ", item->name(), item->count());
-            log_manager::instance().item_log(o, item, reason ? reason : "REMOVE", hint.c_str());
+            get_log_manager().item_log(o, item, reason ? reason : "REMOVE", hint.c_str());
 
             if (item->window() == MALL || item->window() == SAFEBOX) {
                 safebox *safebox = item->window() == MALL ? o->mall() : o->get_safebox();
@@ -415,7 +415,7 @@ namespace metin2::game::inline items {
             }
         }
 
-        item_manager::instance().destroy_item(item);
+        get_item_manager().destroy_item(item);
     }
 
     void item_manager::destroy_item(item *item) {
@@ -423,7 +423,7 @@ namespace metin2::game::inline items {
             item->remove_from_ground();
 
         if (item->owner()) {
-            if (character_manager::instance().find(item->owner()->player_id()) != nullptr) {
+            if (get_character_manager().find(item->owner()->player_id()) != nullptr) {
                 metin2::log::error("Destroying item {} still owned by player {}", item->name(), item->owner()->name());
                 item->remove_from_character();
             } else {
@@ -550,7 +550,7 @@ namespace metin2::game::inline items {
     auto get_drop_per_kill_pct(int minimum, int fallback, int delta_percent, const char *flag) -> int {
         int val = 0;
 
-        if ((val = quest::quest_manager::instance().event_flag(flag))) {
+        if ((val = quest::get_quest_manager().event_flag(flag))) {
             if (!metin2::config::test_server()) {
                 if (val < minimum)
                     val = fallback;
@@ -586,7 +586,7 @@ namespace metin2::game::inline items {
             delta_percent += 500;
 
         metin2::log::debug("Drop: level {:d}, rank {:d}, chance {:d}", level_value, rank_value, delta_percent);
-        delta_percent = delta_percent * character_manager::instance().mob_item_rate(killer) / 100;
+        delta_percent = delta_percent * get_character_manager().mob_item_rate(killer) / 100;
 
         if (killer->premium_remain_seconds(PREMIUM_ITEM) > 0 ||
             killer->is_equip_unique_group(UNIQUE_GROUP_DOUBLE_ITEM))
@@ -595,7 +595,7 @@ namespace metin2::game::inline items {
         rand_range = 4000000;
         rand_range = rand_range * 100 /
                      (100 +
-                         priv_manager::instance().priv(killer, PRIV_ITEM_DROP) +
+                         get_priv_manager().priv(killer, PRIV_ITEM_DROP) +
                          (killer->is_equip_unique_item(UNIQUE_ITEM_DOUBLE_ITEM) ? 100 : 0));
 
         if (metin2::config::game().distribution_test_server) rand_range /= 3;
@@ -766,7 +766,7 @@ namespace metin2::game::inline items {
         }
 
         if (get_drop_per_kill_pct(100, 1000, delta_percent, "lotto_drop") >= number(1, rand_range)) {
-            db_manager::instance().func_query([pid = killer->player_id(), round = static_cast<uint32_t>(quest::quest_manager::instance().event_flag("lotto_round"))](sql_msg &msg) { give_lotto_ticket_result(msg, pid, 50001, 1, round); },
+            get_db_manager().func_query([pid = killer->player_id(), round = static_cast<uint32_t>(quest::get_quest_manager().event_flag("lotto_round"))](sql_msg &msg) { give_lotto_ticket_result(msg, pid, 50001, 1, round); },
                 sql::format("INSERT INTO lotto_list VALUES(0, 'server', {}, NOW())", killer->player_id()));
         }
 
@@ -774,7 +774,7 @@ namespace metin2::game::inline items {
 
         for (auto it = vec_item.begin(); it != vec_item.end(); ++it) {
             game::items::item *item = *it;
-            db_manager::instance().send_money_log(MONEY_LOG_DROP, item->vnum(), item->count());
+            get_db_manager().send_money_log(MONEY_LOG_DROP, item->vnum(), item->count());
         }
 
         return vec_item.size();
@@ -991,7 +991,7 @@ namespace metin2::game::inline items {
         drop_event_char_stone_drop_item(*killer, *chr, *this, vec_item);
         drop_event_refine_box_drop_item(*killer, *chr, *this, vec_item);
 
-        if (quest::quest_manager::instance().event_flag("xmas_sock")) {
+        if (quest::get_quest_manager().event_flag("xmas_sock")) {
             uint32_t sock_item_vnum = 0;
             sock_item_vnum = 50010;
 
@@ -1016,7 +1016,7 @@ namespace metin2::game::inline items {
             }
         }
 
-        if (quest::quest_manager::instance().event_flag("drop_moon")) {
+        if (quest::get_quest_manager().event_flag("drop_moon")) {
             const uint32_t item_vnum = 50011;
 
             int drop_per_kill[MOB_RANK_MAX_NUM] =
@@ -1040,7 +1040,7 @@ namespace metin2::game::inline items {
         }
 
         if (killer->level() >= 15 && abs(killer->level() - chr->level()) <= 5) {
-            int pct = quest::quest_manager::instance().event_flag("hc_drop");
+            int pct = quest::get_quest_manager().event_flag("hc_drop");
 
             if (pct > 0) {
                 const uint32_t item_vnum = 30178;
@@ -1196,7 +1196,7 @@ namespace metin2::game::inline items {
                 vec_item.push_back(item);
         }
 
-        if (killer->level() >= 15 && quest::quest_manager::instance().event_flag("mars_drop")) {
+        if (killer->level() >= 15 && quest::get_quest_manager().event_flag("mars_drop")) {
             const uint32_t item_haniron = 70035;
             int drop_multiply[MOB_RANK_MAX_NUM] =
                 {

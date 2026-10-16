@@ -259,7 +259,7 @@ namespace metin2::game::inline empire {
 
         int32_t map_index = fn_castle_map_index(sige_empire);
 
-        sectree_map *sectree_map = sectree_manager::instance().map(map_index);
+        sectree_map *sectree_map = get_sectree_manager().map(map_index);
 
         if (nullptr == sectree_map)
             return 0;
@@ -273,7 +273,7 @@ namespace metin2::game::inline empire {
                 uint32_t ex = sectree_map->setting.base_x + 100 * tower_region[info->empire].ex;
                 uint32_t ey = sectree_map->setting.base_y + 100 * tower_region[info->empire].ey;
 
-                character_manager::instance().spawn_mob_range(fn_random_stone(),
+                get_character_manager().spawn_mob_range(fn_random_stone(),
                     fn_castle_map_index(info->empire),
                     sx, sy, ex, ey);
             }
@@ -456,9 +456,9 @@ namespace metin2::game::inline empire {
 
     auto castle_siege(int empire, int tower_count) -> int {
         {
-            if (nullptr == sectree_manager::instance().map(181)) return 0;
-            if (nullptr == sectree_manager::instance().map(182)) return 0;
-            if (nullptr == sectree_manager::instance().map(183)) return 0;
+            if (nullptr == get_sectree_manager().map(181)) return 0;
+            if (nullptr == get_sectree_manager().map(182)) return 0;
+            if (nullptr == get_sectree_manager().map(183)) return 0;
         }
 
         switch (siege_state) {
@@ -517,7 +517,7 @@ namespace metin2::game::inline empire {
             for (int i = 0; i < MAX_CASTLE_TOWER; ++i) {
                 if (castle[empire].tower[i]) {
                     character *npc = castle[empire].tower[i];
-                    character_manager::instance().destroy_character(npc);
+                    get_character_manager().destroy_character(npc);
                     castle[empire].tower[i] = nullptr;
                 }
             }
@@ -532,13 +532,13 @@ namespace metin2::game::inline empire {
         if (nullptr == empty_pos)
             return nullptr;
 
-        sectree_map *sectree_map = sectree_manager::instance().map(map_index);
+        sectree_map *sectree_map = get_sectree_manager().map(map_index);
         if (nullptr == sectree_map)
             return nullptr;
         uint32_t x = sectree_map->setting.base_x + 100 * empty_pos->x;
         uint32_t y = sectree_map->setting.base_y + 100 * empty_pos->y;
 
-        character *frog = character_manager::instance().spawn_mob(CASTLE_FROG_VNUM, map_index,
+        character *frog = get_character_manager().spawn_mob(CASTLE_FROG_VNUM, map_index,
             x, y, 0,
             false, dir);
         if (frog) {
@@ -556,14 +556,14 @@ namespace metin2::game::inline empire {
 
         position *empty_pos = &frog_pos[empire][empty_index];
 
-        sectree_map *sectree_map = sectree_manager::instance().map(map_index);
+        sectree_map *sectree_map = get_sectree_manager().map(map_index);
         if (nullptr == sectree_map) {
             return nullptr;
         }
         uint32_t x = sectree_map->setting.base_x + 100 * empty_pos->x;
         uint32_t y = sectree_map->setting.base_y + 100 * empty_pos->y;
 
-        character *frog = character_manager::instance().spawn_mob(CASTLE_FROG_VNUM, map_index,
+        character *frog = get_character_manager().spawn_mob(CASTLE_FROG_VNUM, map_index,
             x, y, 0,
             false, dir);
         if (frog) {
@@ -579,7 +579,7 @@ namespace metin2::game::inline empire {
         int sx, sy, ex, ey;
         int32_t map_index = fn_castle_map_index(empire);
 
-        sectree_map *sectree_map = sectree_manager::instance().map(map_index);
+        sectree_map *sectree_map = get_sectree_manager().map(map_index);
         if (nullptr == sectree_map)
             return nullptr;
 
@@ -591,7 +591,7 @@ namespace metin2::game::inline empire {
         ex = sectree_map->setting.base_x + 100 * s_guard_region[empire][region_index].ex;
         ey = sectree_map->setting.base_y + 100 * s_guard_region[empire][region_index].ey;
 
-        mob = character_manager::instance().spawn_group(group_vnum, map_index,
+        mob = get_character_manager().spawn_group(group_vnum, map_index,
             sx, sy, ex, ey);
         if (mob) {
             mob->set_empire(empire);
@@ -628,7 +628,7 @@ namespace metin2::game::inline empire {
             uint32_t ey = sectree_map->setting.base_y + 100 * tower_region[empire].ey;
 
             castle[empire].tower[i] =
-                character_manager::instance().spawn_mob_range(fn_random_tower(),
+                get_character_manager().spawn_mob_range(fn_random_tower(),
                     fn_castle_map_index(empire),
                     sx, sy, ex, ey);
             castle[empire].tower[i]->set_empire(empire);
@@ -638,7 +638,7 @@ namespace metin2::game::inline empire {
 
     auto castle_spawn_tower(int empire, int tower_count) -> bool {
         int map_index = fn_castle_map_index(empire);
-        sectree_map *sectree_map = sectree_manager::instance().map(map_index);
+        sectree_map *sectree_map = get_sectree_manager().map(map_index);
         if (nullptr == sectree_map)
             return false;
 
@@ -713,7 +713,7 @@ namespace metin2::game::inline empire {
                 snprintf(buf, sizeof(buf), lc_text("%s이 봉화를 파괴했습니다."), empire_name(killer_empire));
                 broadcast_notice(buf);
 
-                log_manager::instance().char_log(killer, 0, "CASTLE_TORCH_KILL", "");
+                get_log_manager().char_log(killer, 0, "CASTLE_TORCH_KILL", "");
 
                 for (int i = 0; i < MAX_CASTLE_TOWER; ++i) {
                     if (ch == castle[sige_empire].tower[i])

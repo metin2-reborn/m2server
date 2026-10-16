@@ -15,21 +15,21 @@ namespace metin2::game {
 
     namespace quest {
         auto quest_start(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             q.current_pc()->set_current_quest_start_flag();
             return 0;
         }
 
         auto quest_done(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             q.current_pc()->set_current_quest_done_flag();
             return 0;
         }
 
         auto quest_set_title(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             if (lua_isstring(lua, -1))
                 q.current_pc()->set_current_quest_title(lua_tostring(lua, -1));
@@ -38,7 +38,7 @@ namespace metin2::game {
         }
 
         auto quest_set_another_title(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             if (lua_isstring(lua, 1) && lua_isstring(lua, 2))
                 q.current_pc()->set_quest_title(lua_tostring(lua, 1), lua_tostring(lua, 2));
@@ -47,7 +47,7 @@ namespace metin2::game {
         }
 
         auto quest_set_clock_name(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             if (lua_isstring(lua, -1))
                 q.current_pc()->set_current_quest_clock_name(lua_tostring(lua, -1));
@@ -56,7 +56,7 @@ namespace metin2::game {
         }
 
         auto quest_set_clock_value(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             if (lua_isnumber(lua, -1))
                 q.current_pc()->set_current_quest_clock_value((int)rint(lua_tonumber(lua, -1)));
@@ -65,7 +65,7 @@ namespace metin2::game {
         }
 
         auto quest_set_counter_name(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             if (lua_isstring(lua, -1))
                 q.current_pc()->set_current_quest_counter_name(lua_tostring(lua, -1));
@@ -74,7 +74,7 @@ namespace metin2::game {
         }
 
         auto quest_set_counter_value(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             if (lua_isnumber(lua, -1))
                 q.current_pc()->set_current_quest_counter_value((int)rint(lua_tonumber(lua, -1)));
@@ -83,7 +83,7 @@ namespace metin2::game {
         }
 
         auto quest_set_icon_file(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             if (lua_isstring(lua, -1))
                 q.current_pc()->set_current_quest_icon_file(lua_tostring(lua, -1));
@@ -97,7 +97,7 @@ namespace metin2::game {
                 return 0;
             }
 
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             quest_state *pqs = q.current_state();
             pc *pc = q.current_pc();
 
@@ -119,7 +119,7 @@ namespace metin2::game {
         }
 
         auto quest_coroutine_yield(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             if (q.is_in_other_pc_block()) {
                 quest::error("Yield inside other_pc_block");
                 pc *pc = q.other_pc_block_root_pc();
@@ -139,13 +139,13 @@ namespace metin2::game {
         }
 
         auto quest_no_send(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             q.set_no_send();
             return 0;
         }
 
         auto quest_get_current_quest_index(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             pc *pc = q.current_pc();
 
             int idx = q.quest_index_by_name(pc->current_quest_name());
@@ -154,14 +154,14 @@ namespace metin2::game {
         }
 
         auto quest_begin_other_pc_block(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             uint32_t pid = lua_tonumber(lua, -1);
             q.begin_other_pc_block(pid);
             return 0;
         }
 
         auto quest_end_other_pc_block(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             q.end_other_pc_block();
             return 0;
         }
@@ -190,7 +190,7 @@ namespace metin2::game {
                     {nullptr,                nullptr                      }
             };
 
-            quest_manager::instance().add_lua_function_table("q", quest_functions);
+            get_quest_manager().add_lua_function_table("q", quest_functions);
         }
     }
 }

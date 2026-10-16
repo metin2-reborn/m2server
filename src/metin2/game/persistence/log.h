@@ -2,7 +2,6 @@
 
 #include <metin2/game/app/typedef.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/sql/async_sql.h>
 
 #include <cstdint>
@@ -20,10 +19,10 @@ namespace metin2::game::inline persistence {
         QUEST = 7,
     };
 
-    class log_manager : public singleton<log_manager> {
+    class log_manager {
       public:
         log_manager();
-        ~log_manager() override;
+        ~log_manager();
 
         auto is_connected() -> bool;
 
@@ -59,4 +58,9 @@ namespace metin2::game::inline persistence {
         async_sql sql_;
         bool is_connect_;
     };
+
+    inline auto get_log_manager() -> log_manager & {
+        static log_manager instance;
+        return instance;
+    }
 }

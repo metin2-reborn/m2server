@@ -2,7 +2,6 @@
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/characters/character.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/core/utils.h>
 #include <metin2/proto/tables.h>
 
@@ -264,10 +263,10 @@ namespace metin2::game::inline items {
         std::vector<thief_group_info> vec_items_;
     };
 
-    class item_manager : public singleton<item_manager> {
+    class item_manager {
       public:
         item_manager();
-        ~item_manager() override;
+        ~item_manager();
 
         auto initialize(item_table *table_value, int size) -> bool;
         void destroy();
@@ -359,6 +358,11 @@ namespace metin2::game::inline items {
 
       private:
     };
+
+    inline auto get_item_manager() -> item_manager & {
+        static item_manager instance;
+        return instance;
+    }
 
     extern auto drop_event_refine_box_set_value(const std::string &name, int value) -> bool;
     extern auto drop_event_char_stone_set_value(const std::string &name, int value) -> bool;

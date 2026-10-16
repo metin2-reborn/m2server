@@ -1,6 +1,5 @@
 #pragma once
 
-#include <metin2/common/singleton.h>
 #include <metin2/proto/tables.h>
 
 #include <cstdint>
@@ -8,7 +7,7 @@
 
 namespace metin2::db::inline items {
 
-    class item_id_range_manager : public singleton<item_id_range_manager> {
+    class item_id_range_manager {
       private:
         const static uint32_t max_item_id_ = 4290000000UL;
         const static uint32_t minimum_range_ = 10000000UL;
@@ -25,4 +24,9 @@ namespace metin2::db::inline items {
 
         auto range() -> item_id_range_table;
     };
+
+    inline auto get_item_id_range_manager() -> item_id_range_manager & {
+        static item_id_range_manager instance;
+        return instance;
+    }
 }

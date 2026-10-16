@@ -37,7 +37,7 @@ namespace metin2::game {
     namespace quest {
         namespace {
             auto current_dungeon() -> dungeon * {
-                return quest_manager::instance().current_dungeon();
+                return get_quest_manager().current_dungeon();
             }
 
             auto current_dungeon_or_error() -> dungeon * {
@@ -63,7 +63,7 @@ namespace metin2::game {
                 if (!dungeon)
                     return std::nullopt;
 
-                sectree_map *map_value = sectree_manager::instance().map(dungeon->map_index());
+                sectree_map *map_value = get_sectree_manager().map(dungeon->map_index());
                 if (!map_value) {
                     quest::error("No map with index {:d}", dungeon->map_index());
                     return std::nullopt;
@@ -88,7 +88,7 @@ namespace metin2::game {
         }
 
         auto dungeon_set_quest_flag(lua_State *lua) -> int {
-            std::string flagname = quest_manager::instance().current_pc()->current_quest_name() + "." + lua_tostring(lua, 1);
+            std::string flagname = get_quest_manager().current_pc()->current_quest_name() + "." + lua_tostring(lua, 1);
             set_members_quest_flag(flagname, (int)rint(lua_tonumber(lua, 2)));
             return 0;
         }
@@ -119,7 +119,7 @@ namespace metin2::game {
 
             auto map_index = (uint32_t)lua_tonumber(lua, 2);
             if (map_index) {
-                dungeon *dungeon_value = dungeon_manager::instance().find_by_map_index(map_index);
+                dungeon *dungeon_value = get_dungeon_manager().find_by_map_index(map_index);
                 if (dungeon_value) {
                     const char *sz = lua_tostring(lua, 1);
                     lua_pushnumber(lua, dungeon_value->flag(sz));
@@ -223,14 +223,14 @@ namespace metin2::game {
 
             auto map_index = (int32_t)lua_tonumber(lua, 1);
 
-            dungeon *dungeon_value = dungeon_manager::instance().create(map_index);
+            dungeon *dungeon_value = get_dungeon_manager().create(map_index);
 
             if (!dungeon_value) {
                 quest::error("Cannot create dungeon on map {:d}", map_index);
                 return 0;
             }
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             ch->warp_set((int)lua_tonumber(lua, 2), (int)lua_tonumber(lua, 3), dungeon_value->map_index());
             return 0;
@@ -244,14 +244,14 @@ namespace metin2::game {
 
             auto map_index = (int32_t)lua_tonumber(lua, 1);
 
-            dungeon *dungeon_value = dungeon_manager::instance().create(map_index);
+            dungeon *dungeon_value = get_dungeon_manager().create(map_index);
 
             if (!dungeon_value) {
                 quest::error("Cannot create dungeon on map {:d}", map_index);
                 return 0;
             }
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             dungeon_value->jump_all(ch->map_index(), (int)lua_tonumber(lua, 2), (int)lua_tonumber(lua, 3));
 
@@ -266,14 +266,14 @@ namespace metin2::game {
 
             auto map_index = (int32_t)lua_tonumber(lua, 1);
 
-            dungeon *dungeon_value = dungeon_manager::instance().create(map_index);
+            dungeon *dungeon_value = get_dungeon_manager().create(map_index);
 
             if (!dungeon_value) {
                 quest::error("Cannot create dungeon on map {:d}", map_index);
                 return 0;
             }
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch->get_party() == nullptr) {
                 quest::error("Player is not in a party");
@@ -358,7 +358,7 @@ namespace metin2::game {
             if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2))
                 return 0;
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             party *party = ch->get_party();
             dungeon *dungeon = current_dungeon();
@@ -453,10 +453,10 @@ namespace metin2::game {
                 return 0;
             }
 
-            sectree_map *sectree = sectree_manager::instance().map(map_index);
+            sectree_map *sectree = get_sectree_manager().map(map_index);
 
             if (nullptr != sectree) {
-                purge_monsters_in_area(sectree, x1, y1, x2, y2, quest_manager::instance().current_npc_character_ptr());
+                purge_monsters_in_area(sectree, x1, y1, x2, y2, get_quest_manager().current_npc_character_ptr());
             }
 
             return 0;
@@ -718,12 +718,12 @@ namespace metin2::game {
                 return 0;
 
             auto map_index = (int32_t)lua_tonumber(lua, 1);
-            dungeon *dungeon = dungeon_manager::instance().create(map_index);
+            dungeon *dungeon = get_dungeon_manager().create(map_index);
 
             if (!dungeon)
                 return 0;
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch->get_party() && ch->get_party()->leader_pid() == ch->player_id())
                 dungeon->join_party(ch->get_party());
@@ -734,7 +734,7 @@ namespace metin2::game {
         }
 
         auto dungeon_exit(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             ch->exit_to_saved_location();
             return 0;
@@ -888,16 +888,16 @@ namespace metin2::game {
         auto dungeon_select(lua_State *lua) -> int {
             auto map_index = (uint32_t)lua_tonumber(lua, 1);
             if (map_index) {
-                dungeon *dungeon = dungeon_manager::instance().find_by_map_index(map_index);
+                dungeon *dungeon = get_dungeon_manager().find_by_map_index(map_index);
                 if (dungeon) {
-                    quest_manager::instance().select_dungeon(dungeon);
+                    get_quest_manager().select_dungeon(dungeon);
                     lua_pushboolean(lua, 1);
                 } else {
-                    quest_manager::instance().select_dungeon(nullptr);
+                    get_quest_manager().select_dungeon(nullptr);
                     lua_pushboolean(lua, 0);
                 }
             } else {
-                quest_manager::instance().select_dungeon(nullptr);
+                get_quest_manager().select_dungeon(nullptr);
                 lua_pushboolean(lua, 0);
             }
             return 1;
@@ -906,7 +906,7 @@ namespace metin2::game {
         auto dungeon_find(lua_State *lua) -> int {
             auto map_index = (uint32_t)lua_tonumber(lua, 1);
             if (map_index) {
-                dungeon *dungeon = dungeon_manager::instance().find_by_map_index(map_index);
+                dungeon *dungeon = get_dungeon_manager().find_by_map_index(map_index);
                 if (dungeon) {
                     lua_pushboolean(lua, 1);
                 } else {
@@ -1055,7 +1055,7 @@ namespace metin2::game {
                     {nullptr,                              nullptr                                   }
             };
 
-            quest_manager::instance().add_lua_function_table("d", dungeon_functions);
+            get_quest_manager().add_lua_function_table("d", dungeon_functions);
         }
     }
 }

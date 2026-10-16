@@ -73,9 +73,9 @@ namespace metin2::game::inline items {
                 auto pct = (uint32_t)(d[i].percent * 10000.0f);
                 uint32_t item_vnum = 0;
 
-                if (!item_manager::instance().vnum_by_original_name(d[i].item_name, item_vnum)) {
+                if (!get_item_manager().vnum_by_original_name(d[i].item_name, item_vnum)) {
                     str_to_number(item_vnum, d[i].item_name);
-                    if (!item_manager::instance().table(item_vnum)) {
+                    if (!get_item_manager().table(item_vnum)) {
                         metin2::log::error("Unknown item name {}", d[i].item_name);
                         fclose(fp);
                         return false;
@@ -141,7 +141,7 @@ namespace metin2::game::inline items {
                     type = special_item_group::PCT;
                 } else if (type_value == "quest") {
                     type = special_item_group::QUEST;
-                    quest::quest_manager::instance().register_npc_vnum(vnum_value);
+                    quest::get_quest_manager().register_npc_vnum(vnum_value);
                 } else if (type_value == "special") {
                     type = special_item_group::SPECIAL;
                 }
@@ -198,7 +198,7 @@ namespace metin2::game::inline items {
                                 vnum = special_item_group::MOB_GROUP;
                             } else {
                                 str_to_number(vnum, name.c_str());
-                                if (!item_manager::instance().table(vnum)) {
+                                if (!get_item_manager().table(vnum)) {
                                     metin2::log::error("Unknown item {} in special item group {}", name, name_value);
                                     return false;
                                 }
@@ -303,7 +303,7 @@ namespace metin2::game::inline items {
                             vnum = 0;
                         } else {
                             str_to_number(vnum, name.c_str());
-                            if (!item_manager::instance().table(vnum)) {
+                            if (!get_item_manager().table(vnum)) {
                                 metin2::log::error("Unknown item {} in special item group {}", name, name_value);
                                 fclose(fp);
 
@@ -374,7 +374,7 @@ namespace metin2::game::inline items {
 
             uint32_t item_vnum;
 
-            if (!item_manager::instance().vnum_by_original_name(item_name, item_vnum)) {
+            if (!get_item_manager().vnum_by_original_name(item_name, item_vnum)) {
                 metin2::log::error("Unknown item name {}", item_name);
                 fclose(fp);
                 return false;
@@ -462,7 +462,7 @@ namespace metin2::game::inline items {
 
                         if (!vnum_by_original_name(name.c_str(), vnum_value)) {
                             str_to_number(vnum_value, name.c_str());
-                            if (!item_manager::instance().table(vnum_value)) {
+                            if (!get_item_manager().table(vnum_value)) {
                                 metin2::log::error("Unknown item {} (vnum {:d}) in mob drop group {}", name, vnum_value, name_value);
                                 return false;
                             }
@@ -515,7 +515,7 @@ namespace metin2::game::inline items {
 
                         if (!vnum_by_original_name(name.c_str(), vnum_value)) {
                             str_to_number(vnum_value, name.c_str());
-                            if (!item_manager::instance().table(vnum_value)) {
+                            if (!get_item_manager().table(vnum_value)) {
                                 metin2::log::error("Unknown item {} in drop group {}", name, name_value);
                                 return false;
                             }
@@ -554,7 +554,7 @@ namespace metin2::game::inline items {
 
                         if (false == vnum_by_original_name(name.c_str(), item_vnum)) {
                             str_to_number(item_vnum, name.c_str());
-                            if (!item_manager::instance().table(item_vnum)) {
+                            if (!get_item_manager().table(item_vnum)) {
                                 return false;
                             }
                         }
@@ -588,7 +588,7 @@ namespace metin2::game::inline items {
 
                         if (!vnum_by_original_name(name.c_str(), vnum_value)) {
                             str_to_number(vnum_value, name.c_str());
-                            if (!item_manager::instance().table(vnum_value)) {
+                            if (!get_item_manager().table(vnum_value)) {
                                 metin2::log::error("Unknown item {} in drop group {}", name, name_value);
                                 return false;
                             }
@@ -678,7 +678,7 @@ namespace metin2::game::inline items {
 
                     if (!vnum_by_original_name(name.c_str(), vnum)) {
                         str_to_number(vnum, name.c_str());
-                        if (!item_manager::instance().table(vnum)) {
+                        if (!get_item_manager().table(vnum)) {
                             metin2::log::error("Unknown item {} in drop group {}", name, name_value);
                             return false;
                         }

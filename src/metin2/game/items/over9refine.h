@@ -3,14 +3,12 @@
 
 #include <metin2/game/app/typedef.h>
 
-#include <metin2/common/singleton.h>
-
 #include <cstdint>
 #include <unordered_map>
 
 namespace metin2::game::inline items {
 
-    class over9_refine_manager : public singleton<over9_refine_manager> {
+    class over9_refine_manager {
       private:
         using over9_item_map = std::unordered_map<uint32_t, uint32_t>;
         over9_item_map item_;
@@ -25,4 +23,9 @@ namespace metin2::game::inline items {
 
         auto material_vnum(uint32_t base_vnum) -> uint32_t;
     };
+
+    inline auto get_over9_refine_manager() -> over9_refine_manager & {
+        static over9_refine_manager instance;
+        return instance;
+    }
 }

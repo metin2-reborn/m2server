@@ -38,8 +38,8 @@ namespace metin2::db::inline social {
             const std::string query = sql::format(
                 "SELECT pid1, pid2, love_point, time, is_married, p1.name, p2.name FROM marriage, player as p1, player as p2 WHERE p1.id = pid1 AND p2.id = pid2");
 
-            auto pmsg_delete = db_manager::instance().direct_query("DELETE FROM marriage WHERE is_married = 0");
-            auto pmsg = db_manager::instance().direct_query(query);
+            auto pmsg_delete = get_db_manager().direct_query("DELETE FROM marriage WHERE is_married = 0");
+            auto pmsg = get_db_manager().direct_query(query);
 
             sql_result *res = pmsg->get();
             metin2::log::info("Marriage: loading {:d} marriages", res->num_rows);
@@ -86,7 +86,7 @@ namespace metin2::db::inline social {
         }
 
         void manager::add(uint32_t pid1, uint32_t pid2, const char *name1_value, const char *name2_value) {
-            uint32_t now = client_manager::instance().current_time();
+            uint32_t now = get_client_manager().current_time();
             if (is_married(pid1) || is_married(pid2)) {
                 metin2::log::warn("Marriage: pid {:d} or pid {:d} is already married", pid1, pid2);
                 return;
@@ -96,7 +96,7 @@ namespace metin2::db::inline social {
 
             const std::string query = sql::format("INSERT INTO marriage(pid1, pid2, love_point, time) VALUES ({}, {}, 0, {})", pid1, pid2, now);
 
-            auto pmsg = db_manager::instance().direct_query(query);
+            auto pmsg = get_db_manager().direct_query(query);
 
             sql_result *res = pmsg->get();
             if (res->affected_rows == 0 || res->affected_rows == (uint32_t)-1) {
@@ -116,7 +116,7 @@ namespace metin2::db::inline social {
             p.t_marry_time = now;
             strlcpy(p.name1, name1_value, sizeof(p.name1));
             strlcpy(p.name2, name2_value, sizeof(p.name2));
-            client_manager::instance().forward_packet(HEADER_DG_MARRIAGE_ADD, &p, sizeof(p));
+            get_client_manager().forward_packet(HEADER_DG_MARRIAGE_ADD, &p, sizeof(p));
         }
 
         void manager::update(uint32_t pid1_value, uint32_t pid2_value, int32_t love_point_value, uint8_t married_value) {
@@ -131,7 +131,7 @@ namespace metin2::db::inline social {
             const std::string query = sql::format("UPDATE marriage SET love_point = {}, is_married = {} WHERE pid1 = {} AND pid2 = {}",
                 love_point_value, married_value, marriage_value->pid1, marriage_value->pid2);
 
-            auto pmsg = db_manager::instance().direct_query(query);
+            auto pmsg = get_db_manager().direct_query(query);
 
             sql_result *res = pmsg->get();
             if (res->affected_rows == 0 || res->affected_rows == (uint32_t)-1) {
@@ -148,7 +148,7 @@ namespace metin2::db::inline social {
             p.pid2 = pid2_value;
             p.love_point = marriage_value->love_point;
             p.married = marriage_value->is_married;
-            client_manager::instance().forward_packet(HEADER_DG_MARRIAGE_UPDATE, &p, sizeof(p));
+            get_client_manager().forward_packet(HEADER_DG_MARRIAGE_UPDATE, &p, sizeof(p));
         }
 
         void manager::remove(uint32_t pid1_value, uint32_t pid2_value) {
@@ -171,7 +171,7 @@ namespace metin2::db::inline social {
 
             const std::string query = sql::format("DELETE FROM marriage WHERE pid1 = {} AND pid2 = {}", pid1_value, pid2_value);
 
-            auto pmsg = db_manager::instance().direct_query(query);
+            auto pmsg = get_db_manager().direct_query(query);
 
             sql_result *res = pmsg->get();
             if (res->affected_rows == 0 || res->affected_rows == (uint32_t)-1) {
@@ -187,7 +187,7 @@ namespace metin2::db::inline social {
             packet_marriage_remove p;
             p.pid1 = pid1_value;
             p.pid2 = pid2_value;
-            client_manager::instance().forward_packet(HEADER_DG_MARRIAGE_REMOVE, &p, sizeof(p));
+            get_client_manager().forward_packet(HEADER_DG_MARRIAGE_REMOVE, &p, sizeof(p));
 
             std::erase_if(marriages_, [marriage_value](const auto &m) { return m.get() == marriage_value; });
         }
@@ -239,7 +239,7 @@ namespace metin2::db::inline social {
         }
 
         void manager::ready_wedding(uint32_t map_index, uint32_t pid1, uint32_t pid2) {
-            uint32_t start_time = client_manager::instance().current_time();
+            uint32_t start_time = get_client_manager().current_time();
             pq_wedding_start_.push(wedding(start_time + 5, map_index, pid1, pid2));
         }
 
@@ -255,12 +255,12 @@ namespace metin2::db::inline social {
             packet_wedding_end p;
             p.pid1 = w.pid1;
             p.pid2 = w.pid2;
-            client_manager::instance().forward_packet(HEADER_DG_WEDDING_END, &p, sizeof(p));
+            get_client_manager().forward_packet(HEADER_DG_WEDDING_END, &p, sizeof(p));
             running_wedding_.erase(it);
         }
 
         void manager::update() {
-            uint32_t now = client_manager::instance().current_time();
+            uint32_t now = get_client_manager().current_time();
 
             if (!pq_wedding_end_.empty()) {
                 while (!pq_wedding_end_.empty() && pq_wedding_end_.top().time <= now) {
@@ -276,7 +276,7 @@ namespace metin2::db::inline social {
                     packet_wedding_end p;
                     p.pid1 = w.pid1;
                     p.pid2 = w.pid2;
-                    client_manager::instance().forward_packet(HEADER_DG_WEDDING_END, &p, sizeof(p));
+                    get_client_manager().forward_packet(HEADER_DG_WEDDING_END, &p, sizeof(p));
                     running_wedding_.erase(it);
 
                     auto it_marriage = marriage_by_pid_.find(w.pid1);
@@ -297,7 +297,7 @@ namespace metin2::db::inline social {
                     packet_wedding_start p;
                     p.pid1 = w.pid1;
                     p.pid2 = w.pid2;
-                    client_manager::instance().forward_packet(HEADER_DG_WEDDING_START, &p, sizeof(p));
+                    get_client_manager().forward_packet(HEADER_DG_WEDDING_START, &p, sizeof(p));
 
                     w.time += WEDDING_LENGTH;
                     pq_wedding_end_.push(wedding_info(w.time, w.pid1, w.pid2));

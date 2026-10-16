@@ -2,7 +2,6 @@
 
 #include <metin2/game/app/typedef.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/proto/inventory.h>
 
 #include <cstdint>
@@ -19,10 +18,10 @@ namespace metin2::game::inline items {
 
     class dragon_soul_table;
 
-    class ds_manager : public singleton<ds_manager> {
+    class ds_manager {
       public:
         ds_manager();
-        ~ds_manager() override;
+        ~ds_manager();
         auto read_dragon_soul_table_file(const char *file_name) -> bool;
 
         void dragon_soul_info(uint32_t vnum, uint8_t &type, uint8_t &grade, uint8_t &step, uint8_t &strength) const;
@@ -60,4 +59,9 @@ namespace metin2::game::inline items {
 
         std::unique_ptr<dragon_soul_table> table_;
     };
+
+    inline auto get_ds_manager() -> ds_manager & {
+        static ds_manager instance;
+        return instance;
+    }
 }

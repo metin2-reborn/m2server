@@ -96,7 +96,7 @@ namespace metin2::game::inline guilds {
                 d->buffered_packet(&pack2.guild_opp, sizeof(uint32_t));
                 d->packet(&score, sizeof(int32_t));
 
-                score = guild_manager::instance().touch_guild(pack2.guild_opp)->war_score_against_to(pack2.guild_self);
+                score = get_guild_manager().touch_guild(pack2.guild_opp)->war_score_against_to(pack2.guild_self);
 
                 d->buffered_packet(&p, sizeof(p));
                 d->buffered_packet(&pack2.guild_opp, sizeof(uint32_t));
@@ -136,7 +136,7 @@ namespace metin2::game::inline guilds {
         if (guild_war_type >= GUILD_WAR_TYPE_MAX_NUM)
             return false;
 
-        if (metin2::config::test_server() || quest::quest_manager::instance().event_flag("guild_war_test") != 0)
+        if (metin2::config::test_server() || quest::get_quest_manager().event_flag("guild_war_test") != 0)
             return ladder_point() > 0;
 
         return ladder_point() > 0 && member_count() >= GUILD_WAR_MIN_MEMBER_COUNT;
@@ -173,8 +173,8 @@ namespace metin2::game::inline guilds {
             it->second.score = score_value;
 
             if (it->second.type != GUILD_WAR_TYPE_FIELD) {
-                guild *g_opp = guild_manager::instance().touch_guild(opp_gid);
-                war_map *map = war_map_manager::instance().find(it->second.map_index);
+                guild *g_opp = get_guild_manager().touch_guild(opp_gid);
+                war_map *map = get_war_map_manager().find(it->second.map_index);
 
                 if (map)
                     map->update_score(self_gid, score_value, opp_gid, g_opp->war_score_against_to(self_gid));
@@ -194,7 +194,7 @@ namespace metin2::game::inline guilds {
 
                 packet(buf.read_peek(), buf.size());
 
-                guild *g_opp = guild_manager::instance().touch_guild(opp_gid);
+                guild *g_opp = get_guild_manager().touch_guild(opp_gid);
 
                 if (g_opp)
                     g_opp->packet(buf.read_peek(), buf.size());
@@ -240,7 +240,7 @@ namespace metin2::game::inline guilds {
 
         unsigned map_index = guild_war_get_type_map_index(type);
 
-        if (sectree_manager::instance().get_map_region(map_index))
+        if (get_sectree_manager().get_map_region(map_index))
             return true;
 
         return false;
@@ -408,7 +408,7 @@ namespace metin2::game::inline guilds {
 
         gw.state = GUILD_WAR_WAIT_START;
 
-        guild *g = guild_manager::instance().find_guild(opp_gid);
+        guild *g = get_guild_manager().find_guild(opp_gid);
         if (!g) {
             metin2::log::warn("Cannot start war for guild {:d}, enemy guild {:d} not found", id(), opp_gid);
             return false;
@@ -435,10 +435,10 @@ namespace metin2::game::inline guilds {
         if (id1 > id2)
             std::swap(id1, id2);
 
-        uint32_t map_index = war_map_manager::instance().create_war_map(guild_war_info, id1, id2);
+        uint32_t map_index = get_war_map_manager().create_war_map(guild_war_info, id1, id2);
         if (!map_index) {
             metin2::log::error("Failed to create war map for guild {:d} vs {:d}, type {:d}, map {:d}, ending the war", id1, id2, gw.type, guild_war_info.map_index);
-            guild_manager::instance().request_end_war(id(), opp_gid);
+            get_guild_manager().request_end_war(id(), opp_gid);
             return false;
         }
 
@@ -456,7 +456,7 @@ namespace metin2::game::inline guilds {
         p.guild_id2 = id2;
         p.map_index = map_index;
 
-        p2p_manager::instance().send(&p, sizeof(p));
+        get_p2p_manager().send(&p, sizeof(p));
 
         return true;
     }
@@ -514,7 +514,7 @@ namespace metin2::game::inline guilds {
         auto it = enemy_guild_.find(opp_gid);
 
         if (it != enemy_guild_.end()) {
-            war_map *map = war_map_manager::instance().find(it->second.map_index);
+            war_map *map = get_war_map_manager().find(it->second.map_index);
 
             if (map)
                 map->set_ended();
@@ -569,10 +569,10 @@ namespace metin2::game::inline guilds {
 
         pixel_position pos;
 
-        if (!war_map_manager::instance().start_position(gw.map_index, id() < opp_gid ? 0 : 1, pos))
+        if (!get_war_map_manager().start_position(gw.map_index, id() < opp_gid ? 0 : 1, pos))
             return;
 
-        quest::pc *pc = quest::quest_manager::instance().get_pc(ch->player_id());
+        quest::pc *pc = quest::get_quest_manager().get_pc(ch->player_id());
         pc->set_flag("war.is_war_member", 1);
 
         ch->save_exit_location();
@@ -595,7 +595,7 @@ namespace metin2::game::inline guilds {
         }
 
         pixel_position pos;
-        if (!war_map_manager::instance().start_position(gw.map_index, id() < opp_gid ? 0 : 1, pos)) {
+        if (!get_war_map_manager().start_position(gw.map_index, id() < opp_gid ? 0 : 1, pos)) {
             metin2::log::error("Cannot send war entry request for guild {:d} vs {:d}, no start position ({:d}, {:d})", id(), opp_gid, pos.x, pos.y);
             return;
         }
@@ -608,10 +608,10 @@ namespace metin2::game::inline guilds {
             character *ch = *it++;
 
             using namespace quest;
-            unsigned int quest_index = quest_manager::instance().quest_index_by_name("guild_war_join");
+            unsigned int quest_index = get_quest_manager().quest_index_by_name("guild_war_join");
             if (quest_index) {
                 metin2::log::debug("Guild war: sent join letter to pid {:d} (quest {:d})", ch->player_id(), quest_index);
-                quest_manager::instance().letter(ch->player_id(), quest_index, 0);
+                get_quest_manager().letter(ch->player_id(), quest_index, 0);
             } else {
                 metin2::log::error("Cannot send war join letter to pid {:d}, quest guild_war_join.quest not found (index {:d})",
                     ch->player_id(), quest_index);

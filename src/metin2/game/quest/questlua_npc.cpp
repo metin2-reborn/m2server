@@ -25,13 +25,13 @@ namespace metin2::game {
                     shop_vnum = (int)lua_tonumber(lua, 1);
             }
 
-            if (quest_manager::instance().current_npc_character_ptr())
-                shop_manager::instance().start_shopping(quest_manager::instance().current_character_ptr(), quest_manager::instance().current_npc_character_ptr(), shop_vnum);
+            if (get_quest_manager().current_npc_character_ptr())
+                get_shop_manager().start_shopping(get_quest_manager().current_character_ptr(), get_quest_manager().current_npc_character_ptr(), shop_vnum);
             return 0;
         }
 
         auto npc_is_pc(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *npc = q.current_npc_character_ptr();
             if (npc && npc->is_pc())
                 lua_pushboolean(lua, 1);
@@ -41,7 +41,7 @@ namespace metin2::game {
         }
 
         auto npc_get_empire(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *npc = q.current_npc_character_ptr();
             if (npc)
                 lua_pushnumber(lua, npc->empire());
@@ -51,12 +51,12 @@ namespace metin2::game {
         }
 
         auto npc_get_race(lua_State *lua) -> int {
-            lua_pushnumber(lua, quest_manager::instance().current_npc_race());
+            lua_pushnumber(lua, get_quest_manager().current_npc_race());
             return 1;
         }
 
         auto npc_get_guild(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *npc = q.current_npc_character_ptr();
             guild *guild = nullptr;
             if (npc)
@@ -67,7 +67,7 @@ namespace metin2::game {
         }
 
         auto npc_get_remain_skill_book_count(lua_State *lua) -> int {
-            character *npc = quest_manager::instance().current_npc_character_ptr();
+            character *npc = get_quest_manager().current_npc_character_ptr();
             if (!npc || npc->is_pc() || npc->race_num() != xmas::MOB_SANTA_VNUM) {
                 lua_pushnumber(lua, 0);
                 return 1;
@@ -77,7 +77,7 @@ namespace metin2::game {
         }
 
         auto npc_dec_remain_skill_book_count(lua_State *lua) -> int {
-            character *npc = quest_manager::instance().current_npc_character_ptr();
+            character *npc = get_quest_manager().current_npc_character_ptr();
             if (!npc || npc->is_pc() || npc->race_num() != xmas::MOB_SANTA_VNUM) {
                 return 0;
             }
@@ -86,7 +86,7 @@ namespace metin2::game {
         }
 
         auto npc_get_remain_hairdye_count(lua_State *lua) -> int {
-            character *npc = quest_manager::instance().current_npc_character_ptr();
+            character *npc = get_quest_manager().current_npc_character_ptr();
             if (!npc || npc->is_pc() || npc->race_num() != xmas::MOB_SANTA_VNUM) {
                 lua_pushnumber(lua, 0);
                 return 1;
@@ -96,7 +96,7 @@ namespace metin2::game {
         }
 
         auto npc_dec_remain_hairdye_count(lua_State *lua) -> int {
-            character *npc = quest_manager::instance().current_npc_character_ptr();
+            character *npc = get_quest_manager().current_npc_character_ptr();
             if (!npc || npc->is_pc() || npc->race_num() != xmas::MOB_SANTA_VNUM) {
                 return 0;
             }
@@ -105,7 +105,7 @@ namespace metin2::game {
         }
 
         auto npc_is_quest(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *npc = q.current_npc_character_ptr();
 
             if (npc) {
@@ -122,7 +122,7 @@ namespace metin2::game {
         }
 
         auto npc_kill(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *ch = q.current_character_ptr();
             character *npc = q.current_npc_character_ptr();
 
@@ -134,19 +134,19 @@ namespace metin2::game {
         }
 
         auto npc_purge(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *ch = q.current_character_ptr();
             character *npc = q.current_npc_character_ptr();
 
             ch->set_quest_npcid(0);
             if (npc) {
-                character_manager::instance().destroy_character(npc);
+                get_character_manager().destroy_character(npc);
             }
             return 0;
         }
 
         auto npc_is_near(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *ch = q.current_character_ptr();
             character *npc = q.current_npc_character_ptr();
 
@@ -171,8 +171,8 @@ namespace metin2::game {
                 return 1;
             }
 
-            quest_manager &q = quest_manager::instance();
-            character *ch = character_manager::instance().find((uint32_t)lua_tonumber(lua, 1));
+            quest_manager &q = get_quest_manager();
+            character *ch = get_character_manager().find((uint32_t)lua_tonumber(lua, 1));
             character *npc = q.current_npc_character_ptr();
 
             lua_Number dist = 10;
@@ -190,7 +190,7 @@ namespace metin2::game {
         }
 
         auto npc_unlock(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *ch = q.current_character_ptr();
             character *npc = q.current_npc_character_ptr();
 
@@ -206,7 +206,7 @@ namespace metin2::game {
         }
 
         auto npc_lock(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *ch = q.current_character_ptr();
             character *npc = q.current_npc_character_ptr();
 
@@ -226,7 +226,7 @@ namespace metin2::game {
         }
 
         auto npc_get_leader_vid(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *npc = q.current_npc_character_ptr();
 
             party *party = npc->get_party();
@@ -241,7 +241,7 @@ namespace metin2::game {
         }
 
         auto npc_get_vid(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *npc = q.current_npc_character_ptr();
 
             lua_pushnumber(lua, npc->get_vid());
@@ -252,7 +252,7 @@ namespace metin2::game {
         auto npc_get_vid_attack_mul(lua_State *lua) -> int {
 
             lua_Number vid = lua_tonumber(lua, 1);
-            character *target_char = character_manager::instance().find(vid);
+            character *target_char = get_character_manager().find(vid);
 
             if (target_char)
                 lua_pushnumber(lua, target_char->att_mul());
@@ -267,7 +267,7 @@ namespace metin2::game {
             lua_Number vid = lua_tonumber(lua, 1);
             lua_Number attack_mul = lua_tonumber(lua, 2);
 
-            character *target_char = character_manager::instance().find(vid);
+            character *target_char = get_character_manager().find(vid);
 
             if (target_char)
                 target_char->set_att_mul(attack_mul);
@@ -278,7 +278,7 @@ namespace metin2::game {
         auto npc_get_vid_damage_mul(lua_State *lua) -> int {
 
             lua_Number vid = lua_tonumber(lua, 1);
-            character *target_char = character_manager::instance().find(vid);
+            character *target_char = get_character_manager().find(vid);
 
             if (target_char)
                 lua_pushnumber(lua, target_char->dam_mul());
@@ -293,7 +293,7 @@ namespace metin2::game {
             lua_Number vid = lua_tonumber(lua, 1);
             lua_Number damage_mul = lua_tonumber(lua, 2);
 
-            character *target_char = character_manager::instance().find(vid);
+            character *target_char = get_character_manager().find(vid);
 
             if (target_char)
                 target_char->set_dam_mul(damage_mul);
@@ -331,7 +331,7 @@ namespace metin2::game {
                     {nullptr,                       nullptr                        }
             };
 
-            quest_manager::instance().add_lua_function_table("npc", npc_functions);
+            get_quest_manager().add_lua_function_table("npc", npc_functions);
         }
     };
 }

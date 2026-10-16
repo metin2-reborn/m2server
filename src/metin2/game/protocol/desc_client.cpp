@@ -56,12 +56,12 @@ namespace metin2::game::inline protocol {
             return;
         }
 
-        p2p_manager::instance().unregister_connector(this);
+        get_p2p_manager().unregister_connector(this);
 
         if (this == db_clientdesc) {
-            party_manager::instance().delete_all_party();
-            party_manager::instance().disable_pc_party();
-            guild_manager::instance().stop_all_guild_war();
+            get_party_manager().delete_all_party();
+            get_party_manager().disable_pc_party();
+            get_guild_manager().stop_all_guild_war();
         }
 
         metin2::log::info("Closing connection to {}:{:d}", host_, port_);
@@ -145,7 +145,7 @@ namespace metin2::game::inline protocol {
                     p.auth_server = false;
                     map_allow_copy(p.maps, MAX_MAPS_PER_SERVER);
 
-                    const desc_manager::desc_set &c_set = desc_manager::instance().client_set();
+                    const desc_manager::desc_set &c_set = get_desc_manager().client_set();
                     desc_manager::desc_set::const_iterator it;
 
                     for (it = c_set.begin(); it != c_set.end(); ++it) {
@@ -179,7 +179,7 @@ namespace metin2::game::inline protocol {
 
                     metin2::log::info("Db setup: {:d} users logged in, {:d} bytes", p.login_count, buf.size());
 
-                    party_manager::instance().enable_pc_party();
+                    get_party_manager().enable_pc_party();
                 } else {
                     p.auth_server = true;
                     buf.write(&p, sizeof(p));
@@ -249,7 +249,7 @@ namespace metin2::game::inline protocol {
             int total;
             int *pai_empire_user_count;
             int local;
-            desc_manager::instance().user_count(total, &pai_empire_user_count, local);
+            get_desc_manager().user_count(total, &pai_empire_user_count, local);
 
             channel_status channel_status;
             channel_status.port = metin2::config::server().port;

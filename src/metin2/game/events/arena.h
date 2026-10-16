@@ -5,8 +5,6 @@
 #include <metin2/game/characters/character_manager.h>
 #include <metin2/game/quest/lua_incl.h>
 
-#include <metin2/common/singleton.h>
-
 #include <cstdint>
 #include <list>
 #include <map>
@@ -65,8 +63,8 @@ namespace metin2::game::inline events {
         auto player_apid() -> uint32_t { return pida_; }
         auto player_bpid() -> uint32_t { return pidb_; }
 
-        auto player_a() -> character * { return character_manager::instance().find_by_pid(pida_); }
-        auto player_b() -> character * { return character_manager::instance().find_by_pid(pidb_); }
+        auto player_a() -> character * { return get_character_manager().find_by_pid(pida_); }
+        auto player_b() -> character * { return get_character_manager().find_by_pid(pidb_); }
 
         auto start_point_a() -> pixel_position { return start_point_a_; }
         auto start_point_b() -> pixel_position { return start_point_b_; }
@@ -109,7 +107,7 @@ namespace metin2::game::inline events {
         auto is_member(uint32_t pid) -> member_identity;
     };
 
-    class arena_manager : public singleton<arena_manager> {
+    class arena_manager {
       private:
         std::map<uint32_t, std::unique_ptr<arena_map>> arena_map_;
 
@@ -140,4 +138,9 @@ namespace metin2::game::inline events {
 
         auto is_limited_item(int32_t map_index, uint32_t vnum) -> bool;
     };
+
+    inline auto get_arena_manager() -> arena_manager & {
+        static arena_manager instance;
+        return instance;
+    }
 }

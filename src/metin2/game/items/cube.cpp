@@ -451,13 +451,13 @@ namespace metin2::game::inline items {
             ch->chat_packet(CHAT_TYPE_COMMAND, "cube success %d %d", reward_value->vnum, reward_value->count);
             new_item = ch->auto_give_item(reward_value->vnum, reward_value->count);
 
-            log_manager::instance().cube_log(ch->player_id(), ch->x(), ch->y(),
+            get_log_manager().cube_log(ch->player_id(), ch->x(), ch->y(),
                 reward_value->vnum, new_item ? new_item->id() : 0, reward_value->count, 1);
             return true;
         } else {
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("제조에 실패하였습니다."));
             ch->chat_packet(CHAT_TYPE_COMMAND, "cube fail");
-            log_manager::instance().cube_log(ch->player_id(), ch->x(), ch->y(),
+            get_log_manager().cube_log(ch->player_id(), ch->x(), ch->y(),
                 reward_value->vnum, 0, 0, 0);
             return false;
         }
@@ -637,7 +637,7 @@ namespace metin2::game::inline items {
 
                 if (reward.vnum == exist_info.reward.vnum) {
                     for (auto exist_material_iter = exist_info.material.begin(); exist_info.material.end() != exist_material_iter; ++exist_material_iter) {
-                        item_table *exist_material_proto = item_manager::instance().table(exist_material_iter->vnum);
+                        item_table *exist_material_proto = get_item_manager().table(exist_material_iter->vnum);
                         if (nullptr == exist_material_proto) {
                             metin2::log::error("No item proto for cube material vnum {:d}", exist_material_iter->vnum);
                             return false;
@@ -646,7 +646,7 @@ namespace metin2::game::inline items {
 
                         if (0 < exist_item_info.level) {
                             for (auto current_material_iter = material_info.material.begin(); material_info.material.end() != current_material_iter; ++current_material_iter) {
-                                item_table *current_material_proto = item_manager::instance().table(current_material_iter->vnum);
+                                item_table *current_material_proto = get_item_manager().table(current_material_iter->vnum);
                                 item_name_and_level current_item_info = split_item_name_and_level_from_name(current_material_proto->name);
 
                                 if (current_item_info.name == exist_item_info.name) {

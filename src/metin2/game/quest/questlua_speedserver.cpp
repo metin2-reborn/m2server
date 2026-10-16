@@ -33,7 +33,7 @@ namespace metin2::game {
 
             metin2::log::debug("Speed server: exp table for empire {:d} weekday {:d}", empire, wday);
 
-            std::list<hme> time_lst = speed_server_manager::instance().wday_exp_table_of_empire(empire, wday);
+            std::list<hme> time_lst = get_speed_server_manager().wday_exp_table_of_empire(empire, wday);
 
             int i = 0;
             for (auto it = time_lst.begin();
@@ -54,7 +54,7 @@ namespace metin2::game {
             uint8_t end_minite = lua_tonumber(lua, 4);
             int exp_percent = lua_tonumber(lua, 5);
 
-            speed_server_manager::instance().set_wday_exp_table_of_empire(empire, wday - 1, hme(end_hour, end_minite, exp_percent));
+            get_speed_server_manager().set_wday_exp_table_of_empire(empire, wday - 1, hme(end_hour, end_minite, exp_percent));
 
             return 0;
         }
@@ -70,7 +70,7 @@ namespace metin2::game {
 
             metin2::log::debug("Speed server: reset weekday {1:d} for empire {0:d}", empire, wday);
 
-            speed_server_manager::instance().init_wday_exp_table_of_empire(empire, wday - 1);
+            get_speed_server_manager().init_wday_exp_table_of_empire(empire, wday - 1);
 
             return 0;
         }
@@ -93,7 +93,7 @@ namespace metin2::game {
 
             bool is_exist;
 
-            std::list<hme> time_lst = speed_server_manager::instance().holiday_exp_table_of_empire(empire, date, is_exist);
+            std::list<hme> time_lst = get_speed_server_manager().holiday_exp_table_of_empire(empire, date, is_exist);
 
             int i = 0;
             if (is_exist) {
@@ -122,7 +122,7 @@ namespace metin2::game {
 
             metin2::log::debug("Speed server: until {:d}:{:02d}, exp {:d}%", end_hour, end_minite, exp_percent);
 
-            speed_server_manager::instance().set_holiday_exp_table_of_empire(empire, date, hme(end_hour, end_minite, exp_percent));
+            get_speed_server_manager().set_holiday_exp_table_of_empire(empire, date, hme(end_hour, end_minite, exp_percent));
 
             return 0;
         }
@@ -135,7 +135,7 @@ namespace metin2::game {
             uint8_t empire = lua_tonumber(lua, 1);
             date date = game::events::date(lua_tonumber(lua, 2) - 1900, lua_tonumber(lua, 3) - 1, lua_tonumber(lua, 4));
 
-            speed_server_manager::instance().init_holiday_exp_table_of_empire(empire, date);
+            get_speed_server_manager().init_holiday_exp_table_of_empire(empire, date);
 
             return 0;
         }
@@ -150,7 +150,7 @@ namespace metin2::game {
             int duration;
             bool is_change;
 
-            hme hme = speed_server_manager::instance().current_exp_priv_of_empire(empire, duration, is_change);
+            hme hme = get_speed_server_manager().current_exp_priv_of_empire(empire, duration, is_change);
 
             lua_pushnumber(lua, hme.hour);
             lua_pushnumber(lua, hme.min);
@@ -177,7 +177,7 @@ namespace metin2::game {
                     {nullptr,                nullptr                         }
             };
 
-            quest_manager::instance().add_lua_function_table("speedserver", speed_server_functions);
+            get_quest_manager().add_lua_function_table("speedserver", speed_server_functions);
         }
     }
 }

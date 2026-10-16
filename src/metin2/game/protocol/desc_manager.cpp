@@ -163,7 +163,7 @@ namespace metin2::game::inline protocol {
         ++sockets_connected_;
 
         metin2::log::info("Accepted peer connection from {}", desc->host_name());
-        p2p_manager::instance().register_acceptor(desc);
+        get_p2p_manager().register_acceptor(desc);
         return (desc);
     }
 
@@ -298,15 +298,15 @@ namespace metin2::game::inline protocol {
         local_user_count_ = total_count;
         std::memcpy(empire_user_count_, empire_user_count, sizeof(empire_user_count_));
 
-        empire_user_count_[1] += p2p_manager::instance().empire_user_count(1);
-        empire_user_count_[2] += p2p_manager::instance().empire_user_count(2);
-        empire_user_count_[3] += p2p_manager::instance().empire_user_count(3);
+        empire_user_count_[1] += get_p2p_manager().empire_user_count(1);
+        empire_user_count_[2] += get_p2p_manager().empire_user_count(2);
+        empire_user_count_[3] += get_p2p_manager().empire_user_count(3);
     }
 
     void desc_manager::user_count(int &total, int **pai_empire_user_count, int &local_count) {
         *pai_empire_user_count = &empire_user_count_[0];
 
-        int count_value = p2p_manager::instance().count();
+        int count_value = get_p2p_manager().count();
         if (count_value < 0) {
             metin2::log::error("Peer user count is negative ({:d})", count_value);
         }

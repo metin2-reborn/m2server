@@ -91,7 +91,7 @@ namespace metin2::game::inline combat {
             }
         }
 
-        const desc_manager::desc_set &c_r_set = desc_manager::instance().client_set();
+        const desc_manager::desc_set &c_r_set = get_desc_manager().client_set();
         auto it = c_r_set.begin();
 
         while (it != c_r_set.end()) {
@@ -335,7 +335,7 @@ namespace metin2::game::inline combat {
             return false;
 
         {
-            uint8_t map_empire = sectree_manager::instance().empire_from_map_index(chr->map_index());
+            uint8_t map_empire = get_sectree_manager().empire_from_map_index(chr->map_index());
 
             if ((chr->pk_mode() == PK_MODE_PROTECT && chr->empire() == map_empire) ||
                 (victim->pk_mode() == PK_MODE_PROTECT && victim->empire() == map_empire)) {
@@ -470,13 +470,13 @@ namespace metin2::game::inline combat {
             metin2::log::debug("Pvp: sending pair vid {:d} vs {:d}", pack.vid_src, pack.vid_dst);
 
             if (pvp->players_[0].vid == vid_value) {
-                character *ch = character_manager::instance().find(pvp->players_[1].vid);
+                character *ch = get_character_manager().find(pvp->players_[1].vid);
                 if (ch && ch->get_desc()) {
                     desc *d = ch->get_desc();
                     d->packet(&pack, sizeof(pack));
                 }
             } else if (pvp->players_[1].vid == vid_value) {
-                character *ch = character_manager::instance().find(pvp->players_[0].vid);
+                character *ch = get_character_manager().find(pvp->players_[0].vid);
                 if (ch && ch->get_desc()) {
                     desc *d = ch->get_desc();
                     d->packet(&pack, sizeof(pack));

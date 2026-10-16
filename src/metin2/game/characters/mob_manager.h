@@ -1,7 +1,6 @@
 #pragma once
 #include <metin2/game/app/typedef.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/core/utils.h>
 #include <metin2/proto/mob_types.h>
 #include <metin2/proto/tables.h>
@@ -109,12 +108,12 @@ namespace metin2::game::inline characters {
         std::vector<uint32_t> vec_member_vnum_;
     };
 
-    class mob_manager : public singleton<mob_manager> {
+    class mob_manager {
       public:
         using iterator = std::map<uint32_t, std::unique_ptr<mob>>::iterator;
 
         mob_manager();
-        ~mob_manager() override;
+        ~mob_manager();
 
         auto initialize(mob_table *table_value, int size) -> bool;
         void destroy();
@@ -144,4 +143,9 @@ namespace metin2::game::inline characters {
 
         std::map<uint32_t, double> regen_count_;
     };
+
+    inline auto get_mob_manager() -> mob_manager & {
+        static mob_manager instance;
+        return instance;
+    }
 }

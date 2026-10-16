@@ -2,8 +2,6 @@
 
 #include <metin2/game/app/event.h>
 
-#include <metin2/common/singleton.h>
-
 #include <cstdint>
 #include <cstring>
 #include <list>
@@ -43,10 +41,10 @@ namespace metin2::game {
         }
     };
 
-    class target_manager : public singleton<target_manager> {
+    class target_manager {
       public:
         target_manager();
-        ~target_manager() override;
+        ~target_manager();
 
         void create_target(uint32_t pid_value, uint32_t quest_index_value, const char *target_name_value, int type_value, int arg1_value, int arg2_value, int map_index_value, const char *target_desc_value = nullptr, int send_flag = 1);
         void delete_target(uint32_t pid_value, uint32_t quest_index_value, const char *target_name_value);
@@ -60,4 +58,9 @@ namespace metin2::game {
         std::map<uint32_t, std::list<event_ptr>> map_list_event_;
         int id_;
     };
+
+    inline auto get_target_manager() -> target_manager & {
+        static target_manager instance;
+        return instance;
+    }
 }

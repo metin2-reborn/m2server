@@ -1,7 +1,6 @@
 #pragma once
 #include <metin2/game/app/typedef.h>
 
-#include <metin2/common/singleton.h>
 #include <metin2/proto/limits.h>
 #include <metin2/proto/log_types.h>
 
@@ -10,7 +9,7 @@
 #include <map>
 
 namespace metin2::game::inline empire {
-    class priv_manager : public singleton<priv_manager> {
+    class priv_manager {
       public:
         priv_manager();
 
@@ -47,4 +46,9 @@ namespace metin2::game::inline empire {
         std::map<uint32_t, priv_guild_data> priv_guild_[MAX_PRIV_NUM];
         std::map<uint32_t, int> priv_char_[MAX_PRIV_NUM];
     };
+
+    inline auto get_priv_manager() -> priv_manager & {
+        static priv_manager instance;
+        return instance;
+    }
 }

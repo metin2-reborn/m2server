@@ -123,7 +123,7 @@ namespace metin2::db::inline clients {
                 "SELECT apply, apply+0, prob, lv1, lv2, lv3, lv4, lv5, weapon, body, wrist, foots, neck, head, shield, ear FROM {} ORDER BY apply",
                 sql::raw(table_name));
 
-            auto msg = db_manager::instance().direct_query(query);
+            auto msg = get_db_manager().direct_query(query);
             sql_result *res = msg->get();
 
             if (!res->num_rows) {
@@ -269,7 +269,7 @@ namespace metin2::db::inline clients {
         const auto query = sql::format(
             "SELECT id, cost, prob, vnum0, count0, vnum1, count1, vnum2, count2,  vnum3, count3, vnum4, count4 FROM refine_proto");
 
-        auto msg = db_manager::instance().direct_query(query);
+        auto msg = get_db_manager().direct_query(query);
         sql_result *res = msg->get();
 
         if (!res->num_rows) {
@@ -345,7 +345,7 @@ namespace metin2::db::inline clients {
             "FROM shop LEFT JOIN shop_item "
             "ON shop.vnum = shop_item.shop_vnum ORDER BY shop.vnum, shop_item.item_vnum";
 
-        auto msg2 = db_manager::instance().direct_query(query);
+        auto msg2 = get_db_manager().direct_query(query);
 
         sql_result *res2 = msg2->get();
 
@@ -465,7 +465,7 @@ namespace metin2::db::inline clients {
             "bLevelStep, bLevelLimit, prerequisiteSkillVnum, prerequisiteSkillLevel, iMaxHit, szSplashAroundDamageAdjustPoly, eSkillType+0, dwTargetRange "
             "FROM skill_proto ORDER BY dwVnum");
 
-        auto msg = db_manager::instance().direct_query(query);
+        auto msg = get_db_manager().direct_query(query);
         sql_result *res = msg->get();
 
         if (!res->num_rows) {
@@ -540,7 +540,7 @@ namespace metin2::db::inline clients {
     auto client_manager::initialize_banword_table() -> bool {
         vec_banword_table_.clear();
 
-        auto msg = db_manager::instance().direct_query("SELECT word FROM banword");
+        auto msg = get_db_manager().direct_query("SELECT word FROM banword");
 
         sql_result *res = msg->get();
 
@@ -577,7 +577,7 @@ namespace metin2::db::inline clients {
             "SELECT id, map_index, x, y, width, height, guild_id, guild_level_limit, price "
             "FROM land WHERE enable='YES' ORDER BY id");
 
-        auto msg = db_manager::instance().direct_query(query);
+        auto msg = get_db_manager().direct_query(query);
         sql_result *res = msg->get();
 
         if (!vec_land_table_.empty()) {
@@ -670,7 +670,7 @@ namespace metin2::db::inline clients {
             "SELECT vnum, price, materials, upgrade_vnum, upgrade_limit_time, life, reg_1, reg_2, reg_3, reg_4, npc, group_vnum, dependent_group "
             "FROM object_proto ORDER BY vnum");
 
-        auto msg = db_manager::instance().direct_query(query);
+        auto msg = get_db_manager().direct_query(query);
         sql_result *res = msg->get();
 
         if (!vec_object_proto_.empty()) {
@@ -733,7 +733,7 @@ namespace metin2::db::inline clients {
         const std::string query = sql::format(
             "SELECT id, land_id, vnum, map_index, x, y, x_rot, y_rot, z_rot, life FROM object ORDER BY id");
 
-        auto msg = db_manager::instance().direct_query(query);
+        auto msg = get_db_manager().direct_query(query);
         sql_result *res = msg->get();
 
         if (!map_object_table_.empty()) {
@@ -772,7 +772,7 @@ namespace metin2::db::inline clients {
     }
 
     auto client_manager::initialize_monarch() -> bool {
-        monarch::instance().load_monarch();
+        get_monarch().load_monarch();
 
         return true;
     }
@@ -829,7 +829,7 @@ namespace metin2::db::inline clients {
                 t.skills[3].vnum, t.skills[3].level, t.skills[4].vnum, t.skills[4].level,
                 t.berserk_point, t.stone_skin_point, t.god_speed_point, t.death_blow_point, t.revive_point);
 
-            db_manager::instance().async_query(query);
+            get_db_manager().async_query(query);
         }
         return true;
     }
@@ -859,7 +859,7 @@ namespace metin2::db::inline clients {
                 t.limits[0].type, t.limits[0].value, t.limits[1].type, t.limits[1].value,
                 t.applies[0].type, t.applies[0].value, t.applies[1].type, t.applies[1].value, t.applies[2].type, t.applies[2].value,
                 t.values[0], t.values[1], t.values[2], t.values[3], t.values[4], t.values[5]);
-            db_manager::instance().async_query(query);
+            get_db_manager().async_query(query);
         }
         return true;
     }

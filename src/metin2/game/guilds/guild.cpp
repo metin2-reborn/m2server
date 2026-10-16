@@ -56,7 +56,7 @@ namespace metin2::game::inline guilds {
         p.subheader = GUILD_SUBHEADER_GC_GUILD_NAME;
         p.size = sizeof(p) + sizeof(uint32_t) + GUILD_NAME_MAX_LEN;
 
-        character_manager::instance().for_each_pc([&p, guild_id, guild_name](character *ch) {
+        get_character_manager().for_each_pc([&p, guild_id, guild_name](character *ch) {
             desc *d = ch->get_desc();
 
             if (d) {
@@ -84,7 +84,7 @@ namespace metin2::game::inline guilds {
             data_.grade_array[i].auth_flag = 0;
         }
 
-        std::unique_ptr<sql_msg> pmsg(db_manager::instance().direct_query(sql::format(
+        std::unique_ptr<sql_msg> pmsg(get_db_manager().direct_query(sql::format(
             "INSERT INTO guild(name, master, sp, level, exp, skill_point, skill) "
             "VALUES({}, {}, 1000, 1, 0, 0, '\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0\\0')",
             data_.name, data_.master_pid)));
@@ -92,7 +92,7 @@ namespace metin2::game::inline guilds {
         data_.guild_id = pmsg->get()->insert_id;
 
         for (int i = 0; i < GUILD_GRADE_COUNT; ++i) {
-            db_manager::instance().query(sql::format("INSERT INTO guild_grade VALUES({}, {}, {}, {})",
+            get_db_manager().query(sql::format("INSERT INTO guild_grade VALUES({}, {}, {}, {})",
                 data_.guild_id,
                 i + 1,
                 data_.grade_array[i].grade_name,
@@ -160,11 +160,11 @@ namespace metin2::game::inline guilds {
             r_gm.is_general = p->is_general;
         }
 
-        guild_manager::instance().link(p->pid, this);
+        get_guild_manager().link(p->pid, this);
 
         send_list_one_to_all(p->pid);
 
-        character *ch = character_manager::instance().find_by_pid(p->pid);
+        character *ch = get_character_manager().find_by_pid(p->pid);
 
         metin2::log::info("Guild: added member pid {:d}, grade {:d}, job {:d}, level {:d}, offer {:d}, name {} ({})",
             p->pid, p->grade, p->job, p->level, p->offer, p->name, static_cast<const void *>(ch));
@@ -208,9 +208,9 @@ namespace metin2::game::inline guilds {
         member_.erase(it);
         send_online_remove_one_packet(pid);
 
-        guild_manager::instance().unlink(pid);
+        get_guild_manager().unlink(pid);
 
-        character *ch = character_manager::instance().find_by_pid(pid);
+        character *ch = get_character_manager().find_by_pid(pid);
 
         if (ch) {
             member_online_.erase(ch);
@@ -475,7 +475,7 @@ namespace metin2::game::inline guilds {
                 general_count_++;
 
             member_.insert(std::make_pair(pid, guild_member(pid, grade, is_general, job, level, offer, name)));
-            guild_manager::instance().link(pid, this);
+            get_guild_manager().link(pid, this);
         }
     }
 
@@ -531,29 +531,29 @@ namespace metin2::game::inline guilds {
 
         data_.guild_id = guild_id;
 
-        db_manager::instance().func_query([guild_id](sql_msg &msg) {
-            if (guild *g = guild_manager::instance().find_guild(guild_id))
+        get_db_manager().func_query([guild_id](sql_msg &msg) {
+            if (guild *g = get_guild_manager().find_guild(guild_id))
                 g->load_guild_data(msg);
         },
             sql::format("SELECT master, level, exp, name, skill_point, skill, sp, ladder_point, win, draw, loss, gold FROM guild WHERE id = {}", data_.guild_id));
 
         metin2::log::info("Guild: loading guild {} (id {:d})", data_.name, guild_id);
 
-        db_manager::instance().func_query([guild_id](sql_msg &msg) {
-            if (guild *g = guild_manager::instance().find_guild(guild_id))
+        get_db_manager().func_query([guild_id](sql_msg &msg) {
+            if (guild *g = get_guild_manager().find_guild(guild_id))
                 g->load_guild_grade_data(msg);
         },
             sql::format("SELECT grade, name, auth+0 FROM guild_grade WHERE guild_id = {}", data_.guild_id));
 
-        db_manager::instance().func_query([guild_id](sql_msg &msg) {
-            if (guild *g = guild_manager::instance().find_guild(guild_id))
+        get_db_manager().func_query([guild_id](sql_msg &msg) {
+            if (guild *g = get_guild_manager().find_guild(guild_id))
                 g->load_guild_member_data(msg);
         },
             sql::format("SELECT pid, grade, is_general, offer, level, job, name FROM guild_member, player WHERE guild_id = {} and pid = id", guild_id));
     }
 
     void guild::save_level() {
-        db_manager::instance().query(sql::format("UPDATE guild SET level={}, exp={}, skill_point={} WHERE id = {}", data_.level, data_.exp, data_.skill_point, data_.guild_id));
+        get_db_manager().query(sql::format("UPDATE guild SET level={}, exp={}, skill_point={} WHERE id = {}", data_.level, data_.exp, data_.skill_point, data_.guild_id));
     }
 
     void guild::send_db_skill_update(int amount) {
@@ -568,7 +568,7 @@ namespace metin2::game::inline guilds {
 
     void guild::save_skill() {
         const std::string_view skill(reinterpret_cast<const char *>(data_.aby_skill), sizeof(data_.aby_skill));
-        db_manager::instance().query(sql::format("UPDATE guild SET sp = {}, skill_point={}, skill={} WHERE id = {}", data_.power, data_.skill_point, skill, data_.guild_id));
+        get_db_manager().query(sql::format("UPDATE guild SET sp = {}, skill_point={}, skill={} WHERE id = {}", data_.power, data_.skill_point, skill, data_.guild_id));
     }
 
     auto guild::member(uint32_t pid) -> guild_member * {
@@ -660,8 +660,8 @@ namespace metin2::game::inline guilds {
     }
 
     void guild::p2p_change_grade(uint8_t grade) {
-        db_manager::instance().func_query([guild_id = data_.guild_id](sql_msg &msg) {
-            if (guild *g = guild_manager::instance().find_guild(guild_id))
+        get_db_manager().func_query([guild_id = data_.guild_id](sql_msg &msg) {
+            if (guild *g = get_guild_manager().find_guild(guild_id))
                 g->p2p_update_grade(msg);
         },
             sql::format("SELECT grade, name, auth+0 FROM guild_grade WHERE guild_id = {} and grade = {}", data_.guild_id, grade));
@@ -691,7 +691,7 @@ namespace metin2::game::inline guilds {
         if (!*grade_name)
             return;
 
-        db_manager::instance().func_after_query([guild_id = id(), grade] { send_change_grade(guild_id, grade); }, sql::format("UPDATE guild_grade SET name = {} where guild_id = {} and grade = {}", grade_name, data_.guild_id, grade));
+        get_db_manager().func_after_query([guild_id = id(), grade] { send_change_grade(guild_id, grade); }, sql::format("UPDATE guild_grade SET name = {} where guild_id = {} and grade = {}", grade_name, data_.guild_id, grade));
 
         grade--;
         strlcpy(data_.grade_array[grade].grade_name, grade_name, sizeof(data_.grade_array[grade].grade_name));
@@ -727,7 +727,7 @@ namespace metin2::game::inline guilds {
             return;
         }
 
-        db_manager::instance().func_after_query([guild_id = id(), grade] { send_change_grade(guild_id, grade); }, sql::format("UPDATE guild_grade SET auth = {} where guild_id = {} and grade = {}", auth, data_.guild_id, grade));
+        get_db_manager().func_after_query([guild_id = id(), grade] { send_change_grade(guild_id, grade); }, sql::format("UPDATE guild_grade SET auth = {} where guild_id = {} and grade = {}", auth, data_.guild_id, grade));
 
         grade--;
 
@@ -857,7 +857,7 @@ namespace metin2::game::inline guilds {
         }
 
         for (auto it = member_.begin(); it != member_.end(); ++it) {
-            guild_manager::instance().unlink(it->first);
+            get_guild_manager().unlink(it->first);
         }
     }
 
@@ -870,7 +870,7 @@ namespace metin2::game::inline guilds {
         gd_guild.info = 0;
         db_clientdesc->db_packet(HEADER_GD_GUILD_DISBAND, 0, &gd_guild, sizeof(packet_guild));
 
-        building::manager::instance().clear_land_by_guild_id(id());
+        building::get_manager().clear_land_by_guild_id(id());
     }
 
     void guild::add_comment(character *ch, const std::string &str) {
@@ -882,8 +882,8 @@ namespace metin2::game::inline guilds {
             return;
         }
 
-        db_manager::instance().func_after_query([guild_id = data_.guild_id, pid = ch->player_id()] {
-            if (guild *g = guild_manager::instance().find_guild(guild_id))
+        get_db_manager().func_after_query([guild_id = data_.guild_id, pid = ch->player_id()] {
+            if (guild *g = get_guild_manager().find_guild(guild_id))
                 g->refresh_comment_force(pid);
         },
             sql::format("INSERT INTO guild_comment(guild_id, name, notice, content, time) VALUES({}, {}, {}, {}, NOW())", data_.guild_id, ch->name(), (str[0] == '!') ? 1 : 0, str));
@@ -893,9 +893,9 @@ namespace metin2::game::inline guilds {
         std::unique_ptr<sql_msg> pmsg;
 
         if (member(ch->player_id())->grade == GUILD_LEADER_GRADE)
-            pmsg = db_manager::instance().direct_query(sql::format("DELETE FROM guild_comment WHERE id = {} AND guild_id = {}", comment_id, data_.guild_id));
+            pmsg = get_db_manager().direct_query(sql::format("DELETE FROM guild_comment WHERE id = {} AND guild_id = {}", comment_id, data_.guild_id));
         else
-            pmsg = db_manager::instance().direct_query(sql::format("DELETE FROM guild_comment WHERE id = {} AND guild_id = {} AND name = {}", comment_id, data_.guild_id, ch->name()));
+            pmsg = get_db_manager().direct_query(sql::format("DELETE FROM guild_comment WHERE id = {} AND guild_id = {} AND name = {}", comment_id, data_.guild_id, ch->name()));
 
         if (pmsg->get()->affected_rows == 0 || pmsg->get()->affected_rows == (uint32_t)-1)
             ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 삭제할 수 없는 글입니다."));
@@ -908,12 +908,12 @@ namespace metin2::game::inline guilds {
     }
 
     void guild::refresh_comment_force(uint32_t player_id) {
-        character *ch = character_manager::instance().find_by_pid(player_id);
+        character *ch = get_character_manager().find_by_pid(player_id);
         if (ch == nullptr) {
             return;
         }
 
-        auto pmsg = db_manager::instance().direct_query(sql::format("SELECT id, name, content FROM guild_comment WHERE guild_id = {} ORDER BY notice DESC, id DESC LIMIT {}", data_.guild_id, GUILD_COMMENT_MAX_COUNT));
+        auto pmsg = get_db_manager().direct_query(sql::format("SELECT id, name, content FROM guild_comment WHERE guild_id = {} ORDER BY notice DESC, id DESC LIMIT {}", data_.guild_id, GUILD_COMMENT_MAX_COUNT));
 
         packet_gc_guild pack;
         pack.header = HEADER_GC_GUILD;
@@ -1048,7 +1048,7 @@ namespace metin2::game::inline guilds {
         if (real_vnum >= GUILD_SKILL_COUNT)
             return;
 
-        skill_proto *sk = skill_manager::instance().get(vnum_value);
+        skill_proto *sk = get_skill_manager().get(vnum_value);
 
         if (!sk) {
             metin2::log::error("Unknown guild skill {:d}", vnum_value);
@@ -1090,7 +1090,7 @@ namespace metin2::game::inline guilds {
         if (real_vnum >= GUILD_SKILL_COUNT)
             return;
 
-        skill_proto *sk = skill_manager::instance().get(vnum_value);
+        skill_proto *sk = get_skill_manager().get(vnum_value);
 
         if (!sk) {
             metin2::log::error("Unknown guild skill {:d}", vnum_value);
@@ -1145,11 +1145,11 @@ namespace metin2::game::inline guilds {
         switch (vnum_value) {
         case GUILD_SKILL_TELEPORT:
             send_db_skill_update(-needed_sp);
-            if ((victim = (character_manager::instance().find_by_pid(pid))))
+            if ((victim = (get_character_manager().find_by_pid(pid))))
                 ch->warp_set(victim->x(), victim->y());
             else {
                 if (member_p2p_online_.find(pid) != member_p2p_online_.end()) {
-                    cci *pcci = p2p_manager::instance().find_by_pid(pid);
+                    cci *pcci = get_p2p_manager().find_by_pid(pid);
 
                     if (pcci->channel != metin2::config::server().channel) {
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 상대가 %d 채널에 있습니다. (현재 채널 %d)"), pcci->channel, metin2::config::server().channel);
@@ -1312,7 +1312,7 @@ namespace metin2::game::inline guilds {
         if (it == member_.end())
             return;
 
-        db_manager::instance().query(sql::format(
+        get_db_manager().query(sql::format(
             "UPDATE guild_member SET grade = {}, offer = {}, is_general = {} WHERE pid = {} and guild_id = {}", it->second.grade, it->second.offer_exp, it->second.is_general, pid, data_.guild_id));
     }
 
@@ -1393,12 +1393,12 @@ namespace metin2::game::inline guilds {
         p1.guild = id();
         strlcpy(p2.text, text_value, sizeof(p2.text));
 
-        p2p_manager::instance().send(&p1, sizeof(packet_gg_guild));
-        p2p_manager::instance().send(&p2, sizeof(packet_gg_guild_chat));
+        get_p2p_manager().send(&p1, sizeof(packet_gg_guild));
+        get_p2p_manager().send(&p2, sizeof(packet_gg_guild_chat));
     }
 
     auto guild::master_character() -> character * {
-        return character_manager::instance().find_by_pid(master_pid());
+        return get_character_manager().find_by_pid(master_pid());
     }
 
     void guild::packet(const void *buf, int size) {
@@ -1424,7 +1424,7 @@ namespace metin2::game::inline guilds {
         }
 
         ch->point_change(POINT_GOLD, -gold);
-        db_manager::instance().send_money_log(MONEY_LOG_GUILD, 1, -gold);
+        get_db_manager().send_money_log(MONEY_LOG_GUILD, 1, -gold);
 
         send_db_skill_update(sp);
         {
@@ -1456,8 +1456,8 @@ namespace metin2::game::inline guilds {
         p1.sub_header = GUILD_SUBHEADER_GG_SET_MEMBER_COUNT_BONUS;
         p1.guild = id();
 
-        p2p_manager::instance().send(&p1, sizeof(packet_gg_guild));
-        p2p_manager::instance().send(&member_count_bonus_, sizeof(int));
+        get_p2p_manager().send(&p1, sizeof(packet_gg_guild));
+        get_p2p_manager().send(&member_count_bonus_, sizeof(int));
     }
 
     auto guild::max_member_count() -> int {
@@ -1484,7 +1484,7 @@ namespace metin2::game::inline guilds {
         db_clientdesc->db_packet(HEADER_GD_GUILD_DEPOSIT_MONEY, 0, &p, sizeof(p));
 
         const std::string hint = std::format("{} {}", id(), name());
-        log_manager::instance().char_log(ch, gold_value, "GUILD_DEPOSIT", hint.c_str());
+        get_log_manager().char_log(ch, gold_value, "GUILD_DEPOSIT", hint.c_str());
 
         ch->update_deposit_pulse();
         metin2::log::info("Guild: deposit to guild {} (id {:d}) by player {} (pid {:d}), {:d} gold", name(), id(), ch->name(), ch->player_id(), gold_value);
@@ -1522,7 +1522,7 @@ namespace metin2::game::inline guilds {
     }
 
     auto guild::has_land() -> bool {
-        return building::manager::instance().find_land_by_guild(id()) != nullptr;
+        return building::get_manager().find_land_by_guild(id()) != nullptr;
     }
 
     EVENTINFO(invite_guild_event_info) {
@@ -1542,7 +1542,7 @@ namespace metin2::game::inline guilds {
             return 0;
         }
 
-        guild *guild_value = guild_manager::instance().find_guild(info_value->guild_id);
+        guild *guild_value = get_guild_manager().find_guild(info_value->guild_id);
 
         if (guild_value) {
             metin2::log::debug("Guild: invite to guild {} expired", guild_value->name());
@@ -1553,12 +1553,12 @@ namespace metin2::game::inline guilds {
     }
 
     void guild::invite(character *pch_inviter, character *pch_invitee) {
-        if (quest::quest_manager::instance().pc_force(pch_inviter->player_id())->is_running() == true) {
+        if (quest::get_quest_manager().pc_force(pch_inviter->player_id())->is_running() == true) {
             pch_inviter->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 상대방이 초대 신청을 받을 수 없는 상태입니다."));
             return;
         }
 
-        if (quest::quest_manager::instance().pc_force(pch_invitee->player_id())->is_running() == true)
+        if (quest::get_quest_manager().pc_force(pch_invitee->player_id())->is_running() == true)
             return;
 
         if (pch_invitee->is_block_mode(BLOCK_GUILD_INVITE)) {
@@ -1578,12 +1578,12 @@ namespace metin2::game::inline guilds {
         case GERR_WITHDRAWPENALTY:
             pch_inviter->chat_packet(CHAT_TYPE_INFO,
                 lc_text("<길드> 탈퇴한 후 %d일이 지나지 않은 사람은 길드에 초대할 수 없습니다."),
-                quest::quest_manager::instance().event_flag("guild_withdraw_delay"));
+                quest::get_quest_manager().event_flag("guild_withdraw_delay"));
             return;
         case GERR_COMMISSIONPENALTY:
             pch_inviter->chat_packet(CHAT_TYPE_INFO,
                 lc_text("<길드> 길드를 해산한 지 %d일이 지나지 않은 사람은 길드에 초대할 수 없습니다."),
-                quest::quest_manager::instance().event_flag("guild_disband_delay"));
+                quest::get_quest_manager().event_flag("guild_disband_delay"));
             return;
         case GERR_ALREADYJOIN:     pch_inviter->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 상대방이 이미 다른 길드에 속해있습니다.")); return;
         case GERR_GUILDISFULL:     pch_inviter->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 최대 길드원 수를 초과했습니다.")); return;
@@ -1633,12 +1633,12 @@ namespace metin2::game::inline guilds {
         case GERR_WITHDRAWPENALTY:
             pch_invitee->chat_packet(CHAT_TYPE_INFO,
                 lc_text("<길드> 탈퇴한 후 %d일이 지나지 않은 사람은 길드에 초대할 수 없습니다."),
-                quest::quest_manager::instance().event_flag("guild_withdraw_delay"));
+                quest::get_quest_manager().event_flag("guild_withdraw_delay"));
             return;
         case GERR_COMMISSIONPENALTY:
             pch_invitee->chat_packet(CHAT_TYPE_INFO,
                 lc_text("<길드> 길드를 해산한 지 %d일이 지나지 않은 사람은 길드에 초대할 수 없습니다."),
-                quest::quest_manager::instance().event_flag("guild_disband_delay"));
+                quest::get_quest_manager().event_flag("guild_disband_delay"));
             return;
         case GERR_ALREADYJOIN:     pch_invitee->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 상대방이 이미 다른 길드에 속해있습니다.")); return;
         case GERR_GUILDISFULL:     pch_invitee->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 최대 길드원 수를 초과했습니다.")); return;
@@ -1663,9 +1663,9 @@ namespace metin2::game::inline guilds {
     }
 
     auto guild::verify_guild_joinable_condition(character *const pch_invitee) -> guild::guild_join_err_code {
-        if (get_global_time() - pch_invitee->quest_flag("guild_building.new_withdraw_time") < guild_manager::instance().withdraw_delay())
+        if (get_global_time() - pch_invitee->quest_flag("guild_building.new_withdraw_time") < get_guild_manager().withdraw_delay())
             return GERR_WITHDRAWPENALTY;
-        else if (get_global_time() - pch_invitee->quest_flag("guild_building.new_disband_time") < guild_manager::instance().disband_delay())
+        else if (get_global_time() - pch_invitee->quest_flag("guild_building.new_disband_time") < get_guild_manager().disband_delay())
             return GERR_COMMISSIONPENALTY;
         else if (pch_invitee->get_guild())
             return GERR_ALREADYJOIN;

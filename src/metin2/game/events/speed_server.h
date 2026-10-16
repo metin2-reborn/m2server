@@ -1,6 +1,5 @@
 #pragma once
 
-#include <metin2/common/singleton.h>
 #include <metin2/proto/limits.h>
 
 #include <cstdint>
@@ -73,10 +72,10 @@ namespace metin2::game::inline events {
         std::list<hme> wday_exp_table_[7];
     };
 
-    class speed_server_manager : public singleton<speed_server_manager> {
+    class speed_server_manager {
       public:
         speed_server_manager();
-        ~speed_server_manager() override;
+        ~speed_server_manager();
 
         auto initialize() -> bool;
 
@@ -93,4 +92,9 @@ namespace metin2::game::inline events {
       private:
         speed_server_empire_exp empire_[EMPIRE_MAX_NUM];
     };
+
+    inline auto get_speed_server_manager() -> speed_server_manager & {
+        static speed_server_manager instance;
+        return instance;
+    }
 }

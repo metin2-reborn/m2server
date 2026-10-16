@@ -1,6 +1,5 @@
 #pragma once
 
-#include <metin2/common/singleton.h>
 #include <metin2/proto/tables.h>
 
 #include <cstddef>
@@ -11,7 +10,7 @@
 
 namespace metin2::db::inline empire {
 
-    class monarch : public singleton<monarch> {
+    class monarch {
       public:
         using map_monarchelection = std::map<uint32_t, std::unique_ptr<monarch_election_info>>;
         using vec_monarchcandidacy = std::vector<monarch_candidacy>;
@@ -34,7 +33,7 @@ namespace metin2::db::inline empire {
         auto dec_money(int empire, int64_t money_value) -> bool;
         auto take_money(int empire, uint32_t pid, int64_t money_value) -> bool;
 
-        auto get_monarch() -> monarch_info * {
+        auto info() -> monarch_info * {
             return &monarch_info_;
         }
 
@@ -53,4 +52,9 @@ namespace metin2::db::inline empire {
         vec_monarchcandidacy vec_monarch_candidacy_;
         monarch_info monarch_info_;
     };
+
+    inline auto get_monarch() -> monarch & {
+        static monarch instance;
+        return instance;
+    }
 }

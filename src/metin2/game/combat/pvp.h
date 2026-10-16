@@ -2,8 +2,6 @@
 
 #include <metin2/game/app/typedef.h>
 
-#include <metin2/common/singleton.h>
-
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -51,12 +49,12 @@ namespace metin2::game::inline combat {
         uint32_t last_fight_time_;
     };
 
-    class pvp_manager : public singleton<pvp_manager> {
+    class pvp_manager {
         using pvp_set_map = std::map<uint32_t, std::unordered_set<pvp *>>;
 
       public:
         pvp_manager();
-        ~pvp_manager() override;
+        ~pvp_manager();
 
         void insert(character *chr, character *victim);
         auto can_attack(character *chr, character *victim) -> bool;
@@ -78,4 +76,9 @@ namespace metin2::game::inline combat {
         std::map<uint32_t, std::unique_ptr<pvp>> map_pvp_;
         pvp_set_map map_pvp_set_by_id_;
     };
+
+    inline auto get_pvp_manager() -> pvp_manager & {
+        static pvp_manager instance;
+        return instance;
+    }
 }

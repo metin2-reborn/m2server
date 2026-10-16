@@ -22,7 +22,7 @@ namespace metin2::game {
 
     namespace quest {
         auto party_clear_ready(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch->get_party()) {
                 ch->get_party()->for_each_near_member([](character *member) {
@@ -33,7 +33,7 @@ namespace metin2::game {
         }
 
         auto party_get_max_level(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch->get_party())
                 lua_pushnumber(lua, ch->get_party()->member_max_level());
@@ -48,7 +48,7 @@ namespace metin2::game {
                 return 0;
 
             metin2::log::debug("Party cinematic: run {}", lua_tostring(lua, 1));
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch->get_party()) {
                 std::string data = "[RUN_CINEMA value;";
@@ -81,7 +81,7 @@ namespace metin2::game {
                 return 0;
 
             metin2::log::debug("Party script: show {}", lua_tostring(lua, 1));
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch->get_party()) {
                 const char *str = lua_tostring(lua, 1);
@@ -108,7 +108,7 @@ namespace metin2::game {
         }
 
         auto party_get_near_count(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch->get_party())
                 lua_pushnumber(lua, ch->get_party()->near_member_count());
@@ -119,7 +119,7 @@ namespace metin2::game {
         }
 
         auto party_syschat(lua_State *lua) -> int {
-            party *party = quest_manager::instance().current_character_ptr()->get_party();
+            party *party = get_quest_manager().current_character_ptr()->get_party();
 
             if (party) {
                 std::ostringstream s;
@@ -134,7 +134,7 @@ namespace metin2::game {
         }
 
         auto party_is_leader(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch->get_party() && ch->get_party()->leader_pid() == ch->player_id())
                 lua_pushboolean(lua, 1);
@@ -145,13 +145,13 @@ namespace metin2::game {
         }
 
         auto party_is_party(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             lua_pushboolean(lua, ch->get_party() ? 1 : 0);
             return 1;
         }
 
         auto party_get_leader_pid(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             if (ch->get_party()) {
                 lua_pushnumber(lua, ch->get_party()->leader_pid());
             } else {
@@ -161,7 +161,7 @@ namespace metin2::game {
         }
 
         auto party_chat(lua_State *lua) -> int {
-            party *party = quest_manager::instance().current_character_ptr()->get_party();
+            party *party = get_quest_manager().current_character_ptr()->get_party();
 
             if (party) {
                 std::ostringstream s;
@@ -182,7 +182,7 @@ namespace metin2::game {
                 return 1;
             }
 
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             party *party = q.current_character_ptr()->get_party();
             character *ch = q.current_character_ptr();
             pc *pc_value = q.current_pc();
@@ -197,7 +197,7 @@ namespace metin2::game {
                     if (!member->is_pc())
                         return false;
 
-                    pc *member_pc = quest_manager::instance().pc_force(member->player_id());
+                    pc *member_pc = get_quest_manager().pc_force(member->player_id());
                     return member_pc && value > member_pc->flag(flagname);
                 },
                     ch->map_index());
@@ -208,7 +208,7 @@ namespace metin2::game {
         }
 
         auto party_set_flag(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch->get_party() && lua_isstring(lua, 1) && lua_isnumber(lua, 2))
                 ch->get_party()->set_flag(lua_tostring(lua, 1), (int)lua_tonumber(lua, 2));
@@ -217,7 +217,7 @@ namespace metin2::game {
         }
 
         auto party_get_flag(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (!ch->get_party() || !lua_isstring(lua, 1))
                 lua_pushnumber(lua, 0);
@@ -228,7 +228,7 @@ namespace metin2::game {
         }
 
         auto party_set_quest_flag(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             std::string flagname = q.current_pc()->current_quest_name() + "." + lua_tostring(lua, 1);
             int value = (int)rint(lua_tonumber(lua, 2));
@@ -245,7 +245,7 @@ namespace metin2::game {
         }
 
         auto party_is_in_dungeon(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *ch = q.current_character_ptr();
             party *party = ch->get_party();
             if (party != nullptr) {
@@ -257,7 +257,7 @@ namespace metin2::game {
         }
 
         auto party_give_buff(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *ch = q.current_character_ptr();
 
             if (!lua_isnumber(lua, 1) || !lua_isnumber(lua, 2) || !lua_isnumber(lua, 3) || !lua_isnumber(lua, 4) ||
@@ -287,7 +287,7 @@ namespace metin2::game {
         }
 
         auto party_get_member_pids(lua_State *lua) -> int {
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
             character *ch = q.current_character_ptr();
             party *party = ch->get_party();
             if (nullptr == party) {
@@ -328,7 +328,7 @@ namespace metin2::game {
                     {nullptr,                 nullptr                    }
             };
 
-            quest_manager::instance().add_lua_function_table("party", party_functions);
+            get_quest_manager().add_lua_function_table("party", party_functions);
         }
     }
 }

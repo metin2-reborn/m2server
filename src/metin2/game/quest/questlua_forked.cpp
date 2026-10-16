@@ -19,22 +19,22 @@ namespace metin2::game {
     namespace quest {
 
         auto forked_set_dead_count(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             if (nullptr != ch) {
-                three_way_war::instance().set_revive_token_for_player(ch->player_id(), q.event_flag("threeway_war_dead_count"));
+                get_three_way_war().set_revive_token_for_player(ch->player_id(), q.event_flag("threeway_war_dead_count"));
             }
 
             return 0;
         }
 
         auto forked_get_dead_count(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (nullptr != ch) {
-                lua_pushnumber(lua, three_way_war::instance().revive_token_for_player(ch->player_id()));
+                lua_pushnumber(lua, get_three_way_war().revive_token_for_player(ch->player_id()));
             } else {
                 lua_pushnumber(lua, 0);
             }
@@ -43,24 +43,24 @@ namespace metin2::game {
         }
 
         auto forked_init_kill_count_per_empire(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
-            three_way_war::instance().set_kill_score(ch->empire(), 0);
+            get_three_way_war().set_kill_score(ch->empire(), 0);
 
             return 0;
         }
 
         auto forked_init(lua_State *lua) -> int {
-            three_way_war::instance().initialize();
-            three_way_war::instance().random_event_map_set();
+            get_three_way_war().initialize();
+            get_three_way_war().random_event_map_set();
 
             return 0;
         }
 
         auto forked_sungzi_start_pos(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
-            const forked_sungzi_map_info &info = three_way_war::instance().event_sung_zi_map_info();
+            const forked_sungzi_map_info &info = get_three_way_war().event_sung_zi_map_info();
 
             lua_pushnumber(lua, info.forked_sungzi_start_position[ch->empire() - 1][0]);
             lua_pushnumber(lua, info.forked_sungzi_start_position[ch->empire() - 1][1]);
@@ -69,9 +69,9 @@ namespace metin2::game {
         }
 
         auto forked_pass_start_pos(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
-            const forked_pass_map_info &info = three_way_war::instance().event_pass_map_info();
+            const forked_pass_map_info &info = get_three_way_war().event_pass_map_info();
 
             lua_pushnumber(lua, info.forked_pass_start_position[ch->empire() - 1][0]);
             lua_pushnumber(lua, info.forked_pass_start_position[ch->empire() - 1][1]);
@@ -102,13 +102,13 @@ namespace metin2::game {
         }
 
         auto forked_is_forked_mapindex(lua_State *lua) -> int {
-            lua_pushboolean(lua, three_way_war::instance().is_three_way_war_map_index(lua_tonumber(lua, 1)));
+            lua_pushboolean(lua, get_three_way_war().is_three_way_war_map_index(lua_tonumber(lua, 1)));
 
             return 1;
         }
 
         auto forked_is_sungzi_mapindex(lua_State *lua) -> int {
-            lua_pushboolean(lua, three_way_war::instance().is_sung_zi_map_index(lua_tonumber(lua, 1)));
+            lua_pushboolean(lua, get_three_way_war().is_sung_zi_map_index(lua_tonumber(lua, 1)));
 
             return 1;
         }
@@ -132,7 +132,7 @@ namespace metin2::game {
                 return 0;
             }
 
-            sectree_map *sec_map = sectree_manager::instance().map(info->map_index_from);
+            sectree_map *sec_map = get_sectree_manager().map(info->map_index_from);
             if (sec_map) {
                 sec_map->for_each([info](entity *ent) {
                     if (ent->is_type(ENTITY_CHARACTER)) {
@@ -167,10 +167,10 @@ namespace metin2::game {
         }
 
         auto forked_is_registered_user(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (nullptr != ch) {
-                lua_pushboolean(lua, three_way_war::instance().is_registered_user(ch->player_id()));
+                lua_pushboolean(lua, get_three_way_war().is_registered_user(ch->player_id()));
             } else {
                 lua_pushboolean(lua, false);
             }
@@ -179,17 +179,17 @@ namespace metin2::game {
         }
 
         auto forked_register_user(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (nullptr != ch) {
-                three_way_war::instance().register_user(ch->player_id());
+                get_three_way_war().register_user(ch->player_id());
             }
 
             return 0;
         }
 
         auto forked_purge_all_monsters(lua_State *lua) -> int {
-            three_way_war::instance().remove_all_monsters_in_three_way();
+            get_three_way_war().remove_all_monsters_in_three_way();
 
             return 0;
         }
@@ -216,7 +216,7 @@ namespace metin2::game {
                     {nullptr,                   nullptr                          }
             };
 
-            quest_manager::instance().add_lua_function_table("forked", forked_functions);
+            get_quest_manager().add_lua_function_table("forked", forked_functions);
         }
     }
 }

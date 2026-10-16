@@ -2,8 +2,6 @@
 
 #include <metin2/game/guilds/mark_image.h>
 
-#include <metin2/common/singleton.h>
-
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -13,7 +11,7 @@
 
 namespace metin2::game::inline guilds {
 
-    class guild_mark_manager : public singleton<guild_mark_manager> {
+    class guild_mark_manager {
       public:
         enum {
             MAX_IMAGE_COUNT = 5,
@@ -26,7 +24,7 @@ namespace metin2::game::inline guilds {
         };
 
         guild_mark_manager();
-        ~guild_mark_manager() override;
+        ~guild_mark_manager();
 
         auto get_guild_symbol(uint32_t guild_id) -> const guild_symbol *;
         auto load_symbol(const char *filename) -> bool;
@@ -65,4 +63,9 @@ namespace metin2::game::inline guilds {
       private:
         std::map<uint32_t, guild_symbol> symbol_;
     };
+
+    inline auto get_guild_mark_manager() -> guild_mark_manager & {
+        static guild_mark_manager instance;
+        return instance;
+    }
 }

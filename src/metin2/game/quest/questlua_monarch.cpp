@@ -59,7 +59,7 @@ namespace metin2::game {
                 return 0;
             }
 
-            monarch::instance().power_up(info->empire_index, false);
+            get_monarch().power_up(info->empire_index, false);
             return 0;
         }
 
@@ -79,12 +79,12 @@ namespace metin2::game {
                 return 0;
             }
 
-            monarch::instance().defense_up(info->empire_index, false);
+            get_monarch().defense_up(info->empire_index, false);
             return 0;
         }
 
         auto takemonarchmoney(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             int money = (int)lua_tonumber(lua, 1);
             int pid_value = ch->player_id();
@@ -101,7 +101,7 @@ namespace metin2::game {
         }
 
         auto is_guild_master(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch->get_guild()) {
                 guild_member *member = ch->get_guild()->member(ch->player_id());
@@ -119,7 +119,7 @@ namespace metin2::game {
         }
 
         auto monarch_bless(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (false == ch->is_monarch()) {
                 if (!ch->is_gm()) {
@@ -129,11 +129,11 @@ namespace metin2::game {
                 }
             }
 
-            int heal_price = quest::quest_manager::instance().event_flag("MonarchHealGold");
+            int heal_price = quest::get_quest_manager().event_flag("MonarchHealGold");
             if (heal_price == 0)
                 heal_price = 2000000;
 
-            if (monarch::instance().heal_my_empire(ch, heal_price)) {
+            if (get_monarch().heal_my_empire(ch, heal_price)) {
                 char notice[256];
                 snprintf(notice, sizeof(notice),
                     lc_text("군주의 축복으로 이지역 %s 유저는 HP,SP가 모두 채워집니다."), empire_name(ch->empire()));
@@ -146,7 +146,7 @@ namespace metin2::game {
         }
 
         auto monarch_powerup(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (!ch)
                 return 0;
@@ -160,19 +160,19 @@ namespace metin2::game {
             }
 
             int money_need = 5000000;
-            if (!monarch::instance().is_money_ok(money_need, ch->empire())) {
-                int nation_money = monarch::instance().money(ch->empire());
+            if (!get_monarch().is_money_ok(money_need, ch->empire())) {
+                int nation_money = get_monarch().money(ch->empire());
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), nation_money, money_need);
                 return 0;
             }
 
-            if (!monarch::instance().check_power_up_ct(ch->empire())) {
-                int next_sec = monarch::instance().power_up_ct(ch->empire()) / metin2::config::server().passes_per_sec;
+            if (!get_monarch().check_power_up_ct(ch->empire())) {
+                int next_sec = get_monarch().power_up_ct(ch->empire()) / metin2::config::server().passes_per_sec;
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("쿨타임 적용중  %d 후 사용가능"), next_sec);
                 return 0;
             }
 
-            monarch::instance().power_up(ch->empire(), true);
+            get_monarch().power_up(ch->empire(), true);
 
             int monarch_power_up_ct = 60 * 3;
 
@@ -182,7 +182,7 @@ namespace metin2::game {
 
             event_create(quest::monarch_powerup_event, info, passes_per_sec(monarch_power_up_ct));
 
-            monarch::instance().sendto_db_dec_money(5000000, ch->empire(), ch);
+            get_monarch().sendto_db_dec_money(5000000, ch->empire(), ch);
 
             char notice[256];
             snprintf(notice, sizeof(notice), lc_text("군주의 사자후 영향으로 이지역 %s 유저는 3분간 10 %% 의 공격력이  증가됩니다"), empire_name(ch->empire()));
@@ -192,7 +192,7 @@ namespace metin2::game {
             return 1;
         }
         auto monarch_defenseup(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (!ch)
                 return 0;
@@ -206,19 +206,19 @@ namespace metin2::game {
             }
 
             int money_need = 5000000;
-            if (!monarch::instance().is_money_ok(money_need, ch->empire())) {
-                int nation_money = monarch::instance().money(ch->empire());
+            if (!get_monarch().is_money_ok(money_need, ch->empire())) {
+                int nation_money = get_monarch().money(ch->empire());
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), nation_money, money_need);
                 return 0;
             }
 
-            if (!monarch::instance().check_defense_up_ct(ch->empire())) {
-                int next_sec = monarch::instance().defense_up_ct(ch->empire()) / metin2::config::server().passes_per_sec;
+            if (!get_monarch().check_defense_up_ct(ch->empire())) {
+                int next_sec = get_monarch().defense_up_ct(ch->empire()) / metin2::config::server().passes_per_sec;
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("쿨타임 적용중  %d 후 사용가능"), next_sec);
                 return 0;
             }
 
-            monarch::instance().defense_up(ch->empire(), true);
+            get_monarch().defense_up(ch->empire(), true);
 
             int monarch_defense_up_ct = 60 * 3;
 
@@ -228,7 +228,7 @@ namespace metin2::game {
 
             event_create(quest::monarch_defenseup_event, info, passes_per_sec(monarch_defense_up_ct));
 
-            monarch::instance().sendto_db_dec_money(5000000, ch->empire(), ch);
+            get_monarch().sendto_db_dec_money(5000000, ch->empire(), ch);
 
             char notice[256];
             snprintf(notice, sizeof(notice), lc_text("군주의 금강권 영향으로 이지역 %s 유저는 3분간 10 %% 의 방어력이  증가됩니다"), empire_name(ch->empire()));
@@ -239,7 +239,7 @@ namespace metin2::game {
         }
 
         auto is_monarch(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             if (!ch)
                 return 0;
             lua_pushnumber(lua, ch->is_monarch());
@@ -252,14 +252,14 @@ namespace metin2::game {
 
             auto mob_vnum = (uint32_t)lua_tonumber(lua, 1);
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (!ch)
                 return 0;
 
             const mob *mob_value = nullptr;
 
-            if (!(mob_value = mob_manager::instance().get(mob_vnum)))
+            if (!(mob_value = get_mob_manager().get(mob_vnum)))
                 if (mob_value == nullptr) {
                     ch->chat_packet(CHAT_TYPE_INFO, "No such mob by that vnum");
                     return 0;
@@ -273,7 +273,7 @@ namespace metin2::game {
                 }
             }
 
-            uint32_t quest_idx = quest_manager::instance().current_pc()->current_quest_index();
+            uint32_t quest_idx = get_quest_manager().current_pc()->current_quest_index();
 
             bool ret = false;
             character *mob = nullptr;
@@ -282,7 +282,7 @@ namespace metin2::game {
                 int32_t x = ch->x();
                 int32_t y = ch->y();
                 {
-                    mob = character_manager::instance().spawn_mob(mob_vnum, ch->map_index(), x, y, 0, mob_value->table.type == CHAR_TYPE_STONE, -1);
+                    mob = get_character_manager().spawn_mob(mob_vnum, ch->map_index(), x, y, 0, mob_value->table.type == CHAR_TYPE_STONE, -1);
                 }
 
                 if (mob) {
@@ -307,7 +307,7 @@ namespace metin2::game {
 
             auto group_vnum = (uint32_t)lua_tonumber(lua, 1);
             int region_index = (int)lua_tonumber(lua, 2);
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             if (!ch)
                 return 0;
 
@@ -328,15 +328,15 @@ namespace metin2::game {
             {
                 int money_need = castle_cost_of_hiring_guard(group_vnum);
 
-                if (!monarch::instance().is_money_ok(money_need, ch->empire())) {
-                    int nation_money = monarch::instance().money(ch->empire());
+                if (!get_monarch().is_money_ok(money_need, ch->empire())) {
+                    int nation_money = get_monarch().money(ch->empire());
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), nation_money, money_need);
                     return 0;
                 }
                 guard_leader = castle_spawn_guard(ch->empire(), group_vnum, region_index);
 
                 if (guard_leader) {
-                    monarch::instance().sendto_db_dec_money(money_need, ch->empire(), ch);
+                    get_monarch().sendto_db_dec_money(money_need, ch->empire(), ch);
                     castle_save();
                 }
             }
@@ -350,11 +350,11 @@ namespace metin2::game {
 
             std::string name = lua_tostring(lua, 1);
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             if (!ch)
                 return 0;
 
-            if (!monarch::instance().is_monarch(ch->player_id(), ch->empire())) {
+            if (!get_monarch().is_monarch(ch->player_id(), ch->empire())) {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("군주만이 사용 가능한 기능입니다"));
                 return 0;
             }
@@ -366,18 +366,18 @@ namespace metin2::game {
 
             const int warp_price = 10000;
 
-            if (!monarch::instance().is_money_ok(warp_price, ch->empire())) {
-                int nation_money = monarch::instance().money(ch->empire());
+            if (!get_monarch().is_money_ok(warp_price, ch->empire())) {
+                int nation_money = get_monarch().money(ch->empire());
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), nation_money, warp_price);
                 return 0;
             }
 
             int x, y;
 
-            character *tch = character_manager::instance().find_pc(name.c_str());
+            character *tch = get_character_manager().find_pc(name.c_str());
 
             if (!tch) {
-                cci *cci = p2p_manager::instance().find(name.c_str());
+                cci *cci = get_p2p_manager().find(name.c_str());
 
                 if (cci) {
                     if (cci->empire != ch->empire()) {
@@ -396,18 +396,18 @@ namespace metin2::game {
 
                     pixel_position pos;
 
-                    if (!sectree_manager::instance().center_position_of_map(cci->map_index, pos))
+                    if (!get_sectree_manager().center_position_of_map(cci->map_index, pos))
                         ch->chat_packet(CHAT_TYPE_INFO, "Cannot find map (index %d)", cci->map_index);
                     else {
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 에게로 이동합니다"), name.c_str());
                         ch->warp_set(pos.x, pos.y);
 
-                        monarch::instance().sendto_db_dec_money(warp_price, ch->empire(), ch);
+                        get_monarch().sendto_db_dec_money(warp_price, ch->empire(), ch);
 
                         ch->set_mc(character::MI_WARP);
                     }
 
-                } else if (nullptr == character_manager::instance().find_pc(name.c_str())) {
+                } else if (nullptr == get_character_manager().find_pc(name.c_str())) {
                     ch->chat_packet(CHAT_TYPE_INFO, "There is no one by that name");
                 }
 
@@ -431,7 +431,7 @@ namespace metin2::game {
             ch->warp_set(x, y);
             ch->stop();
 
-            monarch::instance().sendto_db_dec_money(warp_price, ch->empire(), ch);
+            get_monarch().sendto_db_dec_money(warp_price, ch->empire(), ch);
 
             ch->set_mc(character::MI_WARP);
 
@@ -439,14 +439,14 @@ namespace metin2::game {
         }
 
         auto empire_info(lua_State *lua) -> int {
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (nullptr == ch)
                 return false;
 
-            monarch_info *p = monarch::instance().get_monarch();
+            monarch_info *p = get_monarch().info();
 
-            if (monarch::instance().is_monarch(ch->player_id(), ch->empire())) {
+            if (get_monarch().is_monarch(ch->player_id(), ch->empire())) {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("나의 군주 정보"));
 
                 for (int n = 1; n < 4; ++n) {
@@ -471,12 +471,12 @@ namespace metin2::game {
 
             std::string name = lua_tostring(lua, 1);
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (!ch)
                 return 0;
 
-            if (!monarch::instance().is_monarch(ch->player_id(), ch->empire())) {
+            if (!get_monarch().is_monarch(ch->player_id(), ch->empire())) {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("군주만이 사용 가능한 기능입니다"));
                 return 0;
             }
@@ -488,16 +488,16 @@ namespace metin2::game {
 
             const int warp_price = 10000;
 
-            if (!monarch::instance().is_money_ok(warp_price, ch->empire())) {
-                int nation_money = monarch::instance().money(ch->empire());
+            if (!get_monarch().is_money_ok(warp_price, ch->empire())) {
+                int nation_money = get_monarch().money(ch->empire());
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), nation_money, warp_price);
                 return 0;
             }
 
-            character *tch = character_manager::instance().find_pc(name.c_str());
+            character *tch = get_character_manager().find_pc(name.c_str());
 
             if (!tch) {
-                cci *cci = p2p_manager::instance().find(name.c_str());
+                cci *cci = get_p2p_manager().find(name.c_str());
 
                 if (cci) {
                     if (cci->empire != ch->empire()) {
@@ -526,10 +526,10 @@ namespace metin2::game {
                     pgg.x = ch->x();
                     pgg.y = ch->y();
 
-                    p2p_manager::instance().send(&pgg, sizeof(packet_gg_transfer));
+                    get_p2p_manager().send(&pgg, sizeof(packet_gg_transfer));
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님을 소환하였습니다."), name.c_str());
 
-                    monarch::instance().sendto_db_dec_money(warp_price, ch->empire(), ch);
+                    get_monarch().sendto_db_dec_money(warp_price, ch->empire(), ch);
 
                     ch->set_mc(character::MI_TRANSFER);
                 } else {
@@ -559,7 +559,7 @@ namespace metin2::game {
             }
             tch->warp_set(ch->x(), ch->y(), ch->map_index());
 
-            monarch::instance().sendto_db_dec_money(warp_price, ch->empire(), ch);
+            get_monarch().sendto_db_dec_money(warp_price, ch->empire(), ch);
             ch->set_mc(character::MI_TRANSFER);
             return 0;
         }
@@ -568,7 +568,7 @@ namespace metin2::game {
             if (!lua_isstring(lua, 1))
                 return 0;
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch == nullptr)
                 return 0;
@@ -590,7 +590,7 @@ namespace metin2::game {
             if (!lua_isstring(lua, 1))
                 return 0;
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
 
             if (ch == nullptr)
                 return 0;
@@ -608,15 +608,15 @@ namespace metin2::game {
                 return 0;
             }
 
-            character *target_char = character_manager::instance().find_by_pid(info->target_pid);
+            character *target_char = get_character_manager().find_by_pid(info->target_pid);
 
             if (target_char != nullptr) {
-                unsigned int q_index = quest::quest_manager::instance().quest_index_by_name("monarch_transfer");
+                unsigned int q_index = quest::get_quest_manager().quest_index_by_name("monarch_transfer");
 
                 if (q_index != 0) {
                     target_char->set_quest_flag("monarch_transfer.x", info->x);
                     target_char->set_quest_flag("monarch_transfer.y", info->y);
-                    quest::quest_manager::instance().letter(target_char->player_id(), q_index, 0);
+                    quest::get_quest_manager().letter(target_char->player_id(), q_index, 0);
                 }
             }
 
@@ -626,10 +626,10 @@ namespace metin2::game {
         auto monarch_transfer2(lua_State *lua) -> int {
             if (lua_isstring(lua, 1) == false) return 0;
 
-            character *ch = quest_manager::instance().current_character_ptr();
+            character *ch = get_quest_manager().current_character_ptr();
             if (ch == nullptr) return false;
 
-            if (monarch::instance().is_monarch(ch->player_id(), ch->empire()) == false) {
+            if (get_monarch().is_monarch(ch->player_id(), ch->empire()) == false) {
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("군주만이 사용 가능한 기능입니다"));
                 return 0;
             }
@@ -641,18 +641,18 @@ namespace metin2::game {
 
             const int ci_transfer_cost = 10000;
 
-            if (monarch::instance().is_money_ok(ci_transfer_cost, ch->empire()) == false) {
-                int nation_money = monarch::instance().money(ch->empire());
+            if (get_monarch().is_money_ok(ci_transfer_cost, ch->empire()) == false) {
+                int nation_money = get_monarch().money(ch->empire());
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("국고에 돈이 부족합니다. 현재 : %u 필요금액 : %u"), nation_money, ci_transfer_cost);
                 return 0;
             }
 
             std::string target_name = lua_tostring(lua, 1);
 
-            character *target_char = character_manager::instance().find_pc(target_name.c_str());
+            character *target_char = get_character_manager().find_pc(target_name.c_str());
 
             if (target_char == nullptr) {
-                cci *cci = p2p_manager::instance().find(target_name.c_str());
+                cci *cci = get_p2p_manager().find(target_name.c_str());
 
                 if (cci != nullptr) {
                     if (cci->empire != ch->empire()) {
@@ -681,10 +681,10 @@ namespace metin2::game {
                     packet.x = ch->x();
                     packet.y = ch->y();
 
-                    p2p_manager::instance().send(&packet, sizeof(packet_monarch_gg_transfer));
+                    get_p2p_manager().send(&packet, sizeof(packet_monarch_gg_transfer));
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("소환 요청을 보냈습니다"));
 
-                    monarch::instance().sendto_db_dec_money(ci_transfer_cost, ch->empire(), ch);
+                    get_monarch().sendto_db_dec_money(ci_transfer_cost, ch->empire(), ch);
                     ch->set_mc(character::MI_TRANSFER);
                 } else {
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("입력하신 이름을 가진 사용자가 없습니다."));
@@ -726,7 +726,7 @@ namespace metin2::game {
 
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("소환 요청을 보냈습니다"));
 
-                monarch::instance().sendto_db_dec_money(ci_transfer_cost, ch->empire(), ch);
+                get_monarch().sendto_db_dec_money(ci_transfer_cost, ch->empire(), ch);
                 ch->set_mc(character::MI_TRANSFER);
                 return 0;
             }
@@ -755,7 +755,7 @@ namespace metin2::game {
                     {nullptr,            nullptr          }
             };
 
-            quest_manager::instance().add_lua_function_table("oh", monarch_functions);
+            get_quest_manager().add_lua_function_table("oh", monarch_functions);
         }
 
     }

@@ -2,8 +2,6 @@
 
 #include <metin2/game/app/event.h>
 
-#include <metin2/common/singleton.h>
-
 #include <string>
 
 namespace metin2::game::inline events {
@@ -23,7 +21,7 @@ namespace metin2::game::inline events {
         STATUS_END,
     };
 
-    class battle_arena : public singleton<battle_arena> {
+    class battle_arena {
       private:
         event_ptr event_;
         battlearena_status status_;
@@ -46,4 +44,9 @@ namespace metin2::game::inline events {
         void spawn_last_boss();
         void spawn_random_stone();
     };
+
+    inline auto get_battle_arena() -> battle_arena & {
+        static battle_arena instance;
+        return instance;
+    }
 }

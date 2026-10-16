@@ -321,7 +321,7 @@ namespace metin2::game::inline trade {
                 }
 
                 bool exist_empty_space = false;
-                uint16_t base_pos = ds_manager::instance().base_position(item);
+                uint16_t base_pos = get_ds_manager().base_position(item);
                 if (base_pos >= DRAGON_SOUL_INVENTORY_MAX_NUM)
                     return false;
 
@@ -398,19 +398,19 @@ namespace metin2::game::inline trade {
                 item->add_to_character(victim, item_pos(DRAGON_SOUL_INVENTORY, empty_pos));
             else
                 item->add_to_character(victim, item_pos(INVENTORY, empty_pos));
-            item_manager::instance().flush_delayed_save(item);
+            get_item_manager().flush_delayed_save(item);
 
             item->set_exchanging(false);
             {
                 std::string exchange_buf = std::format("{} {} {}", item->name(), owner()->player_id(), item->count());
-                log_manager::instance().item_log(victim, item, "EXCHANGE_TAKE", exchange_buf.c_str());
+                get_log_manager().item_log(victim, item, "EXCHANGE_TAKE", exchange_buf.c_str());
 
                 exchange_buf = std::format("{} {} {}", item->name(), victim->player_id(), item->count());
-                log_manager::instance().item_log(owner(), item, "EXCHANGE_GIVE", exchange_buf.c_str());
+                get_log_manager().item_log(owner(), item, "EXCHANGE_GIVE", exchange_buf.c_str());
 
                 if (item->vnum() >= 80003 && item->vnum() <= 80007) {
-                    log_manager::instance().gold_bar_log(victim->player_id(), item->id(), EXCHANGE_TAKE, "");
-                    log_manager::instance().gold_bar_log(owner()->player_id(), item->id(), EXCHANGE_GIVE, "");
+                    get_log_manager().gold_bar_log(victim->player_id(), item->id(), EXCHANGE_TAKE, "");
+                    get_log_manager().gold_bar_log(owner()->player_id(), item->id(), EXCHANGE_GIVE, "");
                 }
             }
 
@@ -423,10 +423,10 @@ namespace metin2::game::inline trade {
 
             if (gold_ > 1000) {
                 std::string exchange_buf = std::format("{} {}", owner()->player_id(), owner()->name());
-                log_manager::instance().char_log(victim, gold_, "EXCHANGE_GOLD_TAKE", exchange_buf.c_str());
+                get_log_manager().char_log(victim, gold_, "EXCHANGE_GOLD_TAKE", exchange_buf.c_str());
 
                 exchange_buf = std::format("{} {}", victim->player_id(), victim->name());
-                log_manager::instance().char_log(owner(), gold_, "EXCHANGE_GOLD_GIVE", exchange_buf.c_str());
+                get_log_manager().char_log(owner(), gold_, "EXCHANGE_GOLD_GIVE", exchange_buf.c_str());
             }
         }
 

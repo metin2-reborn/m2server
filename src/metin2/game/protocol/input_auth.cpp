@@ -53,7 +53,7 @@ namespace metin2::game::inline protocol {
     }
 
     static void auth_login_result(sql_msg &msg, uint32_t login_key, packet_cg_login3 &info) {
-        desc *d = desc_manager::instance().find_by_login_key(login_key);
+        desc *d = get_desc_manager().find_by_login_key(login_key);
 
         if (!d)
             return;
@@ -147,7 +147,7 @@ namespace metin2::game::inline protocol {
         } else if (not_avail) {
             login_failure(d, "NOTAVAIL");
             metin2::log::info("Auth login refused: account {} not available", info.login);
-        } else if (desc_manager::instance().find_by_login_name(info.login)) {
+        } else if (get_desc_manager().find_by_login_name(info.login)) {
             login_failure(d, "ALREADY");
             metin2::log::info("Auth login refused: account {} already logged in", info.login);
         } else if (strcmp(status_value, "OK")) {
@@ -160,7 +160,7 @@ namespace metin2::game::inline protocol {
                 return;
             }
 
-            auto update = db_manager::instance().direct_query(sql::format("UPDATE account SET last_play=NOW() WHERE id={}", id_value));
+            auto update = get_db_manager().direct_query(sql::format("UPDATE account SET last_play=NOW() WHERE id={}", id_value));
 
             account_table &r = d->get_account_table();
 
@@ -168,9 +168,9 @@ namespace metin2::game::inline protocol {
             trim_and_lower(info.login, r.login);
             strlcpy(r.passwd, info.passwd, sizeof(r.passwd));
             strlcpy(r.social_id, social_id, sizeof(r.social_id));
-            desc_manager::instance().connect_account(r.login, d);
+            get_desc_manager().connect_account(r.login, d);
 
-            db_manager::instance().login_prepare(d, info.client_key, ai_premium_times);
+            get_db_manager().login_prepare(d, info.client_key, ai_premium_times);
             metin2::log::info("Auth login: account {} accepted", info.login);
         }
     }
@@ -225,12 +225,12 @@ namespace metin2::game::inline protocol {
             return;
         }
 
-        if (desc_manager::instance().find_by_login_name(login)) {
+        if (get_desc_manager().find_by_login_name(login)) {
             login_failure(d, "ALREADY");
             return;
         }
 
-        uint32_t key_value = desc_manager::instance().create_login_key(d);
+        uint32_t key_value = get_desc_manager().create_login_key(d);
         metin2::log::info("Auth login: key {:d} for account {}", key_value, login);
 
         auto p = std::make_unique<packet_cg_login3>();
@@ -244,29 +244,29 @@ namespace metin2::game::inline protocol {
         if (login_is_in_channel_service(login)) {
             metin2::log::debug("Auth login: account {} uses channel service", login);
 
-            db_manager::instance().func_query(std::move(on_result), sql::format("SELECT {},password,social_id,id,status,availDt - NOW() > 0,"
-                                                                                "UNIX_TIMESTAMP(silver_expire),"
-                                                                                "UNIX_TIMESTAMP(gold_expire),"
-                                                                                "UNIX_TIMESTAMP(safebox_expire),"
-                                                                                "UNIX_TIMESTAMP(autoloot_expire),"
-                                                                                "UNIX_TIMESTAMP(fish_mind_expire),"
-                                                                                "UNIX_TIMESTAMP(marriage_fast_expire),"
-                                                                                "UNIX_TIMESTAMP(money_drop_rate_expire),"
-                                                                                "UNIX_TIMESTAMP(create_time)"
-                                                                                " FROM account WHERE login={}",
-                                                                        passwd, login));
+            get_db_manager().func_query(std::move(on_result), sql::format("SELECT {},password,social_id,id,status,availDt - NOW() > 0,"
+                                                                          "UNIX_TIMESTAMP(silver_expire),"
+                                                                          "UNIX_TIMESTAMP(gold_expire),"
+                                                                          "UNIX_TIMESTAMP(safebox_expire),"
+                                                                          "UNIX_TIMESTAMP(autoloot_expire),"
+                                                                          "UNIX_TIMESTAMP(fish_mind_expire),"
+                                                                          "UNIX_TIMESTAMP(marriage_fast_expire),"
+                                                                          "UNIX_TIMESTAMP(money_drop_rate_expire),"
+                                                                          "UNIX_TIMESTAMP(create_time)"
+                                                                          " FROM account WHERE login={}",
+                                                                  passwd, login));
         } else {
-            db_manager::instance().func_query(std::move(on_result), sql::format("SELECT PASSWORD({}),password,social_id,id,status,availDt - NOW() > 0,"
-                                                                                "UNIX_TIMESTAMP(silver_expire),"
-                                                                                "UNIX_TIMESTAMP(gold_expire),"
-                                                                                "UNIX_TIMESTAMP(safebox_expire),"
-                                                                                "UNIX_TIMESTAMP(autoloot_expire),"
-                                                                                "UNIX_TIMESTAMP(fish_mind_expire),"
-                                                                                "UNIX_TIMESTAMP(marriage_fast_expire),"
-                                                                                "UNIX_TIMESTAMP(money_drop_rate_expire),"
-                                                                                "UNIX_TIMESTAMP(create_time)"
-                                                                                " FROM account WHERE login={}",
-                                                                        passwd, login));
+            get_db_manager().func_query(std::move(on_result), sql::format("SELECT PASSWORD({}),password,social_id,id,status,availDt - NOW() > 0,"
+                                                                          "UNIX_TIMESTAMP(silver_expire),"
+                                                                          "UNIX_TIMESTAMP(gold_expire),"
+                                                                          "UNIX_TIMESTAMP(safebox_expire),"
+                                                                          "UNIX_TIMESTAMP(autoloot_expire),"
+                                                                          "UNIX_TIMESTAMP(fish_mind_expire),"
+                                                                          "UNIX_TIMESTAMP(marriage_fast_expire),"
+                                                                          "UNIX_TIMESTAMP(money_drop_rate_expire),"
+                                                                          "UNIX_TIMESTAMP(create_time)"
+                                                                          " FROM account WHERE login={}",
+                                                                  passwd, login));
         }
     }
 

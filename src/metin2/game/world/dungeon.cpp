@@ -35,7 +35,7 @@ namespace metin2::game::inline world {
     dungeon::dungeon(id_type id, int32_t original_map_index, int32_t map_index)
         : id_(id),
           map_index_(map_index),
-          map_area_(sectree_manager::instance().dungeon_area(original_map_index)) {
+          map_area_(get_sectree_manager().dungeon_area(original_map_index)) {
         initialize();
     }
 
@@ -112,7 +112,7 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::join(character *ch) {
-        sectree_map *sectree_map = sectree_manager::instance().map(map_index_);
+        sectree_map *sectree_map = get_sectree_manager().map(map_index_);
         if (sectree_map == nullptr) {
             metin2::log::error("No sectree map for dungeon map {:d}", map_index_);
             return;
@@ -125,7 +125,7 @@ namespace metin2::game::inline world {
         party_value->set_dungeon(this);
         map_party_.insert(std::make_pair(party_value, 0));
 
-        sectree_map *sectree_map = sectree_manager::instance().map(map_index_);
+        sectree_map *sectree_map = get_sectree_manager().map(map_index_);
         if (sectree_map == nullptr) {
             metin2::log::error("No sectree map for dungeon map {:d}", map_index_);
             return;
@@ -160,14 +160,14 @@ namespace metin2::game::inline world {
             return 0;
         }
 
-        dungeon *dungeon = dungeon_manager::instance().find(info->dungeon_id);
+        dungeon *dungeon = get_dungeon_manager().find(info->dungeon_id);
         if (dungeon == nullptr) {
             return 0;
         }
 
         dungeon->dead_event_ = nullptr;
 
-        dungeon_manager::instance().destroy(info->dungeon_id);
+        get_dungeon_manager().destroy(info->dungeon_id);
         return 0;
     }
 
@@ -244,7 +244,7 @@ namespace metin2::game::inline world {
         x *= 100;
         y *= 100;
 
-        sectree_map *map = sectree_manager::instance().map(from_map_index);
+        sectree_map *map = get_sectree_manager().map(from_map_index);
 
         if (!map) {
             metin2::log::error("Map {:d} not found", from_map_index);
@@ -258,7 +258,7 @@ namespace metin2::game::inline world {
         x *= 100;
         y *= 100;
 
-        sectree_map *map = sectree_manager::instance().map(from_map_index);
+        sectree_map *map = get_sectree_manager().map(from_map_index);
 
         if (!map) {
             metin2::log::error("Map {:d} not found", from_map_index);
@@ -281,7 +281,7 @@ namespace metin2::game::inline world {
         x *= 100;
         y *= 100;
 
-        sectree_map *map = sectree_manager::instance().map(from_map_index);
+        sectree_map *map = get_sectree_manager().map(from_map_index);
 
         if (!map) {
             metin2::log::error("Map {:d} not found", from_map_index);
@@ -318,9 +318,9 @@ namespace metin2::game::inline world {
         map_map_dungeon_.erase(map_index);
 
         uint32_t server_timer_arg = map_index;
-        quest::quest_manager::instance().cancel_server_timers(server_timer_arg);
+        quest::get_quest_manager().cancel_server_timers(server_timer_arg);
 
-        sectree_manager::instance().destroy_private_map(map_index);
+        get_sectree_manager().destroy_private_map(map_index);
         dungeon.reset();
     }
 
@@ -340,7 +340,7 @@ namespace metin2::game::inline world {
     }
 
     auto dungeon_manager::create(int32_t original_map_index) -> dungeon * {
-        uint32_t map_index = sectree_manager::instance().create_private_map(original_map_index);
+        uint32_t map_index = get_sectree_manager().create_private_map(original_map_index);
 
         if (!map_index) {
             metin2::log::error("Failed to create dungeon from map {:d} (new map index {:d})", original_map_index, map_index);
@@ -417,7 +417,7 @@ namespace metin2::game::inline world {
         if (dir == -1)
             dir = number(0, 359);
 
-        sectree_map *sectree_map = sectree_manager::instance().map(map_index_);
+        sectree_map *sectree_map = get_sectree_manager().map(map_index_);
         if (sectree_map == nullptr) {
             metin2::log::error("No sectree map for dungeon map {:d}", map_index_);
             return;
@@ -428,7 +428,7 @@ namespace metin2::game::inline world {
             int tx = number(ai_to.sx, ai_to.ex);
             int ty = number(ai_to.sy, ai_to.ey);
 
-            character *ch = character_manager::instance().spawn_mob(vnum, map_index_, sectree_map->setting.base_x + dx, sectree_map->setting.base_y + dy, 0, false, dir);
+            character *ch = get_character_manager().spawn_mob(vnum, map_index_, sectree_map->setting.base_x + dx, sectree_map->setting.base_y + dy, 0, false, dir);
 
             if (ch) {
                 map_unique_mob_.insert(make_pair(std::string(key), ch));
@@ -455,7 +455,7 @@ namespace metin2::game::inline world {
         if (dir == -1)
             dir = number(0, 359);
 
-        sectree_map *sectree_map = sectree_manager::instance().map(map_index_);
+        sectree_map *sectree_map = get_sectree_manager().map(map_index_);
         if (sectree_map == nullptr) {
             metin2::log::error("No sectree map for dungeon map {:d}", map_index_);
             return;
@@ -464,7 +464,7 @@ namespace metin2::game::inline world {
             int dx = number(ai.sx, ai.ex);
             int dy = number(ai.sy, ai.ey);
 
-            character *ch = character_manager::instance().spawn_mob(vnum, map_index_, sectree_map->setting.base_x + dx, sectree_map->setting.base_y + dy, 0, false, dir);
+            character *ch = get_character_manager().spawn_mob(vnum, map_index_, sectree_map->setting.base_x + dx, sectree_map->setting.base_y + dy, 0, false, dir);
 
             if (ch) {
                 map_unique_mob_.insert(make_pair(std::string(key), ch));
@@ -478,7 +478,7 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::set_unique(const char *key, uint32_t vid) {
-        character *ch = character_manager::instance().find(vid);
+        character *ch = get_character_manager().find(vid);
         if (ch) {
             map_unique_mob_.insert(make_pair(std::string(key), ch));
             ch->add_affect(AFFECT_DUNGEON_UNIQUE, POINT_NONE, 0, AFF_DUNGEON_UNIQUE, 65535, 0, true);
@@ -502,7 +502,7 @@ namespace metin2::game::inline world {
             return;
         character *ch = it->second;
         map_unique_mob_.erase(it);
-        character_manager::instance().destroy_character(ch);
+        get_character_manager().destroy_character(ch);
     }
 
     void dungeon::kill_unique(const std::string &key) {
@@ -556,7 +556,7 @@ namespace metin2::game::inline world {
         if (dir == -1)
             dir = number(0, 359);
 
-        sectree_map *sectree_map = sectree_manager::instance().map(map_index_);
+        sectree_map *sectree_map = get_sectree_manager().map(map_index_);
         if (sectree_map == nullptr) {
             metin2::log::error("Map {:d} not found", map_index_);
             return;
@@ -564,20 +564,20 @@ namespace metin2::game::inline world {
         int dx = number(ai.sx, ai.ex);
         int dy = number(ai.sy, ai.ey);
 
-        character *ch = character_manager::instance().spawn_mob(vnum, map_index_, sectree_map->setting.base_x + dx, sectree_map->setting.base_y + dy, 0, false, dir);
+        character *ch = get_character_manager().spawn_mob(vnum, map_index_, sectree_map->setting.base_x + dx, sectree_map->setting.base_y + dy, 0, false, dir);
         if (ch)
             ch->set_dungeon(this);
     }
 
     auto dungeon::spawn_mob(uint32_t vnum, int x, int y, int dir) -> character * {
-        sectree_map *sectree_map = sectree_manager::instance().map(map_index_);
+        sectree_map *sectree_map = get_sectree_manager().map(map_index_);
         if (sectree_map == nullptr) {
             metin2::log::error("No sectree map for dungeon map {:d}", map_index_);
             return nullptr;
         }
         metin2::log::debug("Dungeon: spawning mob vnum {:d} at {:d} {:d}", vnum, x, y);
 
-        character *ch = character_manager::instance().spawn_mob(vnum, map_index_, sectree_map->setting.base_x + x * 100, sectree_map->setting.base_y + y * 100, 0, false, dir == 0 ? -1 : (dir - 1) * 45);
+        character *ch = get_character_manager().spawn_mob(vnum, map_index_, sectree_map->setting.base_x + x * 100, sectree_map->setting.base_y + y * 100, 0, false, dir == 0 ? -1 : (dir - 1) * 45);
 
         if (ch) {
             ch->set_dungeon(this);
@@ -588,14 +588,14 @@ namespace metin2::game::inline world {
     }
 
     auto dungeon::spawn_mob_ac_dir(uint32_t vnum, int x, int y, int dir) -> character * {
-        sectree_map *sectree_map = sectree_manager::instance().map(map_index_);
+        sectree_map *sectree_map = get_sectree_manager().map(map_index_);
         if (sectree_map == nullptr) {
             metin2::log::error("No sectree map for dungeon map {:d}", map_index_);
             return nullptr;
         }
         metin2::log::debug("Dungeon: spawning mob vnum {:d} at {:d} {:d}", vnum, x, y);
 
-        character *ch = character_manager::instance().spawn_mob(vnum, map_index_, sectree_map->setting.base_x + x * 100, sectree_map->setting.base_y + y * 100, 0, false, dir);
+        character *ch = get_character_manager().spawn_mob(vnum, map_index_, sectree_map->setting.base_x + x * 100, sectree_map->setting.base_y + y * 100, 0, false, dir);
 
         if (ch) {
             ch->set_dungeon(this);
@@ -606,13 +606,13 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::spawn_name_mob(uint32_t vnum, int x, int y, const char *name) {
-        sectree_map *sectree_map = sectree_manager::instance().map(map_index_);
+        sectree_map *sectree_map = get_sectree_manager().map(map_index_);
         if (sectree_map == nullptr) {
             metin2::log::error("No sectree map for dungeon map {:d}", map_index_);
             return;
         }
 
-        character *ch = character_manager::instance().spawn_mob(vnum, map_index_, sectree_map->setting.base_x + x, sectree_map->setting.base_y + y, 0, false, -1);
+        character *ch = get_character_manager().spawn_mob(vnum, map_index_, sectree_map->setting.base_x + x, sectree_map->setting.base_y + y, 0, false, -1);
         if (ch) {
             ch->set_name(name);
             ch->set_dungeon(this);
@@ -622,7 +622,7 @@ namespace metin2::game::inline world {
     void dungeon::spawn_goto_mob(int32_t from_x, int32_t from_y, int32_t to_x, int32_t to_y) {
         const int mob_goto_vnum = 20039;
 
-        sectree_map *sectree_map = sectree_manager::instance().map(map_index_);
+        sectree_map *sectree_map = get_sectree_manager().map(map_index_);
         if (sectree_map == nullptr) {
             metin2::log::error("No sectree map for dungeon map {:d}", map_index_);
             return;
@@ -633,7 +633,7 @@ namespace metin2::game::inline world {
         from_x = sectree_map->setting.base_x + from_x * 100;
         from_y = sectree_map->setting.base_y + from_y * 100;
 
-        character *ch = character_manager::instance().spawn_mob(mob_goto_vnum, map_index_, from_x, from_y, 0, false, -1);
+        character *ch = get_character_manager().spawn_mob(mob_goto_vnum, map_index_, from_x, from_y, 0, false, -1);
 
         if (ch) {
             ch->set_name(std::format(". {} {}", to_x, to_y));
@@ -642,7 +642,7 @@ namespace metin2::game::inline world {
     }
 
     auto dungeon::spawn_group(uint32_t vnum, int32_t x, int32_t y, float radius, bool aggressive, int count) -> character * {
-        sectree_map *sectree_map = sectree_manager::instance().map(map_index_);
+        sectree_map *sectree_map = get_sectree_manager().map(map_index_);
         if (sectree_map == nullptr) {
             metin2::log::error("No sectree map for dungeon map {:d}", map_index_);
             return nullptr;
@@ -658,7 +658,7 @@ namespace metin2::game::inline world {
         character *ch = nullptr;
 
         while (count--) {
-            character *ch_leader = character_manager::instance().spawn_group(vnum, map_index_, sx, sy, ex, ey, nullptr, aggressive, this);
+            character *ch_leader = get_character_manager().spawn_group(vnum, map_index_, sx, sy, ex, ey, nullptr, aggressive, this);
             if (ch_leader && !ch)
                 ch = ch_leader;
         }
@@ -672,7 +672,7 @@ namespace metin2::game::inline world {
             return;
         }
 
-        sectree_map *sectree_map = sectree_manager::instance().map(map_index_);
+        sectree_map *sectree_map = get_sectree_manager().map(map_index_);
         if (!sectree_map) {
             metin2::log::error("Cannot spawn dungeon regen {} (once {:d}), dungeon map {:d} not found", filename, once, map_index_);
             return;
@@ -726,7 +726,7 @@ namespace metin2::game::inline world {
         if (dir == -1)
             dir = number(0, 359);
 
-        sectree_map *sectree_map = sectree_manager::instance().map(map_index_);
+        sectree_map *sectree_map = get_sectree_manager().map(map_index_);
         if (sectree_map == nullptr) {
             metin2::log::error("No sectree map for dungeon map {:d}", map_index_);
             return;
@@ -735,12 +735,12 @@ namespace metin2::game::inline world {
         while (count--) {
             int tx = number(ai_to.sx, ai_to.ex) + sectree_map->setting.base_x;
             int ty = number(ai_to.sy, ai_to.ey) + sectree_map->setting.base_y;
-            character_manager::instance().spawn_move_group(vnum, map_index_, sectree_map->setting.base_x + ai.sx, sectree_map->setting.base_y + ai.sy, sectree_map->setting.base_x + ai.ex, sectree_map->setting.base_y + ai.ey, tx, ty, nullptr, true);
+            get_character_manager().spawn_move_group(vnum, map_index_, sectree_map->setting.base_x + ai.sx, sectree_map->setting.base_y + ai.sy, sectree_map->setting.base_x + ai.ex, sectree_map->setting.base_y + ai.ey, tx, ty, nullptr, true);
         }
     }
 
     void dungeon::kill_all() {
-        sectree_map *map_value = sectree_manager::instance().map(map_index_);
+        sectree_map *map_value = get_sectree_manager().map(map_index_);
         if (map_value == nullptr) {
             metin2::log::error("No sectree map for dungeon map {:d}", map_index_);
             return;
@@ -756,7 +756,7 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::purge() {
-        sectree_map *map_value = sectree_manager::instance().map(map_index_);
+        sectree_map *map_value = get_sectree_manager().map(map_index_);
         if (map_value == nullptr) {
             metin2::log::error("No sectree map for dungeon map {:d}", map_index_);
             return;
@@ -766,11 +766,11 @@ namespace metin2::game::inline world {
                 auto *ch = (character *)ent;
 
                 if (!ch->is_pc() && !ch->is_pet()) {
-                    character_manager::instance().destroy_character(ch);
+                    get_character_manager().destroy_character(ch);
                 }
             } else if (ent->is_type(ENTITY_ITEM)) {
                 item *item = (game::items::item *)ent;
-                item_manager::instance().destroy_item(item);
+                get_item_manager().destroy_item(item);
             } else
                 metin2::log::error("Dungeon contains entity of unknown type {:d}", ent->type());
         });
@@ -807,7 +807,7 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::exit_all() {
-        sectree_map *map = sectree_manager::instance().map(map_index_);
+        sectree_map *map = get_sectree_manager().map(map_index_);
 
         if (!map) {
             metin2::log::error("Map {:d} not found", map_index_);
@@ -826,7 +826,7 @@ namespace metin2::game::inline world {
 
     void dungeon::notice(const char *msg) {
         metin2::log::debug("Dungeon {}: notice {}", static_cast<const void *>(this), msg);
-        sectree_map *map = sectree_manager::instance().map(map_index_);
+        sectree_map *map = get_sectree_manager().map(map_index_);
 
         if (!map) {
             metin2::log::error("Map {:d} not found", map_index_);
@@ -842,7 +842,7 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::exit_all_to_start_position() {
-        sectree_map *map = sectree_manager::instance().map(map_index_);
+        sectree_map *map = get_sectree_manager().map(map_index_);
 
         if (!map) {
             metin2::log::error("Map {:d} not found", map_index_);
@@ -856,7 +856,7 @@ namespace metin2::game::inline world {
                 if (ch->is_pc()) {
                     pixel_position pos_warp;
 
-                    if (sectree_manager::instance().recall_position_by_empire(start_map[ch->empire()], ch->empire(), pos_warp))
+                    if (get_sectree_manager().recall_position_by_empire(start_map[ch->empire()], ch->empire(), pos_warp))
                         ch->warp_set(pos_warp.x, pos_warp.y);
                     else
                         ch->exit_to_saved_location();
@@ -873,7 +873,7 @@ namespace metin2::game::inline world {
             return 0;
         }
 
-        dungeon *dungeon = dungeon_manager::instance().find(info->dungeon_id);
+        dungeon *dungeon = get_dungeon_manager().find(info->dungeon_id);
         dungeon->jump_to_event_ = nullptr;
 
         if (dungeon)
@@ -892,7 +892,7 @@ namespace metin2::game::inline world {
             return 0;
         }
 
-        dungeon *dungeon = dungeon_manager::instance().find(info->dungeon_id);
+        dungeon *dungeon = get_dungeon_manager().find(info->dungeon_id);
         dungeon->exit_all_event_ = nullptr;
 
         if (dungeon)
@@ -957,7 +957,7 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::jump_to_eliminate_location() {
-        dungeon *dungeon = dungeon_manager::instance().find_by_map_index(warp_map_index_);
+        dungeon *dungeon = get_dungeon_manager().find_by_map_index(warp_map_index_);
 
         if (dungeon) {
             dungeon->jump_all(map_index_, warp_x_, warp_y_);
@@ -967,7 +967,7 @@ namespace metin2::game::inline world {
                 regen_file_.clear();
             }
         } else {
-            sectree_map *map = sectree_manager::instance().map(map_index_);
+            sectree_map *map = get_sectree_manager().map(map_index_);
 
             if (!map) {
                 metin2::log::error("Map {:d} not found", map_index_);
@@ -979,7 +979,7 @@ namespace metin2::game::inline world {
     }
 
     auto dungeon::is_all_pc_near_to(int x, int y, int dist) -> bool {
-        sectree_map *map = sectree_manager::instance().map(map_index_);
+        sectree_map *map = get_sectree_manager().map(map_index_);
 
         if (!map) {
             metin2::log::error("Map {:d} not found", map_index_);

@@ -45,7 +45,7 @@ namespace metin2::game::inline characters {
     }
 
     auto on_click_shop(TRIGGERPARAM) -> int {
-        shop_manager::instance().start_shopping(causer, ch);
+        get_shop_manager().start_shopping(causer, ch);
         return 1;
     }
 

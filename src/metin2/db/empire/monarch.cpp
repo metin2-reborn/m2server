@@ -36,7 +36,7 @@ namespace metin2::db::inline empire {
             const std::string query = sql::format(
                 "INSERT INTO monarch_election(pid, selectedpid, electiondata) VALUES({}, {}, now())", pid, selectdpid);
 
-            db_manager::instance().async_query(query);
+            get_db_manager().async_query(query);
             return 1;
         }
 
@@ -86,7 +86,7 @@ namespace metin2::db::inline empire {
 
         const std::string query = sql::format("INSERT INTO monarch_candidacy(pid, date) VALUES({}, now())", pid);
 
-        db_manager::instance().async_query(query);
+        get_db_manager().async_query(query);
         return true;
     }
 
@@ -95,7 +95,7 @@ namespace metin2::db::inline empire {
         for (; it != vec_monarch_candidacy_.end(); ++it) {
             if (0 == strncmp(it->name, name, sizeof(it->name))) {
                 const std::string query = sql::format("DELETE FROM monarch_candidacy WHERE pid={} ", it->pid);
-                db_manager::instance().async_query(query);
+                get_db_manager().async_query(query);
 
                 vec_monarch_candidacy_.erase(it);
                 return true;
@@ -123,7 +123,7 @@ namespace metin2::db::inline empire {
 
         const std::string query = sql::format("UPDATE monarch set money={} where empire={}", money64, empire);
 
-        db_manager::instance().async_query(query);
+        get_db_manager().async_query(query);
 
         return true;
     }
@@ -140,7 +140,7 @@ namespace metin2::db::inline empire {
 
         const std::string query = sql::format("UPDATE monarch set money={} where empire={}", money64, empire);
 
-        db_manager::instance().async_query(query);
+        get_db_manager().async_query(query);
         return true;
     }
 
@@ -158,7 +158,7 @@ namespace metin2::db::inline empire {
 
         const std::string query = sql::format("UPDATE monarch SET money={} WHERE empire={}", monarch_info_.money[empire], empire);
 
-        db_manager::instance().async_query(query);
+        get_db_manager().async_query(query);
 
         if (metin2::config::test_server())
             metin2::log::info("Monarch: took money from empire {:d}, treasury now {:d}", empire, monarch_info_.money[empire]);
@@ -168,7 +168,7 @@ namespace metin2::db::inline empire {
     auto monarch::load_monarch() -> bool {
         monarch_info *p = &monarch_info_;
         const std::string query = sql::format("SELECT empire, pid, name, money, windate FROM monarch a, player b where a.pid=b.id");
-        auto msg = db_manager::instance().direct_query(query, SQL_PLAYER);
+        auto msg = get_db_manager().direct_query(query, SQL_PLAYER);
 
         if (msg->get()->num_rows == 0) {
             return false;
@@ -197,7 +197,7 @@ namespace metin2::db::inline empire {
         monarch_info *p = &monarch_info_;
         std::string query = sql::format(
             "SELECT b.empire, a.id, a.name FROM player AS a, player_index AS b WHERE a.account_id=b.id AND a.name={}", std::string_view(name, strnlen(name, CHARACTER_NAME_MAX_LEN)));
-        auto msg = db_manager::instance().direct_query(query, SQL_PLAYER);
+        auto msg = get_db_manager().direct_query(query, SQL_PLAYER);
 
         if (msg->get()->num_rows == 0) {
             return false;
@@ -219,7 +219,7 @@ namespace metin2::db::inline empire {
         query = sql::format(
             "REPLACE INTO monarch (empire, pid, windate, money) VALUES({}, {}, NOW(), {})", empire_value, p->pid[empire_value], p->money[empire_value]);
 
-        db_manager::instance().async_query(query, SQL_PLAYER);
+        get_db_manager().async_query(query, SQL_PLAYER);
         return true;
     }
 
@@ -228,7 +228,7 @@ namespace metin2::db::inline empire {
             if (0 == strncmp(monarch_info_.name[n], name, sizeof(monarch_info_.name[n]))) {
                 int empire_value = n;
                 const std::string query = sql::format("DELETE FROM monarch WHERE empire={}", empire_value);
-                auto msg = db_manager::instance().direct_query(query, SQL_PLAYER);
+                auto msg = get_db_manager().direct_query(query, SQL_PLAYER);
 
                 if (msg->get()->affected_rows == 0 || msg->get()->affected_rows == (uint32_t)-1) {
                     metin2::log::error("Cannot delete monarch, query affected no rows: {}", query);

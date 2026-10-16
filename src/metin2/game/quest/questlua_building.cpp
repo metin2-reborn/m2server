@@ -27,7 +27,7 @@ namespace metin2::game {
                 return 1;
             }
 
-            land *land = manager::instance().find_land((int)lua_tonumber(lua, 1), (int)lua_tonumber(lua, 2), (int)lua_tonumber(lua, 3));
+            land *land = get_manager().find_land((int)lua_tonumber(lua, 1), (int)lua_tonumber(lua, 2), (int)lua_tonumber(lua, 3));
             lua_pushnumber(lua, land ? land->id() : 0);
             return 1;
         }
@@ -40,7 +40,7 @@ namespace metin2::game {
             if (lua_isnumber(lua, 1)) {
                 using namespace building;
 
-                land *land_value = manager::instance().find_land((uint32_t)lua_tonumber(lua, 1));
+                land *land_value = get_manager().find_land((uint32_t)lua_tonumber(lua, 1));
 
                 if (land_value) {
                     const land_table &t = land_value->data();
@@ -66,7 +66,7 @@ namespace metin2::game {
 
             using namespace building;
 
-            land *land = manager::instance().find_land((uint32_t)lua_tonumber(lua, 1));
+            land *land = get_manager().find_land((uint32_t)lua_tonumber(lua, 1));
 
             if (land) {
                 if (land->data().guild_id == 0)
@@ -85,7 +85,7 @@ namespace metin2::game {
                 return 1;
             }
 
-            auto pmsg = db_manager::instance().direct_query(sql::format("SELECT COUNT(*) FROM land WHERE guild_id = {}", (uint32_t)lua_tonumber(lua, 1)));
+            auto pmsg = get_db_manager().direct_query(sql::format("SELECT COUNT(*) FROM land WHERE guild_id = {}", (uint32_t)lua_tonumber(lua, 1)));
 
             if (pmsg->get()->num_rows > 0) {
                 MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res.get());
@@ -110,7 +110,7 @@ namespace metin2::game {
 
             auto new_building = (uint32_t)lua_tonumber(lua, 1);
 
-            quest_manager &q = quest_manager::instance();
+            quest_manager &q = get_quest_manager();
 
             character *npc = q.current_npc_character_ptr();
             if (!npc)
@@ -120,7 +120,7 @@ namespace metin2::game {
             if (!guild)
                 return 0;
 
-            land *land = manager::instance().find_land_by_guild(guild->id());
+            land *land = get_manager().find_land_by_guild(guild->id());
             if (!land)
                 return 0;
 
@@ -144,7 +144,7 @@ namespace metin2::game {
                     {nullptr,          nullptr                }
             };
 
-            quest_manager::instance().add_lua_function_table("building", functions);
+            get_quest_manager().add_lua_function_table("building", functions);
         }
     };
 }

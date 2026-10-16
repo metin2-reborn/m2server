@@ -25,7 +25,7 @@ namespace metin2::db::inline empire {
     }
 
     void priv_manager::update() {
-        time_t now = client_manager::instance().current_time();
+        time_t now = get_client_manager().current_time();
 
         while (!pq_priv_guild_.empty() && pq_priv_guild_.top().first <= now) {
             auto p = pq_priv_guild_.top().second;
@@ -79,7 +79,7 @@ namespace metin2::db::inline empire {
         if (!value)
             return;
 
-        time_t now = client_manager::instance().current_time();
+        time_t now = get_client_manager().current_time();
         auto p = std::make_shared<priv_char_data>(type, value, pid);
 
         int duration = CHARACTER_BAD_PRIV_DURATION;
@@ -102,7 +102,7 @@ namespace metin2::db::inline empire {
 
         auto it = priv_guild_[type].find(guild_id);
 
-        time_t now = client_manager::instance().current_time();
+        time_t now = get_client_manager().current_time();
         time_t end = now + duration_sec;
         auto p = std::make_shared<priv_guild_data>(type, value, guild_id, end);
         pq_priv_guild_.push(std::make_pair(end, p));
@@ -126,7 +126,7 @@ namespace metin2::db::inline empire {
         if (duration_sec < 0)
             duration_sec = 0;
 
-        time_t now = client_manager::instance().current_time();
+        time_t now = get_client_manager().current_time();
         time_t end = now + duration_sec;
 
         {
@@ -190,15 +190,15 @@ namespace metin2::db::inline empire {
     }
 
     void priv_manager::send_change_guild_priv(uint32_t guild_id, uint8_t type, int value, time_t end_time_sec) {
-        client_manager::instance().for_each_peer(change_guild_priv_sender(guild_id, type, value, end_time_sec));
+        get_client_manager().for_each_peer(change_guild_priv_sender(guild_id, type, value, end_time_sec));
     }
 
     void priv_manager::send_change_empire_priv(uint8_t empire, uint8_t type, int value, time_t end_time_sec) {
-        client_manager::instance().for_each_peer(change_empire_priv_sender(empire, type, value, end_time_sec));
+        get_client_manager().for_each_peer(change_empire_priv_sender(empire, type, value, end_time_sec));
     }
 
     void priv_manager::send_change_char_priv(uint32_t pid, uint8_t type, int value) {
-        client_manager::instance().for_each_peer(change_char_priv_sender(pid, type, value));
+        get_client_manager().for_each_peer(change_char_priv_sender(pid, type, value));
     }
 
     void priv_manager::send_priv_on_setup(peer *peer) {

@@ -82,7 +82,7 @@ namespace metin2::game::inline admin {
     }
 
     auto character_can_emotion(character &rch) -> bool {
-        if (marriage::wedding_manager::instance().is_wedding_map(rch.map_index()))
+        if (marriage::get_wedding_manager().is_wedding_map(rch.map_index()))
             return true;
 
         if (rch.is_equip_unique_item(UNIQUE_ITEM_EMOTION_MASK))
@@ -171,8 +171,8 @@ namespace metin2::game::inline admin {
 
             if (is_set(emotion_types[i].flag, NEED_PC)) {
                 if (emotion_set.find(std::make_pair(victim->get_vid(), ch->get_vid())) == emotion_set.end()) {
-                    if (true == marriage::manager::instance().is_married(ch->player_id())) {
-                        const marriage::marriage *marriage_info = marriage::manager::instance().get(ch->player_id());
+                    if (true == marriage::get_manager().is_married(ch->player_id())) {
+                        const marriage::marriage *marriage_info = marriage::get_manager().get(ch->player_id());
 
                         const uint32_t other = marriage_info->other(ch->player_id());
 

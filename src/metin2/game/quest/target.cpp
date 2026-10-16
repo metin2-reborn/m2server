@@ -62,7 +62,7 @@ namespace metin2::game {
             return 0;
         }
 
-        character *chr = character_manager::instance().find_by_pid(info->pid);
+        character *chr = get_character_manager().find_by_pid(info->pid);
         if (chr == nullptr) {
             return 0;
         }
@@ -82,7 +82,7 @@ namespace metin2::game {
 
         case TARGET_TYPE_VID:
             {
-                tch = character_manager::instance().find(info->arg1);
+                tch = get_character_manager().find(info->arg1);
 
                 if (tch && tch->map_index() == chr->map_index()) {
                     x = tch->x();
@@ -96,11 +96,11 @@ namespace metin2::game {
         bool ret = true;
 
         if (dist <= 500)
-            ret = quest::quest_manager::instance().target(chr->player_id(), info->quest_index, info->target_name, "arrive");
+            ret = quest::get_quest_manager().target(chr->player_id(), info->quest_index, info->target_name, "arrive");
 
         if (!tch && info->type == TARGET_TYPE_VID) {
-            quest::quest_manager::instance().target(chr->player_id(), info->quest_index, info->target_name, "die");
-            target_manager::instance().delete_target(chr->player_id(), info->quest_index, info->target_name);
+            quest::get_quest_manager().target(chr->player_id(), info->quest_index, info->target_name, "die");
+            get_target_manager().delete_target(chr->player_id(), info->quest_index, info->target_name);
         }
 
         if (event->is_force_to_end) {
@@ -134,7 +134,7 @@ namespace metin2::game {
         metin2::log::debug("Target: create for pid {:d}, quest {:d}, name {}, type {:d}, args {:d} {:d}",
             pid_value, quest_index_value, target_name_value, type_value, arg1_value, arg2_value);
 
-        character *chr = character_manager::instance().find_by_pid(pid_value);
+        character *chr = get_character_manager().find_by_pid(pid_value);
 
         if (!chr) {
             metin2::log::error("Player (pid {:d}) not found", pid_value);
@@ -234,7 +234,7 @@ namespace metin2::game {
             if (quest_index_value == info->quest_index) {
                 if (!target_name_value || !strcmp(info->target_name, target_name_value)) {
                     if (info->send_to_client) {
-                        character *chr = character_manager::instance().find_by_pid(info->pid);
+                        character *chr = get_character_manager().find_by_pid(info->pid);
                         if (chr != nullptr) {
                             send_target_delete_packet(chr->get_desc(), info->id);
                         }
