@@ -36,9 +36,9 @@ namespace metin2::game::inline trade {
         void destroy_pc_shop(character *ch);
 
       private:
-        shop_map map_pk_shop_;
-        shop_map map_pk_shop_by_npc_vnum_;
-        shop_map map_pk_shop_by_pc_;
+        shop_map map_shop_;
+        shop_map map_shop_by_npc_vnum_;
+        shop_map map_shop_by_pc_;
 
         auto read_shop_table_ex(const char *file_name) -> bool;
     };

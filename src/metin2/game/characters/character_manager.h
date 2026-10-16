@@ -48,7 +48,7 @@ namespace metin2::game::inline characters {
 
         void select_stone(character *chr);
 
-        auto pc_map() -> name_map & { return map_pk_pc_chr_; }
+        auto pc_map() -> name_map & { return map_pc_chr_; }
 
         auto find(uint32_t vid) -> character *;
         auto find(const vid &vid) -> character *;
@@ -114,30 +114,30 @@ namespace metin2::game::inline characters {
 
         int vid_count_;
 
-        std::unordered_map<uint32_t, character *> map_pk_chr_by_vid_;
-        std::unordered_map<uint32_t, character *> map_pk_chr_by_pid_;
-        name_map map_pk_pc_chr_;
+        std::unordered_map<uint32_t, character *> map_chr_by_vid_;
+        std::unordered_map<uint32_t, character *> map_chr_by_pid_;
+        name_map map_pc_chr_;
 
-        character_set set_pk_chr_state_;
-        character_set set_pk_chr_for_delayed_save_;
-        character_set set_pk_chr_monster_log_;
+        character_set set_chr_state_;
+        character_set set_chr_for_delayed_save_;
+        character_set set_chr_monster_log_;
 
         character *chr_selected_stone_;
 
-        std::map<uint32_t, uint32_t> map_dw_mob_kill_count_;
+        std::map<uint32_t, uint32_t> map_mob_kill_count_;
 
-        std::set<uint32_t> set_dw_registered_race_num_;
-        std::map<uint32_t, character_set> map_pk_chr_by_race_num_;
+        std::set<uint32_t> set_registered_race_num_;
+        std::map<uint32_t, character_set> map_chr_by_race_num_;
 
         bool use_pending_destroy_;
-        character_set set_pk_chr_pending_destroy_;
+        character_set set_chr_pending_destroy_;
     };
 
     template <class Func>
     auto character_manager::for_each_pc(Func f) -> Func {
         std::unordered_map<uint32_t, character *>::iterator it;
 
-        for (it = map_pk_chr_by_pid_.begin(); it != map_pk_chr_by_pid_.end(); ++it)
+        for (it = map_chr_by_pid_.begin(); it != map_chr_by_pid_.end(); ++it)
             f(it->second);
 
         return f;

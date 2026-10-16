@@ -71,7 +71,7 @@ namespace metin2::game::inline protocol {
 
         log_file_ = nullptr;
 
-        p2_p_port_ = 0;
+        p2p_port_ = 0;
 
         admin_mode_ = false;
         mark_login_ = false;

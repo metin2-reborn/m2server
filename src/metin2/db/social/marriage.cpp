@@ -121,8 +121,8 @@ namespace metin2::db::inline social {
             marriage_by_pid_.insert(std::make_pair(pid2, pMarriage));
 
             packet_marriage_add p;
-            p.pi_d1 = pid1;
-            p.pi_d2 = pid2;
+            p.pid1 = pid1;
+            p.pid2 = pid2;
             p.t_marry_time = now;
             strlcpy(p.name1, name1_value, sizeof(p.name1));
             strlcpy(p.name2, name2_value, sizeof(p.name2));
@@ -155,8 +155,8 @@ namespace metin2::db::inline social {
             pMarriage->is_married = married_value;
 
             packet_marriage_update p;
-            p.pi_d1 = pid1_value;
-            p.pi_d2 = pid2_value;
+            p.pid1 = pid1_value;
+            p.pid2 = pid2_value;
             p.love_point = pMarriage->love_point;
             p.married = pMarriage->is_married;
             client_manager::instance().forward_packet(HEADER_DG_MARRIAGE_UPDATE, &p, sizeof(p));
@@ -198,8 +198,8 @@ namespace metin2::db::inline social {
             marriage_by_pid_.erase(pid2_value);
 
             packet_marriage_remove p;
-            p.pi_d1 = pid1_value;
-            p.pi_d2 = pid2_value;
+            p.pid1 = pid1_value;
+            p.pid2 = pid2_value;
             client_manager::instance().forward_packet(HEADER_DG_MARRIAGE_REMOVE, &p, sizeof(p));
 
             delete pMarriage;
@@ -211,8 +211,8 @@ namespace metin2::db::inline social {
 
                 {
                     packet_marriage_add p;
-                    p.pi_d1 = pMarriage->pid1;
-                    p.pi_d2 = pMarriage->pid2;
+                    p.pid1 = pMarriage->pid1;
+                    p.pid2 = pMarriage->pid2;
                     p.t_marry_time = pMarriage->time;
                     strlcpy(p.name1, pMarriage->name1.c_str(), sizeof(p.name1));
                     strlcpy(p.name2, pMarriage->name2.c_str(), sizeof(p.name2));
@@ -222,8 +222,8 @@ namespace metin2::db::inline social {
 
                 {
                     packet_marriage_update p;
-                    p.pi_d1 = pMarriage->pid1;
-                    p.pi_d2 = pMarriage->pid2;
+                    p.pid1 = pMarriage->pid1;
+                    p.pid2 = pMarriage->pid2;
                     p.love_point = pMarriage->love_point;
                     p.married = pMarriage->is_married;
                     peer->encode_header(HEADER_DG_MARRIAGE_UPDATE, 0, sizeof(p));
@@ -235,16 +235,16 @@ namespace metin2::db::inline social {
                 const wedding &t = it->second;
 
                 packet_wedding_ready p;
-                p.pi_d1 = t.pi_d1;
-                p.pi_d2 = t.pi_d2;
+                p.pid1 = t.pid1;
+                p.pid2 = t.pid2;
                 p.map_index = t.map_index;
 
                 peer->encode_header(HEADER_DG_WEDDING_READY, 0, sizeof(p));
                 peer->encode(&p, sizeof(p));
 
                 packet_wedding_start p2;
-                p2.pi_d1 = t.pi_d1;
-                p2.pi_d2 = t.pi_d2;
+                p2.pid1 = t.pid1;
+                p2.pid2 = t.pid2;
 
                 peer->encode_header(HEADER_DG_WEDDING_START, 0, sizeof(p2));
                 peer->encode(&p2, sizeof(p2));
@@ -266,8 +266,8 @@ namespace metin2::db::inline social {
             wedding &w = it->second;
 
             packet_wedding_end p;
-            p.pi_d1 = w.pi_d1;
-            p.pi_d2 = w.pi_d2;
+            p.pid1 = w.pid1;
+            p.pid2 = w.pid2;
             client_manager::instance().forward_packet(HEADER_DG_WEDDING_END, &p, sizeof(p));
             running_wedding_.erase(it);
         }
@@ -280,19 +280,19 @@ namespace metin2::db::inline social {
                     wedding_info wi = pq_wedding_end_.top();
                     pq_wedding_end_.pop();
 
-                    auto it = running_wedding_.find(std::make_pair(wi.pi_d1, wi.pi_d2));
+                    auto it = running_wedding_.find(std::make_pair(wi.pid1, wi.pid2));
                     if (it == running_wedding_.end())
                         continue;
 
-                    wedding &w = it->second;
+                    const wedding w = it->second;
 
                     packet_wedding_end p;
-                    p.pi_d1 = w.pi_d1;
-                    p.pi_d2 = w.pi_d2;
+                    p.pid1 = w.pid1;
+                    p.pid2 = w.pid2;
                     client_manager::instance().forward_packet(HEADER_DG_WEDDING_END, &p, sizeof(p));
                     running_wedding_.erase(it);
 
-                    auto it_marriage = marriage_by_pid_.find(w.pi_d1);
+                    auto it_marriage = marriage_by_pid_.find(w.pid1);
 
                     if (it_marriage != marriage_by_pid_.end()) {
                         marriage *pMarriage = it_marriage->second;
@@ -308,13 +308,13 @@ namespace metin2::db::inline social {
                     pq_wedding_start_.pop();
 
                     packet_wedding_start p;
-                    p.pi_d1 = w.pi_d1;
-                    p.pi_d2 = w.pi_d2;
+                    p.pid1 = w.pid1;
+                    p.pid2 = w.pid2;
                     client_manager::instance().forward_packet(HEADER_DG_WEDDING_START, &p, sizeof(p));
 
                     w.time += WEDDING_LENGTH;
-                    pq_wedding_end_.push(wedding_info(w.time, w.pi_d1, w.pi_d2));
-                    running_wedding_.insert(make_pair(std::make_pair(w.pi_d1, w.pi_d2), w));
+                    pq_wedding_end_.push(wedding_info(w.time, w.pid1, w.pid2));
+                    running_wedding_.insert(make_pair(std::make_pair(w.pid1, w.pid2), w));
                 }
             }
         }

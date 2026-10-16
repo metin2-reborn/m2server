@@ -85,9 +85,6 @@ namespace metin2::game::inline data {
 
                 line_vector_.push_back(stLine);
                 stLine = "";
-            } else if (c < 0) {
-                stLine.append(c_pcBuf + (pos - 1), 2);
-                ++pos;
             } else {
                 stLine += c;
             }

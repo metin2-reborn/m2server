@@ -125,8 +125,8 @@ namespace metin2::db::inline empire {
     }
 
     void priv_manager::add_empire_priv(uint8_t empire, uint8_t type, int value, time_t duration_sec) {
-        if (MAX_PRIV_NUM <= type) {
-            metin2::log::warn("Received invalid empire privilege type {:d}", type);
+        if (MAX_PRIV_NUM <= type || EMPIRE_MAX_NUM <= empire) {
+            metin2::log::warn("Received invalid empire privilege type {:d} for empire {:d}", type, empire);
             return;
         }
 

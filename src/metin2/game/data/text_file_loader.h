@@ -57,7 +57,7 @@ namespace metin2::game::inline data {
       protected:
         std::string file_name_;
         uint32_t dwcur_line_index_;
-        const void *mc_p_data_;
+        const void *data_;
 
         memory_text_file_loader file_loader_;
 

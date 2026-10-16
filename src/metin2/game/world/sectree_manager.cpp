@@ -143,9 +143,9 @@ namespace metin2::game::inline world {
     }
 
     auto sectree_manager::map(int32_t map_index) -> sectree_map * {
-        std::map<uint32_t, sectree_map *>::iterator it = map_pk_sectree_.find(map_index);
+        std::map<uint32_t, sectree_map *>::iterator it = map_sectree_.find(map_index);
 
-        if (it == map_pk_sectree_.end())
+        if (it == map_sectree_.end())
             return nullptr;
 
         return it->second;
@@ -273,7 +273,7 @@ namespace metin2::game::inline world {
             sx += x;
             sy += y;
 
-            map_pk_area_[index].insert(std::make_pair(position_name, area_info(x, y, sx, sy, dir)));
+            area_by_map_[index].insert(std::make_pair(position_name, area_info(x, y, sx, sy, dir)));
 
             count++;
         }
@@ -512,7 +512,7 @@ namespace metin2::game::inline world {
         while (it != vec_map_region_.end()) {
             map_region &rRegion = *(it++);
 
-            if (rRegion.map_name.find(map_name_value))
+            if (rRegion.map_name.contains(map_name_value))
                 return &rRegion;
         }
 
@@ -569,7 +569,7 @@ namespace metin2::game::inline world {
         int iIndex;
 
         while (fgets(buf, 256, fp)) {
-            *strrchr(buf, '\n') = '\0';
+            buf[strcspn(buf, "\r\n")] = '\0';
 
             if (!strncmp(buf, "//", 2) || *buf == '#')
                 continue;
@@ -600,7 +600,7 @@ namespace metin2::game::inline world {
 
             if (map_allow_find(iIndex)) {
                 sectree_map *pkMapSectree = build_sectree_from_setting(setting);
-                map_pk_sectree_.insert(std::map<uint32_t, sectree_map *>::value_type(iIndex, pkMapSectree));
+                map_sectree_.insert(std::map<uint32_t, sectree_map *>::value_type(iIndex, pkMapSectree));
 
                 snprintf(szFilename, sizeof(szFilename), "%s/%s/server_attr", map_base_path, szMapName);
                 load_attribute(pkMapSectree, szFilename, setting);
@@ -662,12 +662,12 @@ namespace metin2::game::inline world {
         return false;
     }
 
-    auto sectree_manager::valid_location(int32_t map_index, int32_t x, int32_t y, int32_t &r_l_valid_map_index, pixel_position &r_pos, uint8_t empire) -> bool {
+    auto sectree_manager::valid_location(int32_t map_index, int32_t x, int32_t y, int32_t &valid_map_index, pixel_position &r_pos, uint8_t empire) -> bool {
         sectree_map *pkSectreeMap = map(map_index);
 
         if (!pkSectreeMap) {
             if (map_index >= 10000) {
-                return valid_location(map_index / 10000, x, y, r_l_valid_map_index, r_pos);
+                return valid_location(map_index / 10000, x, y, valid_map_index, r_pos);
             } else {
                 metin2::log::error("No sectree map for map {:d}", map_index);
                 return false;
@@ -692,7 +692,7 @@ namespace metin2::game::inline world {
                     return false;
                 }
 
-                r_l_valid_map_index = map_index;
+                valid_map_index = map_index;
                 r_pos.x = x;
                 r_pos.y = y;
                 return true;
@@ -803,7 +803,7 @@ namespace metin2::game::inline world {
         it->second = next_index;
 
         pkMapSectree = new sectree_map(*pkMapSectree);
-        map_pk_sectree_.insert(std::map<uint32_t, sectree_map *>::value_type(lNewMapIndex, pkMapSectree));
+        map_sectree_.insert(std::map<uint32_t, sectree_map *>::value_type(lNewMapIndex, pkMapSectree));
 
         metin2::log::info("Private map {:d} created from map {:d}", lNewMapIndex, map_index);
         return lNewMapIndex;
@@ -842,17 +842,17 @@ namespace metin2::game::inline world {
         f_destroy_private_map_entity f;
         pkMapSectree->for_each(f);
 
-        map_pk_sectree_.erase(map_index);
+        map_sectree_.erase(map_index);
         delete pkMapSectree;
 
         metin2::log::info("Private map {:d} destroyed", map_index);
     }
 
     auto sectree_manager::dungeon_area(int32_t map_index) -> area_map & {
-        auto it = map_pk_area_.find(map_index);
+        auto it = area_by_map_.find(map_index);
 
-        if (it == map_pk_area_.end()) {
-            return map_pk_area_[-1];
+        if (it == area_by_map_.end()) {
+            return area_by_map_[-1];
         }
         return it->second;
     }

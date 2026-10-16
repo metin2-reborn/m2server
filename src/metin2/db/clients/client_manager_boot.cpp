@@ -394,6 +394,11 @@ namespace metin2::db::inline clients {
             if (!data[col])
                 continue;
 
+            if (shop_table->item_count >= SHOP_HOST_ITEM_MAX_NUM) {
+                metin2::log::error("Shop {:d} has more than {:d} items; the rest are ignored", iShopVnum, SHOP_HOST_ITEM_MAX_NUM);
+                continue;
+            }
+
             shop_item_table *pItem = &shop_table->items[shop_table->item_count];
 
             str_to_number(pItem->vnum, data[col++]);
@@ -578,6 +583,7 @@ namespace metin2::db::inline clients {
             }
         }
 
+        std::ranges::sort(vec_item_table_, {}, &proto::item_table::vnum);
         map_item_table_by_vnum_.clear();
 
         auto it = vec_item_table_.begin();
@@ -604,7 +610,6 @@ namespace metin2::db::inline clients {
 
             map_item_table_by_vnum_.insert(std::map<uint32_t, proto::item_table *>::value_type(item_table->vnum, item_table));
         }
-        sort(vec_item_table_.begin(), vec_item_table_.end(), f_compare_vnum());
         return true;
     }
 
@@ -870,12 +875,12 @@ namespace metin2::db::inline clients {
         std::unique_ptr<sql_msg> pkMsg(db_manager::instance().direct_query(query));
         sql_result *pRes = pkMsg->get();
 
-        if (!vec_k_land_table_.empty()) {
+        if (!vec_land_table_.empty()) {
             metin2::log::info("Reloading land");
-            vec_k_land_table_.clear();
+            vec_land_table_.clear();
         }
 
-        vec_k_land_table_.reserve(pRes->num_rows);
+        vec_land_table_.reserve(pRes->num_rows);
 
         MYSQL_ROW data;
 
@@ -899,7 +904,7 @@ namespace metin2::db::inline clients {
 
                 metin2::log::debug("Land {:d}: map {:d} at ({:d}, {:d}), {:d} x {:d}", t.id, t.map_index, t.x, t.y, t.width, t.height);
 
-                vec_k_land_table_.push_back(t);
+                vec_land_table_.push_back(t);
             }
 
         return true;
@@ -961,12 +966,12 @@ namespace metin2::db::inline clients {
         std::unique_ptr<sql_msg> pkMsg(db_manager::instance().direct_query(query));
         sql_result *pRes = pkMsg->get();
 
-        if (!vec_k_object_proto_.empty()) {
+        if (!vec_object_proto_.empty()) {
             metin2::log::info("Reloading object_proto");
-            vec_k_object_proto_.clear();
+            vec_object_proto_.clear();
         }
 
-        vec_k_object_proto_.reserve(std::max<int>(0, pRes->num_rows));
+        vec_object_proto_.reserve(std::max<int>(0, pRes->num_rows));
 
         MYSQL_ROW data;
 
@@ -1009,7 +1014,7 @@ namespace metin2::db::inline clients {
                 metin2::log::debug("Object proto {:d}: price {:d}, first material vnum {:d} x{:d}",
                     t.vnum, t.price, t.materials[0].item_vnum, t.materials[0].count);
 
-                vec_k_object_proto_.push_back(t);
+                vec_object_proto_.push_back(t);
             }
 
         return true;
@@ -1024,9 +1029,9 @@ namespace metin2::db::inline clients {
         std::unique_ptr<sql_msg> pkMsg(db_manager::instance().direct_query(query));
         sql_result *pRes = pkMsg->get();
 
-        if (!map_pk_object_table_.empty()) {
+        if (!map_object_table_.empty()) {
             metin2::log::info("Reloading object");
-            map_pk_object_table_.clear();
+            map_object_table_.clear();
         }
 
         MYSQL_ROW data;
@@ -1053,7 +1058,7 @@ namespace metin2::db::inline clients {
                 metin2::log::debug("Object {:d} (vnum {:d}) on map {:d} at ({:d}, {:d}), life {:d}",
                     k->id, k->vnum, k->map_index, k->x, k->y, k->life);
 
-                map_pk_object_table_.insert(std::make_pair(k->id, std::move(k)));
+                map_object_table_.insert(std::make_pair(k->id, std::move(k)));
             }
 
         return true;

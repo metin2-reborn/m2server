@@ -24,9 +24,9 @@ namespace metin2::game {
 
     template <class Func>
     auto dungeon::for_each_member(Func f) -> Func {
-        decltype(set_pk_character_.begin()) it;
+        decltype(set_character_.begin()) it;
 
-        for (it = set_pk_character_.begin(); it != set_pk_character_.end(); ++it) {
+        for (it = set_character_.begin(); it != set_character_.end(); ++it) {
             metin2::log::debug("Dungeon: visiting member {}", (*it)->name());
             f(*it);
         }
@@ -548,6 +548,11 @@ namespace metin2::game {
 
             quest_manager &q = quest_manager::instance();
             dungeon *pDungeon = q.current_dungeon();
+
+            if (!pDungeon) {
+                quest::error("Not in a dungeon");
+                return 0;
+            }
 
             const int mapIndex = pDungeon->map_index();
 

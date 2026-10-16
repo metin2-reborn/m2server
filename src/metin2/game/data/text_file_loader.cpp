@@ -25,7 +25,7 @@ namespace metin2::game::inline data {
     }
 
     text_file_loader::text_file_loader()
-        : dwcur_line_index_(0), mc_p_data_(nullptr) {
+        : dwcur_line_index_(0), data_(nullptr) {
         set_top();
 
         global_node_.group_name = "global";

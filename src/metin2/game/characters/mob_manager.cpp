@@ -61,8 +61,8 @@ namespace metin2::game::inline characters {
     }
 
     auto mob_manager::initialize(mob_table *table_value, int size) -> bool {
-        map_pk_mob_by_vnum_.clear();
-        map_pk_mob_by_name_.clear();
+        map_mob_by_vnum_.clear();
+        map_mob_by_name_.clear();
 
         mob_table *t = table_value;
 
@@ -71,8 +71,8 @@ namespace metin2::game::inline characters {
 
             std::memcpy(&pkMob->table, t, sizeof(mob_table));
 
-            map_pk_mob_by_vnum_.insert(std::map<uint32_t, mob *>::value_type(t->vnum, pkMob));
-            map_pk_mob_by_name_.insert(std::map<std::string, mob *>::value_type(t->locale_name, pkMob));
+            map_mob_by_vnum_.insert(std::map<uint32_t, mob *>::value_type(t->vnum, pkMob));
+            map_mob_by_name_.insert(std::map<std::string, mob *>::value_type(t->locale_name, pkMob));
 
             int SkillCount = 0;
 
@@ -93,7 +93,7 @@ namespace metin2::game::inline characters {
         char szGroupFileName[FILE_NAME_LEN];
         char szGroupGroupFileName[FILE_NAME_LEN];
 
-        snprintf(szGroupFileName, sizeof(szGroupGroupFileName),
+        snprintf(szGroupFileName, sizeof(szGroupFileName),
             "%s/group.txt", locale_service_get_base_path().c_str());
         snprintf(szGroupGroupFileName, sizeof(szGroupGroupFileName),
             "%s/group_group.txt", locale_service_get_base_path().c_str());
@@ -122,9 +122,9 @@ namespace metin2::game::inline characters {
     }
 
     auto mob_manager::get(uint32_t vnum) -> const mob * {
-        std::map<uint32_t, mob *>::iterator it = map_pk_mob_by_vnum_.find(vnum);
+        std::map<uint32_t, mob *>::iterator it = map_mob_by_vnum_.find(vnum);
 
-        if (it == map_pk_mob_by_vnum_.end())
+        if (it == map_mob_by_vnum_.end())
             return nullptr;
 
         return it->second;
@@ -134,18 +134,18 @@ namespace metin2::game::inline characters {
         std::map<std::string, mob *>::iterator it;
 
         if (!is_abbrev) {
-            it = map_pk_mob_by_name_.find(name);
+            it = map_mob_by_name_.find(name);
 
-            if (it == map_pk_mob_by_name_.end())
+            if (it == map_mob_by_name_.end())
                 return nullptr;
 
             return it->second;
         }
 
         int len = strlen(name);
-        it = map_pk_mob_by_name_.begin();
+        it = map_mob_by_name_.begin();
 
-        while (it != map_pk_mob_by_name_.end()) {
+        while (it != map_mob_by_name_.end()) {
             if (!strncmp(it->first.c_str(), name, len))
                 return it->second;
 
@@ -175,12 +175,12 @@ namespace metin2::game::inline characters {
 
         case REGEN_TYPE_GROUP_GROUP:
             {
-                std::map<uint32_t, mob_group_group *>::iterator it = map_pk_mob_group_group_.find(vnum);
+                std::map<uint32_t, mob_group_group *>::iterator it = map_mob_group_group_.find(vnum);
 
-                if (it == map_pk_mob_group_group_.end())
+                if (it == map_mob_group_group_.end())
                     return;
 
-                std::vector<uint32_t> &v = it->second->vec_dw_member_vnum;
+                std::vector<uint32_t> &v = it->second->vec_member_vnum;
                 for (uint32_t i = 0; i < v.size(); i++) {
                     mob_group *pkGroup = mob_manager::instance().group(v[i]);
                     if (!pkGroup)
@@ -212,18 +212,18 @@ namespace metin2::game::inline characters {
     }
 
     auto mob_manager::group_from_group_group(uint32_t vnum) -> uint32_t {
-        std::map<uint32_t, mob_group_group *>::iterator it = map_pk_mob_group_group_.find(vnum);
+        std::map<uint32_t, mob_group_group *>::iterator it = map_mob_group_group_.find(vnum);
 
-        if (it == map_pk_mob_group_group_.end())
+        if (it == map_mob_group_group_.end())
             return 0;
 
         return it->second->member();
     }
 
     auto mob_manager::group(uint32_t vnum) -> mob_group * {
-        std::map<uint32_t, mob_group *>::iterator it = map_pk_mob_group_.find(vnum);
+        std::map<uint32_t, mob_group *>::iterator it = map_mob_group_.find(vnum);
 
-        if (it == map_pk_mob_group_.end())
+        if (it == map_mob_group_.end())
             return nullptr;
 
         return it->second;
@@ -277,7 +277,7 @@ namespace metin2::game::inline characters {
 
             loader.set_parent_node();
 
-            map_pk_mob_group_group_.insert(std::make_pair((uint32_t)iVnum, pkGroup));
+            map_mob_group_group_.insert(std::make_pair((uint32_t)iVnum, pkGroup));
         }
 
         return true;
@@ -344,7 +344,7 @@ namespace metin2::game::inline characters {
             }
 
             loader.set_parent_node();
-            map_pk_mob_group_.insert(std::map<uint32_t, mob_group *>::value_type(iVnum, pkGroup));
+            map_mob_group_.insert(std::map<uint32_t, mob_group *>::value_type(iVnum, pkGroup));
         }
 
         return true;

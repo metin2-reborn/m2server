@@ -142,9 +142,9 @@ namespace metin2::game::inline guilds {
 
         metin2::log::info("Guild war: closing war map {:d}", map_index());
 
-        auto it = set_pk_chr_.begin();
+        auto it = set_chr_.begin();
 
-        while (it != set_pk_chr_.end()) {
+        while (it != set_chr_.end()) {
             character *ch = *(it++);
 
             if (ch->get_desc()) {
@@ -153,7 +153,7 @@ namespace metin2::game::inline guilds {
             }
         }
 
-        set_pk_chr_.clear();
+        set_chr_.clear();
     }
 
     void war_map::set_begin_event(event_ptr ev) {
@@ -303,7 +303,7 @@ namespace metin2::game::inline guilds {
             team_data_[1].accumulated_joiner_count(),
             observer_count_);
 
-        std::for_each(set_pk_chr_.begin(), set_pk_chr_.end(), f);
+        std::for_each(set_chr_.begin(), set_chr_.end(), f);
     }
 
     void war_map::inc_member(character *ch) {
@@ -345,7 +345,7 @@ namespace metin2::game::inline guilds {
 
         update_user_count();
 
-        set_pk_chr_.insert(ch);
+        set_chr_.insert(ch);
 
         desc *d = ch->get_desc();
 
@@ -397,7 +397,7 @@ namespace metin2::game::inline guilds {
 
         update_user_count();
 
-        set_pk_chr_.erase(ch);
+        set_chr_.erase(ch);
     }
 
     struct f_exit_guild_war {
@@ -410,7 +410,7 @@ namespace metin2::game::inline guilds {
 
     void war_map::exit_all() {
         f_exit_guild_war f;
-        std::for_each(set_pk_chr_.begin(), set_pk_chr_.end(), f);
+        std::for_each(set_chr_.begin(), set_chr_.end(), f);
     }
 
     void war_map::check_war_end() {
@@ -534,12 +534,12 @@ namespace metin2::game::inline guilds {
 
     void war_map::notice(const char *psz) {
         f_notice f(psz);
-        std::for_each(set_pk_chr_.begin(), set_pk_chr_.end(), f);
+        std::for_each(set_chr_.begin(), set_chr_.end(), f);
     }
 
     void war_map::packet(const void *p, int size) {
         f_packet f(p, size);
-        std::for_each(set_pk_chr_.begin(), set_pk_chr_.end(), f);
+        std::for_each(set_chr_.begin(), set_chr_.end(), f);
     }
 
     void war_map::send_war_packet(desc *d) {
@@ -839,7 +839,7 @@ namespace metin2::game::inline guilds {
             return;
 
         f_remove_flag_affect f;
-        std::for_each(set_pk_chr_.begin(), set_pk_chr_.end(), f);
+        std::for_each(set_chr_.begin(), set_chr_.end(), f);
 
         remove_flag(0);
         remove_flag(1);
@@ -869,7 +869,7 @@ namespace metin2::game::inline guilds {
         k->pos_start[2].x = 141 * 100 + 32000;
         k->pos_start[2].y = 117 * 100 + 0;
 
-        map_k_war_map_info_.emplace(k->map_index, std::move(k));
+        map_war_map_info_.emplace(k->map_index, std::move(k));
 
         k = std::make_unique<war_map_info>();
         k->type = WAR_MAP_TYPE_FLAG;
@@ -882,7 +882,7 @@ namespace metin2::game::inline guilds {
         k->pos_start[2].x = 122 * 100 + 57600;
         k->pos_start[2].y = 131 * 100 + 0;
 
-        map_k_war_map_info_.emplace(k->map_index, std::move(k));
+        map_war_map_info_.emplace(k->map_index, std::move(k));
         return true;
     }
 
@@ -896,10 +896,10 @@ namespace metin2::game::inline guilds {
         war_map_info *pi = get_war_map_info(map_index);
 
         if (!pi) {
-            metin2::log::warn("No war map info for map {:d}, cannot get start position ({:d} war maps registered)", map_index, map_k_war_map_info_.size());
+            metin2::log::warn("No war map info for map {:d}, cannot get start position ({:d} war maps registered)", map_index, map_war_map_info_.size());
 
-            decltype(map_k_war_map_info_.begin()) it;
-            for (it = map_k_war_map_info_.begin(); it != map_k_war_map_info_.end(); ++it) {
+            decltype(map_war_map_info_.begin()) it;
+            for (it = map_war_map_info_.begin(); it != map_war_map_info_.end(); ++it) {
                 pixel_position &cur = it->second->pos_start[idx];
                 metin2::log::warn("War map {:d} start position ({:d}, {:d})", it->first, cur.x, cur.y);
             }
@@ -930,9 +930,9 @@ namespace metin2::game::inline guilds {
         if (map_index >= 10000)
             map_index /= 10000;
 
-        auto it = map_k_war_map_info_.find(map_index);
+        auto it = map_war_map_info_.find(map_index);
 
-        if (map_k_war_map_info_.end() == it)
+        if (map_war_map_info_.end() == it)
             return nullptr;
 
         return it->second.get();

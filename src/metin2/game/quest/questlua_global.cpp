@@ -783,7 +783,7 @@ namespace metin2::game {
             buf.write(&p, sizeof(p));
             buf.write(s.str().c_str(), p.size);
 
-            p2_p_manager::instance().send(buf.read_peek(), buf.size());
+            p2p_manager::instance().send(buf.read_peek(), buf.size());
 
             send_notice(s.str().c_str());
             return 1;

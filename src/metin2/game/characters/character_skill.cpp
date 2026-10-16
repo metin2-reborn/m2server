@@ -787,6 +787,11 @@ namespace metin2::game::inline characters {
     EVENTFUNC(chain_lightning_event) {
         chain_lightning_event_info *info = dynamic_cast<chain_lightning_event_info *>(event->info);
 
+        if (info == nullptr) {
+            metin2::log::error("Chain lightning event without event info");
+            return 0;
+        }
+
         character *pkChrVictim = character_manager::instance().find(info->victim);
         character *pkChr = character_manager::instance().find(info->chr);
         character *pkTarget = nullptr;

@@ -145,9 +145,9 @@ namespace metin2::game {
         if (pkChr->map_index() != map_index_value)
             return;
 
-        auto it = map_k_list_event_.find(pid_value);
+        auto it = map_list_event_.find(pid_value);
 
-        if (it != map_k_list_event_.end()) {
+        if (it != map_list_event_.end()) {
             std::list<event_ptr>::const_iterator it2 = it->second.begin();
 
             while (it2 != it->second.end()) {
@@ -208,16 +208,16 @@ namespace metin2::game {
         event_ptr event = event_create(game::target_event, newInfo, passes_per_sec(1));
 
         if (nullptr != event) {
-            map_k_list_event_[pid_value].push_back(event);
+            map_list_event_[pid_value].push_back(event);
 
             send_target_create_packet(pkChr->get_desc(), newInfo);
         }
     }
 
     void target_manager::delete_target(uint32_t pid_value, uint32_t quest_index_value, const char *target_name_value) {
-        auto it = map_k_list_event_.find(pid_value);
+        auto it = map_list_event_.find(pid_value);
 
-        if (it == map_k_list_event_.end())
+        if (it == map_list_event_.end())
             return;
 
         std::list<event_ptr>::iterator it2 = it->second.begin();
@@ -252,9 +252,9 @@ namespace metin2::game {
     }
 
     auto target_manager::target_event(uint32_t pid, uint32_t quest_index_value, const char *target_name_value) -> event_ptr {
-        auto it = map_k_list_event_.find(pid);
+        auto it = map_list_event_.find(pid);
 
-        if (it == map_k_list_event_.end())
+        if (it == map_list_event_.end())
             return nullptr;
 
         std::list<event_ptr>::iterator it2 = it->second.begin();
@@ -282,9 +282,9 @@ namespace metin2::game {
     }
 
     auto target_manager::get_target_info(uint32_t pid, int type_value, int arg1_value) -> target_info * {
-        auto it = map_k_list_event_.find(pid);
+        auto it = map_list_event_.find(pid);
 
-        if (it == map_k_list_event_.end())
+        if (it == map_list_event_.end())
             return nullptr;
 
         std::list<event_ptr>::iterator it2 = it->second.begin();
@@ -312,9 +312,9 @@ namespace metin2::game {
     }
 
     void target_manager::logout(uint32_t pid) {
-        auto it = map_k_list_event_.find(pid);
+        auto it = map_list_event_.find(pid);
 
-        if (it == map_k_list_event_.end())
+        if (it == map_list_event_.end())
             return;
 
         std::list<event_ptr>::iterator it2 = it->second.begin();
@@ -322,6 +322,6 @@ namespace metin2::game {
         while (it2 != it->second.end())
             event_cancel(&(*(it2++)));
 
-        map_k_list_event_.erase(it);
+        map_list_event_.erase(it);
     }
 }

@@ -59,9 +59,9 @@ namespace metin2::game::inline characters {
         d->packet(&ptoc, sizeof(packet_gc_affect_add));
     }
     auto character::find_affect(uint32_t type_value, uint8_t apply) const -> affect * {
-        auto it = list_pk_affect_.begin();
+        auto it = list_affect_.begin();
 
-        while (it != list_pk_affect_.end()) {
+        while (it != list_affect_.end()) {
             affect *pkAffect = *it++;
 
             if (pkAffect->type == type_value && (apply == APPLY_NONE || apply == pkAffect->apply_on))
@@ -159,9 +159,9 @@ namespace metin2::game::inline characters {
         uint16_t wMovSpd = point(POINT_MOV_SPEED);
         uint16_t wAttSpd = point(POINT_ATT_SPEED);
 
-        auto it = list_pk_affect_.begin();
+        auto it = list_affect_.begin();
 
-        while (it != list_pk_affect_.end()) {
+        while (it != list_affect_.end()) {
             affect *pkAff = *it;
 
             if (save) {
@@ -177,7 +177,7 @@ namespace metin2::game::inline characters {
 
             compute_affect(pkAff, false);
 
-            it = list_pk_affect_.erase(it);
+            it = list_affect_.erase(it);
             delete pkAff;
         }
 
@@ -188,7 +188,7 @@ namespace metin2::game::inline characters {
 
         check_maximum_points();
 
-        if (list_pk_affect_.empty())
+        if (list_affect_.empty())
             event_cancel(&affect_event);
     }
 
@@ -229,11 +229,11 @@ namespace metin2::game::inline characters {
         int32_t lMovSpd = point(POINT_MOV_SPEED);
         int32_t lAttSpd = point(POINT_ATT_SPEED);
 
-        decltype(list_pk_affect_.begin()) it;
+        decltype(list_affect_.begin()) it;
 
-        it = list_pk_affect_.begin();
+        it = list_affect_.begin();
 
-        while (it != list_pk_affect_.end()) {
+        while (it != list_affect_.end()) {
             pkAff = *it;
 
             bool bEnd = false;
@@ -255,7 +255,7 @@ namespace metin2::game::inline characters {
             }
 
             if (bEnd) {
-                it = list_pk_affect_.erase(it);
+                it = list_affect_.erase(it);
                 compute_affect(pkAff, false);
                 bDiff = true;
                 if (is_pc()) {
@@ -280,7 +280,7 @@ namespace metin2::game::inline characters {
             check_maximum_points();
         }
 
-        if (list_pk_affect_.empty())
+        if (list_affect_.empty())
             return true;
 
         return false;
@@ -289,9 +289,9 @@ namespace metin2::game::inline characters {
     void character::save_affect() {
         packet_gd_add_affect p;
 
-        auto it = list_pk_affect_.begin();
+        auto it = list_affect_.begin();
 
-        while (it != list_pk_affect_.end()) {
+        while (it != list_affect_.end()) {
             affect *pkAff = *it++;
 
             if (is_no_save_affect(pkAff->type))
@@ -416,7 +416,7 @@ namespace metin2::game::inline characters {
             }
 
             affect *pkAff = new affect{};
-            list_pk_affect_.push_back(pkAff);
+            list_affect_.push_back(pkAff);
 
             pkAff->type = elements->type;
             pkAff->apply_on = elements->apply_on;
@@ -477,7 +477,7 @@ namespace metin2::game::inline characters {
                 send_affect_remove_packet(get_desc(), player_id(), pkAff->type, pkAff->apply_on);
         } else {
             pkAff = new affect{};
-            list_pk_affect_.push_back(pkAff);
+            list_affect_.push_back(pkAff);
         }
 
         metin2::log::debug("{}: add affect type {:d}, apply {:d}, value {:d}, flag {:d}, duration {:d}", name(), type_value, apply_on_value, apply_value_value, flag_value, duration_value);
@@ -520,9 +520,9 @@ namespace metin2::game::inline characters {
     }
 
     void character::refresh_affect() {
-        auto it = list_pk_affect_.begin();
+        auto it = list_affect_.begin();
 
-        while (it != list_pk_affect_.end()) {
+        while (it != list_affect_.end()) {
             affect *pkAff = *it++;
             compute_affect(pkAff, true);
         }
@@ -561,7 +561,7 @@ namespace metin2::game::inline characters {
         if (!aff)
             return false;
 
-        list_pk_affect_.remove(aff);
+        list_affect_.remove(aff);
 
         compute_affect(aff, false);
 

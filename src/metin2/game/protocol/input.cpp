@@ -58,7 +58,7 @@ namespace metin2::game::inline protocol {
         packet_info_ = packet_info_value;
     }
 
-    auto input_processor::process(desc *desc_value, const void *orig, int bytes, int &r_i_bytes_proceed) -> bool {
+    auto input_processor::process(desc *desc_value, const void *orig, int bytes, int &bytes_processed) -> bool {
         const char *c_pData = (const char *)orig;
 
         uint8_t bLastHeader = 0;
@@ -158,7 +158,7 @@ namespace metin2::game::inline protocol {
 
             c_pData += iPacketLen;
             buffer_left_ -= iPacketLen;
-            r_i_bytes_proceed += iPacketLen;
+            bytes_processed += iPacketLen;
 
             iLastPacketLen = iPacketLen;
             bLastHeader = bHeader;
@@ -301,15 +301,15 @@ namespace metin2::game::inline protocol {
             } else if (d->is_admin_mode() && !stBuf.compare("CHECK_P2P_CONNECTIONS")) {
                 std::ostringstream oss(std::ostringstream::out);
 
-                oss << "P2P CONNECTION NUMBER : " << p2_p_manager::instance().desc_count() << "\n";
+                oss << "P2P CONNECTION NUMBER : " << p2p_manager::instance().desc_count() << "\n";
                 std::string hostNames;
-                p2_p_manager::instance().p2_p_host_names(hostNames);
+                p2p_manager::instance().p2p_host_names(hostNames);
                 oss << hostNames;
                 stResult = oss.str();
                 packet_gg_check_awakeness packet;
                 packet.header = HEADER_GG_CHECK_AWAKENESS;
 
-                p2_p_manager::instance().send(&packet, sizeof(packet));
+                p2p_manager::instance().send(&packet, sizeof(packet));
             } else if (d->is_admin_mode() && !stBuf.compare("PACKET_INFO")) {
                 main_packet_info_->log("packet_info.txt");
                 stResult = "OK";
@@ -335,7 +335,7 @@ namespace metin2::game::inline protocol {
                         log_manager::instance().char_log(0, 0, 0, 2, "SHUTDOWN", "", d->host_name());
                         packet_gg_shutdown p;
                         p.header = HEADER_GG_SHUTDOWN;
-                        p2_p_manager::instance().send(&p, sizeof(packet_gg_shutdown));
+                        p2p_manager::instance().send(&p, sizeof(packet_gg_shutdown));
                         metin2::log::info("Shutdown requested by admin host {}", d->host_name());
                         shutdown(10);
                     } else if (!stBuf.compare("SHUTDOWN_ONLY")) {
@@ -352,7 +352,7 @@ namespace metin2::game::inline protocol {
                         pgg.header = HEADER_GG_DISCONNECT;
                         strlcpy(pgg.login, msg.c_str(), sizeof(pgg.login));
 
-                        p2_p_manager::instance().send(&pgg, sizeof(packet_gg_disconnect));
+                        p2p_manager::instance().send(&pgg, sizeof(packet_gg_disconnect));
 
                         {
                             packet_dc p;
@@ -363,7 +363,7 @@ namespace metin2::game::inline protocol {
                         check_client_version();
 
                         uint8_t bHeader = HEADER_GG_CHECK_CLIENT_VERSION;
-                        p2_p_manager::instance().send(&bHeader, sizeof(uint8_t));
+                        p2p_manager::instance().send(&bHeader, sizeof(uint8_t));
                         stResult = "OK";
                     } else if (!stBuf.compare(0, 6, "RELOAD")) {
                         if (stBuf.size() == 6) {

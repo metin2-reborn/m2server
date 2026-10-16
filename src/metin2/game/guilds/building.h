@@ -100,8 +100,8 @@ namespace metin2::game::inline guilds {
 
           protected:
             land_table data_;
-            std::map<uint32_t, object *> map_pk_object_;
-            std::map<uint32_t, object *> map_pk_object_by_vid_;
+            std::map<uint32_t, object *> map_object_;
+            std::map<uint32_t, object *> map_object_by_vid_;
 
           private:
             void draw_wall(uint32_t vnum, int32_t map_index, int32_t &x, int32_t &y, char length, float z_rot);
@@ -137,12 +137,12 @@ namespace metin2::game::inline guilds {
             void clear_land_by_guild_id(uint32_t guild_id);
 
           protected:
-            std::vector<proto::building::object_proto> vec_k_object_proto_;
-            std::map<uint32_t, proto::building::object_proto *> map_pk_object_proto_;
+            std::vector<proto::building::object_proto> vec_object_proto_;
+            std::map<uint32_t, proto::building::object_proto *> map_object_proto_;
 
-            std::map<uint32_t, std::unique_ptr<land>> map_pk_land_;
-            std::map<uint32_t, object *> map_pk_obj_by_id_;
-            std::map<uint32_t, object *> map_pk_obj_by_vid_;
+            std::map<uint32_t, std::unique_ptr<land>> map_land_;
+            std::map<uint32_t, object *> map_obj_by_id_;
+            std::map<uint32_t, object *> map_obj_by_vid_;
         };
     }
 }

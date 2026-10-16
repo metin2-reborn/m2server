@@ -54,7 +54,7 @@ namespace metin2::game::inline events {
         auto wday_exp_table(int wday) -> std::list<hme> &;
         void set_wday_exp_table(int wday, hme hme);
 
-        auto holiday_exp_table(date date, bool &is_exist) -> std::list<hme> &;
+        auto holiday_exp_table(date date, bool &is_exist) -> std::list<hme>;
         void set_holiday_exp_table(date date, hme hme);
 
         void init_wday_exp_table(int wday);
@@ -85,7 +85,7 @@ namespace metin2::game::inline events {
         void set_wday_exp_table_of_empire(uint8_t empire, int wday, hme hme);
         void init_wday_exp_table_of_empire(uint8_t empire, int wday);
 
-        auto holiday_exp_table_of_empire(uint8_t empire, date date, bool &is_exist) -> std::list<hme> &;
+        auto holiday_exp_table_of_empire(uint8_t empire, date date, bool &is_exist) -> std::list<hme>;
         void set_holiday_exp_table_of_empire(uint8_t empire, date date, hme hme);
         void init_holiday_exp_table_of_empire(uint8_t empire, date date);
 

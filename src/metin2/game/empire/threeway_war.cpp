@@ -149,7 +149,7 @@ namespace metin2::game::inline empire {
             if (0 == strncmp(szLine, "sungzi:", 7)) {
                 struct forked_sungzi_map_info sungziinfo;
 
-                sscanf(szLine + 7, "%d %d %d %d %d %d %d %s %d",
+                sscanf(szLine + 7, "%d %d %d %d %d %d %d %127s %d",
                     &sungziinfo.forked_sung,
                     &sungziinfo.forked_sungzi_start_position[0][0], &sungziinfo.forked_sungzi_start_position[0][1],
                     &sungziinfo.forked_sungzi_start_position[1][0], &sungziinfo.forked_sungzi_start_position[1][1],
@@ -164,7 +164,7 @@ namespace metin2::game::inline empire {
             } else if (0 == strncmp(szLine, "pass:", 5)) {
                 struct forked_pass_map_info passinfo;
 
-                sscanf(szLine + 5, "%d %d %d %s %d %d %d %s %d %d %d %s",
+                sscanf(szLine + 5, "%d %d %d %127s %d %d %d %127s %d %d %d %127s",
                     &passinfo.forked_pass[0],
                     &passinfo.forked_pass_start_position[0][0], &passinfo.forked_pass_start_position[0][1], szPassName[0],
                     &passinfo.forked_pass[1],

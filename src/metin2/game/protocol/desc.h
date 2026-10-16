@@ -82,12 +82,12 @@ namespace metin2::game::inline protocol {
         auto is_connected() const -> bool { return connection_ != nullptr; }
         auto host_name() -> const char * { return host_.c_str(); }
 
-        void set_p2_p(const char *h, uint16_t w) {
-            p2_p_host_ = h;
-            p2_p_port_ = w;
+        void set_p2p(const char *h, uint16_t w) {
+            p2p_host_ = h;
+            p2p_port_ = w;
         }
-        auto p2_p_host() -> const char * { return p2_p_host_.c_str(); }
-        auto p2_p_port() const -> uint16_t { return p2_p_port_; }
+        auto p2p_host() -> const char * { return p2p_host_.c_str(); }
+        auto p2p_port() const -> uint16_t { return p2p_port_; }
 
         void buffered_packet(const void *data_value, int size);
         void packet(const void *data_value, int size_value);
@@ -191,8 +191,8 @@ namespace metin2::game::inline protocol {
         FILE *log_file_;
         std::string relay_name_;
 
-        std::string p2_p_host_;
-        uint16_t p2_p_port_;
+        std::string p2p_host_;
+        uint16_t p2p_port_;
 
         bool admin_mode_;
         bool mark_login_;

@@ -571,6 +571,9 @@ namespace metin2::game::inline admin {
         size_t cmdlen;
         line = first_cmd(new_line, cmd, sizeof(cmd), &cmdlen);
 
+        if (cmdlen == 0)
+            return;
+
         for (icmd = 1; *cmd_info[icmd].command != '\n'; ++icmd) {
             if (cmd_info[icmd].command_pointer == do_cmd) {
                 if (!strcmp(cmd_info[icmd].command, cmd))

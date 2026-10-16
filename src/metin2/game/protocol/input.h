@@ -39,7 +39,7 @@ namespace metin2::game::inline protocol {
         input_processor();
         virtual ~input_processor() {};
 
-        virtual auto process(desc *desc_value, const void *orig, int bytes, int &r_i_bytes_proceed) -> bool;
+        virtual auto process(desc *desc_value, const void *orig, int bytes, int &bytes_processed) -> bool;
         virtual auto type() -> uint8_t = 0;
 
         void bind_packet_info(packet_info *packet_info_value);
@@ -60,8 +60,8 @@ namespace metin2::game::inline protocol {
       public:
         auto type() -> uint8_t override { return INPROC_CLOSE; }
 
-        auto process(desc *d, const void *orig, int bytes, int &r_i_bytes_proceed) -> bool override {
-            r_i_bytes_proceed += bytes;
+        auto process(desc *d, const void *orig, int bytes, int &bytes_processed) -> bool override {
+            bytes_processed += bytes;
             buffer_left_ = 0;
             return true;
         }
@@ -172,7 +172,7 @@ namespace metin2::game::inline protocol {
 
     class input_db : public input_processor {
       public:
-        auto process(desc *d, const void *orig, int bytes, int &r_i_bytes_proceed) -> bool override;
+        auto process(desc *d, const void *orig, int bytes, int &bytes_processed) -> bool override;
         auto type() -> uint8_t override { return INPROC_DB; }
 
       protected:
@@ -194,7 +194,7 @@ namespace metin2::game::inline protocol {
         void safebox_change_password_answer(desc *d, const char *data);
         void mall_load(desc *d, const char *data);
         void empire_select(desc *d, const char *data);
-        void p2_p(const char *data);
+        void p2p(const char *data);
         void item_load(desc *d, const char *data);
         void affect_load(desc *d, const char *data);
 
@@ -278,9 +278,9 @@ namespace metin2::game::inline protocol {
         uint32_t handle_;
     };
 
-    class input_p2_p : public input_processor {
+    class input_p2p : public input_processor {
       public:
-        input_p2_p();
+        input_p2p();
         auto type() -> uint8_t override { return INPROC_P2P; }
 
       protected:

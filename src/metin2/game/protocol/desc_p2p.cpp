@@ -16,22 +16,22 @@
 
 namespace metin2::game::inline protocol {
 
-    desc_p2_p::~desc_p2_p() {
+    desc_p2p::~desc_p2p() {
     }
 
-    void desc_p2_p::destroy() {
+    void desc_p2p::destroy() {
         if (!connection_) {
             return;
         }
 
-        p2_p_manager::instance().unregister_acceptor(this);
+        p2p_manager::instance().unregister_acceptor(this);
 
         metin2::log::info("Closing peer connection to {}", host_.c_str());
 
         desc::destroy();
     }
 
-    auto desc_p2_p::setup(std::shared_ptr<net::connection> connection) -> bool {
+    auto desc_p2p::setup(std::shared_ptr<net::connection> connection) -> bool {
         connection_ = std::move(connection);
         host_ = connection_->remote_address();
         port_ = connection_->remote_port();
@@ -50,8 +50,8 @@ namespace metin2::game::inline protocol {
         return true;
     }
 
-    void desc_p2_p::set_phase(int phase) {
-        static input_p2_p s_inputP2P;
+    void desc_p2p::set_phase(int phase) {
+        static input_p2p s_inputP2P;
 
         switch (phase) {
         case PHASE_P2P:

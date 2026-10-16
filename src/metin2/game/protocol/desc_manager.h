@@ -33,7 +33,7 @@ namespace metin2::game::inline protocol {
         void destroy();
 
         auto accept_desc(net::tcp::socket socket) -> desc *;
-        auto accept_p2_p_desc(net::tcp::socket socket) -> desc *;
+        auto accept_p2p_desc(net::tcp::socket socket) -> desc *;
         void destroy_desc(desc *d, bool erase_from_set = true);
 
         auto create_handshake() -> uint32_t;
@@ -63,18 +63,18 @@ namespace metin2::game::inline protocol {
         auto find_by_login_key(uint32_t key) -> desc *;
         void process_expired_login_key();
 
-        auto is_p2_p_desc_exist(const char *host, uint16_t port) -> bool;
+        auto is_p2p_desc_exist(const char *host, uint16_t port) -> bool;
 
       private:
         desc_handle_random_key_map map_handle_random_key_;
 
-        client_desc_set set_pk_client_desc_;
-        desc_set set_pk_desc_;
+        client_desc_set set_client_desc_;
+        desc_set set_desc_;
 
         desc_handle_map map_handle_;
         desc_handshake_map map_handshake_;
         desc_loginname_map map_login_name_;
-        std::map<uint32_t, login_key *> map_pk_login_key_;
+        std::map<uint32_t, login_key *> map_login_key_;
 
         int sockets_connected_;
 

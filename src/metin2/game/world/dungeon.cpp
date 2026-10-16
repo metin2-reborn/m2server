@@ -108,7 +108,7 @@ namespace metin2::game::inline world {
     };
 
     void dungeon::send_dest_position_to_party(party *party_value, int32_t x, int32_t y) {
-        if (map_pk_party_.find(party_value) == map_pk_party_.end()) {
+        if (map_party_.find(party_value) == map_party_.end()) {
             metin2::log::error("Party of leader pid {:d} is not in dungeon {:d}", party_value->leader_pid(), map_index_);
             return;
         }
@@ -146,7 +146,7 @@ namespace metin2::game::inline world {
 
     void dungeon::join_party(party *party_value) {
         party_value->set_dungeon(this);
-        map_pk_party_.insert(std::make_pair(party_value, 0));
+        map_party_.insert(std::make_pair(party_value, 0));
 
         if (sectree_manager::instance().map(map_index_) == nullptr) {
             metin2::log::error("No sectree map for dungeon map {:d}", map_index_);
@@ -158,10 +158,10 @@ namespace metin2::game::inline world {
 
     void dungeon::quit_party(party *party_value) {
         party_value->set_dungeon(nullptr);
-        party_map::iterator it = map_pk_party_.find(party_value);
+        party_map::iterator it = map_party_.find(party_value);
 
-        if (it != map_pk_party_.end())
-            map_pk_party_.erase(it);
+        if (it != map_party_.end())
+            map_party_.erase(it);
     }
 
     EVENTINFO(dungeon_id_info) {
@@ -192,22 +192,22 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::inc_member(character *ch) {
-        if (set_pk_character_.find(ch) == set_pk_character_.end())
-            set_pk_character_.insert(ch);
+        if (set_character_.find(ch) == set_character_.end())
+            set_character_.insert(ch);
 
         event_cancel(&dead_event_);
     }
 
     void dungeon::dec_member(character *ch) {
-        auto it = set_pk_character_.find(ch);
+        auto it = set_character_.find(ch);
 
-        if (it == set_pk_character_.end()) {
+        if (it == set_character_.end()) {
             return;
         }
 
-        set_pk_character_.erase(it);
+        set_character_.erase(it);
 
-        if (set_pk_character_.empty()) {
+        if (set_character_.empty()) {
             dungeon_id_info *info = alloc_event_info<dungeon_id_info>();
             info->dungeon_id = id_;
 
@@ -217,20 +217,20 @@ namespace metin2::game::inline world {
     }
 
     void dungeon::inc_party_member(party *party_value, character *ch) {
-        party_map::iterator it = map_pk_party_.find(party_value);
+        party_map::iterator it = map_party_.find(party_value);
 
-        if (it != map_pk_party_.end())
+        if (it != map_party_.end())
             it->second++;
         else
-            map_pk_party_.insert(std::make_pair(party_value, 1));
+            map_party_.insert(std::make_pair(party_value, 1));
 
         inc_member(ch);
     }
 
     void dungeon::dec_party_member(party *party_value, character *ch) {
-        party_map::iterator it = map_pk_party_.find(party_value);
+        party_map::iterator it = map_party_.find(party_value);
 
-        if (it == map_pk_party_.end())
+        if (it == map_party_.end())
             metin2::log::error("Cannot remove party, it is not in the dungeon");
         else {
             it->second--;
@@ -353,10 +353,10 @@ namespace metin2::game::inline world {
         if (pDungeon == nullptr) {
             return;
         }
-        map_pk_dungeon_.erase(dungeon_id);
+        map_dungeon_.erase(dungeon_id);
 
         int32_t lMapIndex = pDungeon->map_index_;
-        map_pk_map_dungeon_.erase(lMapIndex);
+        map_map_dungeon_.erase(lMapIndex);
 
         uint32_t server_timer_arg = lMapIndex;
         quest::quest_manager::instance().cancel_server_timers(server_timer_arg);
@@ -366,15 +366,15 @@ namespace metin2::game::inline world {
     }
 
     auto dungeon_manager::find(dungeon::id_type dungeon_id) -> dungeon * {
-        auto it = map_pk_dungeon_.find(dungeon_id);
-        if (it != map_pk_dungeon_.end())
+        auto it = map_dungeon_.find(dungeon_id);
+        if (it != map_dungeon_.end())
             return it->second;
         return nullptr;
     }
 
     auto dungeon_manager::find_by_map_index(int32_t map_index) -> dungeon * {
-        auto it = map_pk_map_dungeon_.find(map_index);
-        if (it != map_pk_map_dungeon_.end()) {
+        auto it = map_map_dungeon_.find(map_index);
+        if (it != map_map_dungeon_.end()) {
             return it->second;
         }
         return nullptr;
@@ -398,8 +398,8 @@ namespace metin2::game::inline world {
             metin2::log::error("Failed to allocate dungeon");
             return nullptr;
         }
-        map_pk_dungeon_.insert(std::make_pair(id, pDungeon));
-        map_pk_map_dungeon_.insert(std::make_pair(lMapIndex, pDungeon));
+        map_dungeon_.insert(std::make_pair(id, pDungeon));
+        map_map_dungeon_.insert(std::make_pair(lMapIndex, pDungeon));
 
         return pDungeon;
     }

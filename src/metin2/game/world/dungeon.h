@@ -135,11 +135,11 @@ namespace metin2::game::inline world {
         id_type id_;
         uint32_t map_index_;
 
-        character_set set_pk_character_;
+        character_set set_character_;
         std::map<std::string, int> map_flag_;
         typedef std::map<std::string, item_group> item_group_map;
         item_group_map map_item_group_;
-        party_map map_pk_party_;
+        party_map map_party_;
         area_map &map_area_;
         unique_mob_map map_unique_mob_;
 
@@ -191,8 +191,8 @@ namespace metin2::game::inline world {
         auto find_by_map_index(int32_t map_index) -> dungeon *;
 
       private:
-        dungeon_map map_pk_dungeon_;
-        map_dungeon map_pk_map_dungeon_;
+        dungeon_map map_dungeon_;
+        map_dungeon map_map_dungeon_;
 
         dungeon::id_type next_id_;
     };

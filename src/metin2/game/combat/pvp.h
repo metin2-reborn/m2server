@@ -75,7 +75,7 @@ namespace metin2::game::inline combat {
       protected:
         void connect_ex(character *chr, bool disconnect);
 
-        std::map<uint32_t, std::unique_ptr<pvp>> map_pk_pvp_;
-        pvp_set_map map_pk_pvp_set_by_id_;
+        std::map<uint32_t, std::unique_ptr<pvp>> map_pvp_;
+        pvp_set_map map_pvp_set_by_id_;
     };
 }

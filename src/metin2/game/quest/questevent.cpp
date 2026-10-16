@@ -17,13 +17,6 @@ namespace metin2::game {
 
     namespace quest {
         void cancel_timer_event(event_ptr *pp_event) {
-            quest_event_info *info = dynamic_cast<quest_event_info *>((*pp_event)->info);
-
-            if (info) {
-                delete[] info->name;
-                info->name = nullptr;
-            }
-
             event_cancel(pp_event);
         }
 
@@ -42,8 +35,6 @@ namespace metin2::game {
 
             if (0 == info->time_cycle) {
                 q.clear_server_timer_not_cancel(info->name, info->arg);
-                delete[] info->name;
-                info->name = nullptr;
             }
 
             return info->time_cycle;
@@ -74,8 +65,6 @@ namespace metin2::game {
                 else
                     metin2::log::error("Quest state for player (pid {:d}) not found", info->player_id);
 
-                delete[] info->name;
-                info->name = nullptr;
                 return 0;
             }
 
@@ -83,8 +72,6 @@ namespace metin2::game {
         }
 
         auto quest_create_server_timer_event(const char *name, double when, unsigned int timernpc, bool loop, unsigned int arg) -> event_ptr {
-            const int nameCapacity = strlen(name) + 1;
-
             int32_t ltime_cycle = (int32_t)(rint(passes_per_sec(when)));
 
             quest_server_event_info *info = alloc_event_info<quest_server_event_info>();
@@ -92,27 +79,19 @@ namespace metin2::game {
             info->npc_id = timernpc;
             info->time_cycle = loop ? ltime_cycle : 0;
             info->arg = arg;
-            info->name = new char[nameCapacity];
-
-            if (info->name)
-                strlcpy(info->name, name, nameCapacity);
+            info->name = name;
 
             return event_create(quest_server_timer_event, info, ltime_cycle);
         }
 
         auto quest_create_timer_event(const char *name, unsigned int player_id, double when, unsigned int npc_id, bool loop) -> event_ptr {
-            const int nameCapacity = strlen(name) + 1;
-
             int32_t ltime_cycle = (int)(rint(passes_per_sec(when)));
 
             quest_event_info *info = alloc_event_info<quest_event_info>();
 
             info->player_id = player_id;
             info->npc_id = npc_id;
-            info->name = new char[nameCapacity];
-
-            if (info->name)
-                strlcpy(info->name, name, nameCapacity);
+            info->name = name;
 
             metin2::log::debug("Quest: timer {} cycle {:d} pid {:d} npc {:d} loop {:d}", name ? name : "<noname>", ltime_cycle, player_id, npc_id, loop ? 1 : 0);
 

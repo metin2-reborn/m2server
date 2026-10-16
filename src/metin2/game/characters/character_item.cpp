@@ -1305,7 +1305,7 @@ namespace metin2::game::inline characters {
                 if (0 == duration)
                     duration = 60 * 60 * 24 * 7;
 
-                item->set_socket(0, time(nullptr) + duration);
+                item->set_socket(0, get_global_time() + duration);
                 item->start_real_time_expire_event();
             }
 
@@ -1675,6 +1675,11 @@ namespace metin2::game::inline characters {
                 if (item->vnum() > 50800 && item->vnum() <= 50820) {
                     if (metin2::config::test_server())
                         metin2::log::debug("Additional effect item {:d} (subtype {:d})", item->original_vnum(), item->sub_type());
+
+                    if (item->value(0) < 0 || item->value(0) >= static_cast<int32_t>(std::size(a_apply_info))) {
+                        metin2::log::error("Item {:d} has invalid apply type {:d}", item->original_vnum(), item->value(0));
+                        return false;
+                    }
 
                     int affect_type = AFFECT_EXP_BONUS_EURO_FREE;
                     int apply_type = a_apply_info[item->value(0)].point_type;
@@ -4900,7 +4905,7 @@ namespace metin2::game::inline characters {
                     if (0 == duration)
                         duration = 60 * 60 * 24 * 7;
 
-                    item->set_socket(0, time(nullptr) + duration);
+                    item->set_socket(0, get_global_time() + duration);
                     item->start_real_time_expire_event();
                 }
 

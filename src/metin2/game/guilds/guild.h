@@ -163,10 +163,10 @@ namespace metin2::game::inline guilds {
         auto remove_member(uint32_t pid) -> bool;
 
         void login_member(character *ch);
-        void p2_p_login_member(uint32_t pid);
+        void p2p_login_member(uint32_t pid);
 
         void logout_member(character *ch);
-        void p2_p_logout_member(uint32_t pid);
+        void p2p_logout_member(uint32_t pid);
 
         void change_member_grade(uint32_t pid, uint8_t grade);
         auto offer_exp(character *ch, int amount) -> bool;
@@ -175,7 +175,7 @@ namespace metin2::game::inline guilds {
 
         void change_grade_name(uint8_t grade, const char *grade_name);
         void change_grade_auth(uint8_t grade, uint8_t auth);
-        void p2_p_change_grade(uint8_t grade);
+        void p2p_change_grade(uint8_t grade);
 
         auto change_member_general(uint32_t pid, uint8_t is_general) -> bool;
 
@@ -235,7 +235,7 @@ namespace metin2::game::inline guilds {
         auto charge_sp(character *ch, int sp) -> bool;
 
         void chat(const char *text_value);
-        void p2_p_chat(const char *text);
+        void p2p_chat(const char *text);
 
         void skill_usable_change(uint32_t skill_vnum, bool usable);
 
@@ -310,14 +310,14 @@ namespace metin2::game::inline guilds {
         typedef character_set guild_member_online_container;
         guild_member_online_container member_online_;
 
-        typedef std::set<uint32_t> guild_member_p2_p_online_container;
-        guild_member_p2_p_online_container member_p2_p_online_;
+        typedef std::set<uint32_t> guild_member_p2p_online_container;
+        guild_member_p2p_online_container member_p2p_online_;
 
         void load_guild_data(sql_msg *pmsg);
         void load_guild_grade_data(sql_msg *pmsg);
         void load_guild_member_data(sql_msg *pmsg);
 
-        void p2_p_update_grade(sql_msg *pmsg);
+        void p2p_update_grade(sql_msg *pmsg);
 
         typedef std::map<uint32_t, guild_war> enemy_guild_container;
         enemy_guild_container enemy_guild_;

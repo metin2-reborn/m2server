@@ -709,7 +709,7 @@ namespace metin2::game::inline characters {
 
                 int total_dam = 0;
 
-                for (damage_map::iterator it = map_k_damage_.begin(); it != map_k_damage_.end(); ++it) {
+                for (damage_map::iterator it = map_damage_.begin(); it != map_damage_.end(); ++it) {
                     int iDamage = it->second.total_damage;
                     if (iDamage > 0) {
                         character *ch = character_manager::instance().find(it->first);
@@ -787,7 +787,7 @@ namespace metin2::game::inline characters {
             }
         }
 
-        map_k_damage_.clear();
+        map_damage_.clear();
     }
 
     struct item_drop_penalty {
@@ -1199,9 +1199,9 @@ namespace metin2::game::inline characters {
         remove_bit(points_instant_.instant_flag, INSTANT_FLAG_STUN);
 
         if (get_desc() != nullptr) {
-            auto it = list_pk_affect_.begin();
+            auto it = list_affect_.begin();
 
-            while (it != list_pk_affect_.end())
+            while (it != list_affect_.end())
                 send_affect_add_packet(get_desc(), *it++);
         }
 
@@ -1778,11 +1778,11 @@ namespace metin2::game::inline characters {
         }
 
         if (attacker && dam > 0 && is_npc()) {
-            damage_map::iterator it = map_k_damage_.find(attacker->get_vid());
+            damage_map::iterator it = map_damage_.find(attacker->get_vid());
 
-            if (it == map_k_damage_.end()) {
-                map_k_damage_.insert(damage_map::value_type(attacker->get_vid(), battle_info(dam, 0)));
-                it = map_k_damage_.find(attacker->get_vid());
+            if (it == map_damage_.end()) {
+                map_damage_.insert(damage_map::value_type(attacker->get_vid(), battle_info(dam, 0)));
+                it = map_damage_.find(attacker->get_vid());
             } else {
                 it->second.total_damage += dam;
             }
@@ -2020,11 +2020,11 @@ namespace metin2::game::inline characters {
         damage_info_list damage_info_table;
         std::map<party *, damage_info> map_party_damage;
 
-        damage_info_table.reserve(map_k_damage_.size());
+        damage_info_table.reserve(map_damage_.size());
 
-        damage_map::iterator it = map_k_damage_.begin();
+        damage_map::iterator it = map_damage_.begin();
 
-        while (it != map_k_damage_.end()) {
+        while (it != map_damage_.end()) {
             const vid &c_VID = it->first;
             int iDam = it->second.total_damage;
 
@@ -2418,7 +2418,7 @@ namespace metin2::game::inline characters {
     };
 
     auto character::shoot(uint8_t type) -> bool {
-        metin2::log::debug("{}: shoot type {:d}, {:d} fly targets", name(), type, vec_dw_fly_targets_.size());
+        metin2::log::debug("{}: shoot type {:d}, {:d} fly targets", name(), type, vec_fly_targets_.size());
 
         if (!can_move()) {
             return false;
@@ -2431,8 +2431,8 @@ namespace metin2::game::inline characters {
             fly_target_id_ = 0;
         }
 
-        f = std::for_each(vec_dw_fly_targets_.begin(), vec_dw_fly_targets_.end(), f);
-        vec_dw_fly_targets_.clear();
+        f = std::for_each(vec_fly_targets_.begin(), vec_fly_targets_.end(), f);
+        vec_fly_targets_.clear();
 
         return f.succeed;
     }
@@ -2452,7 +2452,7 @@ namespace metin2::game::inline characters {
             if (header_value == HEADER_CG_FLY_TARGETING)
                 fly_target_id_ = target_vid_value;
             else
-                vec_dw_fly_targets_.push_back(target_vid_value);
+                vec_fly_targets_.push_back(target_vid_value);
         } else {
             pack.target_vid = 0;
             pack.x = x;
@@ -2470,9 +2470,9 @@ namespace metin2::game::inline characters {
         float fMinDist = 99999.0f;
         character *pkVictim = nullptr;
 
-        damage_map::iterator it = map_k_damage_.begin();
+        damage_map::iterator it = map_damage_.begin();
 
-        while (it != map_k_damage_.end()) {
+        while (it != map_damage_.end()) {
             const vid &c_VID = it->first;
             ++it;
 
@@ -2595,7 +2595,7 @@ namespace metin2::game::inline characters {
             set_killer_mode(false);
     }
 
-    void character::set_pk_mode(uint8_t pk_mode) {
+    void character::set_mode(uint8_t pk_mode) {
         if (pk_mode >= PK_MODE_MAX_NUM)
             return;
 
@@ -2799,11 +2799,11 @@ namespace metin2::game::inline characters {
         if (is_dead() || is_stun())
             return;
 
-        damage_map::iterator it = map_k_damage_.find(attacker->get_vid());
+        damage_map::iterator it = map_damage_.find(attacker->get_vid());
 
-        if (it == map_k_damage_.end()) {
-            map_k_damage_.insert(damage_map::value_type(attacker->get_vid(), battle_info(0, dam)));
-            it = map_k_damage_.find(attacker->get_vid());
+        if (it == map_damage_.end()) {
+            map_damage_.insert(damage_map::value_type(attacker->get_vid(), battle_info(0, dam)));
+            it = map_damage_.find(attacker->get_vid());
         }
 
         update_aggr_point_ex(attacker, type, dam, it->second);
@@ -2820,9 +2820,9 @@ namespace metin2::game::inline characters {
             }
 
             damage_map::iterator it;
-            damage_map::iterator itFind = map_k_damage_.end();
+            damage_map::iterator itFind = map_damage_.end();
 
-            for (it = map_k_damage_.begin(); it != map_k_damage_.end(); ++it) {
+            for (it = map_damage_.begin(); it != map_damage_.end(); ++it) {
                 if (it->second.aggro > new_aggro) {
                     character *ch = character_manager::instance().find(it->first);
 
@@ -2833,7 +2833,7 @@ namespace metin2::game::inline characters {
                 }
             }
 
-            if (itFind != map_k_damage_.end()) {
+            if (itFind != map_damage_.end()) {
                 max_aggro_ = new_aggro;
                 set_victim(character_manager::instance().find(itFind->first));
                 state_duration_ = 1;

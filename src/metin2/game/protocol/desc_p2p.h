@@ -8,9 +8,9 @@
 
 namespace metin2::game::inline protocol {
 
-    class desc_p2_p : public desc {
+    class desc_p2p : public desc {
       public:
-        ~desc_p2_p() override;
+        ~desc_p2p() override;
 
         void destroy() override;
         void set_phase(int phase) override;

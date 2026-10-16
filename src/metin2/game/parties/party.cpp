@@ -44,18 +44,18 @@ namespace metin2::game::inline parties {
     }
 
     void party_manager::delete_all_party() {
-        pc_party_set::iterator it = set_pk_pc_party_.begin();
+        pc_party_set::iterator it = set_pc_party_.begin();
 
-        while (it != set_pk_pc_party_.end()) {
+        while (it != set_pc_party_.end()) {
             delete_party(*it);
-            it = set_pk_pc_party_.begin();
+            it = set_pc_party_.begin();
         }
     }
 
     auto party_manager::set_party(character *ch) -> bool {
-        party_map::iterator it = map_pk_party_.find(ch->player_id());
+        party_map::iterator it = map_party_.find(ch->player_id());
 
-        if (it == map_pk_party_.end())
+        if (it == map_party_.end())
             return false;
 
         party *pParty = it->second;
@@ -63,28 +63,28 @@ namespace metin2::game::inline parties {
         return true;
     }
 
-    void party_manager::p2_p_login(uint32_t pid, const char *name) {
-        party_map::iterator it = map_pk_party_.find(pid);
+    void party_manager::p2p_login(uint32_t pid, const char *name) {
+        party_map::iterator it = map_party_.find(pid);
 
-        if (it == map_pk_party_.end())
+        if (it == map_party_.end())
             return;
 
         it->second->update_online_state(pid, name);
     }
-    void party_manager::p2_p_logout(uint32_t pid) {
-        party_map::iterator it = map_pk_party_.find(pid);
+    void party_manager::p2p_logout(uint32_t pid) {
+        party_map::iterator it = map_party_.find(pid);
 
-        if (it == map_pk_party_.end())
+        if (it == map_party_.end())
             return;
 
         it->second->update_offline_state(pid);
     }
 
-    void party_manager::p2_p_join_party(uint32_t leader, uint32_t pid, uint8_t role) {
-        party_map::iterator it = map_pk_party_.find(leader);
+    void party_manager::p2p_join_party(uint32_t leader, uint32_t pid, uint8_t role) {
+        party_map::iterator it = map_party_.find(leader);
 
-        if (it != map_pk_party_.end()) {
-            it->second->p2_p_join(pid);
+        if (it != map_party_.end()) {
+            it->second->p2p_join(pid);
 
             if (role >= PARTY_ROLE_MAX_NUM)
                 role = PARTY_ROLE_NORMAL;
@@ -95,37 +95,37 @@ namespace metin2::game::inline parties {
         }
     }
 
-    void party_manager::p2_p_quit_party(uint32_t pid) {
-        party_map::iterator it = map_pk_party_.find(pid);
+    void party_manager::p2p_quit_party(uint32_t pid) {
+        party_map::iterator it = map_party_.find(pid);
 
-        if (it != map_pk_party_.end()) {
-            it->second->p2_p_quit(pid);
+        if (it != map_party_.end()) {
+            it->second->p2p_quit(pid);
         } else {
             metin2::log::error("No party with member pid {:d}", pid);
         }
     }
 
-    auto party_manager::p2_p_create_party(uint32_t pid) -> party * {
-        party_map::iterator it = map_pk_party_.find(pid);
-        if (it != map_pk_party_.end())
+    auto party_manager::p2p_create_party(uint32_t pid) -> party * {
+        party_map::iterator it = map_party_.find(pid);
+        if (it != map_party_.end())
             return it->second;
 
         party *pParty = new party;
 
-        set_pk_pc_party_.insert(pParty);
+        set_pc_party_.insert(pParty);
 
         set_party_member(pid, pParty);
         pParty->set_pc_party(true);
-        pParty->p2_p_join(pid);
+        pParty->p2p_join(pid);
 
         return pParty;
     }
 
-    void party_manager::p2_p_delete_party(uint32_t pid) {
-        party_map::iterator it = map_pk_party_.find(pid);
+    void party_manager::p2p_delete_party(uint32_t pid) {
+        party_map::iterator it = map_party_.find(pid);
 
-        if (it != map_pk_party_.end()) {
-            set_pk_pc_party_.erase(it->second);
+        if (it != map_party_.end()) {
+            set_pc_party_.erase(it->second);
             delete it->second;
         } else
             metin2::log::error("Cannot delete party of leader pid {:d}: not found", pid);
@@ -147,7 +147,7 @@ namespace metin2::game::inline parties {
             pParty->set_pc_party(true);
             pParty->join(leader->player_id());
 
-            set_pk_pc_party_.insert(pParty);
+            set_pc_party_.insert(pParty);
         } else {
             pParty->set_pc_party(false);
             pParty->join(leader->get_vid());
@@ -163,24 +163,24 @@ namespace metin2::game::inline parties {
 
         db_clientdesc->db_packet(HEADER_GD_PARTY_DELETE, 0, &p, sizeof(packet_party_delete));
 
-        set_pk_pc_party_.erase(party_value);
+        set_pc_party_.erase(party_value);
         delete party_value;
     }
 
     void party_manager::set_party_member(uint32_t pid, party *party_value) {
-        party_map::iterator it = map_pk_party_.find(pid);
+        party_map::iterator it = map_party_.find(pid);
 
         if (party_value == nullptr) {
-            if (it != map_pk_party_.end())
-                map_pk_party_.erase(it);
+            if (it != map_party_.end())
+                map_party_.erase(it);
         } else {
-            if (it != map_pk_party_.end()) {
+            if (it != map_party_.end()) {
                 if (it->second != party_value) {
                     it->second->quit(pid);
                     it->second = party_value;
                 }
             } else
-                map_pk_party_.insert(party_map::value_type(pid, party_value));
+                map_party_.insert(party_map::value_type(pid, party_value));
         }
     }
 
@@ -328,7 +328,7 @@ namespace metin2::game::inline parties {
         return member_map_.size();
     }
 
-    void party::p2_p_join(uint32_t pid) {
+    void party::p2p_join(uint32_t pid) {
         member_map::iterator it = member_map_.find(pid);
 
         if (it == member_map_.end()) {
@@ -353,7 +353,7 @@ namespace metin2::game::inline parties {
                     if (Member.role == PARTY_ROLE_LEADER)
                         leadership_ = ch->leadership_skill_level();
                 } else {
-                    cci *pcci = p2_p_manager::instance().find_by_pid(pid);
+                    cci *pcci = p2p_manager::instance().find_by_pid(pid);
 
                     if (!pcci)
                         ;
@@ -388,7 +388,7 @@ namespace metin2::game::inline parties {
     }
 
     void party::join(uint32_t pid_value) {
-        p2_p_join(pid_value);
+        p2p_join(pid_value);
 
         if (pc_party_) {
             packet_party_add p;
@@ -399,7 +399,7 @@ namespace metin2::game::inline parties {
         }
     }
 
-    void party::p2_p_quit(uint32_t pid) {
+    void party::p2p_quit(uint32_t pid) {
         member_map::iterator it = member_map_.find(pid);
 
         if (it == member_map_.end())
@@ -442,7 +442,7 @@ namespace metin2::game::inline parties {
     }
 
     void party::quit(uint32_t pid_value) {
-        p2_p_quit(pid_value);
+        p2p_quit(pid_value);
 
         if (pc_party_ && pid_value != leader_pid()) {
             packet_party_remove p;
@@ -510,7 +510,7 @@ namespace metin2::game::inline parties {
         db_clientdesc->db_packet(HEADER_GD_PARTY_SET_MEMBER_LEVEL, 0, &p, sizeof(packet_party_set_member_level));
     }
 
-    void party::p2_p_set_member_level(uint32_t pid, uint8_t level) {
+    void party::p2p_set_member_level(uint32_t pid, uint8_t level) {
         if (!pc_party_)
             return;
 
@@ -579,7 +579,10 @@ namespace metin2::game::inline parties {
     }
 
     void party::send_party_join_one_to_all(uint32_t pid) {
-        const member &r = member_map_[pid];
+        auto found = member_map_.find(pid);
+        if (found == member_map_.end())
+            return;
+        const member &r = found->second;
 
         packet_gc_party_add p;
 
@@ -706,6 +709,9 @@ namespace metin2::game::inline parties {
     }
 
     void party::send_party_info_all_to_one(character *ch) {
+        if (!ch->get_desc())
+            return;
+
         member_map::iterator it;
 
         packet_gc_party_update p;
@@ -813,7 +819,8 @@ namespace metin2::game::inline parties {
     }
 
     auto party::leader_character() -> character * {
-        return member_map_[leader_pid()].character;
+        auto it = member_map_.find(leader_pid());
+        return it == member_map_.end() ? nullptr : it->second.character;
     }
 
     auto party::set_role(uint32_t pid, uint8_t role_value, bool set) -> bool {
@@ -954,7 +961,8 @@ namespace metin2::game::inline parties {
             return;
         }
 
-        character *ch = member_map_[pid].character;
+        auto found = member_map_.find(pid);
+        character *ch = found == member_map_.end() ? nullptr : found->second.character;
 
         if (!ch) {
             l->chat_packet(CHAT_TYPE_INFO, lc_text("<파티> 소환하려는 대상을 찾을 수 없습니다."));
@@ -1207,7 +1215,10 @@ namespace metin2::game::inline parties {
     }
 
     void party::update_online_state(uint32_t pid_value, const char *name) {
-        member &r = member_map_[pid_value];
+        auto found = member_map_.find(pid_value);
+        if (found == member_map_.end())
+            return;
+        member &r = found->second;
 
         packet_gc_party_add p;
 
@@ -1235,9 +1246,9 @@ namespace metin2::game::inline parties {
     }
 
     auto party::flag(const std::string &name) -> int {
-        flag_map::iterator it = map_i_flag_.find(name);
+        flag_map::iterator it = flags_.find(name);
 
-        if (it != map_i_flag_.end()) {
+        if (it != flags_.end()) {
             return it->second;
         }
 
@@ -1245,10 +1256,10 @@ namespace metin2::game::inline parties {
     }
 
     void party::set_flag(const std::string &name, int value) {
-        flag_map::iterator it = map_i_flag_.find(name);
+        flag_map::iterator it = flags_.find(name);
 
-        if (it == map_i_flag_.end()) {
-            map_i_flag_.insert(make_pair(name, value));
+        if (it == flags_.end()) {
+            flags_.insert(make_pair(name, value));
         } else if (it->second != value) {
             it->second = value;
         }
@@ -1256,7 +1267,7 @@ namespace metin2::game::inline parties {
 
     void party::set_dungeon(dungeon *dungeon_value) {
         dungeon_ = dungeon_value;
-        map_i_flag_.clear();
+        flags_.clear();
     }
 
     auto party::get_dungeon() -> dungeon * {

@@ -208,7 +208,7 @@ namespace metin2::game::inline social {
                 d1 = ch1 ? ch1->get_desc() : nullptr;
 
                 if (!d1) {
-                    pkCCI = p2_p_manager::instance().find_by_pid(pid1);
+                    pkCCI = p2p_manager::instance().find_by_pid(pid1);
 
                     if (pkCCI) {
                         d1 = pkCCI->desc;
@@ -219,7 +219,7 @@ namespace metin2::game::inline social {
                 d2 = ch2 ? ch2->get_desc() : nullptr;
 
                 if (!d2) {
-                    pkCCI = p2_p_manager::instance().find_by_pid(pid2);
+                    pkCCI = p2p_manager::instance().find_by_pid(pid2);
 
                     if (pkCCI) {
                         d2 = pkCCI->desc;
@@ -261,7 +261,7 @@ namespace metin2::game::inline social {
                 d1 = ch1 ? ch1->get_desc() : nullptr;
 
                 if (!d1) {
-                    pkCCI = p2_p_manager::instance().find_by_pid(pid1);
+                    pkCCI = p2p_manager::instance().find_by_pid(pid1);
 
                     if (pkCCI) {
                         d1 = pkCCI->desc;
@@ -276,7 +276,7 @@ namespace metin2::game::inline social {
                 d2 = ch2 ? ch2->get_desc() : nullptr;
 
                 if (!d2) {
-                    pkCCI = p2_p_manager::instance().find_by_pid(pid2);
+                    pkCCI = p2p_manager::instance().find_by_pid(pid2);
 
                     if (pkCCI) {
                         d2 = pkCCI->desc;
@@ -482,8 +482,8 @@ namespace metin2::game::inline social {
 
             packet_marriage_add p;
 
-            p.pi_d1 = pid1;
-            p.pi_d2 = pid2;
+            p.pid1 = pid1;
+            p.pid2 = pid2;
             strlcpy(p.name1, name1_value, sizeof(p.name1));
             strlcpy(p.name2, name2_value, sizeof(p.name2));
             db_clientdesc->db_packet(HEADER_GD_MARRIAGE_ADD, 0, &p, sizeof(p));
@@ -510,8 +510,8 @@ namespace metin2::game::inline social {
 
                 if (A && B) {
                     packet_wedding_request p;
-                    p.pi_d1 = pid1;
-                    p.pi_d2 = pid2;
+                    p.pid1 = pid1;
+                    p.pid2 = pid2;
                     db_clientdesc->db_packet(HEADER_GD_WEDDING_REQUEST, 0, &p, sizeof(p));
                 }
             }
@@ -521,8 +521,8 @@ namespace metin2::game::inline social {
             align(pid1, pid2);
 
             packet_marriage_update p;
-            p.pi_d1 = pid1;
-            p.pi_d2 = pid2;
+            p.pid1 = pid1;
+            p.pid2 = pid2;
             p.love_point = update_point;
             p.married = married_value;
             db_clientdesc->db_packet(HEADER_GD_MARRIAGE_UPDATE, 0, &p, sizeof(p));
@@ -544,8 +544,8 @@ namespace metin2::game::inline social {
             align(pid1, pid2);
 
             packet_marriage_remove p;
-            p.pi_d1 = pid1;
-            p.pi_d2 = pid2;
+            p.pid1 = pid1;
+            p.pid2 = pid2;
             db_clientdesc->db_packet(HEADER_GD_MARRIAGE_REMOVE, 0, &p, sizeof(p));
         }
 
@@ -642,8 +642,8 @@ namespace metin2::game::inline social {
 
         void manager::request_end_wedding(uint32_t pid1, uint32_t pid2) {
             packet_wedding_end p;
-            p.pi_d1 = pid1;
-            p.pi_d2 = pid2;
+            p.pid1 = pid1;
+            p.pid2 = pid2;
 
             db_clientdesc->db_packet(HEADER_GD_WEDDING_END, 0, &p, sizeof(p));
         }

@@ -9,7 +9,7 @@
 namespace metin2::db::inline clients {
 
     void client_manager::query_party_create(peer *peer, packet_party_create *p) {
-        party_map &pm = map_pk_channel_party_[peer->channel()];
+        party_map &pm = map_channel_party_[peer->channel()];
 
         if (pm.find(p->leader_pid) == pm.end()) {
             pm.insert(make_pair(p->leader_pid, party_member()));
@@ -21,7 +21,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::query_party_delete(peer *peer, packet_party_delete *p) {
-        party_map &pm = map_pk_channel_party_[peer->channel()];
+        party_map &pm = map_channel_party_[peer->channel()];
         auto it = pm.find(p->leader_pid);
 
         if (it == pm.end()) {
@@ -35,7 +35,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::query_party_add(peer *peer, packet_party_add *p) {
-        party_map &pm = map_pk_channel_party_[peer->channel()];
+        party_map &pm = map_channel_party_[peer->channel()];
         auto it = pm.find(p->leader_pid);
 
         if (it == pm.end()) {
@@ -52,7 +52,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::query_party_remove(peer *peer, packet_party_remove *p) {
-        party_map &pm = map_pk_channel_party_[peer->channel()];
+        party_map &pm = map_channel_party_[peer->channel()];
         auto it = pm.find(p->leader_pid);
 
         if (it == pm.end()) {
@@ -71,7 +71,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::query_party_state_change(peer *peer, packet_party_state_change *p) {
-        party_map &pm = map_pk_channel_party_[peer->channel()];
+        party_map &pm = map_channel_party_[peer->channel()];
         auto it = pm.find(p->leader_pid);
 
         if (it == pm.end()) {
@@ -96,7 +96,7 @@ namespace metin2::db::inline clients {
     }
 
     void client_manager::query_party_set_member_level(peer *peer, packet_party_set_member_level *p) {
-        party_map &pm = map_pk_channel_party_[peer->channel()];
+        party_map &pm = map_channel_party_[peer->channel()];
         auto it = pm.find(p->leader_pid);
 
         if (it == pm.end()) {

@@ -121,7 +121,7 @@ namespace metin2::game::inline admin {
 
         character *tch = character_manager::instance().find_pc(arg1);
         if (!tch) {
-            cci *pkCCI = p2_p_manager::instance().find(arg1);
+            cci *pkCCI = p2p_manager::instance().find(arg1);
 
             if (pkCCI) {
                 if (pkCCI->channel != metin2::config::server().channel) {
@@ -136,7 +136,7 @@ namespace metin2::game::inline admin {
                 pgg.x = ch->x();
                 pgg.y = ch->y();
 
-                p2_p_manager::instance().send(&pgg, sizeof(packet_gg_transfer));
+                p2p_manager::instance().send(&pgg, sizeof(packet_gg_transfer));
                 ch->chat_packet(CHAT_TYPE_INFO, "Transfer requested.");
             } else {
                 ch->chat_packet(CHAT_TYPE_INFO, "There is no character(%s) by that name", arg1);
@@ -322,7 +322,7 @@ namespace metin2::game::inline admin {
             character *tch = character_manager::instance().find_pc(arg1);
 
             if (nullptr == tch) {
-                const cci *pkCCI = p2_p_manager::instance().find(arg1);
+                const cci *pkCCI = p2p_manager::instance().find(arg1);
 
                 if (nullptr != pkCCI) {
                     if (pkCCI->channel != metin2::config::server().channel) {
@@ -982,7 +982,7 @@ namespace metin2::game::inline admin {
         buf.write(&p, sizeof(p));
         buf.write(buf_value, p.size);
 
-        p2_p_manager::instance().send(buf.read_peek(), buf.size());
+        p2p_manager::instance().send(buf.read_peek(), buf.size());
 
         send_notice(buf_value);
     }
@@ -997,7 +997,7 @@ namespace metin2::game::inline admin {
         buf.write(&p, sizeof(p));
         buf.write(buf_value, p.size);
 
-        p2_p_manager::instance().send(buf.read_peek(), buf.size());
+        p2p_manager::instance().send(buf.read_peek(), buf.size());
 
         send_monarch_notice(empire_value, buf_value);
     }
@@ -2164,7 +2164,7 @@ namespace metin2::game::inline admin {
         character *tch = character_manager::instance().find_pc(name);
 
         if (!tch) {
-            cci *pkCCI = p2_p_manager::instance().find(name);
+            cci *pkCCI = p2p_manager::instance().find(name);
 
             if (pkCCI) {
                 packet_gg_block_chat p;
@@ -2172,7 +2172,7 @@ namespace metin2::game::inline admin {
                 p.header = HEADER_GG_BLOCK_CHAT;
                 strlcpy(p.name, name, sizeof(p.name));
                 p.block_duration = lBlockDuration;
-                p2_p_manager::instance().send(&p, sizeof(packet_gg_block_chat));
+                p2p_manager::instance().send(&p, sizeof(packet_gg_block_chat));
             } else {
                 packet_block_chat p;
 
@@ -2223,7 +2223,7 @@ namespace metin2::game::inline admin {
         character *tch = character_manager::instance().find_pc(name);
 
         if (!tch) {
-            cci *pkCCI = p2_p_manager::instance().find(name);
+            cci *pkCCI = p2p_manager::instance().find(name);
 
             if (pkCCI) {
                 packet_gg_block_chat p;
@@ -2231,7 +2231,7 @@ namespace metin2::game::inline admin {
                 p.header = HEADER_GG_BLOCK_CHAT;
                 strlcpy(p.name, name, sizeof(p.name));
                 p.block_duration = lBlockDuration;
-                p2_p_manager::instance().send(&p, sizeof(packet_gg_block_chat));
+                p2p_manager::instance().send(&p, sizeof(packet_gg_block_chat));
             } else {
                 packet_block_chat p;
 
@@ -2900,7 +2900,7 @@ namespace metin2::game::inline admin {
         character *tch = character_manager::instance().find_pc(arg1);
 
         if (!tch) {
-            cci *pkCCI = p2_p_manager::instance().find(arg1);
+            cci *pkCCI = p2p_manager::instance().find(arg1);
 
             if (pkCCI) {
                 if (pkCCI->channel != metin2::config::server().channel) {
@@ -2991,7 +2991,7 @@ namespace metin2::game::inline admin {
         packet.empire = empire;
         packet.tower_count = tower_count;
 
-        p2_p_manager::instance().send(&packet, sizeof(packet_gg_siege));
+        p2p_manager::instance().send(&packet, sizeof(packet_gg_siege));
 
         switch (castle_siege(empire, tower_count)) {
         case 0:
@@ -3176,7 +3176,7 @@ namespace metin2::game::inline admin {
         character *tch = character_manager::instance().find_pc(szName);
 
         if (!tch) {
-            cci *pkCCI = p2_p_manager::instance().find(szName);
+            cci *pkCCI = p2p_manager::instance().find(szName);
 
             if (pkCCI) {
                 ch->chat_packet(CHAT_TYPE_INFO, "Cannot find player(%s). %s is not in your game server.", szName, szName);

@@ -452,7 +452,7 @@ namespace metin2::game::inline characters {
                         p.header = HEADER_GG_XMAS_WARP_SANTA;
                         p.channel = metin2::config::server().channel;
                         p.map_index = lNextMapIndex;
-                        p2_p_manager::instance().send(&p, sizeof(packet_gg_xmas_warp_santa));
+                        p2p_manager::instance().send(&p, sizeof(packet_gg_xmas_warp_santa));
                     }
                     return;
                 }

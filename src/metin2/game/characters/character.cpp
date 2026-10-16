@@ -452,7 +452,7 @@ namespace metin2::game::inline characters {
         safebox_.reset();
         mall_.reset();
 
-        set_pk_chr_spawned_by_.clear();
+        set_chr_spawned_by_.clear();
 
         stop_muyeong_event();
         event_cancel(&warp_npc_event);
@@ -1065,7 +1065,7 @@ namespace metin2::game::inline characters {
         packet_gg_logout p;
         p.header = HEADER_GG_LOGOUT;
         strlcpy(p.name, name(), sizeof(p.name));
-        p2_p_manager::instance().send(&p, sizeof(packet_gg_logout));
+        p2p_manager::instance().send(&p, sizeof(packet_gg_logout));
         char buf[51];
         snprintf(buf, sizeof(buf), "%s %d %d %d %d",
             get_desc()->host_name(), gold(), metin2::config::server().channel, map_index(), alignment());
@@ -1382,11 +1382,11 @@ namespace metin2::game::inline characters {
 
         if (is_pc()) {
             if (level < metin2::config::game().pk_protect_level)
-                set_pk_mode(PK_MODE_PROTECT);
+                set_mode(PK_MODE_PROTECT);
             else if (gm_level() != GM_PLAYER)
-                set_pk_mode(PK_MODE_PROTECT);
+                set_mode(PK_MODE_PROTECT);
             else if (pk_mode_ == PK_MODE_PROTECT)
-                set_pk_mode(PK_MODE_PEACE);
+                set_mode(PK_MODE_PEACE);
         }
     }
 
@@ -3423,7 +3423,7 @@ namespace metin2::game::inline characters {
 
         if (!ch) {
             if (remove_from_list && chr_sync_owner_) {
-                chr_sync_owner_->lst_pk_chr_sync_owned_.remove(this);
+                chr_sync_owner_->lst_chr_sync_owned_.remove(this);
             }
 
             if (chr_sync_owner_)
@@ -3446,11 +3446,11 @@ namespace metin2::game::inline characters {
             if (chr_sync_owner_ != ch) {
                 if (chr_sync_owner_) {
                     metin2::log::debug("{} ({}): sync released from {}", name(), static_cast<const void *>(this), chr_sync_owner_->name());
-                    chr_sync_owner_->lst_pk_chr_sync_owned_.remove(this);
+                    chr_sync_owner_->lst_chr_sync_owned_.remove(this);
                 }
 
                 chr_sync_owner_ = ch;
-                chr_sync_owner_->lst_pk_chr_sync_owned_.push_back(this);
+                chr_sync_owner_->lst_chr_sync_owned_.push_back(this);
 
                 static const timeval zero_tv = {0, 0};
                 set_last_sync_time(zero_tv);
@@ -3481,8 +3481,8 @@ namespace metin2::game::inline characters {
     void character::clear_sync() {
         set_sync_owner(nullptr);
 
-        std::for_each(lst_pk_chr_sync_owned_.begin(), lst_pk_chr_sync_owned_.end(), func_clear_sync());
-        lst_pk_chr_sync_owned_.clear();
+        std::for_each(lst_chr_sync_owned_.begin(), lst_chr_sync_owned_.end(), func_clear_sync());
+        lst_chr_sync_owned_.clear();
     }
 
     auto character::is_sync_owner(character *ch) const -> bool {
@@ -4102,8 +4102,8 @@ namespace metin2::game::inline characters {
         chr_stone_ = chr_stone;
 
         if (chr_stone_) {
-            if (chr_stone->set_pk_chr_spawned_by_.find(this) == chr_stone->set_pk_chr_spawned_by_.end())
-                chr_stone->set_pk_chr_spawned_by_.insert(this);
+            if (chr_stone->set_chr_spawned_by_.find(this) == chr_stone->set_chr_spawned_by_.end())
+                chr_stone->set_chr_spawned_by_.insert(this);
         }
     }
 
@@ -4115,22 +4115,22 @@ namespace metin2::game::inline characters {
     };
 
     void character::clear_stone() {
-        if (!set_pk_chr_spawned_by_.empty()) {
+        if (!set_chr_spawned_by_.empty()) {
             func_dead_spawned_by_stone f;
-            std::for_each(set_pk_chr_spawned_by_.begin(), set_pk_chr_spawned_by_.end(), f);
-            set_pk_chr_spawned_by_.clear();
+            std::for_each(set_chr_spawned_by_.begin(), set_chr_spawned_by_.end(), f);
+            set_chr_spawned_by_.clear();
         }
 
         if (!chr_stone_)
             return;
 
-        chr_stone_->set_pk_chr_spawned_by_.erase(this);
+        chr_stone_->set_chr_spawned_by_.erase(this);
         chr_stone_ = nullptr;
     }
 
     void character::clear_target() {
         if (chr_target_) {
-            chr_target_->set_pk_chr_targeted_by_.erase(this);
+            chr_target_->set_chr_targeted_by_.erase(this);
             chr_target_ = nullptr;
         }
 
@@ -4140,9 +4140,9 @@ namespace metin2::game::inline characters {
         p.vid = 0;
         p.hp_percent = 0;
 
-        character_set::iterator it = set_pk_chr_targeted_by_.begin();
+        character_set::iterator it = set_chr_targeted_by_.begin();
 
-        while (it != set_pk_chr_targeted_by_.end()) {
+        while (it != set_chr_targeted_by_.end()) {
             character *pkChr = *(it++);
             pkChr->chr_target_ = nullptr;
 
@@ -4154,7 +4154,7 @@ namespace metin2::game::inline characters {
             pkChr->get_desc()->packet(&p, sizeof(packet_gc_target));
         }
 
-        set_pk_chr_targeted_by_.clear();
+        set_chr_targeted_by_.clear();
     }
 
     void character::set_target(character *chr_target) {
@@ -4165,7 +4165,7 @@ namespace metin2::game::inline characters {
             return;
 
         if (chr_target_)
-            chr_target_->set_pk_chr_targeted_by_.erase(this);
+            chr_target_->set_chr_targeted_by_.erase(this);
 
         chr_target_ = chr_target;
 
@@ -4174,7 +4174,7 @@ namespace metin2::game::inline characters {
         p.header = HEADER_GC_TARGET;
 
         if (chr_target_) {
-            chr_target_->set_pk_chr_targeted_by_.insert(this);
+            chr_target_->set_chr_targeted_by_.insert(this);
 
             p.vid = chr_target_->get_vid();
 
@@ -4214,7 +4214,7 @@ namespace metin2::game::inline characters {
     }
 
     void character::broadcast_target_packet() {
-        if (set_pk_chr_targeted_by_.empty())
+        if (set_chr_targeted_by_.empty())
             return;
 
         packet_gc_target p;
@@ -4227,9 +4227,9 @@ namespace metin2::game::inline characters {
         else
             p.hp_percent = std::clamp((hp() * 100) / max_hp(), 0, 100);
 
-        character_set::iterator it = set_pk_chr_targeted_by_.begin();
+        character_set::iterator it = set_chr_targeted_by_.begin();
 
-        while (it != set_pk_chr_targeted_by_.end()) {
+        while (it != set_chr_targeted_by_.end()) {
             character *pkChr = *it++;
 
             if (!pkChr->get_desc()) {
@@ -4365,7 +4365,7 @@ namespace metin2::game::inline characters {
             p.map_index = sectree_manager::instance().map_index(x(), y());
             p.channel = metin2::config::server().channel;
 
-            p2_p_manager::instance().send(&p, sizeof(packet_gg_login));
+            p2p_manager::instance().send(&p, sizeof(packet_gg_login));
         }
     }
 
@@ -5393,7 +5393,7 @@ namespace metin2::game::inline characters {
                 return false;
             }
         } else {
-            cci *pcci = p2_p_manager::instance().find_by_pid(pid);
+            cci *pcci = p2p_manager::instance().find_by_pid(pid);
 
             if (!pcci) {
                 chat_packet(CHAT_TYPE_INFO, lc_text("상대방이 온라인 상태가 아닙니다."));

@@ -99,14 +99,14 @@ namespace metin2::db::inline guilds {
     }
 
     auto guild_manager::touch_guild(uint32_t gid) -> guild & {
-        auto it = map_k_guild_.find(gid);
+        auto it = map_guild_.find(gid);
 
-        if (it != map_k_guild_.end())
+        if (it != map_guild_.end())
             return it->second;
 
         guild info;
-        map_k_guild_.insert(std::map<uint32_t, guild>::value_type(gid, info));
-        return map_k_guild_[gid];
+        map_guild_.insert(std::map<uint32_t, guild>::value_type(gid, info));
+        return map_guild_[gid];
     }
 
     void guild_manager::parse_result(sql_result *res) {
@@ -143,21 +143,16 @@ namespace metin2::db::inline guilds {
         if (pmsg->get()->num_rows)
             parse_result(pmsg->get());
 
-        std::string power = metin2::config::db().guild_war_power;
-        const char *str = power.c_str();
-
-        if (!poly_power_.analyze(str))
-            metin2::log::error("Guild war: invalid power formula: {}", str);
-        else
-            metin2::log::info("Guild war: power formula {}", str);
-
-        std::string handicap = metin2::config::db().guild_war_handicap;
-        str = handicap.c_str();
-
-        if (!poly_handicap_.analyze(str))
-            metin2::log::error("Guild war: invalid handicap formula: {}", str);
-        else
-            metin2::log::info("Guild war: handicap formula {}", str);
+        const auto load_formula = [](poly::expression &formula, const std::string &text, std::string_view what) {
+            if (text.empty())
+                metin2::log::info("Guild war: no {} formula set, it evaluates to 0", what);
+            else if (!formula.analyze(text.c_str()))
+                metin2::log::error("Guild war: invalid {} formula: {}", what, text);
+            else
+                metin2::log::info("Guild war: {} formula {}", what, text);
+        };
+        load_formula(poly_power_, metin2::config::db().guild_war_power, "power");
+        load_formula(poly_handicap_, metin2::config::db().guild_war_handicap, "handicap");
 
         query_ranking();
     }
@@ -180,9 +175,9 @@ namespace metin2::db::inline guilds {
     }
 
     auto guild_manager::ranking(uint32_t gid) -> int {
-        auto it = map_k_ladder_point_ranking_by_gid_.find(gid);
+        auto it = map_ladder_point_ranking_by_gid_.find(gid);
 
-        if (it == map_k_ladder_point_ranking_by_gid_.end())
+        if (it == map_ladder_point_ranking_by_gid_.end())
             return GUILD_RANK_MAX_NUM;
 
         return std::clamp(it->second, 0, GUILD_RANK_MAX_NUM);
@@ -195,7 +190,7 @@ namespace metin2::db::inline guilds {
         int iLastLadderPoint = -1;
         int iRank = 0;
 
-        map_k_ladder_point_ranking_by_gid_.clear();
+        map_ladder_point_ranking_by_gid_.clear();
 
         MYSQL_ROW row;
 
@@ -210,7 +205,7 @@ namespace metin2::db::inline guilds {
 
             metin2::log::debug("Guild rank: {} rank {:d}, ladder {:d}", row[1], iRank, iLadderPoint);
 
-            map_k_ladder_point_ranking_by_gid_.insert(std::make_pair(dwGID, iRank));
+            map_ladder_point_ranking_by_gid_.insert(std::make_pair(dwGID, iRank));
         }
     }
 
@@ -281,15 +276,15 @@ namespace metin2::db::inline guilds {
             f_send_peer_war(declare.type, GUILD_WAR_SEND_DECLARE, declare.guild_id[0], declare.guild_id[1])(peer);
         }
 
-        for (const auto &[id, reserve] : map_k_war_reserve_) {
+        for (const auto &[id, reserve] : map_war_reserve_) {
             reserve->on_setup(peer);
         }
     }
 
     void guild_manager::guild_war_win(uint32_t gid) {
-        auto it = map_k_guild_.find(gid);
+        auto it = map_guild_.find(gid);
 
-        if (it == map_k_guild_.end())
+        if (it == map_guild_.end())
             return;
 
         ++it->second.win;
@@ -300,9 +295,9 @@ namespace metin2::db::inline guilds {
     }
 
     void guild_manager::guild_war_lose(uint32_t gid) {
-        auto it = map_k_guild_.find(gid);
+        auto it = map_guild_.find(gid);
 
-        if (it == map_k_guild_.end())
+        if (it == map_guild_.end())
             return;
 
         ++it->second.loss;
@@ -313,9 +308,9 @@ namespace metin2::db::inline guilds {
     }
 
     void guild_manager::guild_war_draw(uint32_t gid) {
-        auto it = map_k_guild_.find(gid);
+        auto it = map_guild_.find(gid);
 
-        if (it == map_k_guild_.end())
+        if (it == map_guild_.end())
             return;
 
         ++it->second.draw;
@@ -571,10 +566,10 @@ namespace metin2::db::inline guilds {
     }
 
     auto guild_manager::take_bet_price(uint32_t guild_to, uint32_t guild_from, int32_t war_price) -> bool {
-        auto it_from = map_k_guild_.find(guild_from);
-        auto it_to = map_k_guild_.find(guild_to);
+        auto it_from = map_guild_.find(guild_from);
+        auto it_to = map_guild_.find(guild_to);
 
-        if (it_from == map_k_guild_.end() || it_to == map_k_guild_.end()) {
+        if (it_from == map_guild_.end() || it_to == map_guild_.end()) {
             metin2::log::warn("Guild war: cannot take war price, guild {:d} or guild {:d} not found",
                 guild_from, guild_to);
             return false;
@@ -595,18 +590,18 @@ namespace metin2::db::inline guilds {
     }
 
     auto guild_manager::ladder_point(uint32_t gid) -> int {
-        auto it = map_k_guild_.find(gid);
+        auto it = map_guild_.find(gid);
 
-        if (it == map_k_guild_.end())
+        if (it == map_guild_.end())
             return 0;
 
         return it->second.ladder_point;
     }
 
     void guild_manager::change_ladder_point(uint32_t gid, int change) {
-        auto it = map_k_guild_.find(gid);
+        auto it = map_guild_.find(gid);
 
-        if (it == map_k_guild_.end())
+        if (it == map_guild_.end())
             return;
 
         guild &r = it->second;
@@ -654,9 +649,9 @@ namespace metin2::db::inline guilds {
         if (gold_value <= 0)
             return;
 
-        auto it = map_k_guild_.find(guild);
+        auto it = map_guild_.find(guild);
 
-        if (it == map_k_guild_.end()) {
+        if (it == map_guild_.end()) {
             metin2::log::warn("Guild {:d} not found, cannot deposit gold", guild);
             return;
         }
@@ -668,9 +663,9 @@ namespace metin2::db::inline guilds {
     }
 
     void guild_manager::withdraw_money(peer *peer, uint32_t guild_value, int32_t gold_value) {
-        auto it = map_k_guild_.find(guild_value);
+        auto it = map_guild_.find(guild_value);
 
-        if (it == map_k_guild_.end()) {
+        if (it == map_guild_.end()) {
             metin2::log::warn("Guild {:d} not found, cannot withdraw gold", guild_value);
             return;
         }
@@ -689,9 +684,9 @@ namespace metin2::db::inline guilds {
     }
 
     void guild_manager::withdraw_money_reply(uint32_t guild, uint8_t give_success, int32_t gold_value) {
-        auto it = map_k_guild_.find(guild);
+        auto it = map_guild_.find(guild);
 
-        if (it == map_k_guild_.end())
+        if (it == map_guild_.end())
             return;
 
         metin2::log::info("Guild {:d}: withdrawal reply, success {:d}, gold {:d}", guild, give_success, gold_value);
@@ -797,7 +792,7 @@ namespace metin2::db::inline guilds {
                     pkReserve->draw();
                 } else {
                     metin2::log::info("{}: restored", buf);
-                    map_k_war_reserve_.insert(std::make_pair(t.id, std::move(pkReserve)));
+                    map_war_reserve_.insert(std::make_pair(t.id, std::move(pkReserve)));
                 }
             }
         }
@@ -915,7 +910,7 @@ namespace metin2::db::inline guilds {
 
         t.id = pmsg->get()->insert_id;
 
-        map_k_war_reserve_.insert(std::make_pair(t.id, std::make_unique<guild_war_reservation>(t)));
+        map_war_reserve_.insert(std::make_pair(t.id, std::make_unique<guild_war_reservation>(t)));
 
         client_manager::instance().forward_packet(HEADER_DG_GUILD_WAR_RESERVE_ADD, &t, sizeof(guild_war_reserve));
         return true;
@@ -924,9 +919,9 @@ namespace metin2::db::inline guilds {
     void guild_manager::process_reserve_war() {
         uint32_t dwCurTime = client_manager::instance().current_time();
 
-        auto it = map_k_war_reserve_.begin();
+        auto it = map_war_reserve_.begin();
 
-        while (it != map_k_war_reserve_.end()) {
+        while (it != map_war_reserve_.end()) {
             auto it2 = it++;
 
             guild_war_reservation *pk = it2->second.get();
@@ -969,9 +964,9 @@ namespace metin2::db::inline guilds {
     }
 
     auto guild_manager::bet(uint32_t id, const char *login, uint32_t gold, uint32_t guild) -> bool {
-        auto it = map_k_war_reserve_.find(id);
+        auto it = map_war_reserve_.find(id);
 
-        if (it == map_k_war_reserve_.end()) {
+        if (it == map_war_reserve_.end()) {
             metin2::log::warn("Guild war bet: reserved war {:d} not found, refunding", id);
             const std::string query = sql::format("INSERT INTO item_award (login, vnum, socket0, given_time) VALUES({}, {}, {}, NOW())",
                 login, ITEM_ELK_VNUM, gold);
@@ -996,9 +991,9 @@ namespace metin2::db::inline guilds {
     }
 
     auto guild_manager::change_master(uint32_t gid, uint32_t from, uint32_t to) -> bool {
-        auto iter = map_k_guild_.find(gid);
+        auto iter = map_guild_.find(gid);
 
-        if (iter == map_k_guild_.end())
+        if (iter == map_guild_.end())
             return false;
 
         char szQuery[1024];

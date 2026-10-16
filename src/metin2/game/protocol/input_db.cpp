@@ -332,7 +332,7 @@ namespace metin2::game::inline protocol {
             p.map_index = sectree_manager::instance().map_index(ch->x(), ch->y());
             p.channel = metin2::config::server().channel;
 
-            p2_p_manager::instance().send(&p, sizeof(packet_gg_login));
+            p2p_manager::instance().send(&p, sizeof(packet_gg_login));
 
             char buf[51];
             snprintf(buf, sizeof(buf), "%s %d %d %d %d",
@@ -1012,7 +1012,7 @@ namespace metin2::game::inline protocol {
                 pgg.header = HEADER_GG_DISCONNECT;
                 strlcpy(pgg.login, p->login, sizeof(pgg.login));
 
-                p2_p_manager::instance().send(&pgg, sizeof(packet_gg_disconnect));
+                p2p_manager::instance().send(&pgg, sizeof(packet_gg_disconnect));
             }
         }
 
@@ -1063,18 +1063,18 @@ namespace metin2::game::inline protocol {
         }
     }
 
-    void input_db::p2_p(const char *data) {
+    void input_db::p2p(const char *data) {
 
-        packet_dg_p2_p *p = (packet_dg_p2_p *)data;
+        packet_dg_p2p *p = (packet_dg_p2p *)data;
 
-        p2_p_manager &mgr = p2_p_manager::instance();
+        p2p_manager &mgr = p2p_manager::instance();
 
-        if (false == desc_manager::instance().is_p2_p_desc_exist(p->host, p->port)) {
+        if (false == desc_manager::instance().is_p2p_desc_exist(p->host, p->port)) {
             client_desc *pkDesc = nullptr;
             metin2::log::info("Connecting to peer {}:{:d}", p->host, p->port);
             pkDesc = desc_manager::instance().create_connection_desc(p->host, p->port, PHASE_P2P, false);
             mgr.register_connector(pkDesc);
-            pkDesc->set_p2_p(p->host, p->port);
+            pkDesc->set_p2p(p->host, p->port);
         }
     }
 
@@ -1179,7 +1179,7 @@ namespace metin2::game::inline protocol {
         guild *g = guild_manager::instance().touch_guild(p->guild);
 
         if (g)
-            g->p2_p_change_grade((uint8_t)p->info);
+            g->p2p_change_grade((uint8_t)p->info);
     }
 
     void input_db::guild_change_member_data(const char *data) {
@@ -1311,27 +1311,27 @@ namespace metin2::game::inline protocol {
 
     void input_db::party_create(const char *data) {
         packet_party_create *p = (packet_party_create *)data;
-        party_manager::instance().p2_p_create_party(p->leader_pid);
+        party_manager::instance().p2p_create_party(p->leader_pid);
     }
 
     void input_db::party_delete(const char *data) {
         packet_party_delete *p = (packet_party_delete *)data;
-        party_manager::instance().p2_p_delete_party(p->leader_pid);
+        party_manager::instance().p2p_delete_party(p->leader_pid);
     }
 
     void input_db::party_add(const char *data) {
         packet_party_add *p = (packet_party_add *)data;
-        party_manager::instance().p2_p_join_party(p->leader_pid, p->pid, p->state);
+        party_manager::instance().p2p_join_party(p->leader_pid, p->pid, p->state);
     }
 
     void input_db::party_remove(const char *data) {
         packet_party_remove *p = (packet_party_remove *)data;
-        party_manager::instance().p2_p_quit_party(p->pid);
+        party_manager::instance().p2p_quit_party(p->pid);
     }
 
     void input_db::party_state_change(const char *data) {
         packet_party_state_change *p = (packet_party_state_change *)data;
-        party *pParty = party_manager::instance().p2_p_create_party(p->leader_pid);
+        party *pParty = party_manager::instance().p2p_create_party(p->leader_pid);
 
         if (!pParty)
             return;
@@ -1341,12 +1341,12 @@ namespace metin2::game::inline protocol {
 
     void input_db::party_set_member_level(const char *data) {
         packet_party_set_member_level *p = (packet_party_set_member_level *)data;
-        party *pParty = party_manager::instance().p2_p_create_party(p->leader_pid);
+        party *pParty = party_manager::instance().p2p_create_party(p->leader_pid);
 
         if (!pParty)
             return;
 
-        pParty->p2_p_set_member_level(p->pid, p->level);
+        pParty->p2p_set_member_level(p->pid, p->level);
     }
 
     void input_db::time(const char *data) {
@@ -1510,37 +1510,37 @@ namespace metin2::game::inline protocol {
     }
 
     void input_db::marriage_add(packet_marriage_add *p) {
-        metin2::log::info("Marriage: pid {:d} and {:d} married at {:d} ({} and {})", p->pi_d1, p->pi_d2, (uint32_t)p->t_marry_time, p->name1, p->name2);
-        marriage::manager::instance().add(p->pi_d1, p->pi_d2, p->t_marry_time, p->name1, p->name2);
+        metin2::log::info("Marriage: pid {:d} and {:d} married at {:d} ({} and {})", p->pid1, p->pid2, (uint32_t)p->t_marry_time, p->name1, p->name2);
+        marriage::manager::instance().add(p->pid1, p->pid2, p->t_marry_time, p->name1, p->name2);
     }
 
     void input_db::marriage_update(packet_marriage_update *p) {
-        metin2::log::debug("Marriage: pid {:d} and {:d}, love points {:d}, married {:d}", p->pi_d1, p->pi_d2, p->love_point, p->married);
-        marriage::manager::instance().update(p->pi_d1, p->pi_d2, p->love_point, p->married);
+        metin2::log::debug("Marriage: pid {:d} and {:d}, love points {:d}, married {:d}", p->pid1, p->pid2, p->love_point, p->married);
+        marriage::manager::instance().update(p->pid1, p->pid2, p->love_point, p->married);
     }
 
     void input_db::marriage_remove(packet_marriage_remove *p) {
-        metin2::log::info("Marriage: pid {:d} and {:d} divorced", p->pi_d1, p->pi_d2);
-        marriage::manager::instance().remove(p->pi_d1, p->pi_d2);
+        metin2::log::info("Marriage: pid {:d} and {:d} divorced", p->pid1, p->pid2);
+        marriage::manager::instance().remove(p->pid1, p->pid2);
     }
 
     void input_db::wedding_request(packet_wedding_request *p) {
-        marriage::wedding_manager::instance().request(p->pi_d1, p->pi_d2);
+        marriage::wedding_manager::instance().request(p->pid1, p->pid2);
     }
 
     void input_db::wedding_ready(packet_wedding_ready *p) {
-        metin2::log::info("Wedding: pid {:d} and {:d} ready on map {:d}", p->pi_d1, p->pi_d2, p->map_index);
-        marriage::manager::instance().wedding_ready(p->pi_d1, p->pi_d2, p->map_index);
+        metin2::log::info("Wedding: pid {:d} and {:d} ready on map {:d}", p->pid1, p->pid2, p->map_index);
+        marriage::manager::instance().wedding_ready(p->pid1, p->pid2, p->map_index);
     }
 
     void input_db::wedding_start(packet_wedding_start *p) {
-        metin2::log::info("Wedding: pid {:d} and {:d} started", p->pi_d1, p->pi_d2);
-        marriage::manager::instance().wedding_start(p->pi_d1, p->pi_d2);
+        metin2::log::info("Wedding: pid {:d} and {:d} started", p->pid1, p->pid2);
+        marriage::manager::instance().wedding_start(p->pid1, p->pid2);
     }
 
     void input_db::wedding_end(packet_wedding_end *p) {
-        metin2::log::info("Wedding: pid {:d} and {:d} ended", p->pi_d1, p->pi_d2);
-        marriage::manager::instance().wedding_end(p->pi_d1, p->pi_d2);
+        metin2::log::info("Wedding: pid {:d} and {:d} ended", p->pid1, p->pid2);
+        marriage::manager::instance().wedding_end(p->pid1, p->pid2);
     }
 
     void input_db::myshop_pricelist_res(desc *d, const packet_myshop_pricelist_header *p) {
@@ -1673,7 +1673,7 @@ namespace metin2::game::inline protocol {
             break;
 
         case HEADER_DG_P2P:
-            p2_p(data);
+            p2p(data);
             break;
 
         case HEADER_DG_GUILD_SKILL_UPDATE:
@@ -1909,7 +1909,7 @@ namespace metin2::game::inline protocol {
         return 0;
     }
 
-    auto input_db::process(desc *d, const void *orig, int bytes, int &r_i_bytes_proceed) -> bool {
+    auto input_db::process(desc *d, const void *orig, int bytes, int &bytes_processed) -> bool {
         const char *c_pData = (const char *)orig;
         uint8_t bHeader, bLastHeader = 0;
         int iSize;
@@ -1937,7 +1937,7 @@ namespace metin2::game::inline protocol {
 
             c_pData += 9 + iSize;
             buffer_left_ -= 9 + iSize;
-            r_i_bytes_proceed += 9 + iSize;
+            bytes_processed += 9 + iSize;
 
             iLastPacketLen = 9 + iSize;
             bLastHeader = bHeader;

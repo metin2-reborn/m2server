@@ -205,7 +205,7 @@ namespace metin2::game {
             qi->order = (int)lua_tonumber(lua, 3);
 
             db_manager::instance().return_query(QID_HIGHSCORE_REGISTER, qi->pid, qi, sql::format("SELECT value FROM highscore{} WHERE board={} AND pid={}", sql::raw(get_table_postfix()), qi->board, qi->pid));
-            return 1;
+            return 0;
         }
 
         auto member_chat(lua_State *lua) -> int {

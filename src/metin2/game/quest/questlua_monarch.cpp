@@ -380,7 +380,7 @@ namespace metin2::game {
             character *tch = character_manager::instance().find_pc(name.c_str());
 
             if (!tch) {
-                cci *pkCCI = p2_p_manager::instance().find(name.c_str());
+                cci *pkCCI = p2p_manager::instance().find(name.c_str());
 
                 if (pkCCI) {
                     if (pkCCI->empire != ch->empire()) {
@@ -502,7 +502,7 @@ namespace metin2::game {
             character *tch = character_manager::instance().find_pc(name.c_str());
 
             if (!tch) {
-                cci *pkCCI = p2_p_manager::instance().find(name.c_str());
+                cci *pkCCI = p2p_manager::instance().find(name.c_str());
 
                 if (pkCCI) {
                     if (pkCCI->empire != ch->empire()) {
@@ -531,7 +531,7 @@ namespace metin2::game {
                     pgg.x = ch->x();
                     pgg.y = ch->y();
 
-                    p2_p_manager::instance().send(&pgg, sizeof(packet_gg_transfer));
+                    p2p_manager::instance().send(&pgg, sizeof(packet_gg_transfer));
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님을 소환하였습니다."), name.c_str());
 
                     monarch::instance().sendto_db_dec_money(WarpPrice, ch->empire(), ch);
@@ -657,7 +657,7 @@ namespace metin2::game {
             character *pTargetChar = character_manager::instance().find_pc(strTargetName.c_str());
 
             if (pTargetChar == nullptr) {
-                cci *pCCI = p2_p_manager::instance().find(strTargetName.c_str());
+                cci *pCCI = p2p_manager::instance().find(strTargetName.c_str());
 
                 if (pCCI != nullptr) {
                     if (pCCI->empire != ch->empire()) {
@@ -686,7 +686,7 @@ namespace metin2::game {
                     packet.x = ch->x();
                     packet.y = ch->y();
 
-                    p2_p_manager::instance().send(&packet, sizeof(packet_monarch_gg_transfer));
+                    p2p_manager::instance().send(&packet, sizeof(packet_monarch_gg_transfer));
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("소환 요청을 보냈습니다"));
 
                     monarch::instance().sendto_db_dec_money(ciTransferCost, ch->empire(), ch);

@@ -2,6 +2,8 @@
 #include <metin2/game/app/event.h>
 #include <metin2/game/quest/quest.h>
 
+#include <string>
+
 namespace metin2::game {
 
     namespace quest {
@@ -9,10 +11,10 @@ namespace metin2::game {
             int time_cycle;
             unsigned int npc_id;
             unsigned int arg;
-            char *name;
+            std::string name;
 
             quest_server_event_info()
-                : time_cycle(0), npc_id(0), arg(0), name(nullptr) {
+                : time_cycle(0), npc_id(0), arg(0) {
             }
         };
 
@@ -20,10 +22,10 @@ namespace metin2::game {
             int time_cycle;
             unsigned int player_id;
             unsigned int npc_id;
-            char *name;
+            std::string name;
 
             quest_event_info()
-                : time_cycle(0), player_id(0), npc_id(0), name(nullptr) {
+                : time_cycle(0), player_id(0), npc_id(0) {
             }
         };
 

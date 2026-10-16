@@ -59,8 +59,8 @@ namespace metin2::game::inline social {
                                                                                      is_dark_(false),
                                                                                      is_snow_(false),
                                                                                      is_music_(false),
-                                                                                     pi_d1_(pid1),
-                                                                                     pi_d2_(pid2) {
+                                                                                     pid1_(pid1),
+                                                                                     pid2_(pid2) {
         }
 
         wedding_map::~wedding_map() {
@@ -82,9 +82,9 @@ namespace metin2::game::inline social {
             notice(lc_text("결혼식이 종료됩니다."));
             notice(lc_text("자동으로 나가게됩니다."));
 
-            for (auto it = set_pk_chr_.begin(); it != set_pk_chr_.end(); ++it) {
+            for (auto it = set_chr_.begin(); it != set_chr_.end(); ++it) {
                 character *ch = *it;
-                if (ch->player_id() == pi_d1_ || ch->player_id() == pi_d2_)
+                if (ch->player_id() == pid1_ || ch->player_id() == pid2_)
                     continue;
 
                 if (ch->level() < 10)
@@ -107,7 +107,7 @@ namespace metin2::game::inline social {
 
         void wedding_map::notice(const char *psz) {
             f_notice f(psz);
-            std::for_each(set_pk_chr_.begin(), set_pk_chr_.end(), f);
+            std::for_each(set_chr_.begin(), set_chr_.end(), f);
         }
 
         struct f_warp_everyone {
@@ -120,7 +120,7 @@ namespace metin2::game::inline social {
 
         void wedding_map::warp_all() {
             f_warp_everyone f;
-            std::for_each(set_pk_chr_.begin(), set_pk_chr_.end(), f);
+            std::for_each(set_chr_.begin(), set_chr_.end(), f);
         }
 
         struct f_destroy_everyone {
@@ -135,11 +135,11 @@ namespace metin2::game::inline social {
         };
 
         void wedding_map::destroy_all() {
-            metin2::log::info("Wedding map: removing {:d} characters", set_pk_chr_.size());
+            metin2::log::info("Wedding map: removing {:d} characters", set_chr_.size());
 
             f_destroy_everyone f;
 
-            for (charset_t::iterator it = set_pk_chr_.begin(); it != set_pk_chr_.end(); it = set_pk_chr_.begin())
+            for (charset_t::iterator it = set_chr_.begin(); it != set_chr_.end(); it = set_chr_.begin())
                 f(*it);
         }
 
@@ -147,7 +147,7 @@ namespace metin2::game::inline social {
             if (is_member(ch) == true)
                 return;
 
-            set_pk_chr_.insert(ch);
+            set_chr_.insert(ch);
 
             send_local_event(ch);
 
@@ -160,7 +160,7 @@ namespace metin2::game::inline social {
             if (is_member(ch) == false)
                 return;
 
-            set_pk_chr_.erase(ch);
+            set_chr_.erase(ch);
 
             if (ch->level() < 10) {
                 ch->set_observer_mode(false);
@@ -168,14 +168,14 @@ namespace metin2::game::inline social {
         }
 
         auto wedding_map::is_member(character *ch) -> bool {
-            if (set_pk_chr_.size() <= 0)
+            if (set_chr_.size() <= 0)
                 return false;
 
-            return set_pk_chr_.find(ch) != set_pk_chr_.end();
+            return set_chr_.find(ch) != set_chr_.end();
         }
 
         void wedding_map::shout_in_map(uint8_t type, const char *msg) {
-            for (auto it = set_pk_chr_.begin(); it != set_pk_chr_.end(); ++it) {
+            for (auto it = set_chr_.begin(); it != set_chr_.end(); ++it) {
                 character *ch = *it;
                 ch->chat_packet(CHAT_TYPE_COMMAND, msg);
             }
@@ -319,8 +319,8 @@ namespace metin2::game::inline social {
                 }
 
                 packet_wedding_ready p;
-                p.pi_d1 = pid1;
-                p.pi_d2 = pid2;
+                p.pid1 = pid1;
+                p.pid2 = pid2;
                 p.map_index = dwMapIndex;
 
                 db_clientdesc->db_packet(HEADER_GD_WEDDING_READY, 0, &p, sizeof(p));

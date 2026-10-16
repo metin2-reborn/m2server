@@ -17,7 +17,7 @@ namespace metin2::game::inline characters {
     const int HORSE_STAMINA_CONSUME_INTERVAL = 6 * 60;
     const int HORSE_STAMINA_REGEN_INTERVAL = 12 * 60;
 
-    horse_stat c_a_horse_stat[HORSE_MAX_LEVEL + 1] =
+    horse_stat horse_stats[HORSE_MAX_LEVEL + 1] =
         {
             {0,  0,     1,  1,   0,  0,  0,  0,  0,  0,  0,   0 },
             {25, 20101, 3,  4,   26, 35, 18, 9,  54, 43, 64,  32},
@@ -96,8 +96,8 @@ namespace metin2::game::inline characters {
 
         int level = horse_level();
 
-        horse_.s_health = c_a_horse_stat[level].max_health;
-        horse_.s_stamina = c_a_horse_stat[level].max_stamina;
+        horse_.s_health = horse_stats[level].max_health;
+        horse_.s_stamina = horse_stats[level].max_stamina;
 
         reset_horse_health_drop_time();
 
@@ -107,12 +107,12 @@ namespace metin2::game::inline characters {
 
     auto horse_rider::horse_max_health() -> short {
         int level = horse_level();
-        return c_a_horse_stat[level].max_health;
+        return horse_stats[level].max_health;
     }
 
     auto horse_rider::horse_max_stamina() -> short {
         int level = horse_level();
-        return c_a_horse_stat[level].max_stamina;
+        return horse_stats[level].max_stamina;
     }
 
     void horse_rider::feed_horse() {
@@ -137,7 +137,7 @@ namespace metin2::game::inline characters {
     void horse_rider::update_horse_stamina(int stamina, bool send) {
         int level = horse_level();
 
-        horse_.s_stamina = std::clamp(horse_.s_stamina + stamina, 0, c_a_horse_stat[level].max_stamina);
+        horse_.s_stamina = std::clamp(horse_.s_stamina + stamina, 0, horse_stats[level].max_stamina);
 
         if (horse_stamina() == 0 && is_horse_riding()) {
             stop_riding();
@@ -297,7 +297,7 @@ namespace metin2::game::inline characters {
     void horse_rider::update_horse_health(int health, bool send) {
         int level = horse_level();
 
-        horse_.s_health = std::clamp(horse_.s_health + health, 0, c_a_horse_stat[level].max_health);
+        horse_.s_health = std::clamp(horse_.s_health + health, 0, horse_stats[level].max_health);
 
         if (level && horse_.s_health == 0)
             horse_die();
@@ -316,8 +316,8 @@ namespace metin2::game::inline characters {
     void horse_rider::set_horse_level(int level_value) {
         horse_.level = level_value = std::clamp(level_value, 0, HORSE_MAX_LEVEL);
 
-        horse_.s_stamina = c_a_horse_stat[level_value].max_stamina;
-        horse_.s_health = c_a_horse_stat[level_value].max_health;
+        horse_.s_stamina = horse_stats[level_value].max_stamina;
+        horse_.s_health = horse_stats[level_value].max_health;
         horse_.horse_health_drop_time = 0;
 
         reset_horse_health_drop_time();

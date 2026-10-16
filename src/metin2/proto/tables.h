@@ -656,7 +656,7 @@ namespace metin2::inline proto {
         char public_ip[16];
         uint8_t channel;
         uint16_t listen_port;
-        uint16_t p2_p_port;
+        uint16_t p2p_port;
         int32_t maps[MAX_MAPS_PER_SERVER];
         uint32_t login_count;
         uint8_t auth_server;
@@ -668,7 +668,7 @@ namespace metin2::inline proto {
         uint16_t port;
     };
 
-    struct packet_dg_p2_p {
+    struct packet_dg_p2p {
         char host[MAX_HOST_LENGTH + 1];
         uint16_t port;
         uint8_t channel;
@@ -992,44 +992,44 @@ namespace metin2::inline proto {
     };
 
     struct packet_marriage_add {
-        uint32_t pi_d1;
-        uint32_t pi_d2;
+        uint32_t pid1;
+        uint32_t pid2;
         int32_t t_marry_time;
         char name1[CHARACTER_NAME_MAX_LEN + 1];
         char name2[CHARACTER_NAME_MAX_LEN + 1];
     };
 
     struct packet_marriage_update {
-        uint32_t pi_d1;
-        uint32_t pi_d2;
+        uint32_t pid1;
+        uint32_t pid2;
         int32_t love_point;
         uint8_t married;
     };
 
     struct packet_marriage_remove {
-        uint32_t pi_d1;
-        uint32_t pi_d2;
+        uint32_t pid1;
+        uint32_t pid2;
     };
 
     struct packet_wedding_request {
-        uint32_t pi_d1;
-        uint32_t pi_d2;
+        uint32_t pid1;
+        uint32_t pid2;
     };
 
     struct packet_wedding_ready {
-        uint32_t pi_d1;
-        uint32_t pi_d2;
+        uint32_t pid1;
+        uint32_t pid2;
         uint32_t map_index;
     };
 
     struct packet_wedding_start {
-        uint32_t pi_d1;
-        uint32_t pi_d2;
+        uint32_t pid1;
+        uint32_t pid2;
     };
 
     struct packet_wedding_end {
-        uint32_t pi_d1;
-        uint32_t pi_d2;
+        uint32_t pid1;
+        uint32_t pid2;
     };
 
     struct packet_myshop_pricelist_header {

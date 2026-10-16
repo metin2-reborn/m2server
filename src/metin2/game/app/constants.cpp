@@ -1105,7 +1105,7 @@ namespace metin2::game::inline app {
             100,
     };
 
-    guild_war_info kor_a_guild_war_info[GUILD_WAR_TYPE_MAX_NUM] =
+    guild_war_info guild_war_types[GUILD_WAR_TYPE_MAX_NUM] =
         {
             {0,   0, 0,   0,  0, 0  },
             {110, 0, 100, 50, 0, 100},

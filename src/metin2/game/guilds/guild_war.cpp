@@ -226,7 +226,7 @@ namespace metin2::game::inline guilds {
     }
 
     auto guild_war_get_type_info(unsigned type) -> const guild_war_info & {
-        return kor_a_guild_war_info[type];
+        return guild_war_types[type];
     }
 
     auto guild_war_get_type_map_index(unsigned type) -> unsigned {
@@ -455,7 +455,7 @@ namespace metin2::game::inline guilds {
         p.guild_id2 = id2;
         p.map_index = lMapIndex;
 
-        p2_p_manager::instance().send(&p, sizeof(p));
+        p2p_manager::instance().send(&p, sizeof(p));
 
         return true;
     }

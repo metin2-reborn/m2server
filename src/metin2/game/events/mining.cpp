@@ -157,7 +157,7 @@ namespace metin2::game::inline events {
                 return;
             }
 
-            item *item = item_manager::instance().create_item(dwRawOreVnum, get_fraction_count());
+            item *item = item_manager::instance().create_item(dwRawOreVnum, iFractionCount);
 
             if (!item) {
                 metin2::log::error("Cannot create raw ore item (vnum {:d})", dwRawOreVnum);

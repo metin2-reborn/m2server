@@ -71,7 +71,7 @@ namespace metin2::db::inline items {
 
             printf("ITEM_AWARD load id %u bMall %d \n", kData->id, kData->mall);
             metin2::log::debug("Item award: loaded award {:d} for account {}, vnum {:d}, count {:d}, socket {:d}", kData->id, kData->login, kData->vnum, kData->count, kData->socket0);
-            std::set<item_award *> &kSet = map_k_set_award_by_login_[kData->login];
+            std::set<item_award *> &kSet = map_set_award_by_login_[kData->login];
             kSet.insert(kData);
 
             if (dwID > last_cached_item_award_id)
@@ -80,9 +80,9 @@ namespace metin2::db::inline items {
     }
 
     auto item_award_manager::by_login(const char *login) -> std::set<item_award *> * {
-        auto it = map_k_set_award_by_login_.find(login);
+        auto it = map_set_award_by_login_.find(login);
 
-        if (it == map_k_set_award_by_login_.end())
+        if (it == map_set_award_by_login_.end())
             return nullptr;
 
         return &it->second;
@@ -113,6 +113,6 @@ namespace metin2::db::inline items {
     }
 
     auto item_award_manager::mapk_set_award_by_login() -> std::map<std::string, std::set<item_award *>> & {
-        return map_k_set_award_by_login_;
+        return map_set_award_by_login_;
     }
 }

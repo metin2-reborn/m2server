@@ -191,9 +191,9 @@ namespace metin2::game::inline characters {
     }
 
     auto motion_manager::get_motion_set(uint32_t vnum) -> const motion_set * {
-        iterator it = map_pk_motion_set_.find(vnum);
+        iterator it = map_motion_set_.find(vnum);
 
-        if (map_pk_motion_set_.end() == it)
+        if (map_motion_set_.end() == it)
             return nullptr;
 
         return it->second.get();
@@ -251,7 +251,7 @@ namespace metin2::game::inline characters {
         for (int i = 0; i < MAIN_RACE_MAX_NUM; ++i) {
             auto pkMotionSetOwner = std::make_unique<motion_set>();
             motion_set *pkMotionSet = pkMotionSetOwner.get();
-            map_pk_motion_set_.try_emplace(i, std::move(pkMotionSetOwner));
+            map_motion_set_.try_emplace(i, std::move(pkMotionSetOwner));
 
             char sz[256];
 
@@ -305,7 +305,7 @@ namespace metin2::game::inline characters {
             if ('\0' != t->folder[0]) {
                 auto pkMotionSetOwner = std::make_unique<motion_set>();
                 motion_set *pkMotionSet = pkMotionSetOwner.get();
-                map_pk_motion_set_.try_emplace(t->vnum, std::move(pkMotionSetOwner));
+                map_motion_set_.try_emplace(t->vnum, std::move(pkMotionSetOwner));
 
                 load_motion(pkMotionSet, t, MOTION_WALK);
                 load_motion(pkMotionSet, t, MOTION_RUN);
@@ -333,16 +333,16 @@ namespace metin2::game::inline characters {
     }
 
     auto motion_set::get_motion(uint32_t key) const -> const motion * {
-        const_iterator it = map_pk_motion_.find(key);
+        const_iterator it = map_motion_.find(key);
 
-        if (it == map_pk_motion_.end())
+        if (it == map_motion_.end())
             return nullptr;
 
         return it->second.get();
     }
 
     void motion_set::insert(uint32_t key, std::unique_ptr<motion> motion_value) {
-        map_pk_motion_.insert(container::value_type(key, std::move(motion_value)));
+        map_motion_.insert(container::value_type(key, std::move(motion_value)));
     }
 
     auto motion_set::load(const char *file_name, int mode, int motion) -> bool {

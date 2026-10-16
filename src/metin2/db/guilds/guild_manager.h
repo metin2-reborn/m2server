@@ -209,7 +209,7 @@ namespace metin2::db::inline guilds {
 
         auto is_half_win_ladder_point(uint32_t guild_winner, uint32_t guild_loser) -> bool;
 
-        std::map<uint32_t, guild> map_k_guild_;
+        std::map<uint32_t, guild> map_guild_;
         std::map<uint32_t, std::map<uint32_t, time_t>> guild_war_end_time_;
 
         std::set<guild_declare_info> declare_map_;
@@ -226,10 +226,10 @@ namespace metin2::db::inline guilds {
         std::priority_queue<st_pair_skill_used, std::vector<st_pair_skill_used>, std::greater<st_pair_skill_used>>
             pq_skill_;
 
-        std::map<uint32_t, std::unique_ptr<guild_war_reservation>> map_k_war_reserve_;
+        std::map<uint32_t, std::unique_ptr<guild_war_reservation>> map_war_reserve_;
         expression poly_power_;
         expression poly_handicap_;
 
-        std::map<uint32_t, int> map_k_ladder_point_ranking_by_gid_;
+        std::map<uint32_t, int> map_ladder_point_ranking_by_gid_;
     };
 }

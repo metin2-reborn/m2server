@@ -53,9 +53,9 @@ namespace metin2::game::inline protocol {
         }
         destroyed_ = true;
 
-        desc_set::iterator i = set_pk_desc_.begin();
+        desc_set::iterator i = set_desc_.begin();
 
-        while (i != set_pk_desc_.end()) {
+        while (i != set_desc_.end()) {
             desc *d = *i;
             desc_set::iterator ci = i;
             ++i;
@@ -67,21 +67,21 @@ namespace metin2::game::inline protocol {
                 continue;
 
             destroy_desc(d, false);
-            set_pk_desc_.erase(ci);
+            set_desc_.erase(ci);
         }
 
-        i = set_pk_desc_.begin();
+        i = set_desc_.begin();
 
-        while (i != set_pk_desc_.end()) {
+        while (i != set_desc_.end()) {
             desc *d = *i;
             desc_set::iterator ci = i;
             ++i;
 
             destroy_desc(d, false);
-            set_pk_desc_.erase(ci);
+            set_desc_.erase(ci);
         }
 
-        set_pk_client_desc_.clear();
+        set_client_desc_.clear();
 
         map_login_name_.clear();
         map_handle_.clear();
@@ -143,13 +143,13 @@ namespace metin2::game::inline protocol {
         map_handshake_.insert(desc_handshake_map::value_type(handshake, newd));
         map_handle_.insert(desc_handle_map::value_type(newd->handle(), newd));
 
-        set_pk_desc_.insert(newd);
+        set_desc_.insert(newd);
         ++sockets_connected_;
         return (newd);
     }
 
-    auto desc_manager::accept_p2_p_desc(net::tcp::socket socket) -> desc * {
-        desc_p2_p *pkDesc = new desc_p2_p;
+    auto desc_manager::accept_p2p_desc(net::tcp::socket socket) -> desc * {
+        desc_p2p *pkDesc = new desc_p2p;
 
         if (!pkDesc->setup(net::connection::create(std::move(socket), MAX_SERVER_INPUT, MAX_SERVER_OUTPUT))) {
             metin2::log::error("Cannot set up accepted peer connection");
@@ -158,11 +158,11 @@ namespace metin2::game::inline protocol {
             return nullptr;
         }
 
-        set_pk_desc_.insert(pkDesc);
+        set_desc_.insert(pkDesc);
         ++sockets_connected_;
 
         metin2::log::info("Accepted peer connection from {}", pkDesc->host_name());
-        p2_p_manager::instance().register_acceptor(pkDesc);
+        p2p_manager::instance().register_acceptor(pkDesc);
         return (pkDesc);
     }
 
@@ -178,7 +178,7 @@ namespace metin2::game::inline protocol {
 
     void desc_manager::destroy_desc(desc *d, bool erase_from_set) {
         if (erase_from_set)
-            set_pk_desc_.erase(d);
+            set_desc_.erase(d);
 
         if (d->handshake())
             map_handshake_.erase(d->handshake());
@@ -187,7 +187,7 @@ namespace metin2::game::inline protocol {
             map_handle_.erase(d->handle());
             map_handle_random_key_.erase(d->handle());
         } else
-            set_pk_client_desc_.erase((client_desc *)d);
+            set_client_desc_.erase((client_desc *)d);
 
         d->destroy();
 
@@ -196,9 +196,9 @@ namespace metin2::game::inline protocol {
     }
 
     void desc_manager::destroy_closed() {
-        desc_set::iterator i = set_pk_desc_.begin();
+        desc_set::iterator i = set_desc_.begin();
 
-        while (i != set_pk_desc_.end()) {
+        while (i != set_desc_.end()) {
             desc *d = *i;
             desc_set::iterator ci = i;
             ++i;
@@ -214,7 +214,7 @@ namespace metin2::game::inline protocol {
                 }
 
                 destroy_desc(d, false);
-                set_pk_desc_.erase(ci);
+                set_desc_.erase(ci);
             }
         }
     }
@@ -238,7 +238,7 @@ namespace metin2::game::inline protocol {
     }
 
     auto desc_manager::client_set() -> const desc_manager::desc_set & {
-        return set_pk_desc_;
+        return set_desc_;
     }
 
     struct name_with_desc_func {
@@ -256,8 +256,8 @@ namespace metin2::game::inline protocol {
     };
 
     auto desc_manager::find_by_character_name(const char *name) -> desc * {
-        desc_set::iterator it = std::find_if(set_pk_desc_.begin(), set_pk_desc_.end(), name_with_desc_func(name));
-        return (it == set_pk_desc_.end()) ? nullptr : (*it);
+        desc_set::iterator it = std::find_if(set_desc_.begin(), set_desc_.end(), name_with_desc_func(name));
+        return (it == set_desc_.end()) ? nullptr : (*it);
     }
 
     auto desc_manager::create_connection_desc(const char *host, uint16_t port, int phase_when_succeed, bool retry_when_closed) -> client_desc * {
@@ -269,8 +269,8 @@ namespace metin2::game::inline protocol {
         newd->connect(phase_when_succeed);
         newd->set_retry_when_closed(retry_when_closed);
 
-        set_pk_desc_.insert(newd);
-        set_pk_client_desc_.insert(newd);
+        set_desc_.insert(newd);
+        set_client_desc_.insert(newd);
 
         ++sockets_connected_;
         return (newd);
@@ -284,16 +284,16 @@ namespace metin2::game::inline protocol {
 
     void desc_manager::try_connect() {
         func_try_connect f;
-        std::for_each(set_pk_client_desc_.begin(), set_pk_client_desc_.end(), f);
+        std::for_each(set_client_desc_.begin(), set_client_desc_.end(), f);
     }
 
-    auto desc_manager::is_p2_p_desc_exist(const char *host, uint16_t port) -> bool {
-        client_desc_set::iterator it = set_pk_client_desc_.begin();
+    auto desc_manager::is_p2p_desc_exist(const char *host, uint16_t port) -> bool {
+        client_desc_set::iterator it = set_client_desc_.begin();
 
-        while (it != set_pk_client_desc_.end()) {
+        while (it != set_client_desc_.end()) {
             client_desc *d = *(it++);
 
-            if (!strcmp(d->p2_p_host(), host) && d->p2_p_port() == port)
+            if (!strcmp(d->p2p_host(), host) && d->p2p_port() == port)
                 return true;
         }
 
@@ -326,15 +326,15 @@ namespace metin2::game::inline protocol {
         local_user_count_ = f.total_count;
         std::memcpy(empire_user_count_, f.empire_user_count, sizeof(empire_user_count_));
 
-        empire_user_count_[1] += p2_p_manager::instance().empire_user_count(1);
-        empire_user_count_[2] += p2_p_manager::instance().empire_user_count(2);
-        empire_user_count_[3] += p2_p_manager::instance().empire_user_count(3);
+        empire_user_count_[1] += p2p_manager::instance().empire_user_count(1);
+        empire_user_count_[2] += p2p_manager::instance().empire_user_count(2);
+        empire_user_count_[3] += p2p_manager::instance().empire_user_count(3);
     }
 
     void desc_manager::user_count(int &total, int **pai_empire_user_count, int &local_count) {
         *pai_empire_user_count = &empire_user_count_[0];
 
-        int iCount = p2_p_manager::instance().count();
+        int iCount = p2p_manager::instance().count();
         if (iCount < 0) {
             metin2::log::error("Peer user count is negative ({:d})", iCount);
         }
@@ -354,9 +354,9 @@ namespace metin2::game::inline protocol {
     }
 
     auto desc_manager::find_by_login_key(uint32_t key) -> desc * {
-        std::map<uint32_t, login_key *>::iterator it = map_pk_login_key_.find(key);
+        std::map<uint32_t, login_key *>::iterator it = map_login_key_.find(key);
 
-        if (it == map_pk_login_key_.end())
+        if (it == map_login_key_.end())
             return nullptr;
 
         return it->second->desc;
@@ -368,12 +368,12 @@ namespace metin2::game::inline protocol {
         do {
             dwKey = number(1, INT_MAX);
 
-            if (map_pk_login_key_.find(dwKey) != map_pk_login_key_.end())
+            if (map_login_key_.find(dwKey) != map_login_key_.end())
                 continue;
 
             login_key *pkKey = new login_key(dwKey, d);
             d->set_login_key(pkKey);
-            map_pk_login_key_.insert(std::make_pair(dwKey, pkKey));
+            map_login_key_.insert(std::make_pair(dwKey, pkKey));
             break;
         } while (1);
 
@@ -385,9 +385,9 @@ namespace metin2::game::inline protocol {
 
         std::map<uint32_t, login_key *>::iterator it, it2;
 
-        it = map_pk_login_key_.begin();
+        it = map_login_key_.begin();
 
-        while (it != map_pk_login_key_.end()) {
+        while (it != map_login_key_.end()) {
             it2 = it++;
 
             if (it2->second->expire_time == 0)
@@ -395,7 +395,7 @@ namespace metin2::game::inline protocol {
 
             if (dwCurrentTime - it2->second->expire_time > 60000) {
                 delete it2->second;
-                map_pk_login_key_.erase(it2);
+                map_login_key_.erase(it2);
             }
         }
     }

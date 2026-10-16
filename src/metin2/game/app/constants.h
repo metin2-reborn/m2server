@@ -125,7 +125,7 @@ namespace metin2::game::inline app {
         int end_score;
     };
 
-    extern guild_war_info kor_a_guild_war_info[GUILD_WAR_TYPE_MAX_NUM];
+    extern guild_war_info guild_war_types[GUILD_WAR_TYPE_MAX_NUM];
 
     enum {
         ITEM_ACCESSORY_SOCKET_MAX_NUM = 3

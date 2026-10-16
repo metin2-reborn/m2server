@@ -206,7 +206,7 @@ namespace metin2::game::inline app {
 
         log_manager log_manager;
         messenger_manager messenger_manager;
-        p2_p_manager p2p_manager;
+        p2p_manager p2p_manager;
         guild_manager guild_manager;
         guild_mark_manager mark_manager;
         dungeon_manager dungeon_manager;
@@ -378,7 +378,7 @@ namespace metin2::game::inline app {
         if (!client_listener)
             return 0;
 
-        p2p_listener = net::listener::open(public_ip, metin2::config::server().p2p_port, [](net::tcp::socket socket) { desc_manager::instance().accept_p2_p_desc(std::move(socket)); });
+        p2p_listener = net::listener::open(public_ip, metin2::config::server().p2p_port, [](net::tcp::socket socket) { desc_manager::instance().accept_p2p_desc(std::move(socket)); });
 
         if (!p2p_listener)
             return 0;
@@ -392,8 +392,8 @@ namespace metin2::game::inline app {
             if (metin2::config::auth().master_host.length() != 0) {
                 fprintf(stderr, "SlaveAuth");
                 auth_master_desc = desc_manager::instance().create_connection_desc(metin2::config::auth().master_host.c_str(), metin2::config::auth().master_port, PHASE_P2P, true);
-                p2_p_manager::instance().register_connector(auth_master_desc);
-                auth_master_desc->set_p2_p(metin2::config::auth().master_host.c_str(), metin2::config::auth().master_port);
+                p2p_manager::instance().register_connector(auth_master_desc);
+                auth_master_desc->set_p2p(metin2::config::auth().master_host.c_str(), metin2::config::auth().master_port);
 
             } else {
                 fprintf(stderr, "MasterAuth");

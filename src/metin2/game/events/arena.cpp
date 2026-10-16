@@ -493,7 +493,7 @@ namespace metin2::game::inline events {
         character *playerB = player_b();
 
         if (playerA != nullptr) {
-            playerA->set_pk_mode(PK_MODE_PEACE);
+            playerA->set_mode(PK_MODE_PEACE);
             playerA->start_recovery_event();
             playerA->set_position(POS_STANDING);
             playerA->point_change(POINT_HP, playerA->max_hp() - playerA->hp());
@@ -505,7 +505,7 @@ namespace metin2::game::inline events {
         }
 
         if (playerB != nullptr) {
-            playerB->set_pk_mode(PK_MODE_PEACE);
+            playerB->set_mode(PK_MODE_PEACE);
             playerB->start_recovery_event();
             playerB->set_position(POS_STANDING);
             playerB->point_change(POINT_HP, playerB->max_hp() - playerB->hp());

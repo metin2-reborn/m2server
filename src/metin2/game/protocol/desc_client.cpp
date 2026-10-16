@@ -57,7 +57,7 @@ namespace metin2::game::inline protocol {
             return;
         }
 
-        p2_p_manager::instance().unregister_connector(this);
+        p2p_manager::instance().unregister_connector(this);
 
         if (this == db_clientdesc) {
             party_manager::instance().delete_all_party();
@@ -142,7 +142,7 @@ namespace metin2::game::inline protocol {
                 if (!metin2::config::is_auth()) {
                     p.channel = metin2::config::server().channel;
                     p.listen_port = metin2::config::server().port;
-                    p.p2_p_port = metin2::config::server().p2p_port;
+                    p.p2p_port = metin2::config::server().p2p_port;
                     p.auth_server = false;
                     map_allow_copy(p.maps, MAX_MAPS_PER_SERVER);
 
@@ -193,7 +193,7 @@ namespace metin2::game::inline protocol {
 
         case PHASE_P2P:
             metin2::log::debug("Peer connection entered p2p phase");
-            input_processor_ = &input_p2_p_;
+            input_processor_ = &input_p2p_;
             break;
 
         case PHASE_CLOSE:

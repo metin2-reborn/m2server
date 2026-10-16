@@ -40,7 +40,7 @@ namespace metin2::game::inline protocol {
         time_t t_last_channel_status_update_time_;
 
         input_db input_db_;
-        input_p2_p input_p2_p_;
+        input_p2p input_p2p_;
     };
 
     extern client_desc *db_clientdesc;

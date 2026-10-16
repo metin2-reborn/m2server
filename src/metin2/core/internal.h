@@ -2,11 +2,12 @@
 
 #include <metin2/core/heart.h>
 
+#include <atomic>
 #include <csignal>
 
 namespace metin2::inline core {
 
-    extern volatile std::sig_atomic_t tics;
+    extern std::atomic<unsigned> ticks;
     extern volatile std::sig_atomic_t shutdowned;
 
     void signal_setup();

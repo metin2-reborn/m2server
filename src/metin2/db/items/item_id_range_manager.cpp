@@ -45,22 +45,6 @@ namespace metin2::db::inline items {
         }
     }
 
-    struct f_check_collision {
-        bool has_collision;
-        item_id_range_table range;
-
-        f_check_collision(item_id_range_table data) {
-            has_collision = false;
-            range = data;
-        }
-
-        void operator()(peer *peer) {
-            if (has_collision == false) {
-                has_collision = peer->check_item_id_range_collision(range);
-            }
-        }
-    };
-
     auto item_id_range_manager::range() -> item_id_range_table {
         item_id_range_table ret;
         ret.min = 0;
@@ -72,15 +56,17 @@ namespace metin2::db::inline items {
                 ret = data_.front();
                 data_.pop_front();
 
-                f_check_collision f(ret);
-                client_manager::instance().for_each_peer(f);
+                bool collides = false;
+                client_manager::instance().for_each_peer([&](peer *p) {
+                    collides = collides || !p->is_item_id_range_free(ret);
+                });
 
-                if (f.has_collision == false) return ret;
+                if (!collides)
+                    return ret;
             }
         }
 
-        for (int i = 0; i < 10; ++i)
-            metin2::log::error("Item id range: no free item id range left");
+        metin2::log::error("Item id range: no free item id range left");
 
         return ret;
     }

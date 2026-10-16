@@ -318,7 +318,7 @@ namespace metin2::game::inline protocol {
         }
 
         if (!pkChr) {
-            cci *pkCCI = p2_p_manager::instance().find(szNameTo);
+            cci *pkCCI = p2p_manager::instance().find(szNameTo);
 
             if (pkCCI) {
                 pkDesc = pkCCI->desc;
@@ -372,7 +372,7 @@ namespace metin2::game::inline protocol {
 
                 if (true == spam_block_check(ch, buf, buflen)) {
                     if (!pkChr) {
-                        cci *pkCCI = p2_p_manager::instance().find(szNameTo);
+                        cci *pkCCI = p2p_manager::instance().find(szNameTo);
 
                         if (pkCCI) {
                             pkDesc->set_relay("");
@@ -599,7 +599,7 @@ namespace metin2::game::inline protocol {
             p.empire = ch->empire();
             utf8_strlcpy(p.text, chatbuf, sizeof(p.text));
 
-            p2_p_manager::instance().send(&p, sizeof(packet_gg_shout));
+            p2p_manager::instance().send(&p, sizeof(packet_gg_shout));
 
             send_shout(chatbuf, ch->empire());
 

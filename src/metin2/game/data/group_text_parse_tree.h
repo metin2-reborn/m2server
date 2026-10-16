@@ -111,7 +111,7 @@ namespace metin2::game::inline data {
 
     template <typename T>
     auto group_node::value(size_t i, const std::string &rstr_col_key, T &t_value) const -> bool {
-        if (i > map_rows_.size())
+        if (i >= map_rows_.size())
             return false;
 
         map_row::const_iterator row_it = map_rows_.begin();

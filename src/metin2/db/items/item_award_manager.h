@@ -38,6 +38,6 @@ namespace metin2::db::inline items {
 
       private:
         std::map<uint32_t, item_award *> map_award_;
-        std::map<std::string, std::set<item_award *>> map_k_set_award_by_login_;
+        std::map<std::string, std::set<item_award *>> map_set_award_by_login_;
     };
 }

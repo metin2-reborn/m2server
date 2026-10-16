@@ -3,6 +3,7 @@
 #include <metin2/db/clients/client_manager.h>
 #include <metin2/db/clients/peer.h>
 
+#include <metin2/log/log.h>
 #include <metin2/proto/length.h>
 #include <metin2/proto/tables.h>
 
@@ -35,6 +36,10 @@ namespace metin2::db::inline logs {
     }
 
     void money_log::add_log(uint8_t type, uint32_t vnum, int gold) {
+        if (type >= MONEY_LOG_TYPE_MAX_NUM) {
+            metin2::log::warn("Money log: invalid type {:d}", type);
+            return;
+        }
         money_log_container_[type][vnum] += gold;
     }
 }

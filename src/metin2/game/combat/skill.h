@@ -211,6 +211,6 @@ namespace metin2::game::inline combat {
         auto get(const char *skill_name) -> skill_proto *;
 
       protected:
-        std::map<uint32_t, std::unique_ptr<skill_proto>> map_pk_skill_proto_;
+        std::map<uint32_t, std::unique_ptr<skill_proto>> map_skill_proto_;
     };
 }

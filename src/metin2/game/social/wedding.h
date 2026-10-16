@@ -48,14 +48,14 @@ namespace metin2::game::inline social {
           private:
             uint32_t map_index_;
             event_ptr end_event_;
-            charset_t set_pk_chr_;
+            charset_t set_chr_;
 
             bool is_dark_;
             bool is_snow_;
             bool is_music_;
 
-            uint32_t pi_d1_;
-            uint32_t pi_d2_;
+            uint32_t pid1_;
+            uint32_t pid2_;
 
             std::string music_file_name_;
         };

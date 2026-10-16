@@ -110,7 +110,7 @@ namespace metin2::game::inline persistence {
 
         std::map<std::string, std::string> map_dbstring_;
         std::vector<std::string> vec_greet_message_;
-        std::map<uint32_t, std::unique_ptr<login_data>> map_pk_login_data_;
+        std::map<uint32_t, std::unique_ptr<login_data>> map_login_data_;
     };
 
     struct highscore_register_query_info {

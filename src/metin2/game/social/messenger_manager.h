@@ -21,8 +21,8 @@ namespace metin2::game::inline social {
         ~messenger_manager() override;
 
       public:
-        void p2_p_login(key_a account);
-        void p2_p_logout(key_a account);
+        void p2p_login(key_a account);
+        void p2p_logout(key_a account);
 
         void login(key_a account);
         void logout(key_a account);

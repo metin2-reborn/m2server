@@ -57,15 +57,15 @@ namespace metin2::db::inline clients {
         void set_listen_port(uint16_t port) { listen_port_ = port; }
         auto listen_port() -> uint16_t { return listen_port_; }
 
-        void set_p2_p_port(uint16_t port);
-        auto p2_p_port() -> uint16_t { return p2_p_port_; }
+        void set_p2p_port(uint16_t port);
+        auto p2p_port() -> uint16_t { return p2p_port_; }
 
         void set_maps(int32_t *pl);
         auto maps() -> int32_t * { return &maps_[0]; }
 
         auto set_item_id_range(item_id_range_table item_range) -> bool;
         auto set_spare_item_id_range(item_id_range_table item_range) -> bool;
-        auto check_item_id_range_collision(item_id_range_table item_range) -> bool;
+        auto is_item_id_range_free(item_id_range_table item_range) -> bool;
         void send_spare_item_id_range();
         void return_item_id_range();
 
@@ -79,7 +79,7 @@ namespace metin2::db::inline clients {
         uint8_t channel_;
         uint32_t handle_;
         uint16_t listen_port_;
-        uint16_t p2_p_port_;
+        uint16_t p2p_port_;
         int32_t maps_[MAX_MAPS_PER_SERVER];
 
         item_id_range_table item_range_;

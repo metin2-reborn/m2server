@@ -770,7 +770,7 @@ namespace metin2::game::inline characters {
 
         float sync_time_;
         character *chr_sync_owner_;
-        character_list lst_pk_chr_sync_owned_;
+        character_list lst_chr_sync_owned_;
 
         pixel_position pos_dest_;
         pixel_position pos_start_;
@@ -824,12 +824,12 @@ namespace metin2::game::inline characters {
         void remove_bad_affect();
 
         auto find_affect(uint32_t type_value, uint8_t apply = APPLY_NONE) const -> affect *;
-        auto affect_container() const -> const std::list<affect *> & { return list_pk_affect_; }
+        auto affect_container() const -> const std::list<affect *> & { return list_affect_; }
         auto remove_affect(affect *aff) -> bool;
 
       protected:
         affect_flag af_affect_flag_;
-        std::list<affect *> list_pk_affect_;
+        std::list<affect *> list_affect_;
 
       public:
         void set_party(party *party_value);
@@ -1086,7 +1086,7 @@ namespace metin2::game::inline characters {
         void update_killer_mode();
 
         auto pk_mode() const -> uint8_t;
-        void set_pk_mode(uint8_t pk_mode);
+        void set_mode(uint8_t pk_mode);
 
         void item_drop_penalty(character *killer);
 
@@ -1122,8 +1122,8 @@ namespace metin2::game::inline characters {
         void change_victim_by_aggro(int new_aggro, character *new_victim);
 
         uint32_t fly_target_id_;
-        std::vector<uint32_t> vec_dw_fly_targets_;
-        damage_map map_k_damage_;
+        std::vector<uint32_t> vec_fly_targets_;
+        damage_map map_damage_;
         uint32_t killer_pid_;
 
         int alignment_;
@@ -1143,7 +1143,7 @@ namespace metin2::game::inline characters {
 
       protected:
         character *chr_stone_;
-        character_set set_pk_chr_spawned_by_;
+        character_set set_chr_spawned_by_;
         uint32_t drop_metin_stone_;
         uint8_t drop_metin_stone_pct_;
 
@@ -1266,7 +1266,7 @@ namespace metin2::game::inline characters {
 
       protected:
         character *chr_target_;
-        character_set set_pk_chr_targeted_by_;
+        character_set set_chr_targeted_by_;
 
       public:
         void set_target(character *chr_target);

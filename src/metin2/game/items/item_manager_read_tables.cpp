@@ -23,7 +23,7 @@
 
 namespace metin2::game::inline items {
 
-    std::vector<item_drop_info> vec_pk_common_drop_item[MOB_RANK_MAX_NUM];
+    std::vector<item_drop_info> vec_common_drop_item[MOB_RANK_MAX_NUM];
 
     auto item_manager::read_common_drop_item_file(const char *file_name) -> bool {
         FILE *fp = fopen(file_name, "r");
@@ -83,14 +83,14 @@ namespace metin2::game::inline items {
                 if (d[i].lv_start == 0)
                     continue;
 
-                vec_pk_common_drop_item[i].push_back(item_drop_info(d[i].lv_start, d[i].lv_end, dwPct, dwItemVnum));
+                vec_common_drop_item[i].push_back(item_drop_info(d[i].lv_start, d[i].lv_end, dwPct, dwItemVnum));
             }
         }
 
         fclose(fp);
 
         for (int i = 0; i < MOB_RANK_MAX_NUM; ++i) {
-            std::vector<item_drop_info> &v = vec_pk_common_drop_item[i];
+            std::vector<item_drop_info> &v = vec_common_drop_item[i];
             std::sort(v.begin(), v.end());
 
             std::vector<item_drop_info>::iterator it = v.begin();
@@ -176,7 +176,7 @@ namespace metin2::game::inline items {
                     pkGroup->effect_file_name = pTok->at(0);
                 }
                 loader.set_parent_node();
-                map_pk_special_attr_group_.insert(std::make_pair(iVnum, pkGroup.release()));
+                map_special_attr_group_.insert(std::make_pair(iVnum, pkGroup.release()));
             } else {
                 auto pkGroup = std::make_unique<special_item_group>(iVnum, type);
                 for (int k = 1; k < 256; ++k) {
@@ -233,9 +233,9 @@ namespace metin2::game::inline items {
                 }
                 loader.set_parent_node();
                 if (special_item_group::QUEST == type) {
-                    map_pk_quest_item_group_.insert(std::make_pair(iVnum, pkGroup.release()));
+                    map_quest_item_group_.insert(std::make_pair(iVnum, pkGroup.release()));
                 } else {
-                    map_pk_special_item_group_.insert(std::make_pair(iVnum, pkGroup.release()));
+                    map_special_item_group_.insert(std::make_pair(iVnum, pkGroup.release()));
                 }
             }
         }
@@ -389,7 +389,7 @@ namespace metin2::game::inline items {
                 return false;
             }
 
-            map_dw_etc_item_drop_prob_[dwItemVnum] = (uint32_t)(fProb * 10000.0f);
+            map_etc_item_drop_prob_[dwItemVnum] = (uint32_t)(fProb * 10000.0f);
             metin2::log::debug("Etc drop: item {} chance {:f}", szItemName, fProb);
         }
 
@@ -507,13 +507,13 @@ namespace metin2::game::inline items {
 
                     break;
                 }
-                map_pk_mob_item_group_.insert(std::map<uint32_t, mob_item_group *>::value_type(iMobVnum, pkGroup.release()));
+                map_mob_item_group_.insert(std::map<uint32_t, mob_item_group *>::value_type(iMobVnum, pkGroup.release()));
 
             } else if (strType == "drop") {
                 drop_item_group *pkGroup = nullptr;
                 bool bNew = true;
-                auto it = map_pk_drop_item_group_.find(iMobVnum);
-                if (it == map_pk_drop_item_group_.end()) {
+                auto it = map_drop_item_group_.find(iMobVnum);
+                if (it == map_drop_item_group_.end()) {
                     pkGroup = new drop_item_group;
                 } else {
                     pkGroup = it->second;
@@ -563,7 +563,7 @@ namespace metin2::game::inline items {
                     break;
                 }
                 if (bNew)
-                    map_pk_drop_item_group_.insert(std::map<uint32_t, drop_item_group *>::value_type(iMobVnum, pkGroup));
+                    map_drop_item_group_.insert(std::map<uint32_t, drop_item_group *>::value_type(iMobVnum, pkGroup));
 
             } else if (strType == "limit") {
                 auto pkLevelItemGroup = std::make_unique<level_item_group>(iLevelLimit);
@@ -601,7 +601,7 @@ namespace metin2::game::inline items {
                     break;
                 }
 
-                map_pk_level_item_group_.insert(std::map<uint32_t, level_item_group *>::value_type(iMobVnum, pkLevelItemGroup.release()));
+                map_level_item_group_.insert(std::map<uint32_t, level_item_group *>::value_type(iMobVnum, pkLevelItemGroup.release()));
             } else if (strType == "thiefgloves") {
                 auto pkGroup = std::make_unique<buyer_thief_gloves_item_group>();
 
@@ -642,7 +642,7 @@ namespace metin2::game::inline items {
                     break;
                 }
 
-                map_pk_glove_item_group_.insert(std::map<uint32_t, buyer_thief_gloves_item_group *>::value_type(iMobVnum, pkGroup.release()));
+                map_glove_item_group_.insert(std::map<uint32_t, buyer_thief_gloves_item_group *>::value_type(iMobVnum, pkGroup.release()));
             } else {
                 metin2::log::error("{}: group {} has invalid type {} (expected kill or drop)", file_name, stName.c_str(), strType.c_str());
                 loader.set_parent_node();
@@ -687,12 +687,12 @@ namespace metin2::game::inline items {
 
             token_vector *pTok;
 
-            auto it = map_pk_drop_item_group_.find(iMobVnum);
+            auto it = map_drop_item_group_.find(iMobVnum);
 
             std::unique_ptr<drop_item_group> pkNewGroup;
             drop_item_group *pkGroup;
 
-            if (it == map_pk_drop_item_group_.end()) {
+            if (it == map_drop_item_group_.end()) {
                 pkNewGroup = std::make_unique<drop_item_group>();
                 pkGroup = pkNewGroup.get();
             } else
@@ -736,7 +736,7 @@ namespace metin2::game::inline items {
             }
 
             if (pkNewGroup)
-                map_pk_drop_item_group_.insert(std::map<uint32_t, drop_item_group *>::value_type(iMobVnum, pkNewGroup.release()));
+                map_drop_item_group_.insert(std::map<uint32_t, drop_item_group *>::value_type(iMobVnum, pkNewGroup.release()));
 
             loader.set_parent_node();
         }

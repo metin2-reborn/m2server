@@ -61,12 +61,12 @@ namespace metin2::game::inline items {
     }
 
     void item_manager::graceful_shutdown() {
-        std::unordered_set<item *>::iterator it = set_pk_item_for_delayed_save_.begin();
+        std::unordered_set<item *>::iterator it = set_item_for_delayed_save_.begin();
 
-        while (it != set_pk_item_for_delayed_save_.end())
+        while (it != set_item_for_delayed_save_.end())
             save_single_item(*(it++));
 
-        set_pk_item_for_delayed_save_.clear();
+        set_item_for_delayed_save_.clear();
     }
 
     auto item_manager::initialize(item_table *table_value, int size) -> bool {
@@ -160,8 +160,8 @@ namespace metin2::game::inline items {
 
         item *item = nullptr;
 
-        if (map_pk_item_by_id_.find(id) != map_pk_item_by_id_.end()) {
-            item = map_pk_item_by_id_[id];
+        if (map_item_by_id_.find(id) != map_item_by_id_.end()) {
+            item = map_item_by_id_[id];
             character *owner = item->owner();
             metin2::log::error("Duplicate item id {:d} ({}, owner {})", id, item->name(), static_cast<const void *>(owner));
             return nullptr;
@@ -231,7 +231,7 @@ namespace metin2::game::inline items {
             vid_map_.insert(item_vid_map::value_type(item->get_vid(), item));
 
         if (item->id() != 0 && skip_save == false)
-            map_pk_item_by_id_.insert(std::map<uint32_t, game::items::item *>::value_type(item->id(), item));
+            map_item_by_id_.insert(std::map<uint32_t, game::items::item *>::value_type(item->id(), item));
 
         if (!item->set_count(count))
             return nullptr;
@@ -244,9 +244,9 @@ namespace metin2::game::inline items {
         for (int i = 0; i < ITEM_LIMIT_MAX_NUM; i++) {
             if (LIMIT_REAL_TIME == item->limit_type(i)) {
                 if (item->limit_value(i)) {
-                    item->set_socket(0, time(nullptr) + item->limit_value(i));
+                    item->set_socket(0, get_global_time() + item->limit_value(i));
                 } else {
-                    item->set_socket(0, time(nullptr) + 60 * 60 * 24 * 7);
+                    item->set_socket(0, get_global_time() + 60 * 60 * 24 * 7);
                 }
 
                 item->start_real_time_expire_event();
@@ -317,13 +317,13 @@ namespace metin2::game::inline items {
         }
 
         if (item->type() == ITEM_QUEST) {
-            for (auto it = map_pk_quest_item_group_.begin(); it != map_pk_quest_item_group_.end(); it++) {
+            for (auto it = map_quest_item_group_.begin(); it != map_quest_item_group_.end(); it++) {
                 if (it->second->type == special_item_group::QUEST && it->second->contains(vnum)) {
                     item->set_sig_vnum(it->first);
                 }
             }
         } else if (item->type() == ITEM_UNIQUE) {
-            for (auto it = map_pk_special_item_group_.begin(); it != map_pk_special_item_group_.end(); it++) {
+            for (auto it = map_special_item_group_.begin(); it != map_special_item_group_.end(); it++) {
                 if (it->second->type == special_item_group::SPECIAL && it->second->contains(vnum)) {
                     item->set_sig_vnum(it->first);
                 }
@@ -338,17 +338,17 @@ namespace metin2::game::inline items {
 
     void item_manager::delayed_save(item *item) {
         if (item->id() != 0)
-            set_pk_item_for_delayed_save_.insert(item);
+            set_item_for_delayed_save_.insert(item);
     }
 
     void item_manager::flush_delayed_save(item *item) {
-        std::unordered_set<game::items::item *>::iterator it = set_pk_item_for_delayed_save_.find(item);
+        std::unordered_set<game::items::item *>::iterator it = set_item_for_delayed_save_.find(item);
 
-        if (it == set_pk_item_for_delayed_save_.end()) {
+        if (it == set_item_for_delayed_save_.end()) {
             return;
         }
 
-        set_pk_item_for_delayed_save_.erase(it);
+        set_item_for_delayed_save_.erase(it);
         save_single_item(item);
     }
 
@@ -383,10 +383,10 @@ namespace metin2::game::inline items {
     }
 
     void item_manager::update() {
-        std::unordered_set<item *>::iterator it = set_pk_item_for_delayed_save_.begin();
+        std::unordered_set<item *>::iterator it = set_item_for_delayed_save_.begin();
         std::unordered_set<item *>::iterator this_it;
 
-        while (it != set_pk_item_for_delayed_save_.end()) {
+        while (it != set_item_for_delayed_save_.end()) {
             this_it = it++;
             item *item = *this_it;
 
@@ -395,7 +395,7 @@ namespace metin2::game::inline items {
 
             save_single_item(item);
 
-            set_pk_item_for_delayed_save_.erase(this_it);
+            set_item_for_delayed_save_.erase(this_it);
         }
     }
 
@@ -434,10 +434,10 @@ namespace metin2::game::inline items {
             }
         }
 
-        std::unordered_set<game::items::item *>::iterator it = set_pk_item_for_delayed_save_.find(item);
+        std::unordered_set<game::items::item *>::iterator it = set_item_for_delayed_save_.find(item);
 
-        if (it != set_pk_item_for_delayed_save_.end())
-            set_pk_item_for_delayed_save_.erase(it);
+        if (it != set_item_for_delayed_save_.end())
+            set_item_for_delayed_save_.erase(it);
 
         uint32_t dwID = item->id();
         metin2::log::debug("Item: destroy {} (id {:d})", item->name(), dwID);
@@ -453,7 +453,7 @@ namespace metin2::game::inline items {
         }
 
         if (dwID)
-            map_pk_item_by_id_.erase(dwID);
+            map_item_by_id_.erase(dwID);
 
         vid_map_.erase(item->get_vid());
 
@@ -461,8 +461,8 @@ namespace metin2::game::inline items {
     }
 
     auto item_manager::find(uint32_t id) -> item * {
-        auto it = map_pk_item_by_id_.find(id);
-        if (it == map_pk_item_by_id_.end())
+        auto it = map_item_by_id_.find(id);
+        if (it == map_item_by_id_.end())
             return nullptr;
         return it->second;
     }
@@ -616,9 +616,9 @@ namespace metin2::game::inline items {
         uint8_t bRank = chr->get_mob_rank();
         item *item = nullptr;
 
-        std::vector<item_drop_info>::iterator it = vec_pk_common_drop_item[bRank].begin();
+        std::vector<item_drop_info>::iterator it = vec_common_drop_item[bRank].begin();
 
-        while (it != vec_pk_common_drop_item[bRank].end()) {
+        while (it != vec_common_drop_item[bRank].end()) {
             const item_drop_info &c_rInfo = *(it++);
 
             if (iLevel < c_rInfo.level_start || iLevel > c_rInfo.level_end)
@@ -650,10 +650,10 @@ namespace metin2::game::inline items {
         }
 
         {
-            decltype(map_pk_drop_item_group_.begin()) it;
-            it = map_pk_drop_item_group_.find(chr->race_num());
+            decltype(map_drop_item_group_.begin()) it;
+            it = map_drop_item_group_.find(chr->race_num());
 
-            if (it != map_pk_drop_item_group_.end()) {
+            if (it != map_drop_item_group_.end()) {
                 __typeof(it->second->get_vector()) v = it->second->get_vector();
 
                 for (uint32_t i = 0; i < v.size(); ++i) {
@@ -677,10 +677,10 @@ namespace metin2::game::inline items {
         }
 
         {
-            decltype(map_pk_mob_item_group_.begin()) it;
-            it = map_pk_mob_item_group_.find(chr->race_num());
+            decltype(map_mob_item_group_.begin()) it;
+            it = map_mob_item_group_.find(chr->race_num());
 
-            if (it != map_pk_mob_item_group_.end()) {
+            if (it != map_mob_item_group_.end()) {
                 mob_item_group *pGroup = it->second;
 
                 if (pGroup && !pGroup->is_empty()) {
@@ -696,10 +696,10 @@ namespace metin2::game::inline items {
         }
 
         {
-            decltype(map_pk_level_item_group_.begin()) it;
-            it = map_pk_level_item_group_.find(chr->race_num());
+            decltype(map_level_item_group_.begin()) it;
+            it = map_level_item_group_.find(chr->race_num());
 
-            if (it != map_pk_level_item_group_.end()) {
+            if (it != map_level_item_group_.end()) {
                 if (it->second->level_limit() <= (uint32_t)iLevel) {
                     __typeof(it->second->get_vector()) v = it->second->get_vector();
 
@@ -717,10 +717,10 @@ namespace metin2::game::inline items {
         {
             if (killer->premium_remain_seconds(PREMIUM_ITEM) > 0 ||
                 killer->is_equip_unique_group(UNIQUE_GROUP_DOUBLE_ITEM)) {
-                decltype(map_pk_glove_item_group_.begin()) it;
-                it = map_pk_glove_item_group_.find(chr->race_num());
+                decltype(map_glove_item_group_.begin()) it;
+                it = map_glove_item_group_.find(chr->race_num());
 
-                if (it != map_pk_glove_item_group_.end()) {
+                if (it != map_glove_item_group_.end()) {
                     __typeof(it->second->get_vector()) v = it->second->get_vector();
 
                     for (uint32_t i = 0; i < v.size(); ++i) {
@@ -737,9 +737,9 @@ namespace metin2::game::inline items {
         }
 
         if (chr->mob_drop_item_vnum()) {
-            auto it = map_dw_etc_item_drop_prob_.find(chr->mob_drop_item_vnum());
+            auto it = map_etc_item_drop_prob_.find(chr->mob_drop_item_vnum());
 
-            if (it != map_dw_etc_item_drop_prob_.end()) {
+            if (it != map_etc_item_drop_prob_.end()) {
                 int iPercent = (it->second * iDeltaPercent) / 100;
 
                 if (iPercent >= number(1, iRandRange)) {
@@ -1234,16 +1234,16 @@ namespace metin2::game::inline items {
     }
 
     auto item_manager::get_special_item_group(uint32_t vnum) -> const special_item_group * {
-        auto it = map_pk_special_item_group_.find(vnum);
-        if (it != map_pk_special_item_group_.end()) {
+        auto it = map_special_item_group_.find(vnum);
+        if (it != map_special_item_group_.end()) {
             return it->second;
         }
         return nullptr;
     }
 
     auto item_manager::get_special_attr_group(uint32_t vnum) -> const special_attr_group * {
-        auto it = map_pk_special_attr_group_.find(vnum);
-        if (it != map_pk_special_attr_group_.end()) {
+        auto it = map_special_attr_group_.find(vnum);
+        if (it != map_special_attr_group_.end()) {
             return it->second;
         }
         return nullptr;

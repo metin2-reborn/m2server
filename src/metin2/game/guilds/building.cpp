@@ -287,16 +287,16 @@ namespace metin2::game::inline guilds {
     }
 
     void land::destroy() {
-        auto it = map_pk_object_.begin();
+        auto it = map_object_.begin();
 
-        while (it != map_pk_object_.end()) {
+        while (it != map_object_.end()) {
             object *pkObj = (it++)->second;
             manager::instance().unregister_object(pkObj);
             delete pkObj;
         }
 
-        map_pk_object_.clear();
-        map_pk_object_by_vid_.clear();
+        map_object_.clear();
+        map_object_by_vid_.clear();
     }
 
     auto land::data() -> const land_table & {
@@ -338,16 +338,16 @@ namespace metin2::game::inline guilds {
     }
 
     void land::insert_object(object *obj) {
-        map_pk_object_.insert(std::make_pair(obj->id(), obj));
-        map_pk_object_by_vid_.insert(std::make_pair(obj->get_vid(), obj));
+        map_object_.insert(std::make_pair(obj->id(), obj));
+        map_object_by_vid_.insert(std::make_pair(obj->get_vid(), obj));
 
         obj->set_land(this);
     }
 
     auto land::find_object(uint32_t id) -> object * {
-        std::map<uint32_t, object *>::iterator it = map_pk_object_.find(id);
+        std::map<uint32_t, object *>::iterator it = map_object_.find(id);
 
-        if (it == map_pk_object_.end())
+        if (it == map_object_.end())
             return nullptr;
 
         return it->second;
@@ -355,7 +355,7 @@ namespace metin2::game::inline guilds {
 
     auto land::find_object_by_group(uint32_t group_vnum) -> object * {
         std::map<uint32_t, object *>::iterator it;
-        for (it = map_pk_object_.begin(); it != map_pk_object_.end(); ++it) {
+        for (it = map_object_.begin(); it != map_object_.end(); ++it) {
             object *pObj = it->second;
             if (pObj->group() == group_vnum)
                 return pObj;
@@ -369,7 +369,7 @@ namespace metin2::game::inline guilds {
             return nullptr;
 
         std::map<uint32_t, object *>::iterator it;
-        for (it = map_pk_object_.begin(); it != map_pk_object_.end(); ++it) {
+        for (it = map_object_.begin(); it != map_object_.end(); ++it) {
             object *pObj = it->second;
             if (pObj->npc() == npc)
                 return pObj;
@@ -379,9 +379,9 @@ namespace metin2::game::inline guilds {
     }
 
     auto land::find_object_by_vid(uint32_t vid) -> object * {
-        std::map<uint32_t, object *>::iterator it = map_pk_object_by_vid_.find(vid);
+        std::map<uint32_t, object *>::iterator it = map_object_by_vid_.find(vid);
 
-        if (it == map_pk_object_by_vid_.end())
+        if (it == map_object_by_vid_.end())
             return nullptr;
 
         return it->second;
@@ -397,8 +397,8 @@ namespace metin2::game::inline guilds {
         manager::instance().unregister_object(pkObj);
         character_manager::instance().destroy_character(pkObj->npc());
 
-        map_pk_object_.erase(id);
-        map_pk_object_by_vid_.erase(id);
+        map_object_.erase(id);
+        map_object_by_vid_.erase(id);
 
         delete pkObj;
     }
@@ -542,15 +542,15 @@ namespace metin2::game::inline guilds {
     }
 
     void manager::destroy() {
-        map_pk_land_.clear();
+        map_land_.clear();
     }
 
     auto manager::load_object_proto(const proto::building::object_proto *proto, int size) -> bool {
-        vec_k_object_proto_.resize(size);
-        std::memcpy(&vec_k_object_proto_[0], proto, sizeof(proto::building::object_proto) * size);
+        vec_object_proto_.resize(size);
+        std::memcpy(&vec_object_proto_[0], proto, sizeof(proto::building::object_proto) * size);
 
         for (int i = 0; i < size; ++i) {
-            proto::building::object_proto &r = vec_k_object_proto_[i];
+            proto::building::object_proto &r = vec_object_proto_[i];
 
             metin2::log::debug("Building: object proto {:d}, price {:d}, upgrade {:d}, upgrade limit {:d}, life {:d}, npc {:d}",
                 r.vnum, r.price, r.upgrade_vnum, r.upgrade_limit_time, r.life, r.npc_vnum);
@@ -567,16 +567,16 @@ namespace metin2::game::inline guilds {
                 metin2::log::debug("Building: material item vnum {:d}, count {:d}", r.materials[j].item_vnum, r.materials[j].count);
             }
 
-            map_pk_object_proto_.insert(std::make_pair(r.vnum, &vec_k_object_proto_[i]));
+            map_object_proto_.insert(std::make_pair(r.vnum, &vec_object_proto_[i]));
         }
 
         return true;
     }
 
     auto manager::object_proto(uint32_t vnum) -> proto::building::object_proto * {
-        auto it = map_pk_object_proto_.find(vnum);
+        auto it = map_object_proto_.find(vnum);
 
-        if (it == map_pk_object_proto_.end())
+        if (it == map_object_proto_.end())
             return nullptr;
 
         return it->second;
@@ -586,7 +586,7 @@ namespace metin2::game::inline guilds {
 
         auto pkLand = std::make_unique<land>(table);
         uint32_t dwID = pkLand->id();
-        map_pk_land_.insert(std::make_pair(dwID, std::move(pkLand)));
+        map_land_.insert(std::make_pair(dwID, std::move(pkLand)));
 
         metin2::log::debug("Building: land {:d} on map {:d} at {:d}x{:d}, size {:d}x{:d}",
             table->id, table->map_index, table->x, table->y, table->width, table->height);
@@ -639,9 +639,9 @@ namespace metin2::game::inline guilds {
     }
 
     auto manager::find_land(uint32_t id) -> land * {
-        auto it = map_pk_land_.find(id);
+        auto it = map_land_.find(id);
 
-        if (it == map_pk_land_.end())
+        if (it == map_land_.end())
             return nullptr;
 
         return it->second.get();
@@ -658,9 +658,9 @@ namespace metin2::game::inline guilds {
         x -= r->sx;
         y -= r->sy;
 
-        auto it = map_pk_land_.begin();
+        auto it = map_land_.begin();
 
-        while (it != map_pk_land_.end()) {
+        while (it != map_land_.end()) {
             land *pkLand = (it++)->second.get();
             const land_table &r = pkLand->data();
 
@@ -680,9 +680,9 @@ namespace metin2::game::inline guilds {
     }
 
     auto manager::find_land_by_guild(uint32_t gid) -> land * {
-        auto it = map_pk_land_.begin();
+        auto it = map_land_.begin();
 
-        while (it != map_pk_land_.end()) {
+        while (it != map_land_.end()) {
             land *pkLand = (it++)->second.get();
 
             if (pkLand->data().guild_id == gid)
@@ -717,8 +717,8 @@ namespace metin2::game::inline guilds {
         uint32_t dwVID = character_manager::instance().alloc_vid();
         pkObj->set_vid(dwVID);
 
-        map_pk_obj_by_vid_.insert(std::make_pair(dwVID, pkObj));
-        map_pk_obj_by_id_.insert(std::make_pair(table->id, pkObj));
+        map_obj_by_vid_.insert(std::make_pair(dwVID, pkObj));
+        map_obj_by_id_.insert(std::make_pair(table->id, pkObj));
 
         pkLand->insert_object(pkObj);
 
@@ -740,9 +740,9 @@ namespace metin2::game::inline guilds {
     }
 
     void manager::finalize_boot() {
-        auto it = map_pk_obj_by_id_.begin();
+        auto it = map_obj_by_id_.begin();
 
-        while (it != map_pk_obj_by_id_.end()) {
+        while (it != map_obj_by_id_.end()) {
             object *pkObj = (it++)->second;
 
             pkObj->show(pkObj->map_index(), pkObj->x(), pkObj->y());
@@ -752,9 +752,9 @@ namespace metin2::game::inline guilds {
 
         metin2::log::info("Building: finalizing boot");
 
-        auto it2 = map_pk_land_.begin();
+        auto it2 = map_land_.begin();
 
-        while (it2 != map_pk_land_.end()) {
+        while (it2 != map_land_.end()) {
             land *pkLand = (it2++)->second.get();
 
             const land_table &r = pkLand->data();
@@ -778,26 +778,26 @@ namespace metin2::game::inline guilds {
     void manager::delete_object(uint32_t id) {
         metin2::log::info("Building: deleting object {:d}", id);
 
-        auto it = map_pk_obj_by_id_.find(id);
+        auto it = map_obj_by_id_.find(id);
 
-        if (it == map_pk_obj_by_id_.end())
+        if (it == map_obj_by_id_.end())
             return;
 
         it->second->get_land()->delete_object(id);
     }
 
     auto manager::find_object_by_vid(uint32_t vid) -> object * {
-        auto it = map_pk_obj_by_vid_.find(vid);
+        auto it = map_obj_by_vid_.find(vid);
 
-        if (it == map_pk_obj_by_vid_.end())
+        if (it == map_obj_by_vid_.end())
             return nullptr;
 
         return it->second;
     }
 
     void manager::unregister_object(object *obj) {
-        map_pk_obj_by_id_.erase(obj->id());
-        map_pk_obj_by_vid_.erase(obj->get_vid());
+        map_obj_by_id_.erase(obj->id());
+        map_obj_by_vid_.erase(obj->get_vid());
     }
 
     void manager::send_land_list(desc *d, int32_t map_index_value) {
@@ -807,9 +807,9 @@ namespace metin2::game::inline guilds {
 
         uint16_t wCount = 0;
 
-        auto it = map_pk_land_.begin();
+        auto it = map_land_.begin();
 
-        while (it != map_pk_land_.end()) {
+        while (it != map_land_.end()) {
             land *pkLand = (it++)->second.get();
             const land_table &r = pkLand->data();
 
@@ -873,9 +873,9 @@ namespace metin2::game::inline guilds {
     }
 
     void land::clear_land() {
-        auto iter = map_pk_object_.begin();
+        auto iter = map_object_.begin();
 
-        while (iter != map_pk_object_.end()) {
+        while (iter != map_object_.end()) {
             request_delete_object(iter->second->id());
             iter++;
         }
@@ -976,9 +976,9 @@ namespace metin2::game::inline guilds {
     }
 
     void land::request_delete_wall() {
-        auto iter = map_pk_object_.begin();
+        auto iter = map_object_.begin();
 
-        while (iter != map_pk_object_.end()) {
+        while (iter != map_object_.end()) {
             unsigned id = iter->second->id();
             unsigned vnum = iter->second->vnum();
 
@@ -1071,14 +1071,14 @@ namespace metin2::game::inline guilds {
     }
 
     void land::request_delete_wall_blocks(uint32_t id_value) {
-        auto iter = map_pk_object_.begin();
+        auto iter = map_object_.begin();
 
         uint32_t corner = id_value - 4;
         uint32_t wall = id_value - 3;
         uint32_t door = id_value - 1;
         uint32_t dwVnum = 0;
 
-        while (iter != map_pk_object_.end()) {
+        while (iter != map_object_.end()) {
             dwVnum = iter->second->vnum();
 
             if (dwVnum == corner || dwVnum == wall || dwVnum == door) {

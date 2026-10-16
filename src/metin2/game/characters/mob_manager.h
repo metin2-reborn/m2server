@@ -64,27 +64,27 @@ namespace metin2::game::inline characters {
             if (prob == 0)
                 return;
 
-            if (!vec_i_probs.empty())
-                prob += vec_i_probs.back();
+            if (!probs.empty())
+                prob += probs.back();
 
-            vec_i_probs.push_back(prob);
-            vec_dw_member_vnum.push_back(vnum);
+            probs.push_back(prob);
+            vec_member_vnum.push_back(vnum);
         }
 
         auto member() -> uint32_t {
-            if (vec_dw_member_vnum.empty())
+            if (vec_member_vnum.empty())
                 return 0;
 
-            int n = number(1, vec_i_probs.back());
-            auto it = lower_bound(vec_i_probs.begin(), vec_i_probs.end(), n);
+            int n = number(1, probs.back());
+            auto it = lower_bound(probs.begin(), probs.end(), n);
 
-            return vec_dw_member_vnum[std::distance(vec_i_probs.begin(), it)];
+            return vec_member_vnum[std::distance(probs.begin(), it)];
         }
 
         uint32_t vnum;
-        std::vector<uint32_t> vec_dw_member_vnum;
+        std::vector<uint32_t> vec_member_vnum;
 
-        std::vector<int> vec_i_probs;
+        std::vector<int> probs;
     };
 
     class mob_group {
@@ -95,17 +95,17 @@ namespace metin2::game::inline characters {
         }
 
         auto member_vector() -> const std::vector<uint32_t> & {
-            return vec_dw_member_vnum_;
+            return vec_member_vnum_;
         }
 
         void add_member(uint32_t vnum) {
-            vec_dw_member_vnum_.push_back(vnum);
+            vec_member_vnum_.push_back(vnum);
         }
 
       protected:
         uint32_t vnum_;
         std::string name_;
-        std::vector<uint32_t> vec_dw_member_vnum_;
+        std::vector<uint32_t> vec_member_vnum_;
     };
 
     class mob_manager : public singleton<mob_manager> {
@@ -126,8 +126,8 @@ namespace metin2::game::inline characters {
         auto get(uint32_t vnum) -> const mob *;
         auto get(const char *name, bool is_abbrev) -> const mob *;
 
-        auto begin() -> const iterator { return map_pk_mob_by_vnum_.begin(); }
-        auto end() -> const iterator { return map_pk_mob_by_vnum_.end(); }
+        auto begin() -> const iterator { return map_mob_by_vnum_.begin(); }
+        auto end() -> const iterator { return map_mob_by_vnum_.end(); }
 
         void rebind_mob_proto(character *ch);
 
@@ -135,10 +135,10 @@ namespace metin2::game::inline characters {
         void dump_regen_count(const char *filename);
 
       private:
-        std::map<uint32_t, mob *> map_pk_mob_by_vnum_;
-        std::map<std::string, mob *> map_pk_mob_by_name_;
-        std::map<uint32_t, mob_group *> map_pk_mob_group_;
-        std::map<uint32_t, mob_group_group *> map_pk_mob_group_group_;
+        std::map<uint32_t, mob *> map_mob_by_vnum_;
+        std::map<std::string, mob *> map_mob_by_name_;
+        std::map<uint32_t, mob_group *> map_mob_group_;
+        std::map<uint32_t, mob_group_group *> map_mob_group_group_;
 
         std::map<uint32_t, double> regen_count_;
     };

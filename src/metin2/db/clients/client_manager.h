@@ -115,7 +115,7 @@ namespace metin2::db::inline clients {
         void set_cache_flush_count_limit(int limit);
 
         template <class Func>
-        auto for_each_peer(Func f) -> Func;
+        void for_each_peer(Func &&f);
 
         auto any_peer() -> peer *;
 
@@ -294,16 +294,16 @@ namespace metin2::db::inline clients {
         peer *auth_peer_;
 
         typedef std::unordered_map<uint32_t, login_data *> login_data_by_login_key;
-        login_data_by_login_key map_pk_login_data_;
+        login_data_by_login_key map_login_data_;
 
         typedef std::unordered_map<std::string, login_data *> login_data_by_login;
-        login_data_by_login map_pk_login_data_by_login_;
+        login_data_by_login map_login_data_by_login_;
 
         typedef std::unordered_map<uint32_t, login_data *> login_data_by_aid;
-        login_data_by_aid map_pk_login_data_by_aid_;
+        login_data_by_aid map_login_data_by_aid_;
 
         typedef std::unordered_map<std::string, login_data *> logon_account_map;
-        logon_account_map map_k_logon_account_;
+        logon_account_map map_logon_account_;
 
         int player_id_start_;
         int player_delete_level_limit_;
@@ -324,16 +324,16 @@ namespace metin2::db::inline clients {
         std::vector<item_attr_table> vec_item_attr_table_;
         std::vector<item_attr_table> vec_item_rare_table_;
 
-        std::vector<building::land_table> vec_k_land_table_;
-        std::vector<building::object_proto> vec_k_object_proto_;
-        std::map<uint32_t, std::unique_ptr<building::object_table>> map_pk_object_table_;
+        std::vector<building::land_table> vec_land_table_;
+        std::vector<building::object_proto> vec_object_proto_;
+        std::map<uint32_t, std::unique_ptr<building::object_table>> map_object_table_;
 
         bool shutdowned_;
 
         player_table_cache_map map_player_cache_;
 
         item_cache_map map_item_cache_;
-        item_cache_set_ptr_map map_pk_item_cache_set_ptr_;
+        item_cache_set_ptr_map map_item_cache_set_ptr_;
 
         item_price_list_cache_map item_price_list_cache_;
 
@@ -350,10 +350,10 @@ namespace metin2::db::inline clients {
         typedef std::map<uint32_t, party_info> party_member;
         typedef std::map<uint32_t, party_member> party_map;
         typedef std::map<uint8_t, party_map> party_channel_map;
-        party_channel_map map_pk_channel_party_;
+        party_channel_map map_channel_party_;
 
         typedef std::map<std::string, int32_t> event_flag_map;
-        event_flag_map map_l_event_flag_;
+        event_flag_map map_event_flag_;
 
         int cache_flush_count_;
         int cache_flush_count_limit_;
@@ -419,12 +419,9 @@ namespace metin2::db::inline clients {
     };
 
     template <class Func>
-    auto client_manager::for_each_peer(Func f) -> Func {
-        peer_list::iterator it;
-        for (it = peer_list_.begin(); it != peer_list_.end(); ++it) {
-            f(*it);
-        }
-        return f;
+    void client_manager::for_each_peer(Func &&f) {
+        for (peer *p : peer_list_)
+            f(p);
     }
     extern int item_count;
     extern int query_count[2];

@@ -18,26 +18,26 @@ namespace metin2::db::inline social {
     namespace marriage {
         struct wedding_info {
             uint32_t time;
-            uint32_t pi_d1;
-            uint32_t pi_d2;
+            uint32_t pid1;
+            uint32_t pid2;
             wedding_info(uint32_t time_value, uint32_t pid1, uint32_t pid2)
                 : time(time_value),
-                  pi_d1(pid1),
-                  pi_d2(pid2) {
+                  pid1(pid1),
+                  pid2(pid2) {
             }
         };
 
         struct wedding {
             uint32_t time;
             uint32_t map_index;
-            uint32_t pi_d1;
-            uint32_t pi_d2;
+            uint32_t pid1;
+            uint32_t pid2;
 
             wedding(uint32_t time_value, uint32_t map_index_value, uint32_t pid1, uint32_t pid2)
                 : time(time_value),
                   map_index(map_index_value),
-                  pi_d1(pid1),
-                  pi_d2(pid2) {
+                  pid1(pid1),
+                  pid2(pid2) {
             }
         };
 

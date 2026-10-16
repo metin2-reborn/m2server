@@ -26,16 +26,16 @@
 
 namespace metin2::game::inline protocol {
 
-    p2_p_manager::p2_p_manager() {
+    p2p_manager::p2p_manager() {
         handle_count_ = 0;
 
         memset(empire_user_count_, 0, sizeof(empire_user_count_));
     }
 
-    p2_p_manager::~p2_p_manager() {
+    p2p_manager::~p2p_manager() {
     }
 
-    void p2_p_manager::boot(desc *d) {
+    void p2p_manager::boot(desc *d) {
         character_manager::name_map &map = character_manager::instance().pc_map();
         character_manager::name_map::iterator it = map.begin();
 
@@ -56,30 +56,30 @@ namespace metin2::game::inline protocol {
         }
     }
 
-    void p2_p_manager::flush_output() {
-        std::unordered_set<desc *>::iterator it = set_pk_peers_.begin();
+    void p2p_manager::flush_output() {
+        std::unordered_set<desc *>::iterator it = set_peers_.begin();
 
-        while (it != set_pk_peers_.end()) {
+        while (it != set_peers_.end()) {
             desc *pkDesc = *it++;
             pkDesc->flush_output();
         }
     }
 
-    void p2_p_manager::register_acceptor(desc *d) {
+    void p2p_manager::register_acceptor(desc *d) {
         metin2::log::info("Peer acceptor opened (host {})", d->host_name());
-        set_pk_peers_.insert(d);
+        set_peers_.insert(d);
         boot(d);
     }
 
-    void p2_p_manager::unregister_acceptor(desc *d) {
+    void p2p_manager::unregister_acceptor(desc *d) {
         metin2::log::info("Peer acceptor closed (host {})", d->host_name());
         erase_user_by_desc(d);
-        set_pk_peers_.erase(d);
+        set_peers_.erase(d);
     }
 
-    void p2_p_manager::register_connector(desc *d) {
+    void p2p_manager::register_connector(desc *d) {
         metin2::log::info("Peer connector opened (host {})", d->host_name());
-        set_pk_peers_.insert(d);
+        set_peers_.insert(d);
         boot(d);
 
         packet_gg_setup p;
@@ -89,20 +89,20 @@ namespace metin2::game::inline protocol {
         d->packet(&p, sizeof(p));
     }
 
-    void p2_p_manager::unregister_connector(desc *d) {
-        std::unordered_set<desc *>::iterator it = set_pk_peers_.find(d);
+    void p2p_manager::unregister_connector(desc *d) {
+        std::unordered_set<desc *>::iterator it = set_peers_.find(d);
 
-        if (it != set_pk_peers_.end()) {
+        if (it != set_peers_.end()) {
             metin2::log::info("Peer connector closed (host {})", d->host_name());
             erase_user_by_desc(d);
-            set_pk_peers_.erase(it);
+            set_peers_.erase(it);
         }
     }
 
-    void p2_p_manager::erase_user_by_desc(desc *d) {
-        cci_map::iterator it = map_pk_cci_.begin();
+    void p2p_manager::erase_user_by_desc(desc *d) {
+        cci_map::iterator it = map_cci_.begin();
 
-        while (it != map_pk_cci_.end()) {
+        while (it != map_cci_.end()) {
             cci *pkCCI = it->second.get();
             it++;
 
@@ -111,10 +111,10 @@ namespace metin2::game::inline protocol {
         }
     }
 
-    void p2_p_manager::send(const void *data, int size, desc *except) {
-        std::unordered_set<desc *>::iterator it = set_pk_peers_.begin();
+    void p2p_manager::send(const void *data, int size, desc *except) {
+        std::unordered_set<desc *>::iterator it = set_peers_.begin();
 
-        while (it != set_pk_peers_.end()) {
+        while (it != set_peers_.end()) {
             desc *pkDesc = *it++;
 
             if (except == pkDesc)
@@ -124,7 +124,7 @@ namespace metin2::game::inline protocol {
         }
     }
 
-    void p2_p_manager::login(desc *d, const packet_gg_login *p) {
+    void p2p_manager::login(desc *d, const packet_gg_login *p) {
         cci *pkCCI = find(p->name);
 
         bool UpdateP2P = false;
@@ -147,8 +147,8 @@ namespace metin2::game::inline protocol {
                 }
             }
 
-            map_dw_pid_pk_cci_.insert(std::make_pair(pkCCI->pid, pkCCI));
-            map_pk_cci_.emplace(pkCCI->name, std::move(pkNewCCI));
+            map_pid_pk_cci_.insert(std::make_pair(pkCCI->pid, pkCCI));
+            map_cci_.emplace(pkCCI->name, std::move(pkNewCCI));
         }
 
         pkCCI->map_index = p->map_index;
@@ -156,16 +156,16 @@ namespace metin2::game::inline protocol {
         pkCCI->channel = p->channel;
         metin2::log::debug("Peer login: player {}", pkCCI->name);
 
-        guild_manager::instance().p2_p_login_member(pkCCI->pid);
-        party_manager::instance().p2_p_login(pkCCI->pid, pkCCI->name);
+        guild_manager::instance().p2p_login_member(pkCCI->pid);
+        party_manager::instance().p2p_login(pkCCI->pid, pkCCI->name);
 
         if (UpdateP2P) {
             std::string name(pkCCI->name);
-            messenger_manager::instance().p2_p_login(name);
+            messenger_manager::instance().p2p_login(name);
         }
     }
 
-    void p2_p_manager::logout(cci *cci_value) {
+    void p2p_manager::logout(cci *cci_value) {
         if (cci_value->channel == metin2::config::server().channel) {
             if (cci_value->empire < EMPIRE_MAX_NUM) {
                 --empire_user_count_[cci_value->empire];
@@ -179,16 +179,16 @@ namespace metin2::game::inline protocol {
 
         std::string name(cci_value->name);
 
-        guild_manager::instance().p2_p_logout_member(cci_value->pid);
-        party_manager::instance().p2_p_logout(cci_value->pid);
-        messenger_manager::instance().p2_p_logout(name);
+        guild_manager::instance().p2p_logout_member(cci_value->pid);
+        party_manager::instance().p2p_logout(cci_value->pid);
+        messenger_manager::instance().p2p_logout(name);
         marriage::manager::instance().logout(cci_value->pid);
 
-        map_dw_pid_pk_cci_.erase(cci_value->pid);
-        map_pk_cci_.erase(name);
+        map_pid_pk_cci_.erase(cci_value->pid);
+        map_cci_.erase(name);
     }
 
-    void p2_p_manager::logout(const char *name) {
+    void p2p_manager::logout(const char *name) {
         cci *pkCCI = find(name);
 
         if (!pkCCI)
@@ -198,46 +198,46 @@ namespace metin2::game::inline protocol {
         logout(pkCCI);
     }
 
-    auto p2_p_manager::find_by_pid(uint32_t pid) -> cci * {
-        pidcci_map::iterator it = map_dw_pid_pk_cci_.find(pid);
-        if (it == map_dw_pid_pk_cci_.end())
+    auto p2p_manager::find_by_pid(uint32_t pid) -> cci * {
+        pidcci_map::iterator it = map_pid_pk_cci_.find(pid);
+        if (it == map_pid_pk_cci_.end())
             return nullptr;
         return it->second;
     }
 
-    auto p2_p_manager::find(const char *name) -> cci * {
+    auto p2p_manager::find(const char *name) -> cci * {
         cci_map::const_iterator it;
 
-        it = map_pk_cci_.find(name);
+        it = map_cci_.find(name);
 
-        if (it == map_pk_cci_.end())
+        if (it == map_cci_.end())
             return nullptr;
 
         return it->second.get();
     }
 
-    auto p2_p_manager::count() -> int {
+    auto p2p_manager::count() -> int {
         return empire_user_count_[1] + empire_user_count_[2] + empire_user_count_[3];
     }
 
-    auto p2_p_manager::empire_user_count(int idx) -> int {
+    auto p2p_manager::empire_user_count(int idx) -> int {
         assert(idx < EMPIRE_MAX_NUM);
         return empire_user_count_[idx];
     }
 
-    auto p2_p_manager::desc_count() -> int {
-        return set_pk_peers_.size();
+    auto p2p_manager::desc_count() -> int {
+        return set_peers_.size();
     }
 
-    void p2_p_manager::p2_p_host_names(std::string &host_names) {
-        std::unordered_set<desc *>::iterator it = set_pk_peers_.begin();
+    void p2p_manager::p2p_host_names(std::string &host_names) {
+        std::unordered_set<desc *>::iterator it = set_peers_.begin();
 
         std::ostringstream oss(std::ostringstream::out);
 
-        while (it != set_pk_peers_.end()) {
+        while (it != set_peers_.end()) {
             desc *pkDesc = *it++;
 
-            oss << pkDesc->p2_p_host() << " " << pkDesc->p2_p_port() << "\n";
+            oss << pkDesc->p2p_host() << " " << pkDesc->p2p_port() << "\n";
         }
         host_names += oss.str();
     }

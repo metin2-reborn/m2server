@@ -32,7 +32,7 @@ namespace metin2::game::inline characters {
         int armor;
     };
 
-    extern horse_stat c_a_horse_stat[HORSE_MAX_LEVEL + 1];
+    extern horse_stat horse_stats[HORSE_MAX_LEVEL + 1];
 
     class horse_rider {
       public:
@@ -46,11 +46,11 @@ namespace metin2::game::inline characters {
         auto horse_max_health() -> short;
         auto horse_max_stamina() -> short;
 
-        auto horse_st() -> int { return c_a_horse_stat[horse_level()].st; }
-        auto horse_dx() -> int { return c_a_horse_stat[horse_level()].dx; }
-        auto horse_ht() -> int { return c_a_horse_stat[horse_level()].ht; }
-        auto horse_iq() -> int { return c_a_horse_stat[horse_level()].iq; }
-        auto horse_armor() -> int { return c_a_horse_stat[horse_level()].armor; }
+        auto horse_st() -> int { return horse_stats[horse_level()].st; }
+        auto horse_dx() -> int { return horse_stats[horse_level()].dx; }
+        auto horse_ht() -> int { return horse_stats[horse_level()].ht; }
+        auto horse_iq() -> int { return horse_stats[horse_level()].iq; }
+        auto horse_armor() -> int { return horse_stats[horse_level()].armor; }
 
         virtual auto revive_horse() -> bool;
         void feed_horse();

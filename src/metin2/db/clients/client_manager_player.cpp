@@ -364,6 +364,7 @@ namespace metin2::db::inline clients {
         memset(tab, 0, sizeof(player_table));
 
         MYSQL_ROW row = mysql_fetch_row(res);
+        const unsigned long *lengths = mysql_fetch_lengths(res);
 
         int col = 0;
 
@@ -400,17 +401,15 @@ namespace metin2::db::inline clients {
         str_to_number(tab->part_base, row[col++]);
         str_to_number(tab->parts[PART_HAIR], row[col++]);
 
+        std::memset(&tab->skills, 0, sizeof(tab->skills));
         if (row[col])
-            std::memcpy(tab->skills, row[col], sizeof(tab->skills));
-        else
-            memset(&tab->skills, 0, sizeof(tab->skills));
+            std::memcpy(tab->skills, row[col], std::min<size_t>(lengths[col], sizeof(tab->skills)));
 
         col++;
 
+        std::memset(tab->quickslot, 0, sizeof(tab->quickslot));
         if (row[col])
-            std::memcpy(tab->quickslot, row[col], sizeof(tab->quickslot));
-        else
-            memset(tab->quickslot, 0, sizeof(tab->quickslot));
+            std::memcpy(tab->quickslot, row[col], std::min<size_t>(lengths[col], sizeof(tab->quickslot)));
 
         col++;
 
@@ -893,7 +892,7 @@ namespace metin2::db::inline clients {
 
                 pSet->clear();
 
-                map_pk_item_cache_set_ptr_.erase(pi->player_id);
+                map_item_cache_set_ptr_.erase(pi->player_id);
             }
 
             query = sql::format("UPDATE player_index{} SET pid{}=0 WHERE pid{}={}",

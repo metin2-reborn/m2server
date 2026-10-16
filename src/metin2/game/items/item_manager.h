@@ -331,16 +331,16 @@ namespace metin2::game::inline items {
         item_id_range_table item_id_range_;
         item_id_range_table item_id_spare_range_;
 
-        std::unordered_set<item *> set_pk_item_for_delayed_save_;
-        std::map<uint32_t, item *> map_pk_item_by_id_;
-        std::map<uint32_t, uint32_t> map_dw_etc_item_drop_prob_;
-        std::map<uint32_t, drop_item_group *> map_pk_drop_item_group_;
-        std::map<uint32_t, special_item_group *> map_pk_special_item_group_;
-        std::map<uint32_t, special_item_group *> map_pk_quest_item_group_;
-        std::map<uint32_t, special_attr_group *> map_pk_special_attr_group_;
-        std::map<uint32_t, mob_item_group *> map_pk_mob_item_group_;
-        std::map<uint32_t, level_item_group *> map_pk_level_item_group_;
-        std::map<uint32_t, buyer_thief_gloves_item_group *> map_pk_glove_item_group_;
+        std::unordered_set<item *> set_item_for_delayed_save_;
+        std::map<uint32_t, item *> map_item_by_id_;
+        std::map<uint32_t, uint32_t> map_etc_item_drop_prob_;
+        std::map<uint32_t, drop_item_group *> map_drop_item_group_;
+        std::map<uint32_t, special_item_group *> map_special_item_group_;
+        std::map<uint32_t, special_item_group *> map_quest_item_group_;
+        std::map<uint32_t, special_attr_group *> map_special_attr_group_;
+        std::map<uint32_t, mob_item_group *> map_mob_item_group_;
+        std::map<uint32_t, level_item_group *> map_level_item_group_;
+        std::map<uint32_t, buyer_thief_gloves_item_group *> map_glove_item_group_;
 
         std::map<uint32_t, int> item_to_special_group_;
 

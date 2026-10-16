@@ -129,8 +129,7 @@ namespace metin2::game::inline events {
                 if (*buf == '#')
                     continue;
 
-                char *p = strrchr(buf, '\n');
-                *p = '\0';
+                buf[strcspn(buf, "\r\n")] = '\0';
 
                 const char *start = buf;
                 const char *tab = strchr(start, '\t');

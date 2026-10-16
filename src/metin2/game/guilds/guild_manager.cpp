@@ -114,43 +114,43 @@ namespace metin2::game::inline guilds {
     }
 
     void guild_manager::unlink(uint32_t pid) {
-        map_pk_guild_by_pid_.erase(pid);
+        map_guild_by_pid_.erase(pid);
     }
 
     auto guild_manager::linked_guild(uint32_t pid) -> guild * {
-        guild_map::iterator it = map_pk_guild_by_pid_.find(pid);
+        guild_map::iterator it = map_guild_by_pid_.find(pid);
 
-        if (it == map_pk_guild_by_pid_.end())
+        if (it == map_guild_by_pid_.end())
             return nullptr;
 
         return it->second;
     }
 
     void guild_manager::link(uint32_t pid, guild *guild) {
-        if (map_pk_guild_by_pid_.find(pid) == map_pk_guild_by_pid_.end())
-            map_pk_guild_by_pid_.insert(std::make_pair(pid, guild));
+        if (map_guild_by_pid_.find(pid) == map_guild_by_pid_.end())
+            map_guild_by_pid_.insert(std::make_pair(pid, guild));
     }
 
-    void guild_manager::p2_p_logout_member(uint32_t pid) {
-        guild_map::iterator it = map_pk_guild_by_pid_.find(pid);
+    void guild_manager::p2p_logout_member(uint32_t pid) {
+        guild_map::iterator it = map_guild_by_pid_.find(pid);
 
-        if (it != map_pk_guild_by_pid_.end()) {
-            it->second->p2_p_logout_member(pid);
+        if (it != map_guild_by_pid_.end()) {
+            it->second->p2p_logout_member(pid);
         }
     }
 
-    void guild_manager::p2_p_login_member(uint32_t pid) {
-        guild_map::iterator it = map_pk_guild_by_pid_.find(pid);
+    void guild_manager::p2p_login_member(uint32_t pid) {
+        guild_map::iterator it = map_guild_by_pid_.find(pid);
 
-        if (it != map_pk_guild_by_pid_.end()) {
-            it->second->p2_p_login_member(pid);
+        if (it != map_guild_by_pid_.end()) {
+            it->second->p2p_login_member(pid);
         }
     }
 
     void guild_manager::login_member(character *ch) {
-        guild_map::iterator it = map_pk_guild_by_pid_.find(ch->player_id());
+        guild_map::iterator it = map_guild_by_pid_.find(ch->player_id());
 
-        if (it != map_pk_guild_by_pid_.end()) {
+        if (it != map_guild_by_pid_.end()) {
             it->second->login_member(ch);
         }
     }
@@ -763,18 +763,18 @@ namespace metin2::game::inline guilds {
     }
 
     void guild_manager::reserve_war_add(guild_war_reserve *p) {
-        auto it = map_k_reserve_war_.find(p->id);
+        auto it = map_reserve_war_.find(p->id);
 
         guild_war_reserve_for_game *pkReserve;
 
-        if (it != map_k_reserve_war_.end())
+        if (it != map_reserve_war_.end())
             pkReserve = it->second.get();
         else {
             auto pkNewReserve = std::make_unique<guild_war_reserve_for_game>();
             pkReserve = pkNewReserve.get();
 
-            map_k_reserve_war_.insert(std::make_pair(p->id, std::move(pkNewReserve)));
-            vec_k_reserve_war_.push_back(pkReserve);
+            map_reserve_war_.insert(std::make_pair(p->id, std::move(pkNewReserve)));
+            vec_reserve_war_.push_back(pkReserve);
         }
 
         std::memcpy(&pkReserve->data, p, sizeof(guild_war_reserve));
@@ -784,18 +784,18 @@ namespace metin2::game::inline guilds {
     }
 
     void guild_manager::reserve_war_bet(packet_gd_guild_war_bet *p) {
-        auto it = map_k_reserve_war_.find(p->war_id);
+        auto it = map_reserve_war_.find(p->war_id);
 
-        if (it == map_k_reserve_war_.end())
+        if (it == map_reserve_war_.end())
             return;
 
         it->second->bet.insert(std::make_pair(p->login, std::make_pair(p->guild, p->gold)));
     }
 
     auto guild_manager::is_bet(uint32_t id, const char *login) -> bool {
-        auto it = map_k_reserve_war_.find(id);
+        auto it = map_reserve_war_.find(id);
 
-        if (it == map_k_reserve_war_.end())
+        if (it == map_reserve_war_.end())
             return true;
 
         return it->second->bet.end() != it->second->bet.find(login);
@@ -803,26 +803,26 @@ namespace metin2::game::inline guilds {
 
     void guild_manager::reserve_war_delete(uint32_t id) {
         metin2::log::info("Guild war: deleted reserved war {:d}", id);
-        auto it = map_k_reserve_war_.find(id);
+        auto it = map_reserve_war_.find(id);
 
-        if (it == map_k_reserve_war_.end())
+        if (it == map_reserve_war_.end())
             return;
 
-        auto it_vec = vec_k_reserve_war_.begin();
+        auto it_vec = vec_reserve_war_.begin();
 
-        while (it_vec != vec_k_reserve_war_.end()) {
+        while (it_vec != vec_reserve_war_.end()) {
             if (*it_vec == it->second.get()) {
-                it_vec = vec_k_reserve_war_.erase(it_vec);
+                it_vec = vec_reserve_war_.erase(it_vec);
                 break;
             } else
                 ++it_vec;
         }
 
-        map_k_reserve_war_.erase(it);
+        map_reserve_war_.erase(it);
     }
 
     auto guild_manager::reserve_war_ref() -> std::vector<guild_war_reserve_for_game *> & {
-        return vec_k_reserve_war_;
+        return vec_reserve_war_;
     }
 
     void guild_manager::change_master(uint32_t gid) {

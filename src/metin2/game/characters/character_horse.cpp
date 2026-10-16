@@ -225,7 +225,7 @@ namespace metin2::game::inline characters {
                 ++delta;
         }
 
-        return c_a_horse_stat[horse_level()].npc_race + delta;
+        return horse_stats[horse_level()].npc_race + delta;
     }
 
     void character::horse_die() {

@@ -21,7 +21,7 @@ namespace metin2::game::inline parties {
 namespace metin2::game::inline protocol {
     class client_desc;
     class desc;
-    class desc_p2_p;
+    class desc_p2p;
 }
 namespace metin2::game::inline world {
     class dungeon;

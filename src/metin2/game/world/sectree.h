@@ -135,16 +135,15 @@ namespace metin2::game::inline world {
       private:
         template <class _Func>
         void for_each_entity(_Func &func) {
-            auto it = set_entity_.begin();
-            for (; it != set_entity_.end(); ++it) {
-                entity *entity = *it;
-                if (entity->get_sectree() != this) {
-                    metin2::log::error("Entity in sectree points to a different sectree");
-                    set_entity_.erase(it);
-                    continue;
-                }
-                func(entity);
-            }
+            std::erase_if(set_entity_, [this](entity *e) {
+                if (e->get_sectree() == this)
+                    return false;
+                metin2::log::error("Entity in sectree points to a different sectree");
+                return true;
+            });
+
+            for (entity *e : set_entity_)
+                func(e);
         }
 
         sectreeid id_;

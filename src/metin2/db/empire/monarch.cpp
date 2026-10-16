@@ -121,6 +121,9 @@ namespace metin2::db::inline empire {
     }
 
     auto monarch::add_money(int empire, int64_t money_value) -> bool {
+        if (empire <= 0 || empire >= EMPIRE_MAX_NUM)
+            return false;
+
         if (monarch_info_.money[empire] + money_value > 2000000000)
             return true;
 
@@ -137,6 +140,9 @@ namespace metin2::db::inline empire {
     }
 
     auto monarch::dec_money(int empire, int64_t money_value) -> bool {
+        if (empire <= 0 || empire >= EMPIRE_MAX_NUM)
+            return false;
+
         if (monarch_info_.money[empire] - money_value < 0)
             return false;
         monarch_info_.money[empire] -= money_value;
@@ -151,6 +157,9 @@ namespace metin2::db::inline empire {
     }
 
     auto monarch::take_money(int empire, uint32_t pid, int64_t money_value) -> bool {
+        if (empire <= 0 || empire >= EMPIRE_MAX_NUM)
+            return false;
+
         if (is_monarch(empire, pid) == false)
             return false;
 

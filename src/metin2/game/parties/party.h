@@ -73,18 +73,18 @@ namespace metin2::game::inline parties {
 
         void set_party_member(uint32_t pid, party *party_value);
 
-        void p2_p_login(uint32_t pid, const char *name);
-        void p2_p_logout(uint32_t pid);
+        void p2p_login(uint32_t pid, const char *name);
+        void p2p_logout(uint32_t pid);
 
-        auto p2_p_create_party(uint32_t pid) -> party *;
-        void p2_p_delete_party(uint32_t pid);
-        void p2_p_join_party(uint32_t leader, uint32_t pid, uint8_t role = 0);
-        void p2_p_quit_party(uint32_t pid);
+        auto p2p_create_party(uint32_t pid) -> party *;
+        void p2p_delete_party(uint32_t pid);
+        void p2p_join_party(uint32_t leader, uint32_t pid, uint8_t role = 0);
+        void p2p_quit_party(uint32_t pid);
 
       private:
-        party_map map_pk_party_;
+        party_map map_party_;
 
-        pc_party_set set_pk_pc_party_;
+        pc_party_set set_pc_party_;
 
         bool enable_pc_party_;
     };
@@ -114,8 +114,8 @@ namespace metin2::game::inline parties {
         party();
         virtual ~party();
 
-        void p2_p_join(uint32_t pid);
-        void p2_p_quit(uint32_t pid);
+        void p2p_join(uint32_t pid);
+        void p2p_quit(uint32_t pid);
         virtual void join(uint32_t pid_value);
         void quit(uint32_t pid_value);
         void link(character *chr);
@@ -200,7 +200,7 @@ namespace metin2::game::inline parties {
         auto exp_centralize_character() -> character *;
 
         void request_set_member_level(uint32_t pid, uint8_t level);
-        void p2_p_set_member_level(uint32_t pid, uint8_t level);
+        void p2p_set_member_level(uint32_t pid, uint8_t level);
 
       protected:
         void increase_ownership();
@@ -244,7 +244,7 @@ namespace metin2::game::inline parties {
 
         bool pc_party_;
 
-        flag_map map_i_flag_;
+        flag_map flags_;
 
         dungeon *dungeon_;
         dungeon *dungeon_for_only_party_;

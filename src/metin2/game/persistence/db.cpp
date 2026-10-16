@@ -194,9 +194,9 @@ namespace metin2::game::inline persistence {
     }
 
     auto db_manager::get_login_data(uint32_t key) -> login_data * {
-        auto it = map_pk_login_data_.find(key);
+        auto it = map_login_data_.find(key);
 
-        if (it == map_pk_login_data_.end())
+        if (it == map_login_data_.end())
             return nullptr;
 
         return it->second.get();
@@ -204,18 +204,18 @@ namespace metin2::game::inline persistence {
 
     void db_manager::insert_login_data(std::unique_ptr<login_data> ld) {
         const uint32_t dwKey = ld->key();
-        map_pk_login_data_.insert(std::make_pair(dwKey, std::move(ld)));
+        map_login_data_.insert(std::make_pair(dwKey, std::move(ld)));
     }
 
     void db_manager::delete_login_data(login_data *ld) {
-        auto it = map_pk_login_data_.find(ld->key());
+        auto it = map_login_data_.find(ld->key());
 
-        if (it == map_pk_login_data_.end())
+        if (it == map_login_data_.end())
             return;
 
         metin2::log::debug("Login data of account {} released ({})", ld->login(), static_cast<const void *>(ld));
 
-        map_pk_login_data_.erase(it);
+        map_login_data_.erase(it);
     }
 
     void db_manager::send_auth_login(desc *d) {
@@ -637,7 +637,7 @@ namespace metin2::game::inline persistence {
     }
 
     void cancel_reload_spam_event() {
-        reload_spam_event_handle = nullptr;
+        event_cancel(&reload_spam_event_handle);
     }
 
     void account_db::analyze_return_query(sql_msg *msg) {

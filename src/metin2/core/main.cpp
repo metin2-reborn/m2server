@@ -21,7 +21,6 @@ namespace metin2::inline core {
     heart *thecore_heart = nullptr;
 
     volatile std::sig_atomic_t shutdowned = false;
-    volatile std::sig_atomic_t tics = 0;
     unsigned int thecore_idle_time = 0;
 
     namespace {
@@ -94,6 +93,6 @@ namespace metin2::inline core {
     }
 
     void thecore_tick() {
-        tics = tics + 1;
+        ticks.fetch_add(1, std::memory_order_relaxed);
     }
 }

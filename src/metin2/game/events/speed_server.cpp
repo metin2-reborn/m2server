@@ -241,18 +241,16 @@ namespace metin2::game::inline events {
         wday_exp_table_[wday].clear();
     }
 
-    auto speed_server_manager::holiday_exp_table_of_empire(uint8_t empire, date date, bool &is_exist) -> std::list<hme> & {
+    auto speed_server_manager::holiday_exp_table_of_empire(uint8_t empire, date date, bool &is_exist) -> std::list<hme> {
         return empire_[empire].holiday_exp_table(date, is_exist);
     }
 
-    auto speed_server_empire_exp::holiday_exp_table(date date, bool &is_exist) -> std::list<hme> & {
-        std::map<game::events::date, std::list<hme>>::iterator it = holiday_map_.find(date);
-        if (it != holiday_map_.end()) {
-            is_exist = true;
-            return it->second;
-        } else {
-            is_exist = false;
+    auto speed_server_empire_exp::holiday_exp_table(date date, bool &is_exist) -> std::list<hme> {
+        auto it = holiday_map_.find(date);
+        is_exist = it != holiday_map_.end();
+        if (!is_exist) {
             metin2::log::debug("Speed server: no holiday entry for {:d}-{:d}-{:d}", date.year, date.mon, date.day);
+            return {};
         }
         return it->second;
     }
@@ -310,7 +308,7 @@ namespace metin2::game::inline events {
 
         if (holi_it != holiday_map_.end()) {
             for (std::list<game::events::hme>::iterator it = holi_it->second.begin();
-                it != wday_exp_table_[datetime->tm_wday].end(); it++) {
+                it != holi_it->second.end(); it++) {
                 if (total_sec < (it->hour * 3600 + it->min * 60)) {
                     hme = *it;
                     break;

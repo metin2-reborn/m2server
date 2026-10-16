@@ -223,7 +223,7 @@ namespace metin2::game::inline admin {
         }
         packet_gg_shutdown p;
         p.header = HEADER_GG_SHUTDOWN;
-        p2_p_manager::instance().send(&p, sizeof(packet_gg_shutdown));
+        p2p_manager::instance().send(&p, sizeof(packet_gg_shutdown));
 
         shutdown(10);
     }
@@ -850,7 +850,7 @@ namespace metin2::game::inline admin {
                     return;
                 }
 
-                int iWarPrice = kor_a_guild_war_info[type].war_price;
+                int iWarPrice = guild_war_types[type].war_price;
 
                 if (g->guild_money() < iWarPrice) {
                     ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 전비가 부족하여 길드전을 할 수 없습니다."));
@@ -922,7 +922,7 @@ namespace metin2::game::inline admin {
             if (g->master_character() != nullptr)
                 break;
 
-            cci *pCCI = p2_p_manager::instance().find_by_pid(g->master_pid());
+            cci *pCCI = p2p_manager::instance().find_by_pid(g->master_pid());
 
             if (pCCI != nullptr)
                 break;
@@ -937,7 +937,7 @@ namespace metin2::game::inline admin {
             if (opp_g->master_character() != nullptr)
                 break;
 
-            cci *pCCI = p2_p_manager::instance().find_by_pid(opp_g->master_pid());
+            cci *pCCI = p2p_manager::instance().find_by_pid(opp_g->master_pid());
 
             if (pCCI != nullptr)
                 break;
@@ -1003,7 +1003,7 @@ namespace metin2::game::inline admin {
         if (ch->level() < metin2::config::game().pk_protect_level && mode != 0)
             return;
 
-        ch->set_pk_mode(mode);
+        ch->set_mode(mode);
     }
 
     ACMD(do_messenger_auth) {
@@ -1185,7 +1185,7 @@ namespace metin2::game::inline admin {
         character *tch = character_manager::instance().find_pc(arg1);
 
         if (!tch) {
-            cci *pkCCI = p2_p_manager::instance().find(arg1);
+            cci *pkCCI = p2p_manager::instance().find(arg1);
 
             if (pkCCI) {
                 if (pkCCI->empire != ch->empire()) {
@@ -1272,7 +1272,7 @@ namespace metin2::game::inline admin {
         character *tch = character_manager::instance().find_pc(arg1);
 
         if (!tch) {
-            cci *pkCCI = p2_p_manager::instance().find(arg1);
+            cci *pkCCI = p2p_manager::instance().find(arg1);
 
             if (pkCCI) {
                 if (pkCCI->empire != ch->empire()) {
@@ -1299,7 +1299,7 @@ namespace metin2::game::inline admin {
                 pgg.x = ch->x();
                 pgg.y = ch->y();
 
-                p2_p_manager::instance().send(&pgg, sizeof(packet_gg_transfer));
+                p2p_manager::instance().send(&pgg, sizeof(packet_gg_transfer));
                 ch->chat_packet(CHAT_TYPE_INFO, lc_text("%s 님을 소환하였습니다."), arg1);
 
                 monarch::instance().sendto_db_dec_money(WarpPrice, ch->empire(), ch);

@@ -12,8 +12,8 @@ namespace metin2::game::inline items {
 
     class over9_refine_manager : public singleton<over9_refine_manager> {
       private:
-        typedef std::unordered_map<uint32_t, uint32_t> ove_r9_item_map;
-        ove_r9_item_map item_;
+        typedef std::unordered_map<uint32_t, uint32_t> over9_item_map;
+        over9_item_map item_;
 
       public:
         void enable_over9_refine(uint32_t vnum_from, uint32_t vnum_to);

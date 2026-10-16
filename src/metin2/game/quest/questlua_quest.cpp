@@ -185,6 +185,7 @@ namespace metin2::game {
                     {"no_send",              quest_no_send                },
                     // Between begin_other_pc_block(pid) and end_other_pc_block the current pc is pid. Nothing
                     // in between may yield (wait, select, input, ...).
+                    {"begin_other_pc_block", quest_begin_other_pc_block   },
                     {"end_other_pc_block",   quest_end_other_pc_block     },
                     {nullptr,                nullptr                      }
             };

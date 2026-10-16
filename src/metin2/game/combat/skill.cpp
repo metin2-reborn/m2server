@@ -260,10 +260,10 @@ namespace metin2::game::inline combat {
         }
 
         if (!bError) {
-            map_pk_skill_proto_.clear();
+            map_skill_proto_.clear();
 
             for (auto &[dwVnum, pkProto] : map_pkSkillProto)
-                map_pk_skill_proto_.emplace(dwVnum, std::move(pkProto));
+                map_skill_proto_.emplace(dwVnum, std::move(pkProto));
 
             send_log("Skill Prototype reloaded!");
         } else
@@ -273,18 +273,18 @@ namespace metin2::game::inline combat {
     }
 
     auto skill_manager::get(uint32_t vnum) -> skill_proto * {
-        auto it = map_pk_skill_proto_.find(vnum);
+        auto it = map_skill_proto_.find(vnum);
 
-        if (it == map_pk_skill_proto_.end())
+        if (it == map_skill_proto_.end())
             return nullptr;
 
         return it->second.get();
     }
 
     auto skill_manager::get(const char *skill_name) -> skill_proto * {
-        auto it = map_pk_skill_proto_.begin();
+        auto it = map_skill_proto_.begin();
 
-        while (it != map_pk_skill_proto_.end()) {
+        while (it != map_skill_proto_.end()) {
             if (!strcasecmp(it->second->name, skill_name))
                 return it->second.get();
 

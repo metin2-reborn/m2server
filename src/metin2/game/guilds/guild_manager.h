@@ -44,8 +44,8 @@ namespace metin2::game::inline guilds {
         auto linked_guild(uint32_t pid) -> guild *;
 
         void login_member(character *ch);
-        void p2_p_login_member(uint32_t pid);
-        void p2_p_logout_member(uint32_t pid);
+        void p2p_login_member(uint32_t pid);
+        void p2p_logout_member(uint32_t pid);
 
         void skill_recharge();
 
@@ -97,10 +97,10 @@ namespace metin2::game::inline guilds {
         typedef std::map<std::pair<uint32_t, uint32_t>, uint32_t> guild_war_end_time_container;
         guild_war_end_time_container guild_war_end_time_;
 
-        guild_map map_pk_guild_by_pid_;
+        guild_map map_guild_by_pid_;
 
-        std::map<uint32_t, std::unique_ptr<guild_war_reserve_for_game>> map_k_reserve_war_;
-        std::vector<guild_war_reserve_for_game *> vec_k_reserve_war_;
+        std::map<uint32_t, std::unique_ptr<guild_war_reserve_for_game>> map_reserve_war_;
+        std::vector<guild_war_reserve_for_game *> vec_reserve_war_;
 
         friend class guild;
     };

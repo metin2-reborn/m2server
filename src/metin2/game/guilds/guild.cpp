@@ -178,7 +178,7 @@ namespace metin2::game::inline guilds {
         if (ch)
             login_member(ch);
         else
-            p2_p_login_member(p->pid);
+            p2p_login_member(p->pid);
     }
 
     auto guild::request_remove_member(uint32_t pid) -> bool {
@@ -226,13 +226,13 @@ namespace metin2::game::inline guilds {
         return true;
     }
 
-    void guild::p2_p_login_member(uint32_t pid) {
+    void guild::p2p_login_member(uint32_t pid) {
         if (member_.find(pid) == member_.end()) {
             metin2::log::warn("Member login for pid {:d}, who is not in the guild", pid);
             return;
         }
 
-        member_p2_p_online_.insert(pid);
+        member_p2p_online_.insert(pid);
 
         guild_member_online_container::iterator it;
 
@@ -262,13 +262,13 @@ namespace metin2::game::inline guilds {
         send_enemy_guild(ch);
     }
 
-    void guild::p2_p_logout_member(uint32_t pid) {
+    void guild::p2p_logout_member(uint32_t pid) {
         if (member_.find(pid) == member_.end()) {
             metin2::log::warn("Member logout for pid {:d}, who is not in the guild", pid);
             return;
         }
 
-        member_p2_p_online_.erase(pid);
+        member_p2p_online_.erase(pid);
 
         guild_member_online_container::iterator it;
         for (it = member_online_.begin(); it != member_online_.end(); ++it) {
@@ -406,7 +406,7 @@ namespace metin2::game::inline guilds {
             send_login_packet(ch, *it);
         }
 
-        for (guild_member_p2_p_online_container::iterator it = member_p2_p_online_.begin(); it != member_p2_p_online_.end(); ++it) {
+        for (guild_member_p2p_online_container::iterator it = member_p2p_online_.begin(); it != member_p2p_online_.end(); ++it) {
             send_login_packet(ch, *it);
         }
     }
@@ -586,7 +586,7 @@ namespace metin2::game::inline guilds {
         return 0;
     }
 
-    void guild::p2_p_update_grade(sql_msg *pmsg) {
+    void guild::p2p_update_grade(sql_msg *pmsg) {
         if (pmsg->get()->num_rows) {
             MYSQL_ROW row = mysql_fetch_row(pmsg->get()->res);
 
@@ -657,8 +657,8 @@ namespace metin2::game::inline guilds {
         }
     }
 
-    void guild::p2_p_change_grade(uint8_t grade) {
-        db_manager::instance().func_query([this](sql_msg *msg) { p2_p_update_grade(msg); },
+    void guild::p2p_change_grade(uint8_t grade) {
+        db_manager::instance().func_query([this](sql_msg *msg) { p2p_update_grade(msg); },
             "SELECT grade, name, auth+0 FROM guild_grade%s WHERE guild_id = %u and grade = %d", get_table_postfix(), data_.guild_id, grade);
     }
 
@@ -1147,8 +1147,8 @@ namespace metin2::game::inline guilds {
             if ((victim = (character_manager::instance().find_by_pid(pid))))
                 ch->warp_set(victim->x(), victim->y());
             else {
-                if (member_p2_p_online_.find(pid) != member_p2_p_online_.end()) {
-                    cci *pcci = p2_p_manager::instance().find_by_pid(pid);
+                if (member_p2p_online_.find(pid) != member_p2p_online_.end()) {
+                    cci *pcci = p2p_manager::instance().find_by_pid(pid);
 
                     if (pcci->channel != metin2::config::server().channel) {
                         ch->chat_packet(CHAT_TYPE_INFO, lc_text("<길드> 상대가 %d 채널에 있습니다. (현재 채널 %d)"), pcci->channel, metin2::config::server().channel);
@@ -1387,7 +1387,7 @@ namespace metin2::game::inline guilds {
         };
     }
 
-    void guild::p2_p_chat(const char *text) {
+    void guild::p2p_chat(const char *text) {
         std::for_each(member_online_.begin(), member_online_.end(), f_guild_chat(text));
     }
 
@@ -1402,8 +1402,8 @@ namespace metin2::game::inline guilds {
         p1.guild = id();
         strlcpy(p2.text, text_value, sizeof(p2.text));
 
-        p2_p_manager::instance().send(&p1, sizeof(packet_gg_guild));
-        p2_p_manager::instance().send(&p2, sizeof(packet_gg_guild_chat));
+        p2p_manager::instance().send(&p1, sizeof(packet_gg_guild));
+        p2p_manager::instance().send(&p2, sizeof(packet_gg_guild_chat));
     }
 
     auto guild::master_character() -> character * {
@@ -1465,8 +1465,8 @@ namespace metin2::game::inline guilds {
         p1.sub_header = GUILD_SUBHEADER_GG_SET_MEMBER_COUNT_BONUS;
         p1.guild = id();
 
-        p2_p_manager::instance().send(&p1, sizeof(packet_gg_guild));
-        p2_p_manager::instance().send(&member_count_bonus_, sizeof(int));
+        p2p_manager::instance().send(&p1, sizeof(packet_gg_guild));
+        p2p_manager::instance().send(&member_count_bonus_, sizeof(int));
     }
 
     auto guild::max_member_count() -> int {

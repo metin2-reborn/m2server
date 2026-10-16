@@ -48,7 +48,7 @@ TEST(table_struct_sizes) {
     CHECK_SIZE(empire_select_packet, 5);
     CHECK_SIZE(packet_gd_setup, 538);
     CHECK_SIZE(map_location, 530);
-    CHECK_SIZE(packet_dg_p2_p, 19);
+    CHECK_SIZE(packet_dg_p2p, 19);
     CHECK_SIZE(packet_guild_skill_update, 22);
     CHECK_SIZE(packet_guild_exp_update, 8);
     CHECK_SIZE(packet_guild_change_member_data, 14);

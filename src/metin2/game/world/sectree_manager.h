@@ -122,7 +122,7 @@ namespace metin2::game::inline world {
         auto build_sectree_from_setting(map_setting &r_setting) -> sectree_map *;
         auto load_attribute(sectree_map *map_sectree, const char *file_name, map_setting &r_setting) -> bool;
         void load_dungeon(int index, const char *file_name);
-        auto valid_location(int32_t map_index, int32_t x, int32_t y, int32_t &r_l_valid_map_index, pixel_position &r_pos, uint8_t empire = 0) -> bool;
+        auto valid_location(int32_t map_index, int32_t x, int32_t y, int32_t &valid_map_index, pixel_position &r_pos, uint8_t empire = 0) -> bool;
         auto recall_position_by_empire(int map_index, uint8_t empire, pixel_position &r_pos) -> bool;
 
         auto get_map_region(int32_t map_index) -> const map_region *;
@@ -162,8 +162,8 @@ namespace metin2::game::inline world {
         auto for_attr_region_cell(int32_t map_index, int32_t cx, int32_t cy, uint32_t attr, attr_region_mode mode) -> bool;
 
         static uint16_t current_sectree_version_;
-        std::map<uint32_t, sectree_map *> map_pk_sectree_;
-        std::map<int, area_map> map_pk_area_;
+        std::map<uint32_t, sectree_map *> map_sectree_;
+        std::map<int, area_map> area_by_map_;
         std::vector<map_region> vec_map_region_;
         std::map<uint32_t, std::vector<npc_info>> npc_position_;
 

@@ -42,11 +42,11 @@ namespace metin2::game::inline social {
     void messenger_manager::initialize() {
     }
 
-    void messenger_manager::p2_p_login(messenger_manager::key_a account) {
+    void messenger_manager::p2p_login(messenger_manager::key_a account) {
         login(account);
     }
 
-    void messenger_manager::p2_p_logout(messenger_manager::key_a account) {
+    void messenger_manager::p2p_logout(messenger_manager::key_a account) {
         logout(account);
     }
 
@@ -198,7 +198,7 @@ namespace metin2::game::inline social {
         p2ppck.header = HEADER_GG_MESSENGER_ADD;
         strlcpy(p2ppck.account, account.c_str(), sizeof(p2ppck.account));
         strlcpy(p2ppck.companion, companion.c_str(), sizeof(p2ppck.companion));
-        p2_p_manager::instance().send(&p2ppck, sizeof(packet_gg_messenger));
+        p2p_manager::instance().send(&p2ppck, sizeof(packet_gg_messenger));
     }
 
     void messenger_manager::apply_remove_from_list(messenger_manager::key_a account, messenger_manager::key_a companion) {
@@ -244,7 +244,7 @@ namespace metin2::game::inline social {
         p2ppck.header = HEADER_GG_MESSENGER_REMOVE;
         strlcpy(p2ppck.account, account.c_str(), sizeof(p2ppck.account));
         strlcpy(p2ppck.companion, companion.c_str(), sizeof(p2ppck.companion));
-        p2_p_manager::instance().send(&p2ppck, sizeof(packet_gg_messenger));
+        p2p_manager::instance().send(&p2ppck, sizeof(packet_gg_messenger));
     }
 
     void messenger_manager::remove_all_list(key_a account) {

@@ -25,10 +25,10 @@ namespace metin2::game::inline protocol {
         game::protocol::desc *desc;
     };
 
-    class p2_p_manager : public singleton<p2_p_manager> {
+    class p2p_manager : public singleton<p2p_manager> {
       public:
-        p2_p_manager();
-        ~p2_p_manager() override;
+        p2p_manager();
+        ~p2p_manager() override;
 
         void register_acceptor(desc *d);
         void unregister_acceptor(desc *d);
@@ -53,7 +53,7 @@ namespace metin2::game::inline protocol {
         auto count() -> int;
         auto empire_user_count(int idx) -> int;
         auto desc_count() -> int;
-        void p2_p_host_names(std::string &host_names);
+        void p2p_host_names(std::string &host_names);
 
       private:
         void logout(cci *cci_value);
@@ -62,9 +62,9 @@ namespace metin2::game::inline protocol {
 
         typedef std::unordered_map<std::string, std::unique_ptr<cci>> cci_map;
         typedef std::unordered_map<uint32_t, cci *> pidcci_map;
-        std::unordered_set<desc *> set_pk_peers_;
-        cci_map map_pk_cci_;
-        pidcci_map map_dw_pid_pk_cci_;
+        std::unordered_set<desc *> set_peers_;
+        cci_map map_cci_;
+        pidcci_map map_pid_pk_cci_;
         int empire_user_count_[EMPIRE_MAX_NUM];
     };
 }

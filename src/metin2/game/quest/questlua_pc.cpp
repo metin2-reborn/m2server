@@ -1546,7 +1546,7 @@ namespace metin2::game {
                 character *tch = character_manager::instance().find_pc(arg1);
 
                 if (!tch) {
-                    const cci *pkCCI = p2_p_manager::instance().find(arg1);
+                    const cci *pkCCI = p2p_manager::instance().find(arg1);
 
                     if (pkCCI) {
                         if (pkCCI->channel != metin2::config::server().channel) {

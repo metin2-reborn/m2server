@@ -137,7 +137,7 @@ namespace metin2::game::inline guilds {
 
         guild_war_info war_info_;
 
-        character_set set_pk_chr_;
+        character_set set_chr_;
     };
 
     class war_map_manager : public singleton<war_map_manager> {
@@ -159,7 +159,7 @@ namespace metin2::game::inline guilds {
         void on_shutdown();
 
       private:
-        std::map<int32_t, std::unique_ptr<war_map_info>> map_k_war_map_info_;
+        std::map<int32_t, std::unique_ptr<war_map_info>> map_war_map_info_;
         std::map<int32_t, war_map *> war_map_;
     };
 

@@ -22,7 +22,7 @@ namespace metin2::db::inline clients {
         state_ = STATE_PLAYING;
         channel_ = 0;
         listen_port_ = 0;
-        p2_p_port_ = 0;
+        p2p_port_ = 0;
 
         memset(maps_, 0, sizeof(maps_));
 
@@ -123,8 +123,8 @@ namespace metin2::db::inline clients {
         encode_header(header, handle, 0);
     }
 
-    void peer::set_p2_p_port(uint16_t port) {
-        p2_p_port_ = port;
+    void peer::set_p2p_port(uint16_t port) {
+        p2p_port_ = port;
     }
 
     void peer::set_maps(int32_t *pl) {
@@ -167,7 +167,7 @@ namespace metin2::db::inline clients {
         return true;
     }
 
-    auto peer::check_item_id_range_collision(item_id_range_table item_range) -> bool {
+    auto peer::is_item_id_range_free(item_id_range_table item_range) -> bool {
         if (item_range_.min < item_range.max && item_range_.max > item_range.min) {
             metin2::log::error("Item id range: peer range {:d} to {:d} collides with {:d} to {:d}",
                 item_range_.min, item_range_.max, item_range.min, item_range.max);
