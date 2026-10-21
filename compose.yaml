@@ -1,0 +1,99 @@
+x-server: &server
+  image: localhost/metin2-server:linux
+  build: .
+  restart: unless-stopped
+  stop_grace_period: 120s
+  networks: [ metin2 ]
+  healthcheck:
+    test: [ CMD, test, -f, /var/lib/metin2/ready ]
+    interval: 10s
+    timeout: 3s
+    retries: 12
+    start_period: 30s
+  environment:
+    DB_USER: ${DB_USER:?Set DB_USER in .env}
+    DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    PUBLIC_IP: ${PUBLIC_IP:?Set PUBLIC_IP in .env}
+    ADMIN_PASSWORD: ${ADMIN_PASSWORD:?Set ADMIN_PASSWORD in .env}
+
+services:
+  mariadb:
+    image: docker.io/library/mariadb:11.4
+    restart: unless-stopped
+    stop_grace_period: 120s
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD in .env}
+      DB_USER: ${DB_USER:?Set DB_USER in .env}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+    volumes:
+      - mariadb-data:/var/lib/mysql
+      - ./dist/mariadb/mariadb.cnf:/etc/mysql/conf.d/metin2.cnf:ro,Z
+      - ./dist/mariadb/init-databases.sh:/docker-entrypoint-initdb.d/10-metin2.sh:ro,Z
+      - ./dist/mariadb/dump:/metin2-dumps:ro,Z
+    networks: [ metin2 ]
+    healthcheck:
+      test: [ CMD, healthcheck.sh, --connect, --innodb_initialized ]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  db:
+    <<: *server
+    hostname: db
+    volumes:
+      - ./dist/config/db/server.toml:/var/lib/metin2/server.toml:ro,z
+      - ./dist/share/conf/item_proto.txt:/var/lib/metin2/item_proto.txt:ro,z
+      - ./dist/share/conf/item_names.txt:/var/lib/metin2/item_names.txt:ro,z
+      - ./dist/share/conf/mob_proto.txt:/var/lib/metin2/mob_proto.txt:ro,z
+      - ./dist/share/conf/mob_names.txt:/var/lib/metin2/mob_names.txt:ro,z
+      - db-log:/var/lib/metin2/log:U
+    depends_on:
+      mariadb:
+        condition: service_healthy
+
+  auth:
+    <<: *server
+    hostname: auth
+    volumes:
+      - ./dist/config/auth/server.toml:/var/lib/metin2/server.toml:ro,z
+      - ./dist/share/data:/var/lib/metin2/data:ro,z
+      - ./dist/share/locale:/var/lib/metin2/locale:ro,z
+      - ./dist/share/conf/CMD:/var/lib/metin2/CMD:ro,z
+      - auth-log:/var/lib/metin2/log:U
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "11000:11000/tcp"
+
+  # One game process serving every map of the original channel 1 cores (first, game1, game2, game99).
+  channel1-first:
+    <<: *server
+    hostname: channel1-first
+    volumes:
+      - ./dist/config/channel1-first/server.toml:/var/lib/metin2/server.toml:ro,z
+      - ./dist/share/data:/var/lib/metin2/data:ro,z
+      - ./dist/share/locale:/var/lib/metin2/locale:ro,z
+      - ./dist/share/conf/CMD:/var/lib/metin2/CMD:ro,z
+      - channel1-first-log:/var/lib/metin2/log:U
+      - channel1-first-mark:/var/lib/metin2/mark:U
+      - ./dist/share/mark:/var/lib/metin2/mark_seed:ro,z
+    depends_on:
+      db:
+        condition: service_healthy
+      auth:
+        condition: service_healthy
+    ports:
+      - "13000:13000/tcp"
+
+networks:
+  metin2:
+    driver: bridge
+
+volumes:
+  mariadb-data:
+  db-log:
+  auth-log:
+  channel1-first-log:
+  channel1-first-mark:

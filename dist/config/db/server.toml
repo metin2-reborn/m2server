@@ -1,0 +1,21 @@
+# Database cache between the game processes and MariaDB. ${NAME} values come from the environment (.env).
+role = "db"
+test_server = false
+
+[log]
+level = "info"
+keep_days = 3
+
+[database]
+host = "mariadb"
+user = "${DB_USER}"
+password = "${DB_PASSWORD}"
+
+[db]
+bind_ip = "0.0.0.0"
+port = 15000
+allowed_peers = ["auth", "channel1-first"]
+heart_fps = 10
+player_id_start = 3
+item_id_range = [10000001, 20000000]
+player_delete_level_limit = 70

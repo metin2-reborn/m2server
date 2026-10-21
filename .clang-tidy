@@ -1,0 +1,36 @@
+Checks: >
+  modernize-use-using,
+  modernize-use-trailing-return-type,
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-use-ranges,
+  modernize-use-equals-default,
+  modernize-use-auto,
+  readability-identifier-naming
+WarningsAsErrors: ''
+HeaderFilterRegex: '.*/src/.*'
+CheckOptions:
+  readability-identifier-naming.NamespaceCase: lower_case
+  readability-identifier-naming.ClassCase: lower_case
+  readability-identifier-naming.StructCase: lower_case
+  readability-identifier-naming.UnionCase: lower_case
+  readability-identifier-naming.EnumCase: lower_case
+  readability-identifier-naming.TypeAliasCase: lower_case
+  readability-identifier-naming.TypedefCase: lower_case
+  readability-identifier-naming.FunctionCase: lower_case
+  readability-identifier-naming.MethodCase: lower_case
+  readability-identifier-naming.PublicMemberCase: lower_case
+  readability-identifier-naming.PrivateMemberCase: lower_case
+  readability-identifier-naming.PrivateMemberSuffix: _
+  readability-identifier-naming.ProtectedMemberCase: lower_case
+  readability-identifier-naming.ProtectedMemberSuffix: _
+  readability-identifier-naming.ParameterCase: lower_case
+  readability-identifier-naming.LocalVariableCase: lower_case
+  readability-identifier-naming.LocalConstantCase: lower_case
+  readability-identifier-naming.GlobalVariableCase: lower_case
+  readability-identifier-naming.GlobalConstantIgnoredRegexp: '.*'
+  readability-identifier-naming.ConstexprVariableIgnoredRegexp: '.*'
+  readability-identifier-naming.ClassConstantIgnoredRegexp: '.*'
+  readability-identifier-naming.ClassMemberIgnoredRegexp: '.*'
+  readability-identifier-naming.StaticConstantIgnoredRegexp: '.*'
+  readability-identifier-naming.StaticVariableIgnoredRegexp: '.*'

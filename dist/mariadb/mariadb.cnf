@@ -1,0 +1,3 @@
+[mariadb]
+sql_mode=NO_ENGINE_SUBSTITUTION
+bind-address=0.0.0.0

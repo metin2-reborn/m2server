@@ -1,0 +1,56 @@
+
+#include <metin2/game/characters/character.h>
+#include <metin2/game/quest/lua_incl.h>
+#include <metin2/game/quest/questmanager.h>
+
+namespace metin2::game {
+
+    namespace quest {
+        auto ds_open_refine_window(lua_State *lua) -> int {
+            character *const ch = get_quest_manager().current_character_ptr();
+            if (nullptr == ch) {
+                quest::error("No current player");
+                return 0;
+            }
+            if (ch->dragon_soul_is_qualified())
+                ch->dragon_soul_refine_window_open(get_quest_manager().current_npc_character_ptr());
+
+            return 0;
+        }
+
+        auto ds_give_qualification(lua_State *lua) -> int {
+            character *const ch = get_quest_manager().current_character_ptr();
+            if (nullptr == ch) {
+                quest::error("No current player");
+                return 0;
+            }
+            ch->dragon_soul_give_qualification();
+
+            return 0;
+        }
+
+        auto ds_is_qualified(lua_State *lua) -> int {
+            character *const ch = get_quest_manager().current_character_ptr();
+            if (nullptr == ch) {
+                quest::error("No current player");
+                lua_pushnumber(lua, 0);
+                return 1;
+            }
+
+            lua_pushnumber(lua, ch->dragon_soul_is_qualified());
+            return 1;
+        }
+
+        void register_dragon_soul_function_table() {
+            luaL_reg ds_functions[] =
+                {
+                    {"open_refine_window", ds_open_refine_window},
+                    {"give_qualification", ds_give_qualification},
+                    {"is_qualified",       ds_is_qualified      },
+                    {nullptr,              nullptr              }
+            };
+
+            get_quest_manager().add_lua_function_table("ds", ds_functions);
+        }
+    };
+}

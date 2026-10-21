@@ -1,0 +1,35 @@
+#include <metin2/game/protocol/lzo_manager.h>
+
+#include <lzo/lzo1x.h>
+
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+#include <cstdlib>
+
+namespace metin2::game::inline protocol {
+
+    lzo_manager::lzo_manager() {
+        if (lzo_init() != LZO_E_OK) {
+            fprintf(stderr, "lzo_init() failed\n");
+            abort();
+        }
+
+        workmem_.resize(LZO1X_MEM_COMPRESS);
+    }
+
+    lzo_manager::~lzo_manager() = default;
+
+    auto lzo_manager::decompress(const uint8_t *src, size_t srcsize, uint8_t *dest, lzo_uint *pui_dest_size) -> bool {
+        int ret = lzo1x_decompress_safe(src, srcsize, dest, pui_dest_size, work_memory());
+
+        if (ret != LZO_E_OK)
+            return false;
+
+        return true;
+    }
+
+    auto lzo_manager::max_compressed_size(size_t original) -> size_t {
+        return (original + (original >> 4) + 64 + 3);
+    }
+}

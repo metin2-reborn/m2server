@@ -1,0 +1,337 @@
+#include <metin2/game/app/utils.h>
+#include <metin2/game/characters/character.h>
+#include <metin2/game/characters/character_manager.h>
+#include <metin2/game/events/xmas_event.h>
+#include <metin2/game/guilds/guild.h>
+#include <metin2/game/parties/party.h>
+#include <metin2/game/quest/lua_incl.h>
+#include <metin2/game/quest/questmanager.h>
+#include <metin2/game/trade/shop_manager.h>
+
+#include <metin2/log/log.h>
+
+#include <algorithm>
+#include <cstdint>
+#include <string>
+
+namespace metin2::game {
+
+    namespace quest {
+        auto npc_open_shop(lua_State *lua) -> int {
+            int shop_vnum = 0;
+
+            if (lua_gettop(lua) == 1) {
+                if (lua_isnumber(lua, 1))
+                    shop_vnum = (int)lua_tonumber(lua, 1);
+            }
+
+            if (get_quest_manager().current_npc_character_ptr())
+                get_shop_manager().start_shopping(get_quest_manager().current_character_ptr(), get_quest_manager().current_npc_character_ptr(), shop_vnum);
+            return 0;
+        }
+
+        auto npc_is_pc(lua_State *lua) -> int {
+            quest_manager &q = get_quest_manager();
+            character *npc = q.current_npc_character_ptr();
+            if (npc && npc->is_pc())
+                lua_pushboolean(lua, 1);
+            else
+                lua_pushboolean(lua, 0);
+            return 1;
+        }
+
+        auto npc_get_empire(lua_State *lua) -> int {
+            quest_manager &q = get_quest_manager();
+            character *npc = q.current_npc_character_ptr();
+            if (npc)
+                lua_pushnumber(lua, npc->empire());
+            else
+                lua_pushnumber(lua, 0);
+            return 1;
+        }
+
+        auto npc_get_race(lua_State *lua) -> int {
+            lua_pushnumber(lua, get_quest_manager().current_npc_race());
+            return 1;
+        }
+
+        auto npc_get_guild(lua_State *lua) -> int {
+            quest_manager &q = get_quest_manager();
+            character *npc = q.current_npc_character_ptr();
+            guild *guild = nullptr;
+            if (npc)
+                guild = npc->get_guild();
+
+            lua_pushnumber(lua, guild ? guild->id() : 0);
+            return 1;
+        }
+
+        auto npc_get_remain_skill_book_count(lua_State *lua) -> int {
+            character *npc = get_quest_manager().current_npc_character_ptr();
+            if (!npc || npc->is_pc() || npc->race_num() != xmas::MOB_SANTA_VNUM) {
+                lua_pushnumber(lua, 0);
+                return 1;
+            }
+            lua_pushnumber(lua, std::max(0, npc->point(POINT_ATT_GRADE_BONUS)));
+            return 1;
+        }
+
+        auto npc_dec_remain_skill_book_count(lua_State *lua) -> int {
+            character *npc = get_quest_manager().current_npc_character_ptr();
+            if (!npc || npc->is_pc() || npc->race_num() != xmas::MOB_SANTA_VNUM) {
+                return 0;
+            }
+            npc->set_point(POINT_ATT_GRADE_BONUS, std::max(0, npc->point(POINT_ATT_GRADE_BONUS) - 1));
+            return 0;
+        }
+
+        auto npc_get_remain_hairdye_count(lua_State *lua) -> int {
+            character *npc = get_quest_manager().current_npc_character_ptr();
+            if (!npc || npc->is_pc() || npc->race_num() != xmas::MOB_SANTA_VNUM) {
+                lua_pushnumber(lua, 0);
+                return 1;
+            }
+            lua_pushnumber(lua, std::max(0, npc->point(POINT_DEF_GRADE_BONUS)));
+            return 1;
+        }
+
+        auto npc_dec_remain_hairdye_count(lua_State *lua) -> int {
+            character *npc = get_quest_manager().current_npc_character_ptr();
+            if (!npc || npc->is_pc() || npc->race_num() != xmas::MOB_SANTA_VNUM) {
+                return 0;
+            }
+            npc->set_point(POINT_DEF_GRADE_BONUS, std::max(0, npc->point(POINT_DEF_GRADE_BONUS) - 1));
+            return 0;
+        }
+
+        auto npc_is_quest(lua_State *lua) -> int {
+            quest_manager &q = get_quest_manager();
+            character *npc = q.current_npc_character_ptr();
+
+            if (npc) {
+                const std::string &r_st = q.current_quest_name();
+
+                if (q.quest_index_by_name(r_st) == npc->quest_by()) {
+                    lua_pushboolean(lua, 1);
+                    return 1;
+                }
+            }
+
+            lua_pushboolean(lua, 0);
+            return 1;
+        }
+
+        auto npc_kill(lua_State *lua) -> int {
+            quest_manager &q = get_quest_manager();
+            character *ch = q.current_character_ptr();
+            character *npc = q.current_npc_character_ptr();
+
+            ch->set_quest_npcid(0);
+            if (npc) {
+                npc->dead();
+            }
+            return 0;
+        }
+
+        auto npc_purge(lua_State *lua) -> int {
+            quest_manager &q = get_quest_manager();
+            character *ch = q.current_character_ptr();
+            character *npc = q.current_npc_character_ptr();
+
+            ch->set_quest_npcid(0);
+            if (npc) {
+                get_character_manager().destroy_character(npc);
+            }
+            return 0;
+        }
+
+        auto npc_is_near(lua_State *lua) -> int {
+            quest_manager &q = get_quest_manager();
+            character *ch = q.current_character_ptr();
+            character *npc = q.current_npc_character_ptr();
+
+            lua_Number dist = 10;
+
+            if (lua_isnumber(lua, 1))
+                dist = lua_tonumber(lua, 1);
+
+            if (ch == nullptr || npc == nullptr) {
+                lua_pushboolean(lua, false);
+            } else {
+                lua_pushboolean(lua, distance_approx(ch->x() - npc->x(), ch->y() - npc->y()) < dist * 100);
+            }
+
+            return 1;
+        }
+
+        auto npc_is_near_vid(lua_State *lua) -> int {
+            if (!lua_isnumber(lua, 1)) {
+                metin2::log::error("Invalid vid argument");
+                lua_pushboolean(lua, 0);
+                return 1;
+            }
+
+            quest_manager &q = get_quest_manager();
+            character *ch = get_character_manager().find((uint32_t)lua_tonumber(lua, 1));
+            character *npc = q.current_npc_character_ptr();
+
+            lua_Number dist = 10;
+
+            if (lua_isnumber(lua, 2))
+                dist = lua_tonumber(lua, 2);
+
+            if (ch == nullptr || npc == nullptr) {
+                lua_pushboolean(lua, false);
+            } else {
+                lua_pushboolean(lua, distance_approx(ch->x() - npc->x(), ch->y() - npc->y()) < dist * 100);
+            }
+
+            return 1;
+        }
+
+        auto npc_unlock(lua_State *lua) -> int {
+            quest_manager &q = get_quest_manager();
+            character *ch = q.current_character_ptr();
+            character *npc = q.current_npc_character_ptr();
+
+            if (npc != nullptr) {
+                if (npc->is_pc())
+                    return 0;
+
+                if (npc->quest_npcid() == ch->player_id()) {
+                    npc->set_quest_npcid(0);
+                }
+            }
+            return 0;
+        }
+
+        auto npc_lock(lua_State *lua) -> int {
+            quest_manager &q = get_quest_manager();
+            character *ch = q.current_character_ptr();
+            character *npc = q.current_npc_character_ptr();
+
+            if (!npc || npc->is_pc()) {
+                lua_pushboolean(lua, true);
+                return 1;
+            }
+
+            if (npc->quest_npcid() == 0 || npc->quest_npcid() == ch->player_id()) {
+                npc->set_quest_npcid(ch->player_id());
+                lua_pushboolean(lua, true);
+            } else {
+                lua_pushboolean(lua, false);
+            }
+
+            return 1;
+        }
+
+        auto npc_get_leader_vid(lua_State *lua) -> int {
+            quest_manager &q = get_quest_manager();
+            character *npc = q.current_npc_character_ptr();
+
+            party *party = npc->get_party();
+            character *leader = party->leader();
+
+            if (leader)
+                lua_pushnumber(lua, leader->get_vid());
+            else
+                lua_pushnumber(lua, 0);
+
+            return 1;
+        }
+
+        auto npc_get_vid(lua_State *lua) -> int {
+            quest_manager &q = get_quest_manager();
+            character *npc = q.current_npc_character_ptr();
+
+            lua_pushnumber(lua, npc->get_vid());
+
+            return 1;
+        }
+
+        auto npc_get_vid_attack_mul(lua_State *lua) -> int {
+
+            lua_Number vid = lua_tonumber(lua, 1);
+            character *target_char = get_character_manager().find(vid);
+
+            if (target_char)
+                lua_pushnumber(lua, target_char->att_mul());
+            else
+                lua_pushnumber(lua, 0);
+
+            return 1;
+        }
+
+        auto npc_set_vid_attack_mul(lua_State *lua) -> int {
+
+            lua_Number vid = lua_tonumber(lua, 1);
+            lua_Number attack_mul = lua_tonumber(lua, 2);
+
+            character *target_char = get_character_manager().find(vid);
+
+            if (target_char)
+                target_char->set_att_mul(attack_mul);
+
+            return 0;
+        }
+
+        auto npc_get_vid_damage_mul(lua_State *lua) -> int {
+
+            lua_Number vid = lua_tonumber(lua, 1);
+            character *target_char = get_character_manager().find(vid);
+
+            if (target_char)
+                lua_pushnumber(lua, target_char->dam_mul());
+            else
+                lua_pushnumber(lua, 0);
+
+            return 1;
+        }
+
+        auto npc_set_vid_damage_mul(lua_State *lua) -> int {
+
+            lua_Number vid = lua_tonumber(lua, 1);
+            lua_Number damage_mul = lua_tonumber(lua, 2);
+
+            character *target_char = get_character_manager().find(vid);
+
+            if (target_char)
+                target_char->set_dam_mul(damage_mul);
+
+            return 0;
+        }
+
+        void register_npc_function_table() {
+            luaL_reg npc_functions[] =
+                {
+                    {"getrace",                     npc_get_race                   },
+                    {"get_race",                    npc_get_race                   },
+                    {"open_shop",                   npc_open_shop                  },
+                    {"get_empire",                  npc_get_empire                 },
+                    {"is_pc",                       npc_is_pc                      },
+                    {"is_quest",                    npc_is_quest                   },
+                    {"kill",                        npc_kill                       },
+                    {"purge",                       npc_purge                      },
+                    {"is_near",                     npc_is_near                    },
+                    {"is_near_vid",                 npc_is_near_vid                },
+                    {"lock",                        npc_lock                       },
+                    {"unlock",                      npc_unlock                     },
+                    {"get_guild",                   npc_get_guild                  },
+                    {"get_leader_vid",              npc_get_leader_vid             },
+                    {"get_vid",                     npc_get_vid                    },
+                    {"get_vid_attack_mul",          npc_get_vid_attack_mul         },
+                    {"set_vid_attack_mul",          npc_set_vid_attack_mul         },
+                    {"get_vid_damage_mul",          npc_get_vid_damage_mul         },
+                    {"set_vid_damage_mul",          npc_set_vid_damage_mul         },
+
+                    {"get_remain_skill_book_count", npc_get_remain_skill_book_count},
+                    {"dec_remain_skill_book_count", npc_dec_remain_skill_book_count},
+                    {"get_remain_hairdye_count",    npc_get_remain_hairdye_count   },
+                    {"dec_remain_hairdye_count",    npc_dec_remain_hairdye_count   },
+                    {nullptr,                       nullptr                        }
+            };
+
+            get_quest_manager().add_lua_function_table("npc", npc_functions);
+        }
+    };
+}

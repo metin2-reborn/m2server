@@ -1,0 +1,18 @@
+ScriptType		SkillDataScript
+
+Type			MIDDLE
+Name			"화염폭"
+Description		"주변 2M내의 모든 적을 섬멸한다"
+
+IconFileName	"skill/sura/hwayeom.sub"
+MotionIndex		11
+
+List AffectData
+{
+	"파괴력 : %.0f"	"(INT * 3 + 10) * (10 + SkillPoint) / 10" ""
+}
+
+MaxLevel 		"20"
+LevelUpPoint	"4"
+NeedSPFormula 	"150"
+CoolTimeFormula	"16"

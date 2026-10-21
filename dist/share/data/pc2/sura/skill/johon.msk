@@ -1,0 +1,8 @@
+ScriptType		SkillDataScript
+
+Type			HIGH
+Name			"조혼흡정"
+Description		"Test - Description"
+
+IconFileName	"skill/sura/johon.sub"
+MotionIndex		14

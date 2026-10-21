@@ -1,0 +1,8 @@
+ScriptType		SkillDataScript
+
+Type			HIGH
+Name			"지복술"
+Description		"Test - Description"
+
+IconFileName	"skill/sura/jibok.sub"
+MotionIndex		15

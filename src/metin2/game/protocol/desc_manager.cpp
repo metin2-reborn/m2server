@@ -1,0 +1,371 @@
+#include <metin2/config/config.h>
+#include <metin2/game/protocol/desc_manager.h>
+
+#include <metin2/game/app/crc32.h>
+#include <metin2/game/app/typedef.h>
+#include <metin2/game/app/utils.h>
+#include <metin2/game/characters/character.h>
+#include <metin2/game/protocol/desc.h>
+#include <metin2/game/protocol/desc_client.h>
+#include <metin2/game/protocol/desc_p2p.h>
+#include <metin2/game/protocol/ip_ban.h>
+#include <metin2/game/protocol/p2p.h>
+#include <metin2/game/protocol/packet.h>
+
+#include <metin2/core/utils.h>
+#include <metin2/log/log.h>
+#include <metin2/net/connection.h>
+#include <metin2/net/io.h>
+#include <metin2/proto/limits.h>
+
+#include <algorithm>
+#include <climits>
+#include <cstdint>
+#include <cstring>
+#include <map>
+#include <memory>
+#include <string>
+#include <utility>
+
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+
+namespace metin2::game::inline protocol {
+
+    desc_manager::desc_manager() : destroyed_(false) {
+        initialize();
+    }
+
+    desc_manager::~desc_manager() {
+        destroy();
+    }
+
+    void desc_manager::initialize() {
+        sockets_connected_ = 0;
+        handle_count_ = 0;
+        local_user_count_ = 0;
+        memset(empire_user_count_, 0, sizeof(empire_user_count_));
+    }
+
+    void desc_manager::destroy() {
+        if (destroyed_) {
+            return;
+        }
+        destroyed_ = true;
+
+        auto i = descs_.begin();
+
+        while (i != descs_.end()) {
+            desc *d = *i;
+            auto ci = i;
+            ++i;
+
+            if (d->type() == DESC_TYPE_CONNECTOR)
+                continue;
+
+            if (d->is_phase(PHASE_P2P))
+                continue;
+
+            destroy_desc(d, false);
+            descs_.erase(ci);
+        }
+
+        i = descs_.begin();
+
+        while (i != descs_.end()) {
+            desc *d = *i;
+            auto ci = i;
+            ++i;
+
+            destroy_desc(d, false);
+            descs_.erase(ci);
+        }
+
+        client_descs_.clear();
+
+        login_names_.clear();
+        handles_.clear();
+
+        initialize();
+    }
+
+    auto desc_manager::create_handshake() -> uint32_t {
+        char crc_buf[8];
+        crc_t crc;
+        desc_handshake_map::iterator it;
+
+    RETRY:
+        do {
+            uint32_t val = number(0, 1024 * 1024 - 1);
+
+            *(uint32_t *)(crc_buf) = val;
+            *((uint32_t *)crc_buf + 1) = get_global_time();
+
+            crc = get_cr_c32(crc_buf, 8);
+            it = handshakes_.find(crc);
+        } while (it != handshakes_.end());
+
+        if (crc == 0)
+            goto RETRY;
+
+        return (crc);
+    }
+
+    auto desc_manager::accept_desc(net::tcp::socket socket) -> desc * {
+        auto connection = net::connection::create(std::move(socket), MAX_CLIENT_INPUT, MAX_CLIENT_OUTPUT);
+        const char *host = connection->remote_address().c_str();
+
+        if (metin2::config::is_auth()) {
+            in_addr addr{};
+
+            if (inet_pton(AF_INET, host, &addr) == 1 && is_ban_ip(addr)) {
+                metin2::log::info("Refused connection from banned address {}", host);
+                connection->close();
+                return nullptr;
+            }
+        }
+
+        if (sockets_connected_ >= MAX_ALLOW_USER) {
+            metin2::log::warn("Connection refused: limit of {:d} connections reached", MAX_ALLOW_USER);
+            connection->close();
+            return nullptr;
+        }
+
+        desc *newd = new desc;
+        crc_t handshake = create_handshake();
+
+        if (!newd->setup(std::move(connection), ++handle_count_, handshake)) {
+            newd->destroy();
+            delete newd;
+            return nullptr;
+        }
+
+        handshakes_.insert(desc_handshake_map::value_type(handshake, newd));
+        handles_.insert(desc_handle_map::value_type(newd->handle(), newd));
+
+        descs_.insert(newd);
+        ++sockets_connected_;
+        return (newd);
+    }
+
+    auto desc_manager::accept_p2p_desc(net::tcp::socket socket) -> desc * {
+        auto *desc = new desc_p2p;
+
+        if (!desc->setup(net::connection::create(std::move(socket), MAX_SERVER_INPUT, MAX_SERVER_OUTPUT))) {
+            metin2::log::error("Cannot set up accepted peer connection");
+            desc->destroy();
+            delete desc;
+            return nullptr;
+        }
+
+        descs_.insert(desc);
+        ++sockets_connected_;
+
+        metin2::log::info("Accepted peer connection from {}", desc->host_name());
+        get_p2p_manager().register_acceptor(desc);
+        return (desc);
+    }
+
+    void desc_manager::connect_account(const std::string &login, desc *d) {
+        metin2::log::debug("Account {} bound to connection", login);
+        login_names_.insert(desc_loginname_map::value_type(login, d));
+    }
+
+    void desc_manager::disconnect_account(const std::string &login) {
+        metin2::log::debug("Account {} unbound from connection", login);
+        login_names_.erase(login);
+    }
+
+    void desc_manager::destroy_desc(desc *d, bool erase_from_set) {
+        if (erase_from_set)
+            descs_.erase(d);
+
+        if (d->handshake())
+            handshakes_.erase(d->handshake());
+
+        if (d->handle() != 0) {
+            handles_.erase(d->handle());
+            handle_random_keys_.erase(d->handle());
+        } else
+            client_descs_.erase((client_desc *)d);
+
+        d->destroy();
+
+        delete d;
+        --sockets_connected_;
+    }
+
+    void desc_manager::destroy_closed() {
+        auto i = descs_.begin();
+
+        while (i != descs_.end()) {
+            desc *d = *i;
+            auto ci = i;
+            ++i;
+
+            if (d->is_phase(PHASE_CLOSE)) {
+                if (d->type() == DESC_TYPE_CONNECTOR) {
+                    auto *client_desc = (game::protocol::client_desc *)d;
+
+                    if (client_desc->is_retry_when_closed()) {
+                        client_desc->reset();
+                        continue;
+                    }
+                }
+
+                destroy_desc(d, false);
+                descs_.erase(ci);
+            }
+        }
+    }
+
+    auto desc_manager::find_by_login_name(const std::string &login) -> desc * {
+        auto it = login_names_.find(login);
+
+        if (login_names_.end() == it)
+            return nullptr;
+
+        return (it->second);
+    }
+
+    auto desc_manager::find_by_handle(uint32_t handle) -> desc * {
+        auto it = handles_.find(handle);
+
+        if (handles_.end() == it)
+            return nullptr;
+
+        return (it->second);
+    }
+
+    auto desc_manager::client_set() -> const desc_manager::desc_set & {
+        return descs_;
+    }
+
+    auto desc_manager::find_by_character_name(const char *name) -> desc * {
+        auto it = std::ranges::find_if(descs_, [name](desc *d) -> bool {
+            return d->get_character() && !strcmp(d->get_character()->name(), name);
+        });
+        return (it == descs_.end()) ? nullptr : (*it);
+    }
+
+    auto desc_manager::create_connection_desc(const char *host, uint16_t port, int phase_when_succeed, bool retry_when_closed) -> client_desc * {
+        client_desc *newd;
+
+        newd = new client_desc;
+
+        newd->setup(host, port);
+        newd->connect(phase_when_succeed);
+        newd->set_retry_when_closed(retry_when_closed);
+
+        descs_.insert(newd);
+        client_descs_.insert(newd);
+
+        ++sockets_connected_;
+        return (newd);
+    }
+
+    void desc_manager::try_connect() {
+        for (desc *d : client_descs_)
+            ((client_desc *)d)->connect();
+    }
+
+    auto desc_manager::is_p2p_desc_exist(const char *host, uint16_t port) -> bool {
+        auto it = client_descs_.begin();
+
+        while (it != client_descs_.end()) {
+            client_desc *d = *(it++);
+
+            if (!strcmp(d->p2p_host(), host) && d->p2p_port() == port)
+                return true;
+        }
+
+        return false;
+    }
+
+    void desc_manager::update_local_user_count() {
+        const desc_set &descs = client_set();
+        int total_count = 0;
+        int empire_user_count[EMPIRE_MAX_NUM] = {};
+
+        for (desc *d : descs) {
+            if (d->get_character()) {
+                ++total_count;
+                ++empire_user_count[d->empire()];
+            }
+        }
+
+        local_user_count_ = total_count;
+        std::memcpy(empire_user_count_, empire_user_count, sizeof(empire_user_count_));
+
+        empire_user_count_[1] += get_p2p_manager().empire_user_count(1);
+        empire_user_count_[2] += get_p2p_manager().empire_user_count(2);
+        empire_user_count_[3] += get_p2p_manager().empire_user_count(3);
+    }
+
+    void desc_manager::user_count(int &total, int **pai_empire_user_count, int &local_count) {
+        *pai_empire_user_count = &empire_user_count_[0];
+
+        int count_value = get_p2p_manager().count();
+        if (count_value < 0) {
+            metin2::log::error("Peer user count is negative ({:d})", count_value);
+        }
+        total = local_user_count_ + count_value;
+        local_count = local_user_count_;
+    }
+
+    auto desc_manager::make_random_key(uint32_t handle) -> uint32_t {
+        uint32_t random_key = secure_random_u32();
+        handle_random_keys_[handle] = random_key;
+        return random_key;
+    }
+
+    auto desc_manager::check_random_key(uint32_t handle, uint32_t key) -> bool {
+        auto it = handle_random_keys_.find(handle);
+        return it != handle_random_keys_.end() && it->second == key && find_by_handle(handle) != nullptr;
+    }
+
+    auto desc_manager::find_by_login_key(uint32_t key) -> desc * {
+        auto it = login_keys_.find(key);
+
+        if (it == login_keys_.end())
+            return nullptr;
+
+        return it->second->desc;
+    }
+
+    auto desc_manager::create_login_key(desc *d) -> uint32_t {
+        uint32_t key = 0;
+
+        do {
+            key = number(1, INT_MAX);
+
+            if (login_keys_.find(key) != login_keys_.end())
+                continue;
+
+            auto key_value = std::make_unique<login_key>(key, d);
+            d->set_login_key(key_value.get());
+            login_keys_.emplace(key, std::move(key_value));
+            break;
+        } while (1);
+
+        return key;
+    }
+
+    void desc_manager::process_expired_login_key() {
+        uint32_t current_time = get_dword_time();
+
+        auto it = login_keys_.begin();
+
+        while (it != login_keys_.end()) {
+            auto it2 = it++;
+
+            if (it2->second->expire_time == 0)
+                continue;
+
+            if (current_time - it2->second->expire_time > 60000) {
+                login_keys_.erase(it2);
+            }
+        }
+    }
+}
