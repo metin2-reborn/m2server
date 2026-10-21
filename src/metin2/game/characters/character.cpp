@@ -1084,9 +1084,6 @@ namespace metin2::game::inline characters {
             pack.skill_group = skill_group();
             strlcpy(pack.name, name(), sizeof(pack.name));
             get_desc()->packet(&pack, sizeof(packet_gc_main_character));
-
-            if (mobile_.length())
-                chat_packet(CHAT_TYPE_COMMAND, "sms");
         }
     }
 
