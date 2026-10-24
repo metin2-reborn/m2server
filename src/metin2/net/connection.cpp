@@ -46,6 +46,8 @@ namespace metin2::net {
             port_ = endpoint.port();
         }
         socket_.non_blocking(true, error);
+        // Game packets are small and latency-bound; Nagle would hold them for the ACK.
+        socket_.set_option(tcp::no_delay(true), error);
     }
 
     void connection::start(connection_handler &handler) {

@@ -587,6 +587,18 @@ namespace metin2::game::inline world {
         return (!tree->is_attr(x, y, ATTR_BLOCK | ATTR_OBJECT));
     }
 
+    auto sectree_manager::is_path_clear(int32_t map_index, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t flags) -> bool {
+        const int steps = std::max(1, static_cast<int>(distance_approx(x2 - x1, y2 - y1)) / CELL_SIZE);
+        for (int i = 1; i <= steps; ++i) {
+            const int32_t x = x1 + (x2 - x1) * i / steps;
+            const int32_t y = y1 + (y2 - y1) * i / steps;
+            sectree *tree = get(map_index, x, y);
+            if (!tree || tree->is_attr(x, y, flags))
+                return false;
+        }
+        return true;
+    }
+
     auto sectree_manager::movable_position(int32_t map_index, int32_t x, int32_t y, pixel_position &pos) -> bool {
         int i = 0;
 

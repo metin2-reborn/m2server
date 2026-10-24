@@ -1155,6 +1155,19 @@ namespace metin2::game::inline protocol {
                 return;
             }
 
+            // The client stops at blocked cells, so a position inside one comes from a modified
+            // client; it is put back like a too-long move. A player who is already inside one (a
+            // mismatch between the map data and the attributes) is left alone so they are not stuck.
+            sectree *reported = get_sectree_manager().get(ch->map_index(), pinfo->x, pinfo->y);
+            sectree *current = get_sectree_manager().get(ch->map_index(), ch->x(), ch->y());
+            if (reported && reported->is_attr(pinfo->x, pinfo->y, ATTR_BLOCK) && current && !current->is_attr(ch->x(), ch->y(), ATTR_BLOCK)) {
+                metin2::log::warn("Player {} reported a position inside a blocked cell ({:d}x{:d})", ch->name(), pinfo->x, pinfo->y);
+
+                ch->show(ch->map_index(), ch->x(), ch->y(), ch->z());
+                ch->stop();
+                return;
+            }
+
             uint32_t cur_time = get_dword_time();
             bool check_speed_hack = (false == ch->get_desc()->is_handshaking() && cur_time - ch->get_desc()->client_time() > 7000);
 
@@ -1367,9 +1380,11 @@ namespace metin2::game::inline protocol {
                 continue;
             }
 
-            // Another client may only move monsters and players it can attack (knockback), and only to a place on the map.
-            if (victim->map_index() != ch->map_index() || (victim->is_pc() && !battle_is_attackable(ch, victim)) ||
-                !get_sectree_manager().get(victim->map_index(), e->x, e->y))
+            // Another client may only move monsters and players it can attack (knockback), and only to
+            // a walkable place on the map.
+            sectree *target_tree = get_sectree_manager().get(victim->map_index(), e->x, e->y);
+            if (victim->map_index() != ch->map_index() || (victim->is_pc() && !battle_is_attackable(ch, victim)) || !target_tree ||
+                target_tree->is_attr(e->x, e->y, ATTR_BLOCK))
                 continue;
 
             if (!victim->set_sync_owner(ch))

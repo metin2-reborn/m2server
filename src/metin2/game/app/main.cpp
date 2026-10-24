@@ -411,6 +411,11 @@ namespace metin2::game::inline app {
 
         uint32_t t;
 
+        // Input that arrived while the loop slept is handled before the pulse simulates it, so an
+        // action waits for at most the rest of this pass instead of a whole pulse; the poll after the
+        // update then sends what the pulse produced.
+        if (!io_loop()) return 0;
+
         while (passed_pulses--) {
             heartbeat(thecore_next_pulse());
 

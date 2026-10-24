@@ -132,6 +132,9 @@ namespace metin2::game::inline world {
         auto map_base_position_by_map_index(int32_t map_index, pixel_position &pos) -> bool;
         auto movable_position(int32_t map_index, int32_t x, int32_t y, pixel_position &pos) -> bool;
         auto is_movable_position(int32_t map_index, int32_t x, int32_t y) -> bool;
+        // Whether the straight line between the two points crosses no cell with one of the flags;
+        // the start cell itself is not tested, so a character already inside one can still leave.
+        auto is_path_clear(int32_t map_index, int32_t x1, int32_t y1, int32_t x2, int32_t y2, uint32_t flags) -> bool;
         auto center_position_of_map(int32_t map_index, pixel_position &pos) -> bool;
         auto random_location(int32_t map_index, pixel_position &pos, uint32_t current_x = 0, uint32_t current_y = 0, int max_distance = 0) -> bool;
 

@@ -4183,7 +4183,21 @@ namespace metin2::game::inline characters {
                 return false;
         } else {
             float dist_to_go = dist - min_distance;
-            get_delta_by_degree(rotation(), dist_to_go, &fx, &fy);
+            // A straight line into a rock or a wall is not walked; the nearest clear heading to either
+            // side is taken instead, so the monster comes around rather than hanging on the obstacle.
+            // A monster standing inside an object footprint only avoids blocked cells, so it can get out.
+            const bool inside_object = get_sectree() && get_sectree()->is_attr(x(), y(), ATTR_OBJECT);
+            const uint32_t path_flags = inside_object ? ATTR_BLOCK : (ATTR_BLOCK | ATTR_OBJECT);
+            bool clear = false;
+            for (const int turn : {0, 30, -30, 60, -60, 90, -90}) {
+                get_delta_by_degree(std::fmod(rotation() + static_cast<float>(turn) + 360.0f, 360.0f), dist_to_go, &fx, &fy);
+                if (get_sectree_manager().is_path_clear(map_index(), x(), y(), x() + (int)fx, y() + (int)fy, path_flags)) {
+                    clear = true;
+                    break;
+                }
+            }
+            if (!clear)
+                return false;
 
             if (!go_to(x() + (int)fx, y() + (int)fy))
                 return false;

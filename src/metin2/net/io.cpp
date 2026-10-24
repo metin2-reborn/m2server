@@ -84,6 +84,7 @@ namespace metin2::net {
 
             if (!error) {
                 socket.set_option(tcp::socket::keep_alive(true), error);
+                socket.set_option(tcp::no_delay(true), error);
                 return socket;
             }
         }

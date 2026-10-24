@@ -5,6 +5,7 @@
 #include <metin2/game/trade/shop_manager.h>
 #include <metin2/game/world/entity.h>
 #include <metin2/game/world/sectree.h>
+#include <metin2/game/world/sectree_manager.h>
 
 #include <metin2/log/log.h>
 #include <metin2/proto/mob_types.h>
@@ -89,7 +90,10 @@ namespace metin2::game::inline characters {
 
                 int distance = distance_approx(lx - chr_value->x(), ly - chr_value->y());
 
-                if (distance < min_distance && distance <= max_distance) {
+                // Blocked cells (rock, cliff) between the two hide the target; object footprints do
+                // not, so players on bridges and in doorways are still found.
+                if (distance < min_distance && distance <= max_distance &&
+                    get_sectree_manager().is_path_clear(chr->map_index(), lx, ly, chr_value->x(), chr_value->y(), ATTR_BLOCK)) {
                     chr_victim = chr_value;
                     min_distance = distance;
                 }
