@@ -477,7 +477,14 @@ namespace metin2::game::inline characters {
 
         move(x_value, y_value);
 
-        if (is_pc() && (thecore_pulse() & 15) == 0) {
+        if (!is_pc()) {
+            // The monster's state runs every 4 pulses while it moves, so the 16-pulse cadence below
+            // is kept by hand.
+            if (thecore_pulse() - last_view_update_pulse_ >= 16) {
+                last_view_update_pulse_ = thecore_pulse();
+                announce_to_players_around();
+            }
+        } else if ((thecore_pulse() & 15) == 0) {
             update_sectree();
 
             if (get_exchange()) {

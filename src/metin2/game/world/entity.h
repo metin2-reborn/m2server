@@ -44,6 +44,9 @@ namespace metin2::game::inline world {
         void set_sectree(sectree *tree) { sectree_ = tree; }
 
         void update_sectree();
+        // What a nearby player's own update_sectree would do for this entity: it enters the view of
+        // every player in range. Moving monsters call it, since a standing player never refreshes.
+        void announce_to_players_around();
         void packet_around(const void *data, int bytes, entity *except = nullptr);
         void packet_view(const void *data, int bytes, entity *except = nullptr);
 

@@ -876,6 +876,11 @@ namespace metin2::game::inline characters {
         } else {
             notify_refine_fail(this, item, refine_type);
 
+            if (destroy_when_fail) {
+                item->attr_log();
+                get_item_manager().remove_item(item, "REMOVE (REFINE FAIL)");
+            }
+
             pay_refine_fee(prt->cost);
         }
 
@@ -4294,6 +4299,11 @@ namespace metin2::game::inline characters {
         if (item->distance_valid(this)) {
             if (item->is_ownership(this)) {
                 if (item->type() == ITEM_ELK) {
+                    // point_change drops gold over the limit; the pile stays on the ground instead.
+                    if (static_cast<int64_t>(gold()) + item->count() >= GOLD_MAX) {
+                        chat_packet(CHAT_TYPE_INFO, lc_text("액수가 20억 냥을 초과하여 거래를 할수가 없습니다.."));
+                        return false;
+                    }
                     give_gold(item->count());
                     item->remove_from_ground();
 

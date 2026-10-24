@@ -772,6 +772,7 @@ namespace metin2::game::inline characters {
 
         uint32_t move_start_time_ = 0;
         uint32_t move_duration_ = 0;
+        int last_view_update_pulse_ = 0;
 
         uint32_t last_move_time_;
         uint32_t last_attack_time_;

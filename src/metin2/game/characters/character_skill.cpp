@@ -1840,6 +1840,11 @@ namespace metin2::game::inline characters {
             return false;
         }
 
+        // Checked before the cost is taken: use_skill below refuses a cast on cooldown, and the HP or
+        // SP must not be gone by then.
+        if (!disable_cooltime_ && skill_use_info_[vnum_value].used && skill_use_info_[vnum_value].next_skill_usable_time > cur)
+            return false;
+
         int needed_sp = 0;
 
         if (is_set(sk->flag, SKILL_FLAG_USE_HP_AS_COST)) {

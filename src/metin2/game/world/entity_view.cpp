@@ -9,7 +9,38 @@
 
 #include <metin2/log/log.h>
 
+#include <algorithm>
+
 namespace metin2::game::inline world {
+
+    namespace {
+        // The view search covers the 3x3 sectrees around an entity, so a range beyond one sectree
+        // would find entities in some directions only and make them flicker.
+        auto effective_view_range() -> int {
+            const int configured = metin2::config::game().view_range + VIEW_BONUS_RANGE;
+            const int range = std::min(configured, static_cast<int>(SECTREE_SIZE));
+            static bool warned = false;
+            if (range < configured && !warned) {
+                warned = true;
+                metin2::log::warn("view_range {:d} + {:d} exceeds the sectree size {:d}; using {:d}", metin2::config::game().view_range, VIEW_BONUS_RANGE, static_cast<int>(SECTREE_SIZE), range);
+            }
+            return range;
+        }
+    }
+
+    void entity::announce_to_players_around() {
+        if (!get_sectree())
+            return;
+
+        get_sectree()->for_each_around([me = this, view_range = effective_view_range()](entity *ent) {
+            if (!ent->is_type(ENTITY_CHARACTER) || !((character *)ent)->is_pc())
+                return;
+            if (distance_approx(ent->x() - me->x(), ent->y() - me->y()) > view_range)
+                return;
+
+            ent->view_insert(me);
+        });
+    }
 
     void entity::view_cleanup() {
         auto it = views_.begin();
@@ -92,7 +123,7 @@ namespace metin2::game::inline world {
 
         ++view_age_;
 
-        get_sectree()->for_each_around([me = this, view_range = metin2::config::game().view_range + VIEW_BONUS_RANGE](entity *ent) {
+        get_sectree()->for_each_around([me = this, view_range = effective_view_range()](entity *ent) {
             if (!ent->is_type(ENTITY_OBJECT))
                 if (distance_approx(ent->x() - me->x(), ent->y() - me->y()) > view_range)
                     return;
