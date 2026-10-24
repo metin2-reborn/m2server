@@ -19,3 +19,9 @@ heart_fps = 10
 player_id_start = 3
 item_id_range = [10000001, 20000000]
 player_delete_level_limit = 70
+
+[db.cache]
+player_flush_seconds = 420     # characters are written to MariaDB this often (and at shutdown)
+item_flush_seconds = 300
+pricelist_flush_seconds = 540
+flush_limit_per_second = 200
