@@ -720,7 +720,7 @@ namespace metin2::game::inline protocol {
 
         uint8_t type;
         uint16_t race_num;
-        uint8_t moving_speed;
+        uint16_t moving_speed;
         uint8_t attack_speed;
 
         uint8_t state_flag;
@@ -745,7 +745,7 @@ namespace metin2::game::inline protocol {
         uint32_t vid;
 
         uint16_t part[CHR_EQUIPPART_NUM];
-        uint8_t moving_speed;
+        uint16_t moving_speed;
         uint8_t attack_speed;
 
         uint8_t state_flag;
@@ -1758,9 +1758,9 @@ namespace metin2::game::inline protocol {
     static_assert(sizeof(packet_gc_auth_success) == 6);
     static_assert(sizeof(packet_gc_login_failure) == 10);
     static_assert(sizeof(packet_gc_create_failure) == 2);
-    static_assert(sizeof(packet_gc_character_add) == 35);
+    static_assert(sizeof(packet_gc_character_add) == 36);
     static_assert(sizeof(packet_gc_character_additional_info) == 54);
-    static_assert(sizeof(packet_gc_character_update) == 35);
+    static_assert(sizeof(packet_gc_character_update) == 36);
     static_assert(sizeof(packet_gc_character_delete) == 5);
     static_assert(sizeof(packet_gc_chat) == 9);
     static_assert(sizeof(packet_gc_whisper) == 29);

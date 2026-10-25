@@ -87,7 +87,7 @@ namespace metin2::game::inline characters {
     enum {
         POISON_LENGTH = 30,
         STAMINA_PER_STEP = 1,
-        SPRINT_SPEED_PCT = 120,      // movement speed while the sprint key is held, after the cap
+        SPRINT_SPEED_PCT = 135,      // movement speed while the sprint key is held, after the cap
         SPRINT_MIN_STAMINA_PCT = 10, // a sprint starts only with this much of the stamina left
         STAMINA_REGEN_DELAY = 1000,  // ms after a sprint before stamina comes back
         STAMINA_REGEN_STEPS = 10,    // seconds from empty to full
