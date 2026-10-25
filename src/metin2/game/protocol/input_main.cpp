@@ -1196,6 +1196,8 @@ namespace metin2::game::inline protocol {
             ch->set_rotation(pinfo->rot * 5);
             ch->reset_stop_time();
 
+            // arg 1 on a move: the sprint key is held. Set first, so the move is timed at the new speed.
+            ch->set_sprint((pinfo->arg & 1) != 0);
             ch->go_to(pinfo->x, pinfo->y);
         } else {
             if (pinfo->func == FUNC_ATTACK || pinfo->func == FUNC_COMBO)
@@ -1229,7 +1231,7 @@ namespace metin2::game::inline protocol {
 
             ch->move(pinfo->x, pinfo->y);
             ch->stop();
-            ch->stop_stamina_consume();
+            ch->set_sprint(false);
         }
 
         packet_gc_move pack;

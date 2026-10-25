@@ -497,34 +497,7 @@ namespace metin2::game::inline characters {
             }
         }
 
-        if (is_pc()) {
-            if (is_walking() && stamina() < max_stamina()) {
-                if (get_dword_time() - walk_start_time() > 5000)
-                    point_change(POINT_STAMINA, max_stamina() / 1);
-            }
-
-            if (!is_walking() && !is_riding()) {
-                if ((get_dword_time() - last_attack_time()) < 20000) {
-                    start_affect_event();
-
-                    if (is_stamina_half_consume()) {
-                        if (thecore_pulse() & 1)
-                            point_change(POINT_STAMINA, -STAMINA_PER_STEP);
-                    } else
-                        point_change(POINT_STAMINA, -STAMINA_PER_STEP);
-
-                    start_stamina_consume();
-
-                    if (stamina() <= 0) {
-                        set_stamina(0);
-                        set_now_walking(true);
-                        stop_stamina_consume();
-                    }
-                } else if (is_stamina_consume()) {
-                    stop_stamina_consume();
-                }
-            }
-        } else {
+        if (!is_pc()) {
             if (is_monster() && victim()) {
                 character *victim_value = victim();
                 update_aggr_point(victim_value, DAMAGE_TYPE_NORMAL, -(victim_value->level() / 3 + 1));
@@ -562,7 +535,6 @@ namespace metin2::game::inline characters {
             if (is_pc()) {
                 metin2::log::debug("{} arrived at {:d} {:d}", name(), x_value, y_value);
                 goto_state(state_idle_);
-                stop_stamina_consume();
             } else {
                 if (victim() && !is_coward()) {
                     if (!is_state(state_battle_))

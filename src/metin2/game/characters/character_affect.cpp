@@ -131,11 +131,7 @@ namespace metin2::game::inline characters {
         auto_recovery_item_process(AFFECT_AUTO_HP_RECOVERY);
         auto_recovery_item_process(AFFECT_AUTO_SP_RECOVERY);
 
-        if (max_stamina() > stamina()) {
-            int sec = (get_dword_time() - stop_time()) / 3000;
-            if (sec)
-                point_change(POINT_STAMINA, max_stamina() / 1);
-        }
+        regen_stamina();
 
         if (process_affect())
             if (point(POINT_HP_RECOVERY) == 0 && point(POINT_SP_RECOVERY) == 0 && stamina() == max_stamina()) {

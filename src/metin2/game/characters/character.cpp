@@ -522,7 +522,7 @@ namespace metin2::game::inline characters {
         if (is_pet()) {
             pack.moving_speed = 150;
         } else {
-            pack.moving_speed = limit_point(POINT_MOV_SPEED);
+            pack.moving_speed = movement_speed_point();
         }
         pack.attack_speed = limit_point(POINT_ATT_SPEED);
         pack.affect_flag[0] = af_affect_flag_.bits[0];
@@ -651,7 +651,7 @@ namespace metin2::game::inline characters {
         pack.part[CHR_EQUIPPART_HEAD] = part(PART_HEAD);
         pack.part[CHR_EQUIPPART_HAIR] = part(PART_HAIR);
 
-        pack.moving_speed = limit_point(POINT_MOV_SPEED);
+        pack.moving_speed = movement_speed_point();
         pack.attack_speed = limit_point(POINT_ATT_SPEED);
         pack.state_flag = add_chr_state_;
         pack.affect_flag[0] = af_affect_flag_.bits[0];
@@ -2069,8 +2069,12 @@ namespace metin2::game::inline characters {
         }
     }
 
+    auto character::movement_speed_point() const -> int {
+        return limit_point(POINT_MOV_SPEED) * (sprinting_ ? SPRINT_SPEED_PCT : 100) / 100;
+    }
+
     auto character::move_speed() const -> float {
-        return move_motion_speed() * 10000 / calculate_duration(limit_point(POINT_MOV_SPEED), 10000);
+        return move_motion_speed() * 10000 / calculate_duration(movement_speed_point(), 10000);
     }
 
     void character::calculate_move_duration() {
@@ -2081,12 +2085,12 @@ namespace metin2::game::inline characters {
 
         float motion_speed = move_motion_speed();
 
-        move_duration_ = calculate_duration(limit_point(POINT_MOV_SPEED),
+        move_duration_ = calculate_duration(movement_speed_point(),
             (int)((dist / motion_speed) * 1000.0f));
 
         if (is_npc())
             metin2::log::debug("{}: goto distance {:f}, speed {:d}, duration {:d}, motion speed {:f}, {:d} {:d} -> {:d} {:d}",
-                name(), dist, limit_point(POINT_MOV_SPEED), move_duration_, motion_speed,
+                name(), dist, movement_speed_point(), move_duration_, motion_speed,
                 pos_start_.x, pos_start_.y, pos_dest_.x, pos_dest_.y);
 
         move_start_time_ = get_dword_time();
@@ -2455,17 +2459,11 @@ namespace metin2::game::inline characters {
                 if (is_dead() || is_stun())
                     return;
 
-                int prev_val = stamina();
                 amount = std::min(max_stamina() - stamina(), amount);
-                set_stamina(stamina() + amount);
+                set_stamina(std::max(0, stamina() + amount));
                 val = stamina();
 
-                if (val == 0) {
-                    set_now_walking(true);
-                } else if (prev_val == 0) {
-                    reset_walking();
-                }
-
+                // The client counts a running drain down itself (StartStaminaConsume).
                 if (amount < 0 && val != 0)
                     return;
             }
@@ -4175,7 +4173,7 @@ namespace metin2::game::inline characters {
                 if (nullptr == tree)
                     break;
 
-                if (0 == (tree->get_attribute(dx, dy) & (ATTR_BLOCK | ATTR_OBJECT)))
+                if (0 == (tree->get_attribute(dx, dy) & (ATTR_BLOCK | ATTR_OBJECT)) && !is_attack_spot_taken(dx, dy))
                     break;
             }
 
@@ -4188,6 +4186,25 @@ namespace metin2::game::inline characters {
             // A monster standing inside an object footprint only avoids blocked cells, so it can get out.
             const bool inside_object = get_sectree() && get_sectree()->is_attr(x(), y(), ATTR_OBJECT);
             const uint32_t path_flags = inside_object ? ATTR_BLOCK : (ATTR_BLOCK | ATTR_OBJECT);
+
+            // Monsters closing in on one target spread around it instead of piling onto the same arc,
+            // which left a player in a pack with no gap to walk through.
+            get_delta_by_degree(rotation(), dist_to_go, &fx, &fy);
+            if (get_mob_rank() < MOB_RANK_BOSS && is_attack_spot_taken(x() + (int)fx, y() + (int)fy)) {
+                const float around = get_degree_from_position_xy(x_value, y_value, x(), y());
+                for (const int turn : {30, -30, 60, -60, 90, -90, 120, -120}) {
+                    get_delta_by_degree(std::fmod(around + static_cast<float>(turn) + 360.0f, 360.0f), min_distance, &fx, &fy);
+                    const int32_t spot_x = x_value + (int)fx;
+                    const int32_t spot_y = y_value + (int)fy;
+                    if (!is_attack_spot_taken(spot_x, spot_y) && get_sectree_manager().is_path_clear(map_index(), x(), y(), spot_x, spot_y, path_flags)) {
+                        if (!go_to(spot_x, spot_y))
+                            return false;
+                        send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
+                        return true;
+                    }
+                }
+            }
+
             bool clear = false;
             for (const int turn : {0, 30, -30, 60, -60, 90, -90}) {
                 get_delta_by_degree(std::fmod(rotation() + static_cast<float>(turn) + 360.0f, 360.0f), dist_to_go, &fx, &fy);
@@ -4205,6 +4222,27 @@ namespace metin2::game::inline characters {
 
         send_move_packet(FUNC_WAIT, 0, 0, 0, 0);
         return true;
+    }
+
+    auto character::is_attack_spot_taken(int32_t spot_x, int32_t spot_y) const -> bool {
+        sectree *tree = get_sectree();
+        if (!tree)
+            return false;
+
+        bool taken = false;
+        tree->for_each_around([&](entity *ent) {
+            if (taken || !ent->is_type(ENTITY_CHARACTER))
+                return;
+            auto *other = static_cast<character *>(ent);
+            if (other == this || !other->is_monster() || other->is_dead())
+                return;
+            const bool moving = other->is_state(other->state_move_);
+            const int32_t other_x = moving ? other->pos_dest_.x : other->x();
+            const int32_t other_y = moving ? other->pos_dest_.y : other->y();
+            if (distance_approx(other_x - spot_x, other_y - spot_y) < AI_ATTACK_SPOT_SPACING)
+                taken = true;
+        });
+        return taken;
     }
 
     auto character::distance_from_safebox_open() const -> float {
@@ -4494,6 +4532,63 @@ namespace metin2::game::inline characters {
         point_change(POINT_STAMINA, 0);
         stamina_consume_ = false;
         chat_packet(CHAT_TYPE_COMMAND, "StopStaminaConsume %d", stamina());
+    }
+
+    void character::set_sprint(bool sprint) {
+        if (sprint == sprinting_) {
+            return;
+        }
+        if (sprint) {
+            if (!is_pc() || is_dead() || is_riding() || stamina() * 100 < max_stamina() * SPRINT_MIN_STAMINA_PCT) {
+                return;
+            }
+            sprinting_ = true;
+            sprint_drain_time_ = get_dword_time();
+            sprint_drain_carry_ = 0;
+            start_stamina_consume();
+        } else {
+            sprinting_ = false;
+            sprint_stop_time_ = get_dword_time();
+            stop_stamina_consume();
+            start_affect_event();
+        }
+        if (get_dword_time() < move_start_time_ + move_duration_) {
+            calculate_move_duration();
+        }
+        update_packet();
+    }
+
+    void character::update_sprint() {
+        if (!sprinting_) {
+            return;
+        }
+        if (is_dead() || is_riding()) {
+            set_sprint(false);
+            return;
+        }
+        const uint32_t now = get_dword_time();
+        uint32_t per_sec = STAMINA_PER_STEP * metin2::config::server().passes_per_sec;
+        if (is_stamina_half_consume()) {
+            per_sec /= 2;
+        }
+        sprint_drain_carry_ += (now - sprint_drain_time_) * per_sec;
+        sprint_drain_time_ = now;
+        const auto drain = static_cast<int>(sprint_drain_carry_ / 1000);
+        sprint_drain_carry_ %= 1000;
+        if (drain > 0) {
+            point_change(POINT_STAMINA, -drain);
+        }
+        if (stamina() <= 0) {
+            set_stamina(0);
+            set_sprint(false);
+        }
+    }
+
+    void character::regen_stamina() {
+        if (sprinting_ || stamina() >= max_stamina() || get_dword_time() - sprint_stop_time_ < STAMINA_REGEN_DELAY) {
+            return;
+        }
+        point_change(POINT_STAMINA, std::max(1, max_stamina() / STAMINA_REGEN_STEPS));
     }
 
     auto character::is_stamina_consume() const -> bool {

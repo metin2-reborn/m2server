@@ -575,6 +575,8 @@ namespace metin2::game::inline characters {
                 v.reserve(pc_chrs_.size());
                 for (const auto &[name, chr] : pc_chrs_)
                     v.push_back(chr);
+                for (character *ch : v)
+                    ch->update_sprint();
                 if (0 == (pulse % passes_per_sec(5))) {
                     for (character *ch : v) {
                         ch->reset_chat_counter();

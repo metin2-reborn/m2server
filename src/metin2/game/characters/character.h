@@ -87,10 +87,15 @@ namespace metin2::game::inline characters {
     enum {
         POISON_LENGTH = 30,
         STAMINA_PER_STEP = 1,
+        SPRINT_SPEED_PCT = 120,      // movement speed while the sprint key is held, after the cap
+        SPRINT_MIN_STAMINA_PCT = 10, // a sprint starts only with this much of the stamina left
+        STAMINA_REGEN_DELAY = 1000,  // ms after a sprint before stamina comes back
+        STAMINA_REGEN_STEPS = 10,    // seconds from empty to full
         SAFEBOX_PAGE_SIZE = 9,
         AI_CHANGE_ATTACK_POISITION_TIME_NEAR = 10000,
         AI_CHANGE_ATTACK_POISITION_TIME_FAR = 1000,
         AI_CHANGE_ATTACK_POISITION_DISTANCE = 100,
+        AI_ATTACK_SPOT_SPACING = 80, // monsters around one target keep this far apart
         SUMMON_MONSTER_COUNT = 3,
     };
 
@@ -710,7 +715,7 @@ namespace metin2::game::inline characters {
         uint8_t chat_counter_ = 0;
 
       public:
-        auto is_walking() const -> bool { return now_walking_ || stamina() <= 0; }
+        auto is_walking() const -> bool { return now_walking_; }
         void set_walking(bool walk_flag) { walking_ = walk_flag; }
         void set_now_walking(bool walk_flag);
         void reset_walking() { set_now_walking(walking_); }
@@ -727,6 +732,8 @@ namespace metin2::game::inline characters {
         auto get_motion_mode() const -> uint32_t;
         auto move_motion_speed() const -> float;
         auto move_speed() const -> float;
+        // The capped POINT_MOV_SPEED with the sprint applied: what moves are timed and shown with.
+        auto movement_speed_point() const -> int;
         void calculate_move_duration();
         void send_move_packet(uint8_t func, uint8_t arg, uint32_t x, uint32_t y, uint32_t duration, uint32_t time = 0, int rot = -1);
         auto current_move_duration() const -> uint32_t { return move_duration_; }
@@ -751,6 +758,16 @@ namespace metin2::game::inline characters {
         void stop_stamina_consume();
         auto is_stamina_consume() const -> bool;
         auto is_stamina_half_consume() const -> bool;
+
+        // Whether another monster stands on, or is walking to, a spot near (x, y).
+        auto is_attack_spot_taken(int32_t x, int32_t y) const -> bool;
+
+        // Sprinting is asked for with every FUNC_MOVE and costs stamina for as long as it lasts; at
+        // zero it ends and the character keeps running at the normal speed.
+        void set_sprint(bool sprint);
+        auto is_sprinting() const -> bool { return sprinting_; }
+        void update_sprint();
+        void regen_stamina();
 
         void reset_stop_time();
         auto stop_time() const -> uint32_t;
@@ -782,6 +799,10 @@ namespace metin2::game::inline characters {
         bool walking_ = false;
         bool now_walking_ = false;
         bool stamina_consume_ = false;
+        bool sprinting_ = false;
+        uint32_t sprint_drain_time_ = 0;
+        uint32_t sprint_drain_carry_ = 0; // stamina x 1000 not yet taken off
+        uint32_t sprint_stop_time_ = 0;
 
       public:
         void sync_quickslot(uint8_t type_value, uint8_t old_pos, uint8_t new_pos);
