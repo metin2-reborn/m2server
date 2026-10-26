@@ -171,7 +171,7 @@ namespace metin2::game::inline combat {
         int attacker_lv = attacker->level();
 
         int victim_dx = victim->polymorph_point(POINT_DX);
-        int victim_lv = attacker->level();
+        int victim_lv = victim->level();
 
         ar_src = std::min(90, (attacker_dx * 4 + attacker_lv * 2) / 6);
         er_src = std::min(90, (victim_dx * 4 + victim_lv * 2) / 6);
@@ -458,7 +458,7 @@ namespace metin2::game::inline combat {
         int def = 0;
 
         if (!ignore_defense)
-            def = (victim->point(POINT_DEF_GRADE) * (100 + attacker->point(POINT_DEF_BONUS)) / 100);
+            def = (victim->point(POINT_DEF_GRADE) * (100 + victim->point(POINT_DEF_BONUS)) / 100);
 
         if (attacker->is_npc())
             atk = (int)(atk * attacker->mob_damage_multiply());
@@ -500,8 +500,11 @@ namespace metin2::game::inline combat {
 
         int dam = calc_melee_damage(attacker, victim);
 
-        if (dam <= 0)
+        // A fully absorbed hit never reaches damage(); still show it as 0.
+        if (dam <= 0) {
+            victim->send_damage_packet(attacker, 0, DAMAGE_NORMAL);
             return (BATTLE_DAMAGE);
+        }
 
         normal_attack_affect(attacker, victim);
 

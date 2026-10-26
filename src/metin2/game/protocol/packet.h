@@ -885,6 +885,7 @@ namespace metin2::game::inline protocol {
         int32_t x, y, z;
         uint32_t vid;
         uint32_t vnum;
+        uint32_t count; // the amount for yang
     };
 
     struct packet_gc_item_ownership {
@@ -1776,7 +1777,7 @@ namespace metin2::game::inline protocol {
     static_assert(sizeof(packet_gc_item_set) == 51);
     static_assert(sizeof(packet_gc_item_del) == 2);
     static_assert(sizeof(packet_gc_item_update) == 38);
-    static_assert(sizeof(packet_gc_item_ground_add) == 21);
+    static_assert(sizeof(packet_gc_item_ground_add) == 25);
     static_assert(sizeof(packet_gc_item_ownership) == 30);
     static_assert(sizeof(packet_gc_item_ground_del) == 5);
     static_assert(sizeof(packet_quickslot_add) == 4);

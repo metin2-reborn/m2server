@@ -4,6 +4,7 @@
 #include <metin2/game/app/config.h>
 #include <metin2/game/app/constants.h>
 #include <metin2/game/app/event.h>
+#include <metin2/game/app/progression.h>
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/app/utils.h>
 #include <metin2/game/characters/affect.h>
@@ -632,6 +633,76 @@ namespace metin2::game::inline characters {
         }
     }
 
+    enum enum_refine_scrolls {
+        HYUNIRON_CHN = 1,
+        YONGSIN_SCROLL = 2,
+        MUSIN_SCROLL = 3,
+        YAGONG_SCROLL = 4,
+        MEMO_SCROLL = 5,
+        BDRAGON_SCROLL = 6,
+    };
+
+    constexpr int hyuniron_refine_prob[9] = {100, 75, 65, 55, 45, 40, 35, 25, 20};
+    constexpr int yagong_refine_prob[9] = {100, 100, 90, 80, 70, 60, 50, 30, 20};
+
+    namespace {
+
+        constexpr int NO_REFINE_SCROLL = -1;
+
+        // Blacksmith chains (refine set < 500) follow the refine curve towards the chance of their
+        // last step, the recipe of the +8 item; other recipes keep their table chance.
+        auto base_refine_chance(item *item, const refine_table *prt) -> int {
+            const int level = item->refine_level();
+
+            if (item->refine_set() >= 500 || level >= 9)
+                return prt->prob;
+
+            const item_table *table = get_item_manager().table(item->vnum());
+
+            for (int step = level; table && step < 8; ++step)
+                table = table->refined_vnum ? get_item_manager().table(table->refined_vnum) : nullptr;
+
+            if (!table || !table->refined_vnum)
+                return prt->prob;
+
+            const refine_table *last = get_refine_manager().refine_recipe(table->refine_set);
+            return last ? refine_chance(level + 1, last->prob) : prt->prob;
+        }
+
+        // The chance the refine dialog shows and the refine rolls against.
+        auto refine_success_chance(item *item, const refine_table *prt, int scroll_type, bool smith_bonus) -> int {
+            const int level = std::clamp(item->refine_level(), 0, 8);
+            int chance = base_refine_chance(item, prt);
+
+            switch (scroll_type) {
+            case NO_REFINE_SCROLL:
+                if (smith_bonus)
+                    chance += 10;
+                break;
+
+            case YONGSIN_SCROLL:
+                chance = std::max(chance, hyuniron_refine_prob[level]);
+                break;
+
+            case YAGONG_SCROLL:
+                chance = std::max(chance, yagong_refine_prob[level]);
+                break;
+
+            case MUSIN_SCROLL:
+            case MEMO_SCROLL:
+                chance = 100;
+                break;
+
+            case BDRAGON_SCROLL:
+                chance = 80;
+                break;
+            }
+
+            return std::min(chance, 100);
+        }
+
+    }
+
     auto character::do_refine(item *item, bool money_only) -> bool {
         if (!can_handle_item(true)) {
             clear_refine_mode();
@@ -698,39 +769,22 @@ namespace metin2::game::inline characters {
                 remove_specify_item(prt->materials[i].vnum, prt->materials[i].count);
         }
 
-        int prob = number(1, 100);
+        const int chance = refine_success_chance(item, prt, NO_REFINE_SCROLL, is_refine_through_guild() || money_only);
 
-        if (is_refine_through_guild() || money_only)
-            prob -= 10;
-
-        if (prob <= prt->prob) {
+        if (number(1, 100) <= chance) {
             if (replace_refined_item(item, result_vnum, cost, true, is_refine_through_guild() ? "GUILD" : "POWER"))
                 metin2::log::debug("Refine succeeded, fee {:d}", cost);
             else
                 notify_refine_fail(this, item, is_refine_through_guild() ? "GUILD" : "POWER");
         } else {
+            // A failed refine keeps the item; the fee and the materials are spent.
             get_db_manager().send_money_log(MONEY_LOG_REFINE, item->vnum(), -cost);
             notify_refine_fail(this, item, is_refine_through_guild() ? "GUILD" : "POWER");
-            item->attr_log();
-            get_item_manager().remove_item(item, "REMOVE (REFINE FAIL)");
-
             pay_refine_fee(cost);
         }
 
         return true;
     }
-
-    enum enum_refine_scrolls {
-        HYUNIRON_CHN = 1,
-        YONGSIN_SCROLL = 2,
-        MUSIN_SCROLL = 3,
-        YAGONG_SCROLL = 4,
-        MEMO_SCROLL = 5,
-        BDRAGON_SCROLL = 6,
-    };
-
-    constexpr int hyuniron_refine_prob[9] = {100, 75, 65, 55, 45, 40, 35, 25, 20};
-    constexpr int yagong_refine_prob[9] = {100, 100, 90, 80, 70, 60, 50, 30, 20};
 
     auto character::do_refine_with_scroll(item *item) -> bool {
         if (!can_handle_item(true)) {
@@ -823,41 +877,31 @@ namespace metin2::game::inline characters {
         for (int i = 0; i < prt->material_count; ++i)
             remove_specify_item(prt->materials[i].vnum, prt->materials[i].count);
 
-        int prob = number(1, 100);
-        int success_prob = prt->prob;
-        bool destroy_when_fail = false;
-
+        const int success_prob = refine_success_chance(item, prt, scroll_type, false);
         const char *refine_type = "SCROLL";
 
         switch (scroll_type) {
         case HYUNIRON_CHN:
-            metin2::log::error("Unknown refine scroll type {:d}", scroll_type);
-            destroy_when_fail = true;
             refine_type = "HYUNIRON";
             break;
 
         case YONGSIN_SCROLL:
-            success_prob = hyuniron_refine_prob[std::clamp(item->refine_level(), 0, 8)];
             refine_type = "GOD_SCROLL";
             break;
 
         case YAGONG_SCROLL:
-            success_prob = yagong_refine_prob[std::clamp(item->refine_level(), 0, 8)];
             refine_type = "YAGONG_SCROLL";
             break;
 
         case MUSIN_SCROLL:
-            success_prob = 100;
             refine_type = "MUSIN_SCROLL";
             break;
 
         case MEMO_SCROLL:
-            success_prob = 100;
             refine_type = "MEMO_SCROLL";
             break;
 
         case BDRAGON_SCROLL:
-            success_prob = 80;
             refine_type = "BDRAGON_SCROLL";
             break;
         }
@@ -867,20 +911,15 @@ namespace metin2::game::inline characters {
 
         item_scroll->set_count(item_scroll->count() - 1);
 
-        if (prob <= success_prob) {
+        // A failed scroll refine downgrades the item one level where it can, and never destroys it.
+        if (number(1, 100) <= success_prob) {
             if (!replace_refined_item(item, result_vnum, prt->cost, true, refine_type))
                 notify_refine_fail(this, item, refine_type);
-        } else if (!destroy_when_fail && result_fail_vnum) {
+        } else if (scroll_type != HYUNIRON_CHN && result_fail_vnum) {
             if (!replace_refined_item(item, result_fail_vnum, prt->cost, false, refine_type))
                 notify_refine_fail(this, item, refine_type);
         } else {
             notify_refine_fail(this, item, refine_type);
-
-            if (destroy_when_fail) {
-                item->attr_log();
-                get_item_manager().remove_item(item, "REMOVE (REFINE FAIL)");
-            }
-
             pay_refine_fee(prt->cost);
         }
 
@@ -948,7 +987,15 @@ namespace metin2::game::inline characters {
         } else
             p.cost = compute_refine_fee(prt->cost);
 
-        p.prob = prt->prob;
+        int scroll_type = NO_REFINE_SCROLL;
+
+        if (type_value != REFINE_TYPE_NORMAL && type_value != REFINE_TYPE_MONEY_ONLY && additional_cell >= 0) {
+            if (game::items::item *item_scroll = inventory_item(additional_cell))
+                scroll_type = item_scroll->value(0);
+        }
+
+        p.prob = refine_success_chance(item, prt, scroll_type, is_refine_through_guild() || type_value == REFINE_TYPE_MONEY_ONLY);
+
         if (type_value == REFINE_TYPE_MONEY_ONLY) {
             p.material_count = 0;
             memset(p.materials, 0, sizeof(p.materials));

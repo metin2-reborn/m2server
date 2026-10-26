@@ -2,6 +2,7 @@
 #include <metin2/game/app/config.h>
 #include <metin2/game/app/constants.h>
 #include <metin2/game/app/event.h>
+#include <metin2/game/app/progression.h>
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/app/utils.h>
 #include <metin2/game/characters/affect.h>
@@ -71,29 +72,6 @@
 namespace metin2::game::inline characters {
     // A volley hits only a few targets; the list is otherwise only cleared when the character shoots.
     constexpr std::size_t MAX_FLY_TARGETS = 32;
-
-    auto adjust_exp_by_level(character *const ch, const uint32_t exp) -> uint32_t {
-        if (PLAYER_EXP_TABLE_MAX < ch->level()) {
-            double ret = 0.95;
-            double factor = 0.1;
-
-            for (ssize_t i = 0; i < ch->level() - 100; ++i) {
-                if ((i % 10) == 0)
-                    factor /= 2.0;
-
-                ret *= 1.0 - factor;
-            }
-
-            ret = ret * static_cast<double>(exp);
-
-            if (ret < 1.0)
-                return 1;
-
-            return static_cast<uint32_t>(ret);
-        }
-
-        return exp;
-    }
 
     auto character::can_begin_fight() const -> bool {
         if (!can_move())
@@ -461,11 +439,9 @@ namespace metin2::game::inline characters {
     static auto get_gold_multipler() -> int { return metin2::config::game().distribution_test_server ? 3 : 1; }
 
     void character::reward_gold(character *attacker) {
-        bool is_auto_loot =
-            (attacker->premium_remain_seconds(PREMIUM_AUTOLOOT) > 0 ||
-                attacker->is_equip_unique_group(UNIQUE_GROUP_AUTOLOOT))
-                ? true
-                : false;
+        // Players pick up yang automatically: it goes to the killer (and the party, through
+        // give_gold) instead of dropping to the ground.
+        const bool is_auto_loot = attacker->is_pc();
 
         pixel_position pos;
 
@@ -474,6 +450,7 @@ namespace metin2::game::inline characters {
                 return;
 
         int total_gold = 0;
+        int looted_gold = 0;
         int gold_percent = mob_rank_stats[get_mob_rank()].gold_percent;
 
         if (attacker->is_pc())
@@ -542,7 +519,10 @@ namespace metin2::game::inline characters {
                     metin2::log::debug("Gold drop: {:d} (min {:d}, max {:d})", gold, get_mob_table().gold_min, get_mob_table().gold_max);
                 }
 
-                if ((item = get_item_manager().create_item(1, gold))) {
+                if (is_auto_loot) {
+                    looted_gold += gold;
+                    total_gold += gold;
+                } else if ((item = get_item_manager().create_item(1, gold))) {
                     pos.x = x() + ((number(-14, 14) + number(-14, 14)) * 23);
                     pos.y = y() + ((number(-14, 14) + number(-14, 14)) * 23);
 
@@ -562,7 +542,10 @@ namespace metin2::game::inline characters {
                     continue;
                 }
 
-                if ((item = get_item_manager().create_item(1, gold))) {
+                if (is_auto_loot) {
+                    looted_gold += gold;
+                    total_gold += gold;
+                } else if ((item = get_item_manager().create_item(1, gold))) {
                     pos.x = x() + (number(-7, 7) * 20);
                     pos.y = y() + (number(-7, 7) * 20);
 
@@ -594,7 +577,7 @@ namespace metin2::game::inline characters {
 
                 for (int i = 0; i < split_count; ++i) {
                     if (is_auto_loot) {
-                        attacker->give_gold(gold / split_count);
+                        looted_gold += gold / split_count;
                     } else if ((item = get_item_manager().create_item(1, gold / split_count))) {
                         pos.x = x() + (number(-7, 7) * 20);
                         pos.y = y() + (number(-7, 7) * 20);
@@ -605,6 +588,9 @@ namespace metin2::game::inline characters {
                 }
             }
         }
+
+        // One payout for the whole drop, so a boss's split piles do not arrive as dozens of messages.
+        attacker->give_gold(looted_gold);
 
         get_db_manager().send_money_log(MONEY_LOG_MONSTER, race_num(), total_gold);
     }
@@ -1251,22 +1237,19 @@ namespace metin2::game::inline characters {
     }
 
     void character::send_damage_packet(character *attacker, int damage_value, uint8_t damage_flag) {
-        if (is_pc() == true || (attacker->is_pc() == true && attacker->target() == this)) {
-            packet_gc_damage_info damage_info;
-            memset(&damage_info, 0, sizeof(packet_gc_damage_info));
+        // Only players have a desc, so this reaches the victim and the attacker when they are players.
+        packet_gc_damage_info damage_info{};
+        damage_info.header = HEADER_GC_DAMAGE_INFO;
+        damage_info.vid = (uint32_t)get_vid();
+        damage_info.flag = damage_flag;
+        damage_info.damage = damage_value;
 
-            damage_info.header = HEADER_GC_DAMAGE_INFO;
-            damage_info.vid = (uint32_t)get_vid();
-            damage_info.flag = damage_flag;
-            damage_info.damage = damage_value;
+        if (get_desc() != nullptr) {
+            get_desc()->packet(&damage_info, sizeof(packet_gc_damage_info));
+        }
 
-            if (get_desc() != nullptr) {
-                get_desc()->packet(&damage_info, sizeof(packet_gc_damage_info));
-            }
-
-            if (attacker->get_desc() != nullptr) {
-                attacker->get_desc()->packet(&damage_info, sizeof(packet_gc_damage_info));
-            }
+        if (attacker != nullptr && attacker != this && attacker->get_desc() != nullptr) {
+            attacker->get_desc()->packet(&damage_info, sizeof(packet_gc_damage_info));
         }
     }
 
@@ -1336,15 +1319,6 @@ namespace metin2::game::inline characters {
         bool is_critical = false;
         bool is_penetrate = false;
         bool is_death_blow = false;
-
-        enum damage_flag {
-            DAMAGE_NORMAL = (1 << 0),
-            DAMAGE_POISON = (1 << 1),
-            DAMAGE_DODGE = (1 << 2),
-            DAMAGE_BLOCK = (1 << 3),
-            DAMAGE_PENETRATE = (1 << 4),
-            DAMAGE_CRITICAL = (1 << 5),
-        };
 
         if (type == DAMAGE_TYPE_MELEE || type == DAMAGE_TYPE_RANGE || type == DAMAGE_TYPE_MAGIC) {
             if (attacker) {
@@ -1594,6 +1568,10 @@ namespace metin2::game::inline characters {
             break;
         }
 
+        // Fights against monsters depend on the level gap; PvP does not.
+        if (attacker && attacker->is_pc() != is_pc())
+            dam = dam * level_damage_percent(attacker->level(), level()) / 100;
+
         if (is_affect_flag(AFF_MANASHIELD)) {
             int damage_sp_part = dam / 3;
             int damage_to_sp = damage_sp_part * point(POINT_MANASHIELD) / 100;
@@ -1628,17 +1606,8 @@ namespace metin2::game::inline characters {
                 map_index_value = attacker->map_index();
                 map_empire = get_sectree_manager().empire_from_map_index(map_index_value);
 
-                if (empire_value && map_empire && empire_value != map_empire) {
-                    int percent = 10;
-
-                    if (184 <= map_index_value && map_index_value <= 189) {
-                        percent = 9;
-                    } else {
-                        percent = 9;
-                    }
-
-                    dam = dam * percent / 10;
-                }
+                if (empire_value && map_empire && empire_value != map_empire)
+                    dam = dam * 9 / 10;
 
                 if (!is_pc() && monster_drain_sp_point()) {
                     int drain = monster_drain_sp_point();
@@ -1678,7 +1647,17 @@ namespace metin2::game::inline characters {
             monster_chat(MONSTER_CHAT_ATTACKED);
         }
 
+        // A hit on a stunned victim (HP already 0) is the one that finishes it; it still shows its number.
         if (is_stun()) {
+            uint8_t damage_flag = type == DAMAGE_TYPE_POISON ? DAMAGE_POISON : DAMAGE_NORMAL;
+
+            if (is_critical)
+                damage_flag |= DAMAGE_CRITICAL;
+
+            if (is_penetrate)
+                damage_flag |= DAMAGE_PENETRATE;
+
+            send_damage_packet(attacker, dam, damage_flag);
             dead(attacker);
             return true;
         }
@@ -1726,8 +1705,7 @@ namespace metin2::game::inline characters {
             float temp_dam = dam;
             dam = temp_dam * dam_mul + 0.5f;
 
-            if (attacker)
-                send_damage_packet(attacker, dam, damage_flag);
+            send_damage_packet(attacker, dam, damage_flag);
 
             if (metin2::config::test_server()) {
                 if (attacker) {
@@ -1868,8 +1846,6 @@ namespace metin2::game::inline characters {
             if (quest::get_quest_manager().event_flag("exp_bonus_log") && base_exp > 0)
                 to->chat_packet(CHAT_TYPE_INFO, "exp bonus %d%%", (exp - base_exp) * 100 / base_exp);
         }
-
-        exp = adjust_exp_by_level(to, exp);
 
         to->point_change(POINT_EXP, exp, true);
         from->create_fly(FLY_EXP, to);

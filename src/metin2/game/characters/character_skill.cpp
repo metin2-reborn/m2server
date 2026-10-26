@@ -1007,8 +1007,9 @@ namespace metin2::game::inline characters {
                         break;
                     }
 
+                // A defence above the hit must not go negative: damage() would heal the victim.
                 if (!ignore_defense)
-                    dam -= chr_victim->point(POINT_DEF_GRADE);
+                    dam = calc_battle_damage(dam - chr_victim->point(POINT_DEF_GRADE), chr->level(), chr_victim->level());
             }
             break;
 
@@ -1019,7 +1020,9 @@ namespace metin2::game::inline characters {
 
         case SKILL_ATTR_TYPE_MAGIC:
             dt = DAMAGE_TYPE_MAGIC;
-            dam = calc_att_bonus(chr, chr_victim, dam);
+            // Melee-based magic skills already have the attack bonuses in atk.
+            if (!is_set(sk->flag, SKILL_FLAG_USE_MELEE_DAMAGE))
+                dam = calc_att_bonus(chr, chr_victim, dam);
             dam = dam * (100 - chr_victim->point(POINT_RESIST_MAGIC)) / 100;
             break;
 

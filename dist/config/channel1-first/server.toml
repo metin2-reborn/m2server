@@ -34,7 +34,7 @@ map_allow = [
 ]
 save_seconds = 180
 view_range = 8000
-max_level = 105
+max_level = 100
 pk_protect_level = 15
 mall_url = "google.com"
 

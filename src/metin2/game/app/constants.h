@@ -74,8 +74,6 @@ namespace metin2::game::inline app {
 
     extern const uint32_t party_exp_distribute_table[PLAYER_MAX_LEVEL_CONST + 1];
 
-    extern const uint32_t exp_table[PLAYER_EXP_TABLE_MAX + 1];
-
     extern const uint32_t guild_exp_table2[GUILD_MAX_LEVEL + 1];
 
     inline constexpr int MAX_EXP_DELTA_OF_LEV = 31;

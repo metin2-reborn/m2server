@@ -133,6 +133,16 @@ namespace metin2::game::inline characters {
         DAMAGE_TYPE_SPECIAL,
     };
 
+    // Flags of the damage info packet.
+    enum damage_info_flag {
+        DAMAGE_NORMAL = (1 << 0),
+        DAMAGE_POISON = (1 << 1),
+        DAMAGE_DODGE = (1 << 2),
+        DAMAGE_BLOCK = (1 << 3),
+        DAMAGE_PENETRATE = (1 << 4),
+        DAMAGE_CRITICAL = (1 << 5),
+    };
+
     enum point_types {
         POINT_NONE,
         POINT_LEVEL,
@@ -1538,7 +1548,7 @@ namespace metin2::game::inline characters {
 
         auto reset_one_skill(uint32_t vnum) -> bool;
 
-      private:
+      public:
         void send_damage_packet(character *attacker, int damage_value, uint8_t damage_flag);
 
       private:

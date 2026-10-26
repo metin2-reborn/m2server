@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <metin2/config/config.h>
 #include <metin2/game/app/constants.h>
+#include <metin2/game/app/progression.h>
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/app/utils.h>
 #include <metin2/game/characters/affect.h>
@@ -928,7 +929,7 @@ namespace metin2::game {
 
             metin2::log::info("Quest reward: player {} gets exp ({}) level {:d}, {:g}%", ch->name(), lua_tostring(lua, 1), lev, proc);
 
-            uint32_t exp = (uint32_t)((exp_table[std::clamp(lev, 0, PLAYER_EXP_TABLE_MAX)] * proc) / 100);
+            uint32_t exp = (uint32_t)((level_exp(lev) * proc) / 100);
             pc *pc = get_quest_manager().current_pc();
 
             get_log_manager().quest_reward_log(pc->current_quest_name().c_str(), ch->player_id(), ch->level(), exp, 0);

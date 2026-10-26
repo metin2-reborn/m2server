@@ -143,6 +143,7 @@ namespace metin2::game::inline items {
         pack.z = pos.z;
         pack.vnum = vnum();
         pack.vid = vid_;
+        pack.count = count();
 
         d->packet(&pack, sizeof(pack));
 

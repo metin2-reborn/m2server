@@ -108,7 +108,7 @@ namespace metin2::config {
         std::vector<long> map_allow;
         int save_seconds = 120;
         int view_range = 5000;
-        int max_level = 99;
+        int max_level = 100;
         std::uint8_t pk_protect_level = 15;
 
         bool refuse_clients = false;

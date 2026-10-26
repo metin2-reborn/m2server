@@ -6,6 +6,7 @@
 #include <metin2/game/app/constants.h>
 #include <metin2/game/app/crc32.h>
 #include <metin2/game/app/event.h>
+#include <metin2/game/app/progression.h>
 #include <metin2/game/app/typedef.h>
 #include <metin2/game/app/utils.h>
 #include <metin2/game/characters/affect.h>
@@ -1260,7 +1261,8 @@ namespace metin2::game::inline characters {
         set_race(t->job);
 
         set_level(t->level);
-        set_exp(t->exp);
+        // Exp saved under an older, steeper curve can exceed what the level now needs.
+        set_exp(std::min<uint32_t>(t->exp, next_exp() - 1));
         set_gold(t->gold);
 
         set_map_index(t->map_index);
@@ -1337,7 +1339,8 @@ namespace metin2::game::inline characters {
         set_level(t->level);
         set_empire(t->empire);
 
-        set_exp(t->exp);
+        // Monster kill exp follows the leveling curve; the EXP column only counts for stones.
+        set_exp(char_type_ == CHAR_TYPE_MONSTER ? kill_exp(t->level, t->rank) : t->exp);
         set_real_point(POINT_ST, t->str);
         set_real_point(POINT_DX, t->dex);
         set_real_point(POINT_HT, t->con);
@@ -5644,10 +5647,7 @@ namespace metin2::game::inline characters {
     }
 
     auto character::next_exp() const -> uint32_t {
-        if (PLAYER_EXP_TABLE_MAX < level())
-            return 2500000000;
-        else
-            return exp_table[level()];
+        return level_exp(level());
     }
 
     auto character::skill_power_by_level(int level, bool mob) const -> int {
