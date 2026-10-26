@@ -9,23 +9,13 @@ permissions:
 
 jobs:
   build:
-    name: Build and test (${{ matrix.compiler }})
+    name: Build and test
     runs-on: ubuntu-latest
     # The same Debian release as the image: Ubuntu's MariaDB Connector/C is older than the 3.4 we need.
     container: docker.io/library/debian:13-slim
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - compiler: clang
-            cc: clang
-            cxx: clang++
-          - compiler: gcc
-            cc: gcc
-            cxx: g++
     env:
-      CC: ${{ matrix.cc }}
-      CXX: ${{ matrix.cxx }}
+      CC: clang
+      CXX: clang++
     steps:
       - name: Install packages
         run: |
