@@ -68,6 +68,21 @@ INSERT INTO `account` VALUES (1,'admin','*CC67043C7BCFF5EEA5566BD9B1F3C74FD9A5CF
 UNLOCK TABLES;
 
 --
+-- Table structure for table `account_token` (m2web: hashes of the tokens in mailed links)
+--
+
+DROP TABLE IF EXISTS `account_token`;
+CREATE TABLE `account_token` (
+  `token_hash` binary(32) NOT NULL,
+  `account_id` int(11) NOT NULL,
+  `purpose` varchar(16) NOT NULL,
+  `email` varchar(64) DEFAULT NULL,
+  `expires_at` datetime NOT NULL,
+  PRIMARY KEY (`token_hash`),
+  KEY `account_purpose` (`account_id`,`purpose`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
 -- Table structure for table `block_exception`
 --
 

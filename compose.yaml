@@ -87,6 +87,60 @@ services:
     ports:
       - "13000:13000/tcp"
 
+  # Account management API (../m2web): registration, mailed links, JWT login and account routes.
+  web:
+    image: localhost/metin2-web:latest
+    build: ../m2web
+    restart: unless-stopped
+    networks: [ metin2 ]
+    environment:
+      DB_USER: ${DB_USER:?Set DB_USER in .env}
+      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      SITE_URL: ${SITE_URL:?Set SITE_URL in .env}
+      SITE_API_KEY: ${SITE_API_KEY:?Set SITE_API_KEY in .env}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      TRUST_PROXY: ${WEB_TRUST_PROXY:-0}
+      MAIL_MODE: ${MAIL_MODE:-smtp}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      MAIL_FROM: ${MAIL_FROM:-}
+    healthcheck:
+      test: [ CMD, /usr/local/bin/m2web, healthcheck ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 10s
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    ports:
+      - "8080:8080/tcp"
+
+  # Website (../m2web, same image): home, download, registration and account pages over the API.
+  site:
+    image: localhost/metin2-web:latest
+    restart: unless-stopped
+    entrypoint: [ /usr/local/bin/m2site ]
+    networks: [ metin2 ]
+    environment:
+      SITE_URL: ${SITE_URL:?Set SITE_URL in .env}
+      SITE_API_KEY: ${SITE_API_KEY:?Set SITE_API_KEY in .env}
+      API_URL: http://web:8080
+      TRUST_PROXY: ${WEB_TRUST_PROXY:-0}
+    healthcheck:
+      test: [ CMD, /usr/local/bin/m2site, healthcheck ]
+      interval: 10s
+      timeout: 5s
+      retries: 6
+      start_period: 5s
+    depends_on:
+      web:
+        condition: service_healthy
+    ports:
+      - "8081:8081/tcp"
+
 networks:
   metin2:
     driver: bridge

@@ -27,6 +27,8 @@ Every process runs the same `server` binary; the `role` in its configuration dec
 | `db`             | `db`   | Database cache between the game processes and MariaDB | 15000 (internal) |
 | `auth`           | `auth` | Login server                                          | 11000            |
 | `channel1-first` | `game` | Game server for channel 1, serving every map          | 13000, P2P 14000 |
+| `web`            | —      | Account API from [`../m2web`](../m2web)                 | 8080             |
+| `site`           | —      | Website from `../m2web`: home, download, registration, account pages | 8081 |
 
 Source layout: folders match namespaces, all under `metin2`, and headers are included as
 `<metin2/...>`.
@@ -112,6 +114,11 @@ podman compose up -d
 ```
 
 Point the client at `PUBLIC_IP`, port `11000`.
+
+The `web` (API) and `site` (website) services share one image built from the sibling `m2web` checkout.
+Their variables are listed in `.env.example` (`SITE_URL`, `SITE_API_KEY`, `JWT_SECRET`, `MAIL_MODE`,
+`SMTP_*`). `podman compose build web && podman compose up -d --no-deps --force-recreate web site`
+updates only these two.
 
 ### 3. Operate
 
