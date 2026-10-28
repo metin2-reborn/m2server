@@ -87,10 +87,10 @@ services:
     ports:
       - "13000:13000/tcp"
 
-  # Account management API (../m2web): registration, mailed links, JWT login and account routes.
+  # Account management API (../m2api, .NET): registration, mailed links, JWT login and account routes.
   web:
-    image: localhost/metin2-web:latest
-    build: ../m2web
+    image: localhost/metin2-api:latest
+    build: ../m2api
     restart: unless-stopped
     networks: [ metin2 ]
     environment:
@@ -100,14 +100,12 @@ services:
       SITE_API_KEY: ${SITE_API_KEY:?Set SITE_API_KEY in .env}
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
       TRUST_PROXY: ${WEB_TRUST_PROXY:-0}
-      MAIL_MODE: ${MAIL_MODE:-smtp}
-      SMTP_HOST: ${SMTP_HOST:-}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USER: ${SMTP_USER:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      MAIL_MODE: ${MAIL_MODE:-brevo}
+      BREVO_API_KEY: ${BREVO_API_KEY:-}
       MAIL_FROM: ${MAIL_FROM:-}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-}
     healthcheck:
-      test: [ CMD, /usr/local/bin/m2web, healthcheck ]
+      test: [ CMD, /app/m2api, healthcheck ]
       interval: 10s
       timeout: 5s
       retries: 6
@@ -118,11 +116,11 @@ services:
     ports:
       - "8080:8080/tcp"
 
-  # Website (../m2web, same image): home, download, registration and account pages over the API.
+  # Website (../m2web, Go): home, download, registration and account pages over the API.
   site:
     image: localhost/metin2-web:latest
+    build: ../m2web
     restart: unless-stopped
-    entrypoint: [ /usr/local/bin/m2site ]
     networks: [ metin2 ]
     environment:
       SITE_URL: ${SITE_URL:?Set SITE_URL in .env}
