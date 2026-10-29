@@ -25,10 +25,13 @@ services:
       MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:?Set MARIADB_ROOT_PASSWORD in .env}
       DB_USER: ${DB_USER:?Set DB_USER in .env}
       DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
+      WEB_DB_USER: ${WEB_DB_USER:-}
+      WEB_DB_PASSWORD: ${WEB_DB_PASSWORD:-}
     volumes:
       - mariadb-data:/var/lib/mysql
       - ./dist/mariadb/mariadb.cnf:/etc/mysql/conf.d/metin2.cnf:ro,Z
       - ./dist/mariadb/init-databases.sh:/docker-entrypoint-initdb.d/10-metin2.sh:ro,Z
+      - ./dist/mariadb/web-user.sh:/metin2-web-user.sh:ro,Z
       - ./dist/mariadb/dump:/metin2-dumps:ro,Z
     networks: [ metin2 ]
     healthcheck:
@@ -86,58 +89,6 @@ services:
         condition: service_healthy
     ports:
       - "13000:13000/tcp"
-
-  # Account management API (../m2api, .NET): registration, mailed links, JWT login and account routes.
-  web:
-    image: localhost/metin2-api:latest
-    build: ../m2api
-    restart: unless-stopped
-    networks: [ metin2 ]
-    environment:
-      DB_USER: ${DB_USER:?Set DB_USER in .env}
-      DB_PASSWORD: ${DB_PASSWORD:?Set DB_PASSWORD in .env}
-      SITE_URL: ${SITE_URL:?Set SITE_URL in .env}
-      SITE_API_KEY: ${SITE_API_KEY:?Set SITE_API_KEY in .env}
-      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
-      TRUST_PROXY: ${WEB_TRUST_PROXY:-0}
-      MAIL_MODE: ${MAIL_MODE:-brevo}
-      BREVO_API_KEY: ${BREVO_API_KEY:-}
-      MAIL_FROM: ${MAIL_FROM:-}
-      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-}
-    healthcheck:
-      test: [ CMD, /app/m2api, healthcheck ]
-      interval: 10s
-      timeout: 5s
-      retries: 6
-      start_period: 10s
-    depends_on:
-      mariadb:
-        condition: service_healthy
-    ports:
-      - "8080:8080/tcp"
-
-  # Website (../m2web, Go): home, download, registration and account pages over the API.
-  site:
-    image: localhost/metin2-web:latest
-    build: ../m2web
-    restart: unless-stopped
-    networks: [ metin2 ]
-    environment:
-      SITE_URL: ${SITE_URL:?Set SITE_URL in .env}
-      SITE_API_KEY: ${SITE_API_KEY:?Set SITE_API_KEY in .env}
-      API_URL: http://web:8080
-      TRUST_PROXY: ${WEB_TRUST_PROXY:-0}
-    healthcheck:
-      test: [ CMD, /usr/local/bin/m2site, healthcheck ]
-      interval: 10s
-      timeout: 5s
-      retries: 6
-      start_period: 5s
-    depends_on:
-      web:
-        condition: service_healthy
-    ports:
-      - "8081:8081/tcp"
 
 networks:
   metin2:

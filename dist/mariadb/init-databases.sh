@@ -25,4 +25,7 @@ SQL
 for database in account common player log; do
     docker_process_sql --database="$database" < "${METIN2_DUMP_DIR:-/metin2-dumps}/$database.sql"
 done
+if [ -n "${WEB_DB_USER:-}" ]; then
+    bash /metin2-web-user.sh | docker_process_sql
+fi
 )

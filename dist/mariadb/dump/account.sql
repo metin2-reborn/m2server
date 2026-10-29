@@ -68,7 +68,7 @@ INSERT INTO `account` VALUES (1,'admin','*CC67043C7BCFF5EEA5566BD9B1F3C74FD9A5CF
 UNLOCK TABLES;
 
 --
--- Table structure for table `account_token` (m2web: hashes of the tokens in mailed links)
+-- Table structure for table `account_token` (m2portal: hashes of the tokens in mailed links)
 --
 
 DROP TABLE IF EXISTS `account_token`;

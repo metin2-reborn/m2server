@@ -50,6 +50,10 @@ deploy:
     done; \
     echo "channel1-first did not become healthy; see podman compose logs" >&2; exit 1
 
+# Create or update the website's database user (WEB_DB_USER, WEB_DB_PASSWORD) in a running stack.
+db-web-user:
+    podman compose exec -T mariadb sh -c 'bash /metin2-web-user.sh | mariadb -uroot -p"$MARIADB_ROOT_PASSWORD"'
+
 # Remove the native build products.
 clean:
     rm -rf -- build
