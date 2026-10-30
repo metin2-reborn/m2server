@@ -134,6 +134,7 @@ quest subquest_42 begin
 			q.start()
 			
 			if  pc.count_item("30147") >=1 and  pc.count_item("30148") >=1 then
+					q.set_status(QUEST_TURN_IN)
 					local vnum=0
 
 					if pc.get_empire() == 1 then
@@ -178,6 +179,7 @@ quest subquest_42 begin
 			if a <= 5 and pc.count_item(30148)==0 then
 				pc.give_item2(30148, 1)
 			end
+			if pc.count_item(30147)>=1 and pc.count_item(30148)>=1 then q.set_status(QUEST_TURN_IN) end
 			
 						
 		end

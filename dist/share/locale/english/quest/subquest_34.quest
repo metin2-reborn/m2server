@@ -107,7 +107,7 @@ quest subquest_34 begin
 	
 	state hunt_reward begin
 		when letter begin
-			send_letter(gameforge.subquest_34._170_targetVid)
+			send_letter(gameforge.subquest_34._170_targetVid, QUEST_TURN_IN)
 		
 			local v = find_npc_by_vnum(20355)
 

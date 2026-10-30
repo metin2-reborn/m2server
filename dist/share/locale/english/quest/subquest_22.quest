@@ -51,6 +51,7 @@ quest subquest_22 begin
 			send_letter(gameforge.subquest_22._10_targetVid)
 
 			if pc.count_item(30102)>0 then
+				q.set_status(QUEST_TURN_IN)
 				local v=find_npc_by_vnum(20015)
 				if 0==v then
 				else
@@ -75,6 +76,7 @@ quest subquest_22 begin
 			local s = number(1, 100)
 			if s <= 5 and pc.count_item("30102")==0  then
 				pc.give_item2("30102", 1)
+				q.set_status(QUEST_TURN_IN)
 
 				local v=find_npc_by_vnum(20015)
 				if 0==v then

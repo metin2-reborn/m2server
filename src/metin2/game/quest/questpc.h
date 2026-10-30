@@ -42,6 +42,16 @@ namespace metin2::game {
                 QUEST_SEND_COUNTER_NAME = (1 << 4),
                 QUEST_SEND_COUNTER_VALUE = (1 << 5),
                 QUEST_SEND_ICON_FILE = (1 << 6),
+                QUEST_SEND_STATUS = (1 << 7),
+                QUEST_SEND_LETTER = (1 << 8),
+            };
+
+            // What the client shows for a quest. A quest is new while the letter of its current state
+            // has not been opened, and ready to hand in while its state was marked so.
+            enum quest_status : uint8_t {
+                QUEST_STATUS_ACTIVE = 0,
+                QUEST_STATUS_NEW = 1,
+                QUEST_STATUS_TURN_IN = 2,
             };
 
             using quest_info = std::map<unsigned int, quest_state>;
@@ -113,6 +123,11 @@ namespace metin2::game {
             void set_current_quest_counter_name(const std::string &name);
             void set_current_quest_counter_value(int value);
             void set_current_quest_icon_file(const std::string &icon_file);
+            void set_current_quest_letter(const std::string &title);
+            void set_current_quest_status(quest_status status);
+
+            // The player opened the quest (letter or quest list): it is no longer new.
+            void mark_quest_opened(uint32_t quest_index);
 
             auto is_loaded() const -> bool { return loaded_; }
             void set_loaded() { loaded_ = true; }
@@ -148,9 +163,7 @@ namespace metin2::game {
             void set_send_flag(int idx);
             void save_flag(const std::string &name, int value);
 
-            void clear_current_quest_begin_flag();
-            void set_current_quest_begin_flag();
-            auto current_quest_begin_flag() -> int;
+            auto quest_status_of(const std::string &quest_name, int state) -> quest_status;
 
             void send_quest_info_pakcet();
 

@@ -145,7 +145,7 @@ quest main_quest_lv60 begin
 	state quest2_end begin
 		-----------퀘스트편지2------------
 		when letter begin
-			send_letter(gameforge.main_quest_lv60._60_sendLetter)
+			send_letter(gameforge.main_quest_lv60._60_sendLetter, QUEST_TURN_IN)
 
 			-- 을두지를 가리킨다.
 			local v = find_npc_by_vnum(20011)
@@ -272,7 +272,7 @@ quest main_quest_lv60 begin
 	state quest3_end1 begin
 		-------퀘스트편지3---------
 		when letter begin
-			send_letter(gameforge.main_quest_lv60._220_sendLetter)
+			send_letter(gameforge.main_quest_lv60._220_sendLetter, QUEST_TURN_IN)
 
 			-- 을두지를 가리킨다.
 			local v = find_npc_by_vnum(20011)
@@ -360,7 +360,7 @@ quest main_quest_lv60 begin
 		--*************************--
 		-------퀘스트편지3_1---------
 		when letter begin
-			send_letter(gameforge.main_quest_lv60._220_sendLetter)
+			send_letter(gameforge.main_quest_lv60._220_sendLetter, QUEST_TURN_IN)
 
 			-- 을두지를 가리킨다.
 			local v = find_npc_by_vnum(20011)

@@ -142,6 +142,7 @@ quest main_quest_lv78 begin
 				target.vid ("__TARGET__",v,"")
 			end
 			send_letter (gameforge.main_quest_lv78._110_sendLetter)
+			if pc.count_item (sacred_sap) >= sacred_sap_num then q.set_status(QUEST_TURN_IN) end
 		end
 		when button or info begin
 			say_title (gameforge.main_quest_lv78._110_sendLetter)
@@ -162,6 +163,7 @@ quest main_quest_lv78 begin
 				if n < sacred_sap_num then
 					notice (string.format(gameforge.main_quest_lv78._150_say, sacred_sap_num - n))
 				else
+					q.set_status(QUEST_TURN_IN)
 					notice_multiline(gameforge.main_quest_lv78._160_notice, notice)
 				end
 			end

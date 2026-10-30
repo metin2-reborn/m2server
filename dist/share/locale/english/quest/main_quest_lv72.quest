@@ -148,6 +148,9 @@ quest main_quest_lv72 begin
     state state_5 begin
         when letter begin
             send_letter(gameforge.main_quest_lv72._180_sendLetter)
+            if pc.count_item (blue_bead) > 0 then
+                q.set_status(QUEST_TURN_IN)
+            end
         end
         when button or info begin
             say_title(gameforge.main_quest_lv72._180_sendLetter)
@@ -165,6 +168,7 @@ quest main_quest_lv72 begin
                 notice_multiline(gameforge.main_quest_lv72._240_notice, notice)
                 notice_multiline(string.format(gameforge.main_quest_lv72._250_notice, blue_beads_num - n - 1), notice)
                 pc.give_item2 (blue_bead, 1)
+                q.set_status(QUEST_TURN_IN)
             end
         end
 
@@ -189,6 +193,9 @@ quest main_quest_lv72 begin
             end
 
             pc.remove_item (blue_bead, 1)
+            if pc.count_item (blue_bead) == 0 then
+                q.set_status(QUEST_ACTIVE)
+            end
             local n = pc.getqf("pass_beads")
             if number (1,100) > pass_pct then
                 say_title (mob_name(mysterious_man))

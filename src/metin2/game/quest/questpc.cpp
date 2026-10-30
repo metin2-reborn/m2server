@@ -195,15 +195,24 @@ namespace metin2::game {
         }
 
         void pc::set_current_quest_start_flag() {
-            if (!current_quest_begin_flag()) {
-                set_current_quest_begin_flag();
-            }
+            running_quest_state_->start = true;
+            set_send_flag(QUEST_SEND_ISBEGIN);
         }
 
+        // A quest done and given a letter again in the same run (the next part of a chain) is begun
+        // again: the later call wins.
         void pc::set_current_quest_done_flag() {
-            if (current_quest_begin_flag()) {
-                clear_current_quest_begin_flag();
-            }
+            running_quest_state_->start = false;
+            set_send_flag(QUEST_SEND_ISBEGIN);
+        }
+
+        auto pc::quest_status_of(const std::string &quest_name, int state) -> quest_status {
+            // The flags hold the state + 1, so they lapse when the quest moves on.
+            if (flag(quest_name + ".__turn_in") == state + 1)
+                return QUEST_STATUS_TURN_IN;
+            if (flag(quest_name + ".__opened") != state + 1)
+                return QUEST_STATUS_NEW;
+            return QUEST_STATUS_ACTIVE;
         }
 
         void pc::send_quest_info_pakcet() {
@@ -234,6 +243,16 @@ namespace metin2::game {
                 payload.write(&running_quest_state_->counter_value, sizeof(int32_t));
             if (send_to_client_ & QUEST_SEND_ICON_FILE)
                 write_text(running_quest_state_->icon_file, 24 + 1);
+            if (send_to_client_ & QUEST_SEND_STATUS) {
+                quest_status status = quest_status_of(cur_quest_, running_quest_state_->st);
+                if (status == QUEST_STATUS_NEW && !running_quest_state_->has_letter)
+                    status = QUEST_STATUS_ACTIVE;
+                payload.write(&status, 1);
+            }
+            if (send_to_client_ & QUEST_SEND_LETTER) {
+                const uint8_t letter = running_quest_state_->has_letter ? 1 : 0;
+                payload.write(&letter, 1);
+            }
 
             packet_quest_info qi;
             qi.header = HEADER_GC_QUEST_INFO;
@@ -355,24 +374,6 @@ namespace metin2::game {
             send_to_client_ |= idx;
         }
 
-        void pc::clear_current_quest_begin_flag() {
-            set_send_flag(QUEST_SEND_ISBEGIN);
-            running_quest_state_->start = false;
-        }
-
-        void pc::set_current_quest_begin_flag() {
-            quest_manager &q = get_quest_manager();
-            int quest_index = q.quest_index_by_name(cur_quest_);
-            running_quest_state_->start = true;
-            running_quest_state_->index = quest_index;
-
-            set_send_flag(QUEST_SEND_ISBEGIN);
-        }
-
-        auto pc::current_quest_begin_flag() -> int {
-            return running_quest_state_ ? running_quest_state_->index : 0;
-        }
-
         void pc::set_current_quest_title(const std::string &title) {
             set_send_flag(QUEST_SEND_TITLE);
             running_quest_state_->title = title;
@@ -388,7 +389,7 @@ namespace metin2::game {
                 cur_quest_ = quest;
                 running_quest_state_ = &it->second;
                 send_to_client_ = QUEST_SEND_TITLE;
-                running_quest_state_->index = current_quest_begin_flag();
+                running_quest_state_->index = it->first;
 
                 set_current_quest_title(title);
 
@@ -423,6 +424,51 @@ namespace metin2::game {
         void pc::set_current_quest_icon_file(const std::string &icon_file) {
             set_send_flag(QUEST_SEND_ICON_FILE);
             running_quest_state_->icon_file = icon_file;
+        }
+
+        void pc::set_current_quest_letter(const std::string &title) {
+            set_current_quest_title(title);
+            set_current_quest_start_flag();
+            running_quest_state_->has_letter = true;
+            set_send_flag(QUEST_SEND_LETTER | QUEST_SEND_STATUS);
+        }
+
+        void pc::set_current_quest_status(quest_status status) {
+            const int state = running_quest_state_->st;
+            set_flag(cur_quest_ + ".__turn_in", status == QUEST_STATUS_TURN_IN ? state + 1 : 0);
+            // New again: for a quest that offers its next task without changing state.
+            if (status == QUEST_STATUS_NEW)
+                set_flag(cur_quest_ + ".__opened", 0);
+            set_send_flag(QUEST_SEND_STATUS);
+        }
+
+        void pc::mark_quest_opened(uint32_t quest_index) {
+            const std::string &quest_name = get_quest_manager().quest_name_by_index(quest_index);
+            if (quest_name.empty())
+                return;
+
+            const int state = flag(quest_name + ".__status");
+            if (flag(quest_name + ".__opened") == state + 1)
+                return;
+            set_flag(quest_name + ".__opened", state + 1);
+
+            // Only the status goes out, from a state of its own: nothing else of the quest is known
+            // outside a run.
+            quest_state *old_state = running_quest_state_;
+            const int old_send = send_to_client_;
+            const std::string old_quest = cur_quest_;
+
+            quest_state qs;
+            qs.index = quest_index;
+            qs.st = state;
+            cur_quest_ = quest_name;
+            running_quest_state_ = &qs;
+            send_to_client_ = QUEST_SEND_STATUS;
+            send_quest_info_pakcet();
+
+            cur_quest_ = old_quest;
+            running_quest_state_ = old_state;
+            send_to_client_ = old_send;
         }
 
         void pc::save() {

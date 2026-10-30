@@ -52,6 +52,7 @@ quest main_quest_lv16 begin
 	end
 	state gotoboss2 begin
 		when letter begin
+			q.set_status(QUEST_TURN_IN)
 			local v=find_npc_by_vnum(20355)
 			if 0==v then
 			else

@@ -78,7 +78,7 @@ quest subquest_5 begin
 
 	state return_to begin
 		when letter begin
-			send_letter(gameforge.subquest_05._180_sendLetter)
+			send_letter(gameforge.subquest_05._180_sendLetter, QUEST_TURN_IN)
 		end
 
 

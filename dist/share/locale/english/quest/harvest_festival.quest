@@ -49,6 +49,7 @@ quest harvest_festival begin
 
                 pc.setqf("harvest_festival_mob_complete", 1)
                 clear_letter()
+                if kill_state == 1 then q.set_status(QUEST_TURN_IN) end
 								if kill_state == 2 then
 	                q.setstate("information")
 								end
@@ -111,6 +112,7 @@ quest harvest_festival begin
             else
                 target.vid("__TARGET__", v, gameforge.harvest_festival._010_targetVid)
             end
+            if pc.getqf("harvest_festival_mob_complete") == 1 then q.set_status(QUEST_TURN_IN) end
         end
 
 		when login with game.get_event_flag("harvest_festival") == 0 begin
@@ -405,6 +407,7 @@ quest harvest_festival begin
         when letter begin
             send_letter(gameforge.harvest_festival._520_sendLetter)
 						q.set_counter(gameforge.locale.levelup.remain_count, 30 -  pc.getqf("mob_kill1_count"))
+						if pc.getqf("mob_kill1_count") >= 30 then q.set_status(QUEST_TURN_IN) end
         end -- end of when
 		
 		when login with game.get_event_flag("harvest_festival") == 0 begin

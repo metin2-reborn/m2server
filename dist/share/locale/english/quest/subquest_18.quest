@@ -105,7 +105,7 @@ quest subquest_18 begin
 	end
 	state come_back begin
 		when letter begin
-			send_letter(gameforge.subquest_18._220_sendLetter)
+			send_letter(gameforge.subquest_18._220_sendLetter, QUEST_TURN_IN)
 			local v=find_npc_by_vnum(20023)
 			if v!=0 then
 				target.npc("__TARGET__", v, gameforge.subquest_18._220_sendLetter)
@@ -132,7 +132,7 @@ quest subquest_18 begin
 
 	state report_true begin
 		when letter begin
-			send_letter(gameforge.subquest_18._180_sendLetter)
+			send_letter(gameforge.subquest_18._180_sendLetter, QUEST_TURN_IN)
 			local v=find_npc_by_vnum(20002)
 			if v!=0 then
 				target.npc("__TARGET__", v, gameforge.subquest_18._180_sendLetter)

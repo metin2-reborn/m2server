@@ -29,7 +29,7 @@ quest main_quest_lv40 begin
 	state gototeacher begin
 		when letter begin
 
-			send_letter(gameforge.main_quest_lv32._670_sendLetter)
+			send_letter(gameforge.main_quest_lv32._670_sendLetter, QUEST_TURN_IN)
 			local v=find_npc_by_vnum(20011)
 			if 0==v then
 			else
@@ -130,7 +130,7 @@ quest main_quest_lv40 begin
 	state gototeacher2 begin
 		when letter begin
 
-			send_letter(gameforge.main_quest_lv40._230_sendLetter)
+			send_letter(gameforge.main_quest_lv40._230_sendLetter, QUEST_TURN_IN)
 			local v=find_npc_by_vnum(20011)
 			if 0==v then
 			else

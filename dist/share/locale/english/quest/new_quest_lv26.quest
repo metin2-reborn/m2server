@@ -138,7 +138,7 @@ quest new_quest_lv26 begin
 					target.vid("__TARGET4__", v, gameforge.new_quest_lv26._010_target) -- place questarrow on Yang-Shin
 				end
 			end
-			send_letter(gameforge.new_quest_lv26._020_set_title)
+			send_letter(gameforge.new_quest_lv26._020_set_title, QUEST_TURN_IN)
 			q.start()
 			q.set_title(gameforge.new_quest_lv26._020_set_title) -- for quest-journal
 		end

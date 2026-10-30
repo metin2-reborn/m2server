@@ -402,7 +402,7 @@ quest main_quest_lv94 begin
 	
 	state state2_6 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv94._080_sendLetter)
+			send_letter(gameforge.main_quest_lv94._080_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then
@@ -523,7 +523,7 @@ quest main_quest_lv94 begin
 	
 	state state3_3 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv94._290_sendLetter)
+			send_letter(gameforge.main_quest_lv94._290_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then
@@ -718,7 +718,7 @@ quest main_quest_lv94 begin
 	end
 	state state4_3 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv94._430_sendLetter)
+			send_letter(gameforge.main_quest_lv94._430_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then
@@ -867,7 +867,7 @@ quest main_quest_lv94 begin
 	
 	state state5_3 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv94._560_sendLetter)
+			send_letter(gameforge.main_quest_lv94._560_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then
@@ -1069,7 +1069,7 @@ quest main_quest_lv94 begin
 	
 	state state6_3 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv94._690_sendLetter)
+			send_letter(gameforge.main_quest_lv94._690_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then
@@ -1236,6 +1236,7 @@ quest main_quest_lv94 begin
 		when letter begin
 			send_letter(gameforge.main_quest_lv94._850_sendLetter)
 			q.set_counter_name(gameforge.main_quest_lv94._1080_say)
+			if pc.count_item(ITEM7_1) > 0 then q.set_status(QUEST_TURN_IN) end
 		end
 		when button or info begin
 			-- if pc.get_map_index() == MAP_INDEX7 then
@@ -1264,6 +1265,7 @@ quest main_quest_lv94 begin
 		when MOB7_1.kill or  MOB7_2.kill or  MOB7_3.kill or  MOB7_4.kill or  MOB7_5.kill or  MOB7_6.kill or  MOB7_7.kill begin
 			if	number (1,ITEM7_1_PCT_GET) == 1 then	
 				pc.give_item2 ( ITEM7_1, 1 )
+				q.set_status(QUEST_TURN_IN)
 				
 				notice_multiline(gameforge.main_quest_lv94._970_1_notice,notice)
 				notice_multiline(gameforge.main_quest_lv94._970_2_notice,notice)
@@ -1317,6 +1319,7 @@ quest main_quest_lv94 begin
 						say(gameforge.main_quest_lv94._990_say)
 					end
 				end
+				if pc.count_item(ITEM7_1) == 0 then q.set_status(QUEST_ACTIVE) end
 			else
 				say_title(mob_name(ALCHEMIST ))
 				say(gameforge.main_quest_lv94._1040_say)
@@ -1327,7 +1330,7 @@ quest main_quest_lv94 begin
 	
 	state state7_4 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv94._850_sendLetter)
+			send_letter(gameforge.main_quest_lv94._850_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then

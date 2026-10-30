@@ -141,6 +141,7 @@ quest subquest_12 begin
 			setskin(NOWINDOW)
 			makequestbutton(gameforge.subquest_12._10_targetVid)
 			q.set_title(gameforge.subquest_12._10_targetVid)
+			q.set_status(QUEST_TURN_IN)
 			q.start()
 		
 			local vnum=0

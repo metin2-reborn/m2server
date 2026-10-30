@@ -123,7 +123,7 @@ quest subquest_4 begin
 				target.vid("__TARGET__", v, gameforge.subquest_04._260_targetVid)
 			end
 		
-			send_letter(gameforge.subquest_04._260_targetVid)
+			send_letter(gameforge.subquest_04._260_targetVid, QUEST_TURN_IN)
 		end
 
 		when 20016.chat.gameforge.subquest_04._270_npcChat begin

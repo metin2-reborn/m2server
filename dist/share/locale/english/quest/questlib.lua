@@ -61,32 +61,21 @@ function notice_multiline( str , func )
     end
 end 
 
-function makequestbutton(name)
-    raw_script("[QUESTBUTTON idx;")
-    raw_script(""..q.getcurrentquestindex()) 
-    raw_script("|name;")
-    raw_script(name) raw_script("]")
+-- A letter is the quest's row in the client's quest list: its title, begun, new until the player
+-- opens it. send_letter(name, QUEST_TURN_IN) marks the state as the hand-in of the quest; a quest
+-- that offers its next task in the same state passes QUEST_NEW.
+QUEST_ACTIVE = 0
+QUEST_NEW = 1
+QUEST_TURN_IN = 2
+
+function makequestbutton(name) q.set_letter(name) end
+function make_quest_button(name) q.set_letter(name) end
+
+function send_letter(name, status)
+    set_skin(NOWINDOW)
+    q.set_letter(name)
+    if status ~= nil then q.set_status(status) end
 end
-
-function make_quest_button_ex(name, icon_type, icon_name)
-    test_chat(icon_type)
-    test_chat(icon_name)
-    raw_script("[QUESTBUTTON idx;")
-    raw_script(""..q.getcurrentquestindex()) 
-    raw_script("|name;")
-    raw_script(name)
-    raw_script("|icon_type;")
-    raw_script(icon_type)
-    raw_script("|icon_name;")
-    raw_script(icon_name)
-    raw_script("]")
-end
-
-function make_quest_button(name) makequestbutton(name) end
-
-function send_letter_ex(name, icon_type, icon_name) make_quest_button_ex(name, icon_type, icon_name) set_skin(NOWINDOW) q.set_title(name) q.start() end
-
-function send_letter(name) makequestbutton(name) set_skin(NOWINDOW) q.set_title(name) q.start() end
 function clear_letter() q.done() end
 function say_title(name) say(color256(255, 230, 186)..name..color256(196, 196, 196)) end
 function say_reward(name) say(color256(255, 200, 200)..name..color256(196, 196, 196)) end

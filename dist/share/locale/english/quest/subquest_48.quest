@@ -115,7 +115,7 @@ quest subquest_48  begin
 state back_to_boss begin
 	when letter begin
 
-			send_letter(gameforge.subquest_48._220_sendLetter)
+			send_letter(gameforge.subquest_48._220_sendLetter, QUEST_TURN_IN)
 			if subquest_48.is_my_vil()==1  then
 				local v=find_npc_by_vnum(20355)
 				if 0==v then

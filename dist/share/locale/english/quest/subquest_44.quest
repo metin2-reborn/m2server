@@ -129,7 +129,7 @@ quest subquest_44 begin
     state report_YuRang begin
 
 		when letter begin
-		   send_letter(gameforge.subquest_44._270_sendLetter)
+		   send_letter(gameforge.subquest_44._270_sendLetter, QUEST_TURN_IN)
 
 		   local v=find_npc_by_vnum(20012)
 			if v!=0 then
@@ -189,7 +189,7 @@ quest subquest_44 begin
 	end
     state report_girl_lie begin
 		when letter begin
-			send_letter(gameforge.subquest_44._270_sendLetter)
+			send_letter(gameforge.subquest_44._270_sendLetter, QUEST_TURN_IN)
 
 			local v=find_npc_by_vnum(20012)
 			if v!=0 then
@@ -217,7 +217,7 @@ quest subquest_44 begin
 	end
     state report_boy_lie begin
 		when letter begin
-			send_letter(gameforge.subquest_44._460_sendLetter)
+			send_letter(gameforge.subquest_44._460_sendLetter, QUEST_TURN_IN)
 			local v=find_npc_by_vnum(20014)
 			if v!=0 then
 				target.vid("__TARGET__", v, gameforge.subquest_44._470_targetVid)

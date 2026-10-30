@@ -186,7 +186,7 @@ quest new_quest_lv28 begin
 			new_quest_lv28_mob1 = 193 -- bera
 			new_quest_lv28_drop1 = 30174 -- Bärentatze
 			-- BEGIN EDIT added by Arne 22sept09, Reason: no quest, no letter
-			send_letter(gameforge.new_quest_lv28._040_npcChat)
+			send_letter(gameforge.new_quest_lv28._040_npcChat, QUEST_TURN_IN)
 			q.start()
 			q.set_title(gameforge.new_quest_lv28._040_npcChat)			
 			new_quest_lv28_RewardXP=500000

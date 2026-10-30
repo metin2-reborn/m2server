@@ -125,7 +125,7 @@ quest subquest_24 begin
 	end
 	state report begin
 		when letter begin
-			send_letter(gameforge.subquest_24._300_sendLetter)
+			send_letter(gameforge.subquest_24._300_sendLetter, QUEST_TURN_IN)
 			
 			local v=find_npc_by_vnum(20012)
 			if v!=0 then

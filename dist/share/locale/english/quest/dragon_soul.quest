@@ -31,6 +31,9 @@ quest dragon_soul begin
 	state state_learning begin
 		when letter begin
 			send_letter(gameforge.dragon_soul._1050_sendLetter)
+			if pc.count_item(gemstone) >= gemstone_need_count then
+				q.set_status(QUEST_TURN_IN)
+			end
 		end
 		when info or button begin
 			say(gameforge.dragon_soul._1060_say)

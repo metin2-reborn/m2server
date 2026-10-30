@@ -66,7 +66,7 @@ quest main_quest_lv30 begin
 			end
 		end
 		when letter begin
-			send_letter(gameforge.main_quest_lv30._20_sendLetter)
+			send_letter(gameforge.main_quest_lv30._20_sendLetter, QUEST_TURN_IN)
 		end
 		when info or button begin
 			say_title(gameforge.main_quest_lv30._20_sendLetter)
@@ -115,7 +115,7 @@ quest main_quest_lv30 begin
 			end
 		end
 		when letter begin
-			send_letter(gameforge.main_quest_lv30._20_sendLetter)
+			send_letter(gameforge.main_quest_lv30._20_sendLetter, QUEST_TURN_IN)
 		end
 		when info or  button begin
 			say_title(gameforge.main_quest_lv30._20_sendLetter)

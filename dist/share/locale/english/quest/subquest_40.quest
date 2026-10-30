@@ -94,6 +94,7 @@ quest subquest_40 begin
 				else
 					target.vid("__TARGET__",v, gameforge.subquest_40._110_targetVid)
 				end 
+				q.set_status(QUEST_TURN_IN)
 			end
 
 		end
@@ -132,6 +133,7 @@ quest subquest_40 begin
 			local s = number(1, 100)
 			if s <= 10 and pc.count_item("30157")<5000 then
 				pc.give_item2(30157, 10)
+				if pc.count_item(30157) >= 5000 then q.set_status(QUEST_TURN_IN) end
 			end
 
 			

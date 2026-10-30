@@ -11,7 +11,7 @@ quest levelup begin
 
                 local lev = pc.get_level()
                 pc.setqf("buttonstate", 2)
-                makequestbutton(string.format(gameforge.levelup._10_makequestbutton, lev))
+                send_letter(string.format(gameforge.levelup._10_makequestbutton, lev), QUEST_NEW)
                 pc.setqf("current", lev)
                 pc.setqf("select", 1)
                 pc.setqf("remain", special.levelup_quest[lev][2])
@@ -81,11 +81,19 @@ quest levelup begin
                 if pc.getqf("remain") <= 0 then
                     setskin(NOWINDOW)
                     pc.setqf("buttonstate", 3)
-                    makequestbutton(string.format(gameforge.levelup._30_makequestbutton, lev))
+                    send_letter(string.format(gameforge.levelup._30_makequestbutton, lev), QUEST_TURN_IN)
                 else
+                    -- -1 or 1: the hunt was accepted, show its target and count again.
+                    local accepted = pc.getqf("buttonstate") != 2
                     setskin(NOWINDOW)
                     pc.setqf("buttonstate", 1)
-                    makequestbutton(string.format(gameforge.levelup._40_makequestbutton, lev))
+                    send_letter(string.format(gameforge.levelup._40_makequestbutton, lev), QUEST_ACTIVE)
+                    if accepted then
+                        local s = pc.getqf("select")
+                        if s == 0 then s = 1 end
+                        q.set_title(string.format(gameforge.levelup._180_qSetTitle, mob_name(special.levelup_quest[lev][s*2-1])))
+                        q.set_counter(gameforge.levelup._250_say, pc.getqf("remain"))
+                    end
                 end
             end
         end
@@ -208,7 +216,7 @@ quest levelup begin
 
                 if lev > 1 and lev < 90 and pc.level >= lev then
                     pc.setqf("buttonstate", 2)
-                    makequestbutton(string.format(gameforge.levelup._130_makequestbutton, lev))
+                    send_letter(string.format(gameforge.levelup._130_makequestbutton, lev), QUEST_NEW)
                     pc.setqf("current", lev)
                     pc.setqf("select", 1)
                     pc.setqf("remain",special.levelup_quest[lev][2])
@@ -342,7 +350,7 @@ quest levelup begin
                 if lev < 2 or lev > 90 then return end
 
                 pc.setqf("buttonstate", 2)
-                makequestbutton(string.format(gameforge.levelup._10_makequestbutton, lev))
+                send_letter(string.format(gameforge.levelup._10_makequestbutton, lev), QUEST_NEW)
                 pc.setqf("current", lev)
                 pc.setqf("select", 1)
                 pc.setqf("remain", special.levelup_quest[lev][2])
@@ -366,7 +374,7 @@ quest levelup begin
                     pc.setqf("remain", 0)
                     q.set_counter_value(0)
                     setskin(NOWINDOW)
-                    makequestbutton(string.format(gameforge.levelup._50_sayTitle, lev))
+                    send_letter(string.format(gameforge.levelup._50_sayTitle, lev), QUEST_TURN_IN)
                     pc.setqf("buttonstate", 3)
                 else
                     pc.setqf("remain", remain)

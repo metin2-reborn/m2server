@@ -62,7 +62,7 @@ quest subquest_2 begin
 		end	
 
 		when letter begin
-			send_letter(gameforge.subquest_02._10_targetVid)
+			send_letter(gameforge.subquest_02._10_targetVid, QUEST_TURN_IN)
 		end
 
 		when button or info begin

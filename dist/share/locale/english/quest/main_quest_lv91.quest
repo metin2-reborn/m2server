@@ -228,7 +228,7 @@ quest main_quest_lv91 begin
 	end
 	state state1_3 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv91._010_sendLetter)
+			send_letter(gameforge.main_quest_lv91._010_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then
@@ -355,7 +355,7 @@ quest main_quest_lv91 begin
 	-- 퀘스트 완료
 	state state2_3 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv91._160_sendLetter)
+			send_letter(gameforge.main_quest_lv91._160_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then
@@ -474,6 +474,9 @@ quest main_quest_lv91 begin
 		when letter begin
 			send_letter(gameforge.main_quest_lv91._270_sendLetter)
 			q.set_counter_name(gameforge.main_quest_lv90._1180_say)
+			if pc.count_item(ITEM3_1) > 0 then
+				q.set_status(QUEST_TURN_IN)
+			end
 		end
 		when button or info begin
 			-- if pc.get_map_index() == MAP_INDEX3 then
@@ -503,6 +506,9 @@ quest main_quest_lv91 begin
 		when SCHOLAR.chat.gameforge.main_quest_lv91._270_sendLetter with pc.count_item(ITEM3_1) > 0  begin
 			if pc.count_item(ITEM3_1) > 0 then
 				pc.remove_item(ITEM3_1, 1)
+				if pc.count_item(ITEM3_1) == 0 then
+					q.set_status(QUEST_ACTIVE)
+				end
 				
 				if number(1, 100 ) <= ITEM3_1_PCT_CHECK then -- 납품 성공
 					say_title(mob_name(SCHOLAR ))
@@ -551,6 +557,7 @@ quest main_quest_lv91 begin
 		when MOB3_1.kill or MOB3_2.kill or MOB3_3.kill or MOB3_4.kill or MOB3_5.kill begin
 			if number(1,ITEM3_1_PCT_GET) == 1 then
 					pc.give_item2(ITEM3_1, 1)
+					q.set_status(QUEST_TURN_IN)
 					
 					notice_multiline(gameforge.main_quest_lv91._410_1_notice,notice)
 					notice_multiline(gameforge.main_quest_lv91._410_2_notice,notice)
@@ -819,7 +826,7 @@ quest main_quest_lv91 begin
 	state state5_3 begin
 	
 		when letter begin
-			send_letter(gameforge.main_quest_lv91._560_sendLetter)
+			send_letter(gameforge.main_quest_lv91._560_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(SCHOLAR)
 			if 0 != v then

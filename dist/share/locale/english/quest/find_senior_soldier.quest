@@ -62,7 +62,7 @@ quest find_senior_soldier begin
     end
     state reward begin
 		when letter begin
-			send_letter(gameforge.find_senior_soldier._170_sendLetter)
+			send_letter(gameforge.find_senior_soldier._170_sendLetter, QUEST_TURN_IN)
 		end
 		when button begin
 			----------"12345678901234567890123456789012345678901234567890"|

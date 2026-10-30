@@ -56,7 +56,7 @@ quest subquest_7 begin
 
 	state back_to begin
 		when letter begin
-			send_letter(gameforge.subquest_07._10_targetVid)
+			send_letter(gameforge.subquest_07._10_targetVid, QUEST_TURN_IN)
 		end
 
 		when letter begin
@@ -90,6 +90,7 @@ quest subquest_7 begin
 			setskin(NOWINDOW)
 			makequestbutton(gameforge.subquest_07._10_targetVid)
 			q.set_title(gameforge.subquest_07._10_targetVid)
+			if pc.count_item("30026") >= 1 then q.set_status(QUEST_TURN_IN) end
 			q.start()
 		end
 
@@ -103,6 +104,7 @@ quest subquest_7 begin
 			local s = number(1, 100)
 			if s <= 5 then
 				pc.give_item2("30026", 1)
+				q.set_status(QUEST_TURN_IN)
 
 			end
 		end

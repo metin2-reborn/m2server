@@ -100,7 +100,7 @@ quest find_squareguard begin
 			end
 		end
 		when letter begin
-			send_letter(gameforge.find_squareguard._180_sendLetter)
+			send_letter(gameforge.find_squareguard._180_sendLetter, QUEST_TURN_IN)
 		end
 		when button or info begin
 			say_title(gameforge.buy_fishrod._210_sayTitle)

@@ -251,7 +251,7 @@
             new_quest_lv7_drop2 = 30170 -- Orangefarbene Blume
             new_quest_lv7_drop3 = 30171 --  Duftende gelbe Blume
             local v=find_npc_by_vnum(9006)
-            send_letter(gameforge.new_quest_lv7._020_say_title)
+            send_letter(gameforge.new_quest_lv7._020_say_title, QUEST_TURN_IN)
             q.start()
             q.set_title(gameforge.new_quest_lv7._020_say_title)
             if 0==v then
@@ -398,7 +398,7 @@
     state find_way_home begin
         when login or enter begin
             -- BEGIN EDIT added by Arne 18Sept09, according to Mantis 0026063, REASON: No letter
-            send_letter(gameforge.new_quest_lv7._020_say_title)
+            send_letter(gameforge.new_quest_lv7._020_say_title, QUEST_TURN_IN)
             q.start()
             q.set_title(gameforge.new_quest_lv7._020_say_title)
             -- END EDIT
@@ -462,7 +462,7 @@
                 target.vid("__TARGET5__", v, gameforge.new_quest_lv7._010_target)
             end
             -- adding empire name to octavio job
-            send_letter(gameforge.new_quest_lv7._020_say_title)		
+            send_letter(gameforge.new_quest_lv7._020_say_title, QUEST_TURN_IN)		
             q.start()
             q.set_title(gameforge.new_quest_lv7._020_say_title)
             -- END EDIT

@@ -182,6 +182,7 @@ quest subquest_8 begin
 			setskin(NOWINDOW)
 			makequestbutton(gameforge.subquest_08._300_makequestbutton)
 			q.set_title(gameforge.subquest_08._300_makequestbutton)
+			q.set_status(QUEST_TURN_IN)
 			q.start()
 
 			local v=find_npc_by_vnum(20012)
@@ -212,6 +213,7 @@ quest subquest_8 begin
 			setskin(NOWINDOW)
 			makequestbutton(gameforge.subquest_08._340_makequestbutton)
 			q.set_title(gameforge.subquest_08._340_makequestbutton)
+			q.set_status(QUEST_TURN_IN)
 			q.start()
 
 			local v=find_npc_by_vnum(20003)

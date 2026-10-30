@@ -249,6 +249,7 @@ quest new_quest_lv22 begin
 			--BEGIN EDIT by Arne 21Sept09, accoridng to manits26067, Reason: missing quest, letter
 			send_letter(gameforge.new_quest_lv22._016_send_letter)
 			q.set_title(gameforge.new_quest_lv22._016_send_letter)			
+			q.set_status(QUEST_TURN_IN)
 			local timeLeft = new_quest_lv22_timeToFind-(get_time()-pc.getqf("new_quest_lv22_startTime"))
 			displayTime = timeLeft / 60
 			q.set_clock(gameforge.new_quest_lv22._082_set_clock, timeLeft)

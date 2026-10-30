@@ -142,6 +142,7 @@ end
 			send_letter(gameforge.collect_quest_lv30._210_sendLetter)
 
 			if pc.count_item(30220)>0 then
+				q.set_status(QUEST_TURN_IN)
 				local v = find_npc_by_vnum(20084)
 				if v != 0 then
 					target.vid("__TARGET__", v, gameforge.collect_herb_lv10._150_sayTitle)
@@ -167,7 +168,7 @@ end
 			local s = number(1, 500)
 			if s == 1 and pc.count_item(30220)==0 then
 				pc.give_item2(30220, 1)
-				send_letter(gameforge.collect_quest_lv30._260_sendLetter)
+				send_letter(gameforge.collect_quest_lv30._260_sendLetter, QUEST_TURN_IN)
 			end
 		end
 
@@ -190,7 +191,7 @@ end
 
 	state __reward begin
 		when letter begin
-			send_letter(gameforge.collect_quest_lv30._300_sendLetter)
+			send_letter(gameforge.collect_quest_lv30._300_sendLetter, QUEST_TURN_IN)
 
 			local v = find_npc_by_vnum(20018)
 			if v != 0 then

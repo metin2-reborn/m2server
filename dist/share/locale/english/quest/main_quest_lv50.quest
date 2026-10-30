@@ -29,7 +29,7 @@ quest main_quest_lv50 begin
 
 	state gototeacher5 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv50._30_sendLetter)
+			send_letter(gameforge.main_quest_lv50._30_sendLetter, QUEST_TURN_IN)
 
 			local v=find_npc_by_vnum(20011)
 			if 0==v then
@@ -94,7 +94,7 @@ quest main_quest_lv50 begin
 
 	state gototeacher6 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv50._200_sendLetter)
+			send_letter(gameforge.main_quest_lv50._200_sendLetter, QUEST_TURN_IN)
 
 			local v=find_npc_by_vnum(20011)
 			if 0==v then
@@ -153,7 +153,7 @@ quest main_quest_lv50 begin
 
 	state gototeacher7 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv50._320_sendLetter)
+			send_letter(gameforge.main_quest_lv50._320_sendLetter, QUEST_TURN_IN)
 
 			local v=find_npc_by_vnum(20011)
 			if 0==v then

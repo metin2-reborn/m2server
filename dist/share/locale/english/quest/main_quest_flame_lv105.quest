@@ -200,7 +200,7 @@ quest main_quest_flame_lv105 begin
 		end
 
 		when letter begin 
-			send_letter(gameforge.main_quest_flame_lv105._010_sendLetter) 
+			send_letter(gameforge.main_quest_flame_lv105._010_sendLetter, QUEST_TURN_IN) 
  			--npc 타겟 
 			local v = find_npc_by_vnum(YACKHWAN) 
 			if 0 != v then
@@ -364,7 +364,7 @@ quest main_quest_flame_lv105 begin
 		end
 
 		when letter begin 
-			send_letter(gameforge.main_quest_flame_lv105._160_sendLetter) 
+			send_letter(gameforge.main_quest_flame_lv105._160_sendLetter, QUEST_TURN_IN) 
  			--npc 타겟 
 			local v = find_npc_by_vnum(YACKHWAN) 
 			if 0 != v then
@@ -490,7 +490,7 @@ quest main_quest_flame_lv105 begin
 		end
 
 		when letter begin 
-			send_letter(gameforge.main_quest_flame_lv105._250_sendLetter) 
+			send_letter(gameforge.main_quest_flame_lv105._250_sendLetter, QUEST_TURN_IN) 
  			--npc 타겟 
 			local v = find_npc_by_vnum(YACKHWAN) 
 			if 0 != v then

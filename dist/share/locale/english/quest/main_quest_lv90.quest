@@ -465,7 +465,7 @@ quest main_quest_lv90 begin
 	-- 정찰 완료
 	state state1_6 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv90._010_sendLetter)
+			send_letter(gameforge.main_quest_lv90._010_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then
@@ -632,7 +632,7 @@ quest main_quest_lv90 begin
 	-- 퀘스트 완료
 	state state2_3 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv90._260_sendLetter)
+			send_letter(gameforge.main_quest_lv90._260_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then
@@ -807,7 +807,7 @@ quest main_quest_lv90 begin
 	state state3_3 begin
 	
 		when letter begin
-			send_letter(gameforge.main_quest_lv90._430_sendLetter)
+			send_letter(gameforge.main_quest_lv90._430_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then
@@ -982,7 +982,7 @@ quest main_quest_lv90 begin
 	state state4_3 begin
 	
 		when letter begin
-			send_letter(gameforge.main_quest_lv90._560_sendLetter)
+			send_letter(gameforge.main_quest_lv90._560_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then
@@ -1220,7 +1220,7 @@ quest main_quest_lv90 begin
 	state state5_3 begin
 	
 		when letter begin
-			send_letter(gameforge.main_quest_lv90._690_sendLetter)
+			send_letter(gameforge.main_quest_lv90._690_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then
@@ -1392,7 +1392,7 @@ quest main_quest_lv90 begin
 	state state6_3 begin
 	
 		when letter begin
-			send_letter(gameforge.main_quest_lv90._850_sendLetter)
+			send_letter(gameforge.main_quest_lv90._850_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then
@@ -1582,7 +1582,7 @@ quest main_quest_lv90 begin
 	state state7_3 begin
 	
 		when letter begin
-			send_letter(gameforge.main_quest_lv90._970_sendLetter)
+			send_letter(gameforge.main_quest_lv90._970_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then

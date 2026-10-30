@@ -82,7 +82,7 @@ quest couple_ring begin
     end
     state report begin
 	when letter begin
-	    send_letter(gameforge.couple_ring._200_sendLetter)
+	    send_letter(gameforge.couple_ring._200_sendLetter, QUEST_TURN_IN)
 	end
 	when button or info begin
 	    say_title(gameforge.buy_fishrod._210_sayTitle)

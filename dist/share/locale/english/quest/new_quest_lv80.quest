@@ -71,6 +71,7 @@ quest new_quest_lv80 begin
 			new_quest_lv80_ember =	30184 -- enchanted ember
 			new_quest_lv80_blackice = 30185 -- black ice
 			send_letter(gameforge.new_quest_lv80._020_set_title)
+			if pc.getqf("notenchanted") == 0 and pc.count_item(new_quest_lv80_ice) >= new_quest_lv80_amountIce and pc.count_item(new_quest_lv80_figure) == 0 and pc.count_item(new_quest_lv80_ember) == 1 then q.set_status(QUEST_TURN_IN) end
 			
 		end
 		
@@ -134,6 +135,7 @@ quest new_quest_lv80 begin
 				pc.give_item2(new_quest_lv80_ember)
 				send_letter(gameforge.new_quest_lv80._110_say_title)
 				pc.setqf("notenchanted", 0)
+				if pc.count_item(new_quest_lv80_ice) >= new_quest_lv80_amountIce and pc.count_item(new_quest_lv80_figure) == 0 and pc.count_item(new_quest_lv80_ember) == 1 then q.set_status(QUEST_TURN_IN) end
 			else
 			end
 		end
@@ -142,6 +144,7 @@ quest new_quest_lv80 begin
 			if pc.count_item(new_quest_lv80_ice) < new_quest_lv80_amountIce and math.random(1,1000) <= new_quest_lv80_dropProb*4 then
 				pc.give_item2(new_quest_lv80_ice)
 				send_letter(gameforge.new_quest_lv80._110_say_title)
+				if pc.getqf("notenchanted") == 0 and pc.count_item(new_quest_lv80_ice) >= new_quest_lv80_amountIce and pc.count_item(new_quest_lv80_figure) == 0 and pc.count_item(new_quest_lv80_ember) == 1 then q.set_status(QUEST_TURN_IN) end
 			else
 			end
 		end
@@ -210,7 +213,7 @@ quest new_quest_lv80 begin
 			new_quest_lv80_ember =	30184 -- enchanted ember
 			new_quest_lv80_blackice = 30185 -- black ice
 			if pc.getqf("gotreward") == 1 then
-				send_letter(gameforge.new_quest_lv80._390_send_letter)
+				send_letter(gameforge.new_quest_lv80._390_send_letter, QUEST_TURN_IN)
 				local goto_npc = 20023 -- Soon
 				local v=find_npc_by_vnum(goto_npc)
 				if 0!=v then
@@ -373,6 +376,7 @@ quest new_quest_lv80 begin
 			say_title(gameforge.new_quest_lv80._310_set_title)
 			say(gameforge.new_quest_lv80._440_say)
 			pc.setqf("gotreward", 0)
+			q.set_status(QUEST_ACTIVE)
 			pc.change_money(3000000)
 			pc.give_exp2(120000000)
 		end
@@ -385,7 +389,7 @@ quest new_quest_lv80 begin
 	
 	state denial begin
 		when login or enter begin
-			send_letter(gameforge.new_quest_lv80._310_set_title)
+			send_letter(gameforge.new_quest_lv80._310_set_title, QUEST_TURN_IN)
 			if pc.get_map_index() == 1 or 21 or 41 then
 				local goto_npc = 20023 -- Soon
 				local v=find_npc_by_vnum(goto_npc)

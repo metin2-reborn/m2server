@@ -216,7 +216,7 @@ quest main_quest_lv93 begin
 	state state1_4 begin
 	
 		when letter begin
-			send_letter(gameforge.main_quest_lv93._010_sendLetter)
+			send_letter(gameforge.main_quest_lv93._010_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(SCHOLAR)
 			if 0 != v then
@@ -356,7 +356,7 @@ quest main_quest_lv93 begin
 	end
 	state state2_3 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv93._150_sendLetter)
+			send_letter(gameforge.main_quest_lv93._150_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(SCHOLAR)
 			if 0 != v then
@@ -595,6 +595,7 @@ quest main_quest_lv93 begin
 		when letter begin
 			send_letter(gameforge.main_quest_lv93._400_npcChat)
 			q.set_counter_name(gameforge.main_quest_lv94._1080_say)
+			if pc.count_item(ITEM4_1) >= ITEM4_1_NEEDED and pc.count_item(ITEM4_2) >= ITEM4_2_NEEDED and pc.count_item(ITEM4_3) >= ITEM4_3_NEEDED then q.set_status(QUEST_TURN_IN) end
 		end
 		when button or info begin
 			say_title(gameforge.main_quest_lv93._490_sayTitle)
@@ -684,7 +685,7 @@ quest main_quest_lv93 begin
 	end
 	state state4_4 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv93._400_npcChat)
+			send_letter(gameforge.main_quest_lv93._400_npcChat, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(OCKGU)
 			if 0 != v then
@@ -744,7 +745,7 @@ quest main_quest_lv93 begin
 	------------------------------------신약 제조1-1-----------------------------------
 	state state5_1 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv93._580_sendLetter)
+			send_letter(gameforge.main_quest_lv93._580_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(SCHOLAR)
 			if 0 != v then

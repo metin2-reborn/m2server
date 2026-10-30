@@ -70,6 +70,7 @@ quest questscroll1 begin
 		end
 		if pc.getqf("count") <= 0 then
 		    makequestbutton(locale.questscroll.finish_button)
+		    q.set_status(QUEST_TURN_IN)
 		end
 		setskin(NOWINDOW)
 	    end
@@ -77,6 +78,7 @@ quest questscroll1 begin
 	when login begin
 	    if pc.getqf("count") <= 0 then
 		makequestbutton(locale.questscroll.finish_button)
+		q.set_status(QUEST_TURN_IN)
 	    else
 		local table = special.questscroll[pc.getqf("idx")]
 		q.set_title(table[3])
@@ -118,6 +120,7 @@ quest questscroll1 begin
 		end
 		if pc.getqf("count") <= 0 then
 		    makequestbutton(locale.questscroll.finish_button)
+		    q.set_status(QUEST_TURN_IN)
 		end
 		setskin(NOWINDOW)
 	    end
@@ -125,6 +128,7 @@ quest questscroll1 begin
 	when login begin
 	    if pc.getqf("count") <= 0 then
 		makequestbutton(locale.questscroll.finish_button)
+		q.set_status(QUEST_TURN_IN)
 	    else
 		local table = special.questscroll[pc.getqf("idx")]
 		q.set_title(table[3])

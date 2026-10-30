@@ -240,7 +240,7 @@ quest main_quest_lv92 begin
 
         when letter begin
             q.set_counter_name("")
-            send_letter(gameforge.main_quest_lv92._010_sendLetter)
+            send_letter(gameforge.main_quest_lv92._010_sendLetter, QUEST_TURN_IN)
             
             local v = find_npc_by_vnum(GUARD)
             if 0 != v then
@@ -409,7 +409,7 @@ quest main_quest_lv92 begin
     end
     state state2_3 begin
         when letter begin
-            send_letter(gameforge.main_quest_lv92._170_sendLetter)
+            send_letter(gameforge.main_quest_lv92._170_sendLetter, QUEST_TURN_IN)
             
             local v = find_npc_by_vnum(GUARD)
             if 0 != v then
@@ -645,7 +645,7 @@ quest main_quest_lv92 begin
 
         when letter begin
             q.set_counter_name("")
-            send_letter(gameforge.main_quest_lv92._370_sendLetter)
+            send_letter(gameforge.main_quest_lv92._370_sendLetter, QUEST_TURN_IN)
             
             local v = find_npc_by_vnum(SCHOLAR)
             if 0 != v then

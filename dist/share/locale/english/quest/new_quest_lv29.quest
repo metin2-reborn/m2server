@@ -352,7 +352,7 @@ quest new_quest_lv29 begin
 			if pc.getqf("yonahspatience") < 2 then
 				pc.setqf("dropProb", new_quest_lv29_dropProb /10)
 			end
-			send_letter(gameforge.new_quest_lv29._015_npcChat)--EDIT Arne, 22Sept09, Reason: no letter
+			send_letter(gameforge.new_quest_lv29._015_npcChat, QUEST_TURN_IN)--EDIT Arne, 22Sept09, Reason: no letter
 			q.start() --EDIT Arne, 22Sept09, Reason: quest now starts even on same map
 			q.set_title(gameforge.new_quest_lv29._015_npcChat)
 			if is_destination_village(1) then -- 

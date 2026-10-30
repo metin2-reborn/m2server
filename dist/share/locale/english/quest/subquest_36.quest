@@ -48,6 +48,7 @@ state for_horse begin
 	when letter begin
 	    send_letter(gameforge.subquest_36._20_npcChat)
 		if 	pc.count_item(50054)>=10 then
+			q.set_status(QUEST_TURN_IN)
 			local v=find_npc_by_vnum(20349)
 			if 0==v then
 			else
@@ -115,7 +116,7 @@ state for_horse begin
 
   state OLD_MAN_DONE begin
 	when letter begin
-			send_letter(gameforge.subquest_36._250_sendLetter)
+			send_letter(gameforge.subquest_36._250_sendLetter, QUEST_TURN_IN)
 			local v=find_npc_by_vnum(20005)
 			if 0==v then
 			else

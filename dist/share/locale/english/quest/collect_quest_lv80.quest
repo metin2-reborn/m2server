@@ -139,6 +139,7 @@ quest collect_quest_lv80  begin
 
 			send_letter(gameforge.collect_quest_lv60._220_sendLetter)
 			if pc.count_item(30225)>0 then
+				q.set_status(QUEST_TURN_IN)
 				local v = find_npc_by_vnum(20084)
 				if v != 0 then
 					target.vid("__TARGET__", v, gameforge.collect_quest_lv40._210_targetVid)
@@ -164,7 +165,7 @@ quest collect_quest_lv80  begin
 			local s = number(1, 200)
 			if s == 1 and pc.count_item(30225)==0 then
 				pc.give_item2(30225, 1)
-				send_letter(gameforge.collect_quest_lv80._240_sendLetter)
+				send_letter(gameforge.collect_quest_lv80._240_sendLetter, QUEST_TURN_IN)
 			end
 		end
 
@@ -191,7 +192,7 @@ quest collect_quest_lv80  begin
 	state __reward begin
 		when letter begin
 
-			send_letter(gameforge.collect_quest_lv40._300_sendLetter)
+			send_letter(gameforge.collect_quest_lv40._300_sendLetter, QUEST_TURN_IN)
 			local v = find_npc_by_vnum(20018)
 			if v != 0 then
 				target.vid("__TARGET__", v, gameforge.collect_quest_lv30._310_targetVid)

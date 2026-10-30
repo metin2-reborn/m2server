@@ -443,7 +443,7 @@ quest new_quest_lv52 begin
 	-- when the killing is done we go back to the boss
 	state backhome begin
 		when login or enter begin 
-			send_letter(gameforge.new_quest_lv52._030_set_title)
+			send_letter(gameforge.new_quest_lv52._030_set_title, QUEST_TURN_IN)
 			q.start()
 			q.set_title(gameforge.new_quest_lv52._030_set_title)
 			if is_destination_village(1) then -- 

@@ -111,7 +111,7 @@ quest spider_dungeon_3floor_boss begin
 		end
 		
 		when letter begin
-			send_letter(gameforge.spider_dungeon_3floor_boss._110_sendLetter)
+			send_letter(gameforge.spider_dungeon_3floor_boss._110_sendLetter, QUEST_TURN_IN)
 
 			--경비대장을 가리킨다.
 			local v = find_npc_by_vnum(20355)
@@ -189,7 +189,7 @@ quest spider_dungeon_3floor_boss begin
 		end
 		
 		when letter begin
-			send_letter(gameforge.spider_dungeon_3floor_boss._110_sendLetter)
+			send_letter(gameforge.spider_dungeon_3floor_boss._110_sendLetter, QUEST_TURN_IN)
 
 			-- 을두지를 가리킨다.
 			local v = find_npc_by_vnum(20355)

@@ -50,6 +50,7 @@ quest subquest_19  begin
 	state find begin
 		when letter begin
 			send_letter(gameforge.subquest_19._100_sendLetter)
+			if pc.count_item("30151") >= 1 then q.set_status(QUEST_TURN_IN) end
 		end
 		when info or button begin
 			say_title(gameforge.subquest_19._110_sayTitle)
@@ -60,6 +61,7 @@ quest subquest_19  begin
 			local s = number(1, 100)
 			if s <= 5 and pc.count_item("30151")==0  then 
 				pc.give_item2("30151", 1)
+				q.set_status(QUEST_TURN_IN)
 				local v=find_npc_by_vnum(9006)
 				if 0==v then
 				else
@@ -106,7 +108,7 @@ quest subquest_19  begin
 	end
 	state reward begin
 		when letter begin
-			send_letter(gameforge.subquest_19._250_sendLetter)
+			send_letter(gameforge.subquest_19._250_sendLetter, QUEST_TURN_IN)
 		end
 		when info or button begin
 			say_title(gameforge.subquest_19._250_sendLetter)

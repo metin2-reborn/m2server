@@ -210,7 +210,7 @@ quest main_quest_lv98 begin
 	end
 	state state1_3 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv98._010_sendLetter)
+			send_letter(gameforge.main_quest_lv98._010_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then
@@ -367,7 +367,7 @@ quest main_quest_lv98 begin
 	end
 	state state2_3 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv98._130_sendLetter)
+			send_letter(gameforge.main_quest_lv98._130_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then
@@ -560,7 +560,7 @@ quest main_quest_lv98 begin
 	end
 	state state3_3 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv98._200_sendLetter)
+			send_letter(gameforge.main_quest_lv98._200_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(YACKHWAN)
 			if 0 != v then
@@ -779,7 +779,7 @@ quest main_quest_lv98 begin
 	end
 	state state4_3 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv98._330_sendLetter)
+			send_letter(gameforge.main_quest_lv98._330_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(YACKHWAN)
 			if 0 != v then
@@ -821,7 +821,7 @@ quest main_quest_lv98 begin
 	----------------------------------다시 대륙으로----------------------------------
 	state state5_1 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv98._480_sendLetter)
+			send_letter(gameforge.main_quest_lv98._480_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then

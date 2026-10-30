@@ -153,7 +153,7 @@ quest new_quest_lv17 begin
 		--BEGIN EDIT by Arne 18Sept09 according to mantis0026065, Reason: new state for quest	
 	state skins_to_wonda begin
 		when enter or login begin
-			send_letter(gameforge.new_quest_lv17._020_say_title)
+			send_letter(gameforge.new_quest_lv17._020_say_title, QUEST_TURN_IN)
 			q.start()
 			q.set_title(gameforge.new_quest_lv17._020_say_title)
 			local v=find_npc_by_vnum(20087)
@@ -222,7 +222,7 @@ quest new_quest_lv17 begin
 	
 		--BEGIN EDIT by Arne 18Sept09 according to mantis0026065, Reason: letter, quest
 		when enter or login begin
-		send_letter(gameforge.new_quest_lv17._020_say_title)
+		send_letter(gameforge.new_quest_lv17._020_say_title, QUEST_TURN_IN)
 		q.start()
 		q.set_title(gameforge.new_quest_lv17._020_say_title)
 					local v=find_npc_by_vnum(20087)

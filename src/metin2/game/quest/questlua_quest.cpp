@@ -91,6 +91,29 @@ namespace metin2::game {
             return 0;
         }
 
+        auto quest_set_letter(lua_State *lua) -> int {
+            quest_manager &q = get_quest_manager();
+
+            if (lua_isstring(lua, 1))
+                q.current_pc()->set_current_quest_letter(lua_tostring(lua, 1));
+
+            return 0;
+        }
+
+        // q.set_status(QUEST_TURN_IN) marks the current state as the hand-in of the quest,
+        // QUEST_ACTIVE clears that and QUEST_NEW makes the letter unread again.
+        auto quest_set_status(lua_State *lua) -> int {
+            quest_manager &q = get_quest_manager();
+
+            if (lua_isnumber(lua, 1)) {
+                const int status = (int)rint(lua_tonumber(lua, 1));
+                if (status >= pc::QUEST_STATUS_ACTIVE && status <= pc::QUEST_STATUS_TURN_IN)
+                    q.current_pc()->set_current_quest_status(static_cast<pc::quest_status>(status));
+            }
+
+            return 0;
+        }
+
         auto quest_setstate(lua_State *lua) -> int {
             if (lua_tostring(lua, -1) == nullptr) {
                 quest::error("State name is empty");
@@ -179,6 +202,8 @@ namespace metin2::game {
                     {"set_counter_name",     quest_set_counter_name       },
                     {"set_counter_value",    quest_set_counter_value      },
                     {"set_icon",             quest_set_icon_file          },
+                    {"set_letter",           quest_set_letter             },
+                    {"set_status",           quest_set_status             },
                     {"start",                quest_start                  },
                     {"done",                 quest_done                   },
                     {"getcurrentquestindex", quest_get_current_quest_index},

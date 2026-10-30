@@ -45,7 +45,7 @@ quest main_quest_lv66 begin
 			if v != 0 then
 				target.vid ("__TARGET__",v,"")
 			end
-			send_letter (gameforge.main_quest_lv66._10_sendLetter)
+			send_letter (gameforge.main_quest_lv66._10_sendLetter, QUEST_TURN_IN)
 		end
 		when button or info begin
 			say_title (gameforge.main_quest_lv66._10_sendLetter)
@@ -258,7 +258,7 @@ quest main_quest_lv66 begin
 			if v != 0 then
 				target.vid ("__TARGET__",v,"")
 			end
-			send_letter (gameforge.main_quest_lv66._390_sendLetter)
+			send_letter (gameforge.main_quest_lv66._390_sendLetter, QUEST_TURN_IN)
 		end
 		when button or info begin
 			say_title (gameforge.main_quest_lv66._390_sendLetter)
@@ -354,7 +354,7 @@ quest main_quest_lv66 begin
 			if v != 0 then
 				target.vid ("__TARGET__",v,"")
 			end
-			send_letter (gameforge.main_quest_lv66._560_sendLetter)
+			send_letter (gameforge.main_quest_lv66._560_sendLetter, QUEST_TURN_IN)
 		end
 		when button or info begin
 			say_title (gameforge.main_quest_lv66._560_sendLetter)

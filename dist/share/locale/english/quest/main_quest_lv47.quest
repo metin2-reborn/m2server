@@ -73,7 +73,7 @@ quest main_quest_lv47 begin
 
 	state gototeacher2 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv47._90_sendLetter)
+			send_letter(gameforge.main_quest_lv47._90_sendLetter, QUEST_TURN_IN)
 
 			local v=find_npc_by_vnum(20011)
 			if 0==v then
@@ -164,7 +164,7 @@ quest main_quest_lv47 begin
 			
 	state gotomusician1 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv47._340_sendLetter)
+			send_letter(gameforge.main_quest_lv47._340_sendLetter, QUEST_TURN_IN)
 			local v=find_npc_by_vnum(20017)
 			if 0==v then
 			else
@@ -190,7 +190,7 @@ quest main_quest_lv47 begin
 
 	state gototeacher begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv47._380_sendLetter)
+			send_letter(gameforge.main_quest_lv47._380_sendLetter, QUEST_TURN_IN)
 
 			local v=find_npc_by_vnum(20011)
 			if 0==v then
@@ -254,7 +254,7 @@ quest main_quest_lv47 begin
 	
 	state gototeacher3 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv47._520_sendLetter)
+			send_letter(gameforge.main_quest_lv47._520_sendLetter, QUEST_TURN_IN)
 
 			local v=find_npc_by_vnum(20011)
 			if 0==v then

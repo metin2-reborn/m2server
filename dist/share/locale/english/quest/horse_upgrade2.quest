@@ -166,6 +166,7 @@ quest horse_upgrade2 begin
 			setskin(NOWINDOW)
 			makequestbutton(gameforge.horse_upgrade2._230_makequestbutton)
 			q.set_title(gameforge.horse_upgrade2._230_makequestbutton)
+			q.set_status(QUEST_TURN_IN)
 			q.start()
 		end
 		when button begin
@@ -223,6 +224,7 @@ quest horse_upgrade2 begin
 			setskin(NOWINDOW)
 			makequestbutton(gameforge.horse_upgrade2._330_makequestbutton)
 			q.set_title(gameforge.horse_upgrade2._330_makequestbutton)
+			q.set_status(QUEST_TURN_IN)
 			q.start()
 		end
 		when button begin

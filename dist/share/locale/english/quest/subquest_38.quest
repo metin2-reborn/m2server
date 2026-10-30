@@ -57,7 +57,7 @@ quest subquest_38 begin
 			if pc.count_item("30136") == 0then
 				send_letter(gameforge.subquest_38._10_targetVid)
 			else
-				send_letter(gameforge.subquest_38._110_sendLetter)
+				send_letter(gameforge.subquest_38._110_sendLetter, QUEST_TURN_IN)
 			end
 		end
 		when info or button begin
@@ -74,7 +74,7 @@ quest subquest_38 begin
 			local s = number(1, 100) 
 			if s <= 5 and pc.count_item("30136")== 0  then
 				pc.give_item2("30136", 1)
-				send_letter(gameforge.subquest_38._110_sendLetter)
+				send_letter(gameforge.subquest_38._110_sendLetter, QUEST_TURN_IN)
 				local v=find_npc_by_vnum(20019)
 				if 0== v then
 				else

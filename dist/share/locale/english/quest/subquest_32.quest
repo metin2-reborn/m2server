@@ -237,6 +237,7 @@ quest subquest_32 begin
 			setskin(NOWINDOW)
 			makequestbutton(gameforge.subquest_32._130_sayReward)
 			q.set_title(gameforge.subquest_32._390_qSetTitle)
+			q.set_status(QUEST_TURN_IN)
 			q.start()
 			
 			local v=find_npc_by_vnum(20010)

@@ -1105,7 +1105,7 @@ namespace metin2::game::inline protocol {
         uint8_t header;
         uint16_t size;
         uint16_t index;
-        uint8_t flag;
+        uint16_t flag;
     };
 
     enum {
@@ -1806,7 +1806,7 @@ namespace metin2::game::inline protocol {
     static_assert(sizeof(packet_gc_target) == 6);
     static_assert(sizeof(packet_gc_warp) == 15);
     static_assert(sizeof(packet_cg_warp) == 1);
-    static_assert(sizeof(packet_quest_info) == 6);
+    static_assert(sizeof(packet_quest_info) == 7);
     static_assert(sizeof(packet_gc_messenger) == 4);
     static_assert(sizeof(packet_gc_messenger_list_offline) == 2);
     static_assert(sizeof(packet_gc_messenger_list_online) == 2);

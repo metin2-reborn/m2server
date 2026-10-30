@@ -485,6 +485,7 @@ namespace metin2::game {
                     return;
                 }
 
+                value->mark_quest_opened(quest_index);
                 npc_[QUEST_NO_NPC].on_info(*value, quest_index);
             } else {
                 metin2::log::error("No quest state for player (pid {:d})", pc);
@@ -501,6 +502,7 @@ namespace metin2::game {
                     }
                     return;
                 }
+                value->mark_quest_opened(quest_index);
                 npc_[QUEST_NO_NPC].on_button(*value, quest_index);
             } else {
                 metin2::log::error("No quest state for player (pid {:d})", pc);
@@ -741,12 +743,28 @@ namespace metin2::game {
                 return;
             }
 
+            // A run that only set a letter: nothing to show.
+            if (script_ == "[DONE]" && current_skin_ == QUEST_SKIN_NOWINDOW) {
+                clear_script();
+                return;
+            }
+
             if (script_ == "[DONE]" || script_ == "[NEXT]") {
                 if (current_pc_ && !current_pc_->and_reset_done_flag() && script_ == "[DONE]" && current_skin_ == QUEST_SKIN_NORMAL && !is_error()) {
                     clear_script();
                     return;
                 }
                 current_skin_ = QUEST_SKIN_NOWINDOW;
+            }
+
+            // The dialog names the quest it belongs to and the NPC speaking; a cinema must stay the
+            // first command.
+            if (current_skin_ != QUEST_SKIN_NOWINDOW && current_pc_ && !script_.starts_with("[RUN_CINEMA")) {
+                const int quest_index = current_pc_->is_running() ? current_pc_->running_quest_state()->index : 0;
+                character *npc = current_npc_character_ptr();
+                const unsigned int npc_vnum = npc && !npc->is_pc() ? npc->race_num() : 0;
+                if (quest_index || npc_vnum)
+                    script_.insert(0, std::format("[QUEST idx;{:d}|npc;{:d}]", quest_index, npc_vnum));
             }
 
             struct metin2::game::packet_script packet_script;

@@ -175,7 +175,7 @@ quest main_quest_flame_lv100 begin
 		end
 
 		when letter begin 
-			send_letter(gameforge.main_quest_flame_lv100._010_sendLetter) 
+			send_letter(gameforge.main_quest_flame_lv100._010_sendLetter, QUEST_TURN_IN) 
  			--npc 타겟 
 			local v = find_npc_by_vnum(YACKHWAN) 
 			if 0 != v then
@@ -276,6 +276,9 @@ quest main_quest_flame_lv100 begin
 		when letter begin
 			send_letter(gameforge.main_quest_flame_lv100._160_sendLetter) 
 			q.set_counter_name(gameforge.main_quest_flame_lv100._250_say)
+			if pc.count_item(ITEM2_1) >= ITEM2_1_NEEDED and pc.count_item(ITEM2_2) >= ITEM2_2_NEEDED and pc.count_item(ITEM2_3) >= ITEM2_3_NEEDED and pc.count_item(ITEM2_4) >= ITEM2_4_NEEDED then
+				q.set_status(QUEST_TURN_IN)
+			end
 		end
 		when button or info begin
 			say_title(gameforge.main_quest_flame_lv100._260_sayTitle)
@@ -353,7 +356,7 @@ quest main_quest_flame_lv100 begin
 		end
 
 		when letter begin 
-			send_letter(gameforge.main_quest_flame_lv100._160_sendLetter) 
+			send_letter(gameforge.main_quest_flame_lv100._160_sendLetter, QUEST_TURN_IN) 
  			--npc 타겟 
 			local v = find_npc_by_vnum(ALCHEMIST) 
 			if 0 != v then
@@ -509,7 +512,7 @@ quest main_quest_flame_lv100 begin
 		end
 
 		when letter begin 
-			send_letter(gameforge.main_quest_flame_lv100._320_sendLetter) 
+			send_letter(gameforge.main_quest_flame_lv100._320_sendLetter, QUEST_TURN_IN) 
  			--npc 타겟 
 			local v = find_npc_by_vnum(ALCHEMIST) 
 			if 0 != v then

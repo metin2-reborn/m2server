@@ -1,6 +1,6 @@
 quest make_herb_lv20  begin
 	state start begin
-		when login or levelup with pc.get_level() ==20  begin
+		when login or levelup with pc.get_level() >= 20 and pc.getf("make_herb_lv15", "__status") == make_herb_lv15.__complete begin
 			set_state(information)
 		end	
 	end
@@ -35,6 +35,7 @@ quest make_herb_lv20  begin
 	state go_to_disciple begin
 		when letter begin
 			send_letter(gameforge.collect_herb_lv15._50_sendLetter)
+			if pc.count_item(50705) >= 10-pc.getqf("collect_count") then q.set_status(QUEST_TURN_IN) end
 			
 		end
 		when button or info begin
@@ -65,6 +66,7 @@ quest make_herb_lv20  begin
 		when 182.kill begin
 			if  pc.count_item(50705)< 10 - pc.getqf("collect_count")then
 				pc.give_item2(50705, 1)
+				if pc.count_item(50705) >= 10-pc.getqf("collect_count") then q.set_status(QUEST_TURN_IN) end
 			end
 		end
 		
@@ -100,6 +102,10 @@ quest make_herb_lv20  begin
 					
 					clear_letter()
 					set_state(__complete)
+					-- One herb quest at a time: the next starts once this one is handed in.
+					if pc.get_level() >= 25 then
+						set_quest_state("make_herb_lv25", "information")
+					end
 					
 					pc.give_item2(14023)
 					pc.change_money(15000)
@@ -111,6 +117,7 @@ quest make_herb_lv20  begin
 				say_title(gameforge.collect_herb_lv10._50_sayTitle)
 				say(gameforge.collect_herb_lv20._130_say)
 				pc.setqf("drink_drug",0)	 --Initialize Potion
+				if pc.count_item(50705) < 10-pc.getqf("collect_count") then q.set_status(QUEST_ACTIVE) end
 				return
 				end
 

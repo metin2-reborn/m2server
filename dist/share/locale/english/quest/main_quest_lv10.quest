@@ -90,7 +90,7 @@ quest main_quest_lv10 begin
 			end
 		end
 		when letter begin
-			send_letter(gameforge.main_quest_lv10._180_targetVid)
+			send_letter(gameforge.main_quest_lv10._180_targetVid, QUEST_TURN_IN)
 		end
 		when button or info begin
 			say_title(gameforge.main_quest_lv10._110_sayTitle)

@@ -126,6 +126,7 @@ quest new_quest_premium_lv4 begin
             send_letter(gameforge.new_quest_premium_lv4._40_qSetTitle)
             q.start()
             q.set_title(gameforge.new_quest_premium_lv4._40_qSetTitle)
+            q.set_status(QUEST_TURN_IN)
             local v=find_npc_by_vnum(9001) -- Waffenhändler
             if 0==v then
             else
@@ -173,6 +174,7 @@ quest new_quest_premium_lv4 begin
             send_letter(gameforge.new_quest_premium_lv4._40_qSetTitle)--added08Oct09by Arne, Reason: no letter
             q.start()
             q.set_title(gameforge.new_quest_premium_lv4._40_qSetTitle)
+            if pc.count_item(pc.getqf("drop2")) >= pc.getqf("neededAmountDrop2") then q.set_status(QUEST_TURN_IN) end
             local v=find_npc_by_vnum(9001) -- Waffenhändler
             if 0==v then
             else
@@ -187,6 +189,7 @@ quest new_quest_premium_lv4 begin
                     notice_multiline(gameforge.new_quest_premium_lv4._370_notice, notice)
                     if pc.count_item(pc.getqf("drop2")) >= pc.getqf("neededAmountDrop2") then
                         notice_multiline(gameforge.new_quest_premium_lv4._140_notice, notice)
+                        q.set_status(QUEST_TURN_IN)
                     end
                 else
                     notice_multiline(gameforge.new_quest_premium_lv4._380_notice, notice)
@@ -242,6 +245,7 @@ quest new_quest_premium_lv4 begin
             send_letter(gameforge.new_quest_premium_lv4._40_qSetTitle)--added08Oct09by Arne, Reason: no letter
             q.start()
             q.set_title(gameforge.new_quest_premium_lv4._40_qSetTitle)
+            q.set_status(QUEST_TURN_IN)
         end
         when __TARGET3__.target.click begin
             target.delete("__TARGET3__")

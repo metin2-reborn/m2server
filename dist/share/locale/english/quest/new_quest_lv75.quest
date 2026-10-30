@@ -476,7 +476,7 @@ quest new_quest_lv75 begin
 			if 0!=v then
 				target.vid("__TARGET__", v, gameforge.new_quest_lv75._010_target) -- place questarrow on Heuk-Young
 			end
-			send_letter(gameforge.new_quest_lv75._240_send_letter)
+			send_letter(gameforge.new_quest_lv75._240_send_letter, QUEST_TURN_IN)
 		end
 		
 		when button or info begin

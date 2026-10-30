@@ -75,6 +75,7 @@ quest new_quest_lv54 begin
 			send_letter(gameforge.new_quest_lv54._020_say_title)
 			q.start()
 			q.set_title(gameforge.new_quest_lv54._020_say_title)
+			q.set_status(QUEST_TURN_IN)
 			local v=find_npc_by_vnum(20355) -- Hauptmann
 			if 0==v then
 			else
@@ -198,6 +199,7 @@ quest new_quest_lv54 begin
 			send_letter(gameforge.new_quest_lv54._020_say_title)
 			q.start()
 			q.set_title(gameforge.new_quest_lv54._020_say_title)
+			q.set_status(QUEST_TURN_IN)
 		end
 		when 20019.chat.gameforge.new_quest_lv54._020_say_title begin
 			say_title(gameforge.new_quest_lv54._077_say_title)

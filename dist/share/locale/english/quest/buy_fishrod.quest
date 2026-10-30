@@ -62,6 +62,9 @@ quest buy_fishrod begin
 			setskin(NOWINDOW)
 			makequestbutton(gameforge.buy_fishrod._150_makequestbutton)
 			q.set_title(gameforge.buy_fishrod._150_makequestbutton)
+			if pc.countitem("27833")>=5 then
+				q.set_status(QUEST_TURN_IN)
+			end
 			q.start()
 		end
 		when button begin

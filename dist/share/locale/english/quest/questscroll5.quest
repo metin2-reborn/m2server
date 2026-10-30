@@ -338,7 +338,7 @@ quest questscroll5 begin
     end
     state reward begin
         when letter begin
-            send_letter(questscroll5.get_complete_title())
+            send_letter(questscroll5.get_complete_title(), QUEST_TURN_IN)
         end
         when button or info begin
             restart_quest()

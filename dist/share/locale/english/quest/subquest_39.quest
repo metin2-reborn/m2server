@@ -105,6 +105,7 @@ quest subquest_39 begin
 				setskin(NOWINDOW)
 				makequestbutton(gameforge.subquest_39._270_makequestbutton)
 				q.set_title(gameforge.subquest_39._270_makequestbutton)
+				q.set_status(QUEST_TURN_IN)
 				q.start()
 			
 				local v=find_npc_by_vnum("20018")
@@ -160,6 +161,7 @@ quest subquest_39 begin
 			local s = number(1, 100)
 			if s <= 5 and pc.count_item("50059")==0 then
 				pc.give_item2(50059, 1)
+				q.set_status(QUEST_TURN_IN)
 				
 			end
 		end
@@ -184,6 +186,7 @@ quest subquest_39 begin
 			setskin(NOWINDOW)
 			makequestbutton(gameforge.subquest_39._470_makequestbutton)
 			q.set_title(gameforge.subquest_39._470_makequestbutton)
+			q.set_status(QUEST_TURN_IN)
 			q.start()
 			
 			local v=find_npc_by_vnum(20020)

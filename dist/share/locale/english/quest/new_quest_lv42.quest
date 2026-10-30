@@ -189,7 +189,7 @@ quest new_quest_lv42 begin
 			
 			notice_multiline(gameforge.new_quest_lv42._061_notice, notice)
 			if new_quest_lv42_neededAmountDrop1 <= pc.count_item(new_quest_lv42_drop1) then
-				send_letter(gameforge.new_quest_lv42._037_send_letter)
+				send_letter(gameforge.new_quest_lv42._037_send_letter, QUEST_TURN_IN)
 				local v=find_npc_by_vnum(20016) -- Schmied
 				if 0==v then
 				else
@@ -213,7 +213,7 @@ quest new_quest_lv42 begin
 		
 		when kill begin
 			if new_quest_lv42_neededAmountDrop1 <= pc.count_item(new_quest_lv42_drop1) then
-				send_letter(gameforge.new_quest_lv42._037_send_letter)
+				send_letter(gameforge.new_quest_lv42._037_send_letter, QUEST_TURN_IN)
 				local v=find_npc_by_vnum(20016) -- Schmied
 				if 0==v then
 				else
@@ -227,7 +227,7 @@ quest new_quest_lv42 begin
 					pc.mining()
 				end
 			if new_quest_lv42_neededAmountDrop1 <= pc.count_item(new_quest_lv42_drop1) then
-				send_letter(gameforge.new_quest_lv42._037_send_letter)
+				send_letter(gameforge.new_quest_lv42._037_send_letter, QUEST_TURN_IN)
 				local v=find_npc_by_vnum(20016) -- Schmied
 				if 0==v then
 				else
@@ -320,7 +320,7 @@ quest new_quest_lv42 begin
 			new_quest_lv42_mob1 = 20047 -- diamantader
 			new_quest_lv42_drop1 = 50601 -- diamant stein
 			new_quest_lv42_timeToWait = 86400
-			send_letter(gameforge.new_quest_lv42._037_send_letter)
+			send_letter(gameforge.new_quest_lv42._037_send_letter, QUEST_TURN_IN)
 			q.start()
 			q.set_title(gameforge.new_quest_lv42._037_send_letter)
 			local v=find_npc_by_vnum(9009) -- Fisher

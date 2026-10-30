@@ -89,12 +89,14 @@ namespace metin2::game {
             int clock_value;
             int counter_value;
             std::string icon_file;
+            // The quest has a letter (a row the player clicks); set again by every run that sends it.
+            bool has_letter;
 
             std::vector<a_arg_script *> chat_scripts;
 
             quest_state()
                 : co(nullptr), ico(0), args(0), suspend_state(SUSPEND_STATE_NONE), index(0), start(false), st(-1),
-                  clock_value(0), counter_value(0) {}
+                  clock_value(0), counter_value(0), has_letter(false) {}
         };
     }
 }

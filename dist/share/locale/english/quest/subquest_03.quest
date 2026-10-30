@@ -60,7 +60,7 @@ quest subquest_3 begin
 
     state go_back_to_doctor begin
 		when letter begin
-			send_letter(gameforge.subquest_03._90_sendLetter)
+			send_letter(gameforge.subquest_03._90_sendLetter, QUEST_TURN_IN)
 			local v = find_npc_by_vnum(20018)
 
 			if v!= 0 then

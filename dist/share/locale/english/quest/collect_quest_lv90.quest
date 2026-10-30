@@ -46,6 +46,7 @@ quest collect_quest_lv90  begin
 	state go_to_disciple begin
 		when letter begin
 			send_letter(gameforge.collect_quest_lv90._080_send_letter)
+			if pc.count_item(30168) > 0 then q.set_status(QUEST_TURN_IN) end
 			
 		end
 		when button or info begin
@@ -81,7 +82,7 @@ quest collect_quest_lv90  begin
 			local s = number(1, 100)
 			if s <= 30 and pc.count_item(30168)==0 then
 				pc.give_item2(30168, 1)
-				send_letter(gameforge.collect_quest_lv90._130_send_letter)
+				send_letter(gameforge.collect_quest_lv90._130_send_letter, QUEST_TURN_IN)
 			end	
 		end
 
@@ -94,6 +95,7 @@ quest collect_quest_lv90  begin
 				say(gameforge.collect_quest_lv90._150_say)
 				say("")
 				pc.remove_item(30168, 1)
+				if pc.count_item(30168) == 0 then q.set_status(QUEST_ACTIVE) end
 				if  is_test_server()  then 
 					pc.setqf("duration",get_time()+2) 
 				else
@@ -155,6 +157,7 @@ end
 	state key_item begin
 		when letter begin
 			send_letter(gameforge.collect_quest_lv90._195_send_letter)
+			if pc.count_item(30227) > 0 then q.set_status(QUEST_TURN_IN) end
 			
 			if pc.count_item(30227)>0 then	
 				local v = find_npc_by_vnum(20084)
@@ -185,7 +188,7 @@ end
 			local s = number(1, 100)
 			if s <= 30 and pc.count_item(30227)==0 then
 				pc.give_item2(30227, 1)
-				send_letter(gameforge.collect_quest_lv90._250_send_letter)
+				send_letter(gameforge.collect_quest_lv90._250_send_letter, QUEST_TURN_IN)
 			end	
 		end
 
@@ -211,7 +214,7 @@ end
 	
 	state __reward begin
 		when letter begin
-			send_letter(gameforge.collect_quest_lv90._270_send_letter)
+			send_letter(gameforge.collect_quest_lv90._270_send_letter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(20018)
 			if v != 0 then

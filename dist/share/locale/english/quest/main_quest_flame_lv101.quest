@@ -200,7 +200,7 @@ quest main_quest_flame_lv101 begin
 		end
 
 		when letter begin 
-			send_letter(gameforge.main_quest_flame_lv101._010_sendLetter) 
+			send_letter(gameforge.main_quest_flame_lv101._010_sendLetter, QUEST_TURN_IN) 
  			--npc 타겟 
 			local v = find_npc_by_vnum(YACKHWAN) 
 			if 0 != v then
@@ -348,7 +348,7 @@ quest main_quest_flame_lv101 begin
 		end
 
 		when letter begin 
-			send_letter(gameforge.main_quest_flame_lv101._290_sendLetter) 
+			send_letter(gameforge.main_quest_flame_lv101._290_sendLetter, QUEST_TURN_IN) 
  			--npc 타겟 
 			local v = find_npc_by_vnum(SCHOLAR) 
 			if 0 != v then
@@ -482,7 +482,7 @@ quest main_quest_flame_lv101 begin
 		end
 
 		when letter begin 
-			send_letter(gameforge.main_quest_flame_lv101._430_sendLetter) 
+			send_letter(gameforge.main_quest_flame_lv101._430_sendLetter, QUEST_TURN_IN) 
  			--npc 타겟 
 			local v = find_npc_by_vnum(YACKHWAN) 
 			if 0 != v then

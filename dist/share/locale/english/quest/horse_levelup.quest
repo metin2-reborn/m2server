@@ -495,6 +495,7 @@ quest horse_levelup begin
 			setskin(NOWINDOW)
 			makequestbutton(gameforge.horse_levelup._360_makequestbutton)
 			q.set_title(gameforge.horse_levelup._360_makequestbutton)
+			q.set_status(QUEST_TURN_IN)
 			q.start()
 		end
 		when button begin

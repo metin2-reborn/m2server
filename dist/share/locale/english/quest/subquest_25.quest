@@ -68,6 +68,7 @@ quest subquest_25 begin
 			q.set_title(gameforge.subquest_25._130_qSetTitle)
 			q.start()
 			makequestbutton(gameforge.subquest_25._140_makequestbutton)
+			q.set_status(QUEST_TURN_IN)
 			
 			local v=find_npc_by_vnum(20022)
 			if 0==v then
@@ -172,6 +173,7 @@ quest subquest_25 begin
 			q.set_title(gameforge.subquest_25._390_qSetTitle)
 			q.start()
 			makequestbutton(gameforge.subquest_25._390_qSetTitle)
+			q.set_status(QUEST_TURN_IN)
 			
 			local v=find_npc_by_vnum(20022)
 			if 0 == v then

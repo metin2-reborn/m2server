@@ -142,7 +142,7 @@ quest dragon_lair_weekly begin
 				q.set_title(gameforge.dragon_lair_weekly._110_sayTitle)
 			else
 				-- "Things collected!"
-				send_letter(gameforge.dragon_lair_weekly._120_sendLetter)
+				send_letter(gameforge.dragon_lair_weekly._120_sendLetter, QUEST_TURN_IN)
 				q.set_title(gameforge.dragon_lair_weekly._130_sayTitle)
 			end
 			q.start()
@@ -173,6 +173,7 @@ quest dragon_lair_weekly begin
 					say_item_vnum(pc.getqf("item_to_hunt"))
 					say("")
 					say(gameforge.dragon_lair_weekly._090_questRest .. get_time_remaining(time_remaining))
+					q.set_status(QUEST_ACTIVE)
 				else
 					-- player did not collect the items in time
 					
@@ -185,6 +186,7 @@ quest dragon_lair_weekly begin
 				say_title(gameforge.dragon_lair_weekly._130_sayTitle) -- quest title
 				-- "You have all needed items. Go back to the warrior Ghost! He is in heavens cave 2"
 				say(gameforge.dragon_lair_weekly._150_say)
+				q.set_status(QUEST_TURN_IN)
 			end
 		end
 		

@@ -109,7 +109,7 @@ quest main_quest_lv84 begin
 			if v != 0 then
 				target.vid ("__TARGET__",v,"")
 			end
-			send_letter(gameforge.main_quest_lv84._150_sendLetter)
+			send_letter(gameforge.main_quest_lv84._150_sendLetter, QUEST_TURN_IN)
 		end
 		when button or info begin
 			say_title(gameforge.main_quest_lv84._150_sendLetter)

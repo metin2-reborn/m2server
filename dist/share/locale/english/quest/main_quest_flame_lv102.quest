@@ -186,7 +186,7 @@ quest main_quest_flame_lv102 begin
 		end
 
 		when letter begin 
-			send_letter(gameforge.main_quest_flame_lv102._010_sendLetter) 
+			send_letter(gameforge.main_quest_flame_lv102._010_sendLetter, QUEST_TURN_IN) 
  			--npc 타겟 
 			local v = find_npc_by_vnum(YACKHWAN) 
 			if 0 != v then
@@ -330,7 +330,7 @@ quest main_quest_flame_lv102 begin
 		end
 
 		when letter begin 
-			send_letter(gameforge.main_quest_flame_lv102._180_sendLetter) 
+			send_letter(gameforge.main_quest_flame_lv102._180_sendLetter, QUEST_TURN_IN) 
  			--npc 타겟 
 			local v = find_npc_by_vnum(SCHOLAR) 
 			if 0 != v then
@@ -424,6 +424,7 @@ quest main_quest_flame_lv102 begin
 		when letter begin 
 			send_letter(gameforge.main_quest_flame_lv102._350_sendLetter) 
 			q.set_counter_name(gameforge.main_quest_lv97._670_counterName)
+			if pc.count_item(ITEM3_1) >= ITEM3_1_NEED and pc.count_item(ITEM3_2) >= ITEM3_2_NEED then q.set_status(QUEST_TURN_IN) end
 		end
 
 		when button or info begin 
@@ -485,7 +486,7 @@ quest main_quest_flame_lv102 begin
 		end
 
 		when letter begin 
-			send_letter(gameforge.main_quest_flame_lv102._350_sendLetter) 
+			send_letter(gameforge.main_quest_flame_lv102._350_sendLetter, QUEST_TURN_IN) 
  			--npc 타겟 
 			local v = find_npc_by_vnum(YUHWAN) 
 			if 0 != v then
@@ -585,7 +586,7 @@ quest main_quest_flame_lv102 begin
 		end
 
 		when letter begin 
-			send_letter(gameforge.main_quest_flame_lv102._480_sendLetter) 
+			send_letter(gameforge.main_quest_flame_lv102._480_sendLetter, QUEST_TURN_IN) 
  			--npc 타겟 
 			local v = find_npc_by_vnum(YACKHWAN) 
 			if 0 != v then

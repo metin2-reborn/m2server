@@ -154,7 +154,7 @@ quest subquest_17 begin
 	end
 	state discover_ring begin
 		when letter begin
-			send_letter(gameforge.subquest_17._330_sendLetter)
+			send_letter(gameforge.subquest_17._330_sendLetter, QUEST_TURN_IN)
 			
 			local v=find_npc_by_vnum(20021)
 			if 0!=v then
@@ -177,7 +177,7 @@ quest subquest_17 begin
 	end
 	state reward begin
 		when letter begin
-			send_letter(gameforge.subquest_17._390_sendLetter)
+			send_letter(gameforge.subquest_17._390_sendLetter, QUEST_TURN_IN)
 		end
 		when info or button begin
 			say_title(gameforge.subquest_17._390_sendLetter)

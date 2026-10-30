@@ -138,6 +138,7 @@ quest new_quest_lv43 begin
 			send_letter(gameforge.new_quest_lv43._006_send_letter)
 			q.start()
 			q.set_title(gameforge.new_quest_lv43._006_send_letter)
+			q.set_status(QUEST_TURN_IN)
 			local v=find_npc_by_vnum(20087) -- Wonda-Rim
 			if 0==v then
 			else

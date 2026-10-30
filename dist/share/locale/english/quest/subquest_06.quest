@@ -255,6 +255,7 @@ quest subquest_6 begin
 			setskin(NOWINDOW)
 			makequestbutton(gameforge.subquest_06._470_makequestbutton)
 			q.set_title(gameforge.subquest_06._480_qSetTitle)
+			q.set_status(QUEST_TURN_IN)
 			q.start()
 
 			local v=find_npc_by_vnum(20016)
@@ -281,7 +282,7 @@ quest subquest_6 begin
 		end
 
 		when letter begin
-			send_letter(gameforge.subquest_06._10_targetVid)
+			send_letter(gameforge.subquest_06._10_targetVid, QUEST_TURN_IN)
 
 		    local v=find_npc_by_vnum(9002)
 			if 0==v then

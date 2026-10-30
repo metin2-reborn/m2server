@@ -60,7 +60,7 @@ state survey8 begin
 
 	state gototeacher8 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv55._70_sendLetter)
+			send_letter(gameforge.main_quest_lv55._70_sendLetter, QUEST_TURN_IN)
 			if main_quest_lv55.is_my_vil()==1 then
 				local v=find_npc_by_vnum(20011)
 				if 0==v then
@@ -170,7 +170,7 @@ state survey8 begin
 	end
 	state gototeacher begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv55._200_sendLetter)
+			send_letter(gameforge.main_quest_lv55._200_sendLetter, QUEST_TURN_IN)
 
 			local v=find_npc_by_vnum(20011)
 			if 0==v then

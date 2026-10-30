@@ -107,6 +107,7 @@ quest main_quest_lv15 begin
 			setskin(NOWINDOW)
 			makequestbutton(gameforge.main_quest_lv15._170_makequestbutton)
 			q.set_title(gameforge.main_quest_lv15._170_makequestbutton)
+			q.set_status(QUEST_TURN_IN)
 			q.start()
 		end
 		when button or info begin

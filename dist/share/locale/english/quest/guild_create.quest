@@ -18,7 +18,7 @@ quest guild_create begin
     end
 	state reward begin
 		when letter begin
-			send_letter(gameforge.guild_create._40_sendLetter)
+			send_letter(gameforge.guild_create._40_sendLetter, QUEST_TURN_IN)
 		end
 		when button or info begin
 			say_title(gameforge.guild_create._50_sayTitle)

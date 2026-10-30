@@ -98,7 +98,7 @@ say_reward(string.format(gameforge.main_quest_lv2._90_sayReward,item_name(27001)
 			end
 		end
 		when letter begin
-			send_letter(gameforge.main_quest_lv2._200_sendLetter)
+			send_letter(gameforge.main_quest_lv2._200_sendLetter, QUEST_TURN_IN)
 		end
 		when button or info begin
 			say_title(gameforge.main_quest_lv2._200_sendLetter)

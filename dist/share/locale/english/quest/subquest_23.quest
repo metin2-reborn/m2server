@@ -139,7 +139,7 @@ quest subquest_23 begin
 	 state to_mirinae  begin
 		when letter begin
 
-			send_letter(gameforge.subquest_23._320_sendLetter)
+			send_letter(gameforge.subquest_23._320_sendLetter, QUEST_TURN_IN)
 			local v= find_npc_by_vnum(20006)
 			if v!= 0 then
 				target.vid("__TARGET__",v, gameforge.subquest_23._320_sendLetter)

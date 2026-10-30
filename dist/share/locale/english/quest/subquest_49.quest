@@ -126,6 +126,7 @@ quest subquest_49 begin
 			q.start()
 
 			if pc.count_item("30146")>=50 then
+				q.set_status(QUEST_TURN_IN)
 				local v=find_npc_by_vnum(20008)
 				if 0==v then
 					else
@@ -148,6 +149,7 @@ quest subquest_49 begin
 			local s = number(1, 100)
 			if s <= 7 and pc.count_item("30146")< 50  then
 				pc.give_item2("30146", 2)
+				if pc.count_item("30146")>=50 then q.set_status(QUEST_TURN_IN) end
 			end
 		end
 
@@ -182,6 +184,7 @@ state back_to_boy begin
 			setskin(NOWINDOW)
 			makequestbutton(gameforge.subquest_44._460_sendLetter)
 			q.set_title(gameforge.subquest_44._460_sendLetter)
+			q.set_status(QUEST_TURN_IN)
 			q.start()
 
 			local v = find_npc_by_vnum(20014)

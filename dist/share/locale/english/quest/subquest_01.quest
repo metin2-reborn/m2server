@@ -101,7 +101,7 @@ quest subquest_1 begin
 	end
     state go_back_to_yonah begin
 		when letter begin
-			send_letter(gameforge.subquest_01._210_sendLetter)
+			send_letter(gameforge.subquest_01._210_sendLetter, QUEST_TURN_IN)
 			local v = find_npc_by_vnum(20005)
 
 			if v!= 0 then
@@ -136,7 +136,7 @@ quest subquest_1 begin
 
 	state going_to_reward begin
 		when letter begin
-			send_letter(gameforge.subquest_01._270_sendLetter)
+			send_letter(gameforge.subquest_01._270_sendLetter, QUEST_TURN_IN)
 
 			local v=find_npc_by_vnum(9003)
 			if 0==v then

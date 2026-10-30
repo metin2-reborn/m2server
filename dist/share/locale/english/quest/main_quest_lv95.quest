@@ -184,7 +184,7 @@ quest main_quest_lv95 begin
 	end
 	state state1_3 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv95._010_sendLetter)
+			send_letter(gameforge.main_quest_lv95._010_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then
@@ -330,7 +330,7 @@ quest main_quest_lv95 begin
 	
 	state state2_3 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv95._180_sendLetter)
+			send_letter(gameforge.main_quest_lv95._180_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then
@@ -473,7 +473,7 @@ quest main_quest_lv95 begin
 	
 	state state3_3 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv95._320_sendLetter)
+			send_letter(gameforge.main_quest_lv95._320_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then
@@ -606,7 +606,7 @@ quest main_quest_lv95 begin
 	end
 	state state4_3 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv95._470_sendLetter)
+			send_letter(gameforge.main_quest_lv95._470_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then
@@ -744,7 +744,7 @@ quest main_quest_lv95 begin
 	end
 	state state5_2 begin
 		when letter begin
-			send_letter(gameforge.main_quest_lv95._630_sendLetter)
+			send_letter(gameforge.main_quest_lv95._630_sendLetter, QUEST_TURN_IN)
 			
 			local v = find_npc_by_vnum(GUARD)
 			if 0 != v then

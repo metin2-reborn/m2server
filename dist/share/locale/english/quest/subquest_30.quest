@@ -58,6 +58,7 @@ quest subquest_30 begin
 			local ebony=pc.count_item(50608)
 
 			if	gold>=100  and silver>=100 and ebony>=100 then
+				q.set_status(QUEST_TURN_IN)
 				local v = find_npc_by_vnum(20016)
 
 				if v != 0 then
