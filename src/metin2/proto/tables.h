@@ -144,7 +144,6 @@ namespace metin2::inline proto {
 
         HEADER_DG_LOGIN_SUCCESS = 30,
         HEADER_DG_LOGIN_NOT_EXIST = 31,
-        HEADER_DG_LOGIN_WRONG_PASSWD = 33,
         HEADER_DG_LOGIN_ALREADY = 34,
 
         HEADER_DG_PLAYER_LOAD_SUCCESS = 35,

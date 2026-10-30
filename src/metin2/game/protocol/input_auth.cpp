@@ -142,7 +142,7 @@ namespace metin2::game::inline protocol {
         int password_diff = strcmp(encryt_password, password_value);
 
         if (password_diff) {
-            login_failure(d, "WRONGPWD");
+            login_failure(d, "NOID");
             metin2::log::info("Auth login refused: wrong password for account {}", info.login);
         } else if (not_avail) {
             login_failure(d, "NOTAVAIL");
@@ -222,11 +222,6 @@ namespace metin2::game::inline protocol {
             strlcpy(failure_packet.status, "SHUTDOWN", sizeof(failure_packet.status));
 
             d->packet(&failure_packet, sizeof(failure_packet));
-            return;
-        }
-
-        if (get_desc_manager().find_by_login_name(login)) {
-            login_failure(d, "ALREADY");
             return;
         }
 

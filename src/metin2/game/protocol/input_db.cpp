@@ -1482,10 +1482,6 @@ namespace metin2::game::inline protocol {
             login_failure(handle_desc, "NOID");
             break;
 
-        case HEADER_DG_LOGIN_WRONG_PASSWD:
-            login_failure(handle_desc, "WRONGPWD");
-            break;
-
         case HEADER_DG_LOGIN_ALREADY:
             login_already(handle_desc, data);
             break;
