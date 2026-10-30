@@ -885,6 +885,7 @@ namespace metin2::game::inline characters {
             get_desc()->host_name(), gold(), metin2::config::server().channel, map_index(), alignment());
 
         get_log_manager().char_log(this, 0, "LOGOUT", buf.c_str());
+        get_log_manager().detail_login_log(false, this);
 
         if (war_map_)
             set_war_map(nullptr);

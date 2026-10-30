@@ -250,8 +250,6 @@ namespace metin2::game::inline admin {
                     acc_info.player_id = ch->get_desc()->get_account_table().id;
 
                     db_clientdesc->db_packet(HEADER_GD_VALID_LOGOUT, 0, &acc_info, sizeof(acc_info));
-
-                    get_log_manager().detail_login_log(false, ch);
                 }
                 break;
             }

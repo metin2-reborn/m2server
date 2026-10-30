@@ -219,11 +219,11 @@ namespace metin2::game::inline persistence {
                 ch->get_desc()->host_name(),
                 ch->get_desc()->client_version()));
         } else {
-            query(sql::format("SET @i = (SELECT MAX(id) FROM loginlog2 WHERE account_id={} AND pid={})",
+            // Closes the session the login opened; playtime is in seconds.
+            query(sql::format("UPDATE loginlog2 SET type='VALID', logout_time=NOW(), playtime=TIMESTAMPDIFF(SECOND, login_time, NOW()) "
+                              "WHERE account_id={} AND pid={} AND logout_time IS NULL ORDER BY id DESC LIMIT 1",
                 ch->get_desc()->get_account_table().id,
                 ch->player_id()));
-
-            query("UPDATE loginlog2 SET type='VALID', logout_time=NOW(), playtime=TIMEDIFF(logout_time,login_time) WHERE id=@i");
         }
     }
 
