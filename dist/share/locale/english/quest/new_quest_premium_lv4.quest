@@ -39,7 +39,7 @@ quest new_quest_premium_lv4 begin
             pc.setqf("dropProb1", 40)
             pc.setqf("mob1",104) -- Blau-Wolf
             pc.setqf("drop1", 50705) -- lilac
-            pc.setqf("drop2", 30177) -- Vielfarbtrank  
+            pc.setqf("drop2", 30177) -- Musk Oil, dropped by Wild Boars (the original quest sold it in the item shop)
             pc.setqf("new_quest_premium_lv4_collect_count_1", 0) --Arne08Oct09, needed initializing
             q.start()
             q.set_title(gameforge.new_quest_premium_lv4._40_qSetTitle)
@@ -166,7 +166,7 @@ quest new_quest_premium_lv4 begin
             say(gameforge.new_quest_premium_lv4._220_say)
         end
     end
-    -------------- player has to buy multicolorpotion in the cash shop for the weapon_trader ------------------------------------------------------
+    -------------- player has to hunt Wild Boars for Musk Oil for the weapon_trader ------------------------------------------------------
     state give_trader_premiumitem begin
         when enter or login begin -- Arne 08Oct09 changed to enter or login, Reason: would not remind player otherwise
             --send_letter(gameforge.new_quest_premium_lv4._65_qSetTitle)--added08Oct09by Arne, Reason: no letter
@@ -177,6 +177,20 @@ quest new_quest_premium_lv4 begin
             if 0==v then
             else
                 target.vid("__TARGET2__", v, gameforge.new_quest_premium_lv4._50_targetVid)
+            end
+        end
+        -- kill a 108#wild boar
+        when 108.kill begin
+            if pc.count_item(pc.getqf("drop2")) < pc.getqf("neededAmountDrop2") then
+                if math.random(1,100) <= 30 then
+                    pc.give_item2(pc.getqf("drop2"))
+                    notice_multiline(gameforge.new_quest_premium_lv4._370_notice, notice)
+                    if pc.count_item(pc.getqf("drop2")) >= pc.getqf("neededAmountDrop2") then
+                        notice_multiline(gameforge.new_quest_premium_lv4._140_notice, notice)
+                    end
+                else
+                    notice_multiline(gameforge.new_quest_premium_lv4._380_notice, notice)
+                end
             end
         end
         when 9001.chat.gameforge.new_quest_premium_lv4._40_qSetTitle begin --was gameforge.new_quest_premium_lv4._350_npcChat
@@ -192,7 +206,6 @@ quest new_quest_premium_lv4 begin
                 say(gameforge.new_quest_premium_lv4._260_say)
                 say_reward(string.format(gameforge.new_quest_premium_lv4._270_say_reward, pc.getqf("amountYang") ))
                 pc.change_money(pc.getqf("amountYang") )
-                pc.give_item2(rewardVnum)
                 pc.remove_item(pc.getqf("drop2"), pc.getqf("neededAmountDrop2"))
                 local v=find_npc_by_vnum(9003) -- Gemischtwarenhändlerin
                 if 0==v then
@@ -205,6 +218,8 @@ quest new_quest_premium_lv4 begin
                 -- this happens, if the player sold or dropped needed items:
                 say(gameforge.new_quest_premium_lv4._280_say) --changed 08Oct09 Arne, Reason: mantis 0033359
                 say_reward(string.format(gameforge.new_quest_premium_lv4._290_say_reward, pc.getqf("neededAmountDrop2")))
+                say_reward(gameforge.new_quest_premium_lv4._100_say_reward)
+                say(mob_name(108))
             end
         end
         
@@ -216,6 +231,8 @@ quest new_quest_premium_lv4 begin
         when info or button begin
             say_title(gameforge.new_quest_premium_lv4._40_qSetTitle)
             say(gameforge.new_quest_premium_lv4._300_say)
+            say_reward(gameforge.new_quest_premium_lv4._100_say_reward)
+            say(mob_name(108))
         end
     end
     -------------- player has to tell the trader, that her lover will meet her this night and everything is ok ------------------------------------------------------
